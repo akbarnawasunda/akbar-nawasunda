@@ -7,6 +7,7 @@
  * Only the hash is written to stdout. The password is never logged.
  */
 import { hashPassword } from "../src/studio/password";
+import { MIN_ADMIN_PASSWORD_LENGTH } from "../src/studio/setup";
 
 async function main(): Promise<void> {
   if (process.stdin.isTTY) {
@@ -18,8 +19,8 @@ async function main(): Promise<void> {
   for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
   const password = Buffer.concat(chunks).toString("utf8").replace(/\r?\n$/, "");
 
-  if (password.length < 12) {
-    console.error("Use a password of at least 12 characters.");
+  if (password.length < MIN_ADMIN_PASSWORD_LENGTH) {
+    console.error(`Use a password of at least ${MIN_ADMIN_PASSWORD_LENGTH} characters.`);
     process.exit(1);
   }
 

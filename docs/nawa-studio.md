@@ -3,9 +3,9 @@
 NAWA STUDIO is the custom content management system for the Akbar Nawasunda website.
 It is built inside this project. No external CMS (WordPress, Sanity, Strapi, Contentful) is used.
 
-**Status: Phase B-3 (content management) implemented locally.** Login, page editing, release (music)
-management, homepage sections, design settings, and a read-only media view are built. Media uploads are
-not connected; see the Media section below.
+**Status: Phase B-4 (activation) implemented locally.** Login, page editing, release (music)
+management, homepage sections, design settings, a read-only media view, and a phone-friendly activation
+page are built. Media uploads are not connected; see the Media section below.
 
 ## What the Studio will manage
 
@@ -32,17 +32,32 @@ and changes go through pull requests.
 
 ## Storage decisions
 
-**Database.** Postgres, using a managed free-tier provider (for example Neon). Reasoning: relational
-data (releases, pages, sections, drafts), standard tooling, and easy export. It needs a connection string
-from the owner. Not configured.
+**Database.** Implemented as libSQL, which is SQLite-compatible: local development uses a `file:` URL and
+production uses a remote `libsql://` URL through the same `@libsql/client` adapter. Turso Cloud is the
+candidate provider. Reasoning for SQLite-compatible storage: the content is small, documents are stored as
+JSON rows, and a single administrator writes rarely. Postgres was the original plan (see the history
+above) and is no longer used; a Postgres URL is refused by name on the activation page.
 
-**Media.** Object storage with an S3-compatible API (for example Cloudflare R2 or Supabase Storage).
-Reasons: originals must be kept, files need serving through a CDN, and egress cost matters. Originals go
-to private storage; delivered variants go to public storage. Not configured.
+**Media.** Object storage. **Owner decision (2026-10-15): Vercel Blob.** Reasons: it is part of the host
+already in use, and it authenticates through short-lived OIDC tokens instead of long-lived access keys
+(`BLOB_STORE_ID` plus `VERCEL_OIDC_TOKEN`, injected when a store is connected to the project), so there is
+no static secret to leak or rotate. Cloudflare R2 stays the fallback if the plan terms or allowances turn
+out not to fit. Not configured, and nothing uploads yet.
 
-**Authentication.** A single administrator account, with sessions stored server-side in the database
-and an HttpOnly, SameSite cookie. Credentials are a hashed password or a passkey, depending on the owner's
-preference. Not configured. No authentication has been implemented.
+Constraints to respect when the upload handler is written:
+
+- A Blob store cannot change its access mode after creation. Plan two stores: a **private** one for
+  originals and a **public** one for the delivered variants the site serves.
+- Blobs are cached for up to a month by default and Vercel recommends treating them as immutable. Upload
+  to a new pathname per version instead of overwriting, which matches the "never overwrite an original"
+  rule below.
+- Server-side uploads pass through a function, so the request body limit of the hosting plan applies. Check
+  the current limit before accepting large originals, and downscale on the server when needed.
+
+**Authentication.** A single administrator account: a password hashed with Node `scrypt`, with sessions
+stored server-side in the database and an HttpOnly, SameSite cookie. Implemented; the hash is produced
+either by the CLI script or by the activation page, and it is stored only in the host's environment
+variables. No passkey support.
 
 **Secrets.** Database URL, storage keys, and session secret go in environment variables. They are never
 committed. `.env.example` lists the names only.
@@ -66,20 +81,23 @@ committed. `.env.example` lists the names only.
   for display only.
 - Public routes read only published content. Drafts are never rendered on public pages.
 
-## Blockers (needed from the owner before implementation)
+## Blockers (needed from the owner before the remaining work)
 
-1. Database: a Postgres connection string, or approval to create a free-tier project.
-2. Storage: a bucket and access keys, or approval to create one.
-3. Administrator login method: password or passkey, and the account email.
-4. Hosting: confirmation of the platform for the Studio and for the preview deployment.
+1. Database: a libSQL database with a write token. The owner has not created one yet.
+2. Storage: a Vercel Blob store (private for originals, public for variants), chosen but not created.
+3. Hosting: resolved. The site is deployed from `main` to Vercel.
+4. A browser pass over the editors at phone width. Not done yet; it needs a real browser, not the build
+   environment.
 
-## Suggested order of implementation
+## Order of implementation, and where it stands
 
-1. Read-only Studio shell behind authentication, showing the asset manifest.
-2. Media library: list, search, and metadata editing, writing to the database.
-3. Release editor with draft and publish states.
-4. Upload with validation and variant generation.
-5. Page and section editor, with the homepage as the first page.
+1. Read-only Studio shell behind authentication, showing the asset manifest. **Done (B-2).**
+2. Release editor with draft and publish states. **Done (B-3).**
+3. Page and section editor, with the homepage as the first page. **Done (B-3).**
+4. Activation tooling so the owner can switch the Studio on from a phone. **Done (B-4).**
+5. Browser and phone-width verification of the editors against a real database. **Open.**
+6. Media library: upload with validation and variant generation, then selection and metadata editing.
+   **Open, blocked on the storage store.**
 
 ## Status: first functional slice (B-2)
 
@@ -155,20 +173,55 @@ names only. **Uploads are not implemented and are not offered.** `src/studio/med
 
 ### Database setup needed
 
-- Local: `DATABASE_URL=file:./data/studio.db`. No token is needed.
-- Production: a libSQL database (for example Turso) must be created by the owner. Set `DATABASE_URL` and
-  `DATABASE_AUTH_TOKEN`. The schema is applied idempotently on first use.
-- No remote database was created or tested by the agent.
+- A libSQL database. Turso Cloud is the candidate, and the database must be the **libSQL** engine, not
+  the newer Turso Database engine: `@libsql/client` speaks libSQL. In the CLI this is the difference
+  between `turso db create <name>` (libSQL) and `turso db create <name> --tursodb`.
+- The token needs write access, because the schema is created on first use.
+- No remote database was created or tested by the agent. Until one exists, `/studio/setup` reports the
+  missing pieces and the public site keeps showing its current content.
+- Walkthrough for the owner, phone-first: `docs/activate-nawa-studio.md`.
 
 ### Tests and checks
 
-- `npm run check` runs the asset check, typecheck, lint, 65 tests (`tests/studio/*`), and the production build.
+- `npm run check` runs the asset check, typecheck, lint, 86 tests (`tests/studio/*`), and the production build.
 - Tests cover config, sessions and lockout rules, content and design parsing, validation (page sections,
-  release fields, verified dates, links, slugs, artwork ids), media status, and repository behaviour on a
-  temporary libSQL file database: drafts not public, atomic publish, unpublish keeping the draft, release
-  listing, and persistence after reopening the connection.
+  release fields, verified dates, links, slugs, artwork ids), media status, activation checks (database URL
+  shapes, hash shapes, host masking, secret redaction, password rules, checklist outcomes), and repository
+  behaviour on a temporary libSQL file database: drafts not public, atomic publish, unpublish keeping the
+  draft, release listing, and persistence after reopening the connection.
 - Smoke test of `next start` with a temporary database: public routes return 200 with correct fallbacks, and
   every `/studio/*` route redirects to login without a session.
 - **Not run:** browser end-to-end tests of the editors and a 390px mobile check. No browser could be launched in
   the build environment. These remain open.
 
+
+## Status: activation tooling (B-4)
+
+Implemented to make switching the Studio on possible from a phone, without a terminal, and to make a
+misconfigured deployment explain itself.
+
+**`/studio/setup`.** Public, like the sign-in page, because it has to be reachable before the Studio works.
+It shows one row per requirement and the row text never contains a secret value:
+
+- `DATABASE_URL`: missing, local file, remote libSQL, or refused by name (a Postgres string is called out
+  specifically, because that was the original plan and it is the easiest mistake to make).
+- `DATABASE_AUTH_TOKEN`: required for remote URLs, not needed for a local file.
+- `STUDIO_ADMIN_PASSWORD_HASH`: presence plus a format check, which catches a value that was cut off while
+  copying.
+- **Database connection and tables**: a real probe. It connects, applies the idempotent schema, and reports
+  whether all three tables exist. Errors are shortened to one line and every secret (the URL, the token) is
+  stripped out of the text before it is displayed.
+
+**Password hash generator, on the same page.** Hashing runs on the server with the same `scrypt` code as the
+sign-in path. The tool is offered only while `STUDIO_ADMIN_PASSWORD_HASH` is unset, so it disables itself as
+soon as the Studio is activated; the action refuses to run in that state even if the form is submitted
+directly. Passwords must be at least 12 characters and typed twice.
+
+**Password check.** Verifies a typed password against the stored hash without creating a session, and shares
+the sign-in lockout counter, so it cannot be used to guess faster than signing in could.
+
+**Deployment notes the page states plainly.** Environment changes only reach a new deployment, so it tells
+the owner to redeploy. A `file:` database is reported as a problem in production, because a serverless host
+does not keep the file.
+
+Walkthrough: `docs/activate-nawa-studio.md`. Tests: `tests/studio/setup.test.ts`.

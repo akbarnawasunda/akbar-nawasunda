@@ -72,6 +72,7 @@ Plan for the content management system: `docs/nawa-studio.md`.
 Protected admin area at `/studio`. See `docs/nawa-studio.md` for the architecture and setup.
 
 - Local: copy `.env.example` to `.env.local`, set `DATABASE_URL=file:./data/studio.db` and `STUDIO_ADMIN_PASSWORD_HASH` (generate with `npm run -s studio:hash-password`, password on stdin), then `npm run dev`.
+- Activation: `/studio/setup` checks every setting, tests the database connection, and can generate the password hash without a terminal. Phone-first walkthrough: `docs/activate-nawa-studio.md`.
 - Content: pages (About, homepage sections), music releases, and design options are edited in `/studio`. Drafts stay private until published.
 - Media is read-only. Uploads are not connected (see `docs/nawa-studio.md`).
 - Tests: `npm test`. Full check: `npm run check`.

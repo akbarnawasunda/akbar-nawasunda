@@ -384,3 +384,21 @@
     grid-template-columns: 1fr 2fr auto;
   }
 }
+
+/* Read-only output of a generated value, such as the password hash on the activation page.
+   Selectable in full, and it wraps instead of scrolling sideways on a phone. */
+.codeBlock {
+  width: 100%;
+  display: block;
+  min-height: 0;
+  padding: var(--space-3);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-fg);
+  background: var(--color-ink-950);
+  border: 1px solid rgba(236, 232, 223, 0.2);
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  resize: none;
+}

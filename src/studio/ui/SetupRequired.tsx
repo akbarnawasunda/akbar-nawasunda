@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { SETUP_ENV_NAMES } from "../setup";
 import styles from "./studio.module.css";
 
 /** Shown instead of Studio features when required settings are missing. Names only, never values. */
@@ -17,8 +20,17 @@ export function SetupRequired({ missing }: { missing: string[] }) {
         ))}
       </ul>
       <p className={styles.hint}>
-        Values are never shown in this screen. See <code>.env.example</code> for the variable names and
-        the README for setup steps.
+        Values are never shown in this screen. The activation page checks each setting, tests the database
+        connection, and can generate the password hash without a terminal:
+      </p>
+      <div className={styles.actions}>
+        <Link href="/studio/setup" className={styles.button} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+          Open activation
+        </Link>
+      </div>
+      <p className={styles.hint}>
+        Variable names: <code>{SETUP_ENV_NAMES.join("</code>, <code>")}</code>. See <code>.env.example</code> for
+        the full list and <code>docs/activate-nawa-studio.md</code> for the steps.
       </p>
     </section>
   );
