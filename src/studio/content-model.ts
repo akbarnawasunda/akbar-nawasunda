@@ -1,29 +1,69 @@
 /**
- * Content model for NAWA STUDIO. Extend this file to add page types and section types;
- * the storage layer stores each page as one JSON document, so new section types do not
- * require schema migrations.
+ * Content model for NAWA STUDIO pages.
+ *
+ * Each managed page declares which fields and section types it supports. The server validates
+ * against this configuration, so the editor cannot create section types a page does not render.
+ * Adding a section type = add it here, to validation, and to the renderer. No schema migration.
  */
 
-/** Pages that the Studio can edit. Routes that are not listed here cannot be managed. */
-export const PAGE_SLUGS = ["about"] as const;
-export type PageSlug = (typeof PAGE_SLUGS)[number];
+export const PAGE_CONFIG = {
+  about: {
+    label: "About",
+    path: "/about",
+    fields: { title: true, lead: true, seoDescription: true },
+    sectionTypes: ["heading", "paragraph"],
+    maxSections: 30,
+  },
+  home: {
+    label: "Homepage (below hero)",
+    path: "/",
+    fields: { title: false, lead: false, seoDescription: true },
+    sectionTypes: ["heading", "paragraph", "music-list"],
+    maxSections: 8,
+  },
+} as const;
+
+export type PageSlug = keyof typeof PAGE_CONFIG;
+export type SectionType = "heading" | "paragraph" | "music-list";
+
+export const PAGE_SLUGS = Object.keys(PAGE_CONFIG) as PageSlug[];
 
 export function isPageSlug(value: string): value is PageSlug {
-  return (PAGE_SLUGS as readonly string[]).includes(value);
+  return Object.prototype.hasOwnProperty.call(PAGE_CONFIG, value);
 }
 
-export const PAGE_LABELS: Record<PageSlug, string> = {
-  about: "About",
+export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
+  heading: "Heading",
+  paragraph: "Paragraph",
+  "music-list": "Music list (published releases)",
 };
 
-export interface ParagraphSection {
+/** Allowed values for the music-list section. */
+export const MUSIC_LIST_COUNTS = [3, 6, 12] as const;
+
+interface SectionBase {
   id: string;
+  /** When false, the section is kept in the draft but not shown publicly. */
+  visible: boolean;
+}
+
+export interface HeadingSection extends SectionBase {
+  type: "heading";
+  text: string;
+}
+
+export interface ParagraphSection extends SectionBase {
   type: "paragraph";
   text: string;
 }
 
-/** Union of all section types. Add new section types here. */
-export type PageSection = ParagraphSection;
+export interface MusicListSection extends SectionBase {
+  type: "music-list";
+  heading: string;
+  count: (typeof MUSIC_LIST_COUNTS)[number];
+}
+
+export type PageSection = HeadingSection | ParagraphSection | MusicListSection;
 
 export interface PageDocument {
   title: string;
@@ -38,7 +78,7 @@ export function emptyPageDocument(title: string): PageDocument {
 
 /**
  * Parses a stored document. Returns null for anything that does not match the model, so corrupted
- * or hand-edited data is never rendered.
+ * or hand-edited data is never rendered. Older documents without `visible` are treated as visible.
  */
 export function parsePageDocument(raw: unknown): PageDocument | null {
   if (typeof raw !== "string") return null;
@@ -56,16 +96,40 @@ export function parsePageDocument(raw: unknown): PageDocument | null {
 
   const sections: PageSection[] = [];
   for (const section of value.sections) {
-    if (!isRecord(section)) return null;
-    if (section.type === "paragraph" && typeof section.id === "string" && typeof section.text === "string") {
-      sections.push({ id: section.id, type: "paragraph", text: section.text });
-    } else {
-      return null;
-    }
+    const parsed = parseSection(section);
+    if (!parsed) return null;
+    sections.push(parsed);
   }
   return { title: value.title, lead: value.lead, seoDescription: value.seoDescription, sections };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function parseSection(section: unknown): PageSection | null {
+  if (!isRecord(section) || typeof section.id !== "string") return null;
+  const visible = section.visible === undefined ? true : section.visible === true;
+  if (section.visible !== undefined && typeof section.visible !== "boolean") return null;
+
+  if (section.type === "paragraph" && typeof section.text === "string") {
+    return { id: section.id, type: "paragraph", visible, text: section.text };
+  }
+  if (section.type === "heading" && typeof section.text === "string") {
+    return { id: section.id, type: "heading", visible, text: section.text };
+  }
+  if (
+    section.type === "music-list" &&
+    typeof section.heading === "string" &&
+    (MUSIC_LIST_COUNTS as readonly unknown[]).includes(section.count)
+  ) {
+    return {
+      id: section.id,
+      type: "music-list",
+      visible,
+      heading: section.heading,
+      count: section.count as MusicListSection["count"],
+    };
+  }
+  return null;
+}
+
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

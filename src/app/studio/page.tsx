@@ -1,9 +1,10 @@
 import Link from "next/link";
 
-import { getStudioConfigStatus } from "@/studio/config";
 import { requireAdmin } from "@/studio/auth";
-import { PAGE_LABELS } from "@/studio/content-model";
-import { countPublishedPages, pingDatabase } from "@/studio/store";
+import { getMediaStorageStatus } from "@/studio/media/storage";
+import { getStudioConfigStatus } from "@/studio/config";
+import { PAGE_SLUGS, PAGE_CONFIG } from "@/studio/content-model";
+import { publicationCounts, pingDatabase } from "@/studio/store";
 import { SetupRequired } from "@/studio/ui/SetupRequired";
 import styles from "@/studio/ui/studio.module.css";
 
@@ -16,7 +17,9 @@ export default async function StudioDashboard() {
   await requireAdmin();
 
   const config = getStudioConfigStatus();
+  const media = getMediaStorageStatus();
   const checks: Check[] = [];
+  let counts: { pages: number; releases: number; draftReleases: number } | null = null;
 
   if (config.ready) {
     const isLocal = (process.env.DATABASE_URL as string).startsWith("file:");
@@ -28,12 +31,7 @@ export default async function StudioDashboard() {
     try {
       await pingDatabase();
       checks.push({ label: "Database connection", state: "ok", detail: "Reachable." });
-      const published = await countPublishedPages();
-      checks.push({
-        label: "Published pages",
-        state: "ok",
-        detail: `${published} of ${Object.keys(PAGE_LABELS).length} page(s) have published content.`,
-      });
+      counts = await publicationCounts();
     } catch {
       checks.push({ label: "Database connection", state: "bad", detail: "The database could not be reached. Check the server logs." });
     }
@@ -41,16 +39,20 @@ export default async function StudioDashboard() {
     checks.push({ label: "Database", state: "bad", detail: "Not configured." });
   }
 
+  const passwordMissing = config.missing.includes("STUDIO_ADMIN_PASSWORD_HASH");
   checks.push({
     label: "Admin password",
-    state: config.missing.includes("STUDIO_ADMIN_PASSWORD_HASH") ? "bad" : "ok",
-    detail: config.missing.includes("STUDIO_ADMIN_PASSWORD_HASH") ? "Not configured." : "Configured.",
+    state: passwordMissing ? "bad" : "ok",
+    detail: passwordMissing ? "Not configured." : "Configured.",
   });
-  checks.push({ label: "Session", state: "ok", detail: "Signed in. Sessions last 7 days." });
   checks.push({
     label: "Media uploads",
-    state: "warn",
-    detail: "Not connected. No object storage is configured, so uploads are unavailable.",
+    state: media.uploadsAvailable ? "ok" : "warn",
+    detail: media.uploadsAvailable
+      ? "Available."
+      : media.configured
+        ? "Storage variables are set, but the upload handler is not built yet. Uploads are unavailable."
+        : `Not connected. Missing storage settings: ${media.missing.length} variable(s). Uploads are unavailable.`,
   });
 
   return (
@@ -76,14 +78,36 @@ export default async function StudioDashboard() {
         </ul>
       </section>
 
+      {counts ? (
+        <section className={styles.section} aria-labelledby="content-heading">
+          <h2 id="content-heading" className={styles.sectionTitle}>Content</h2>
+          <ul className={styles.grid} style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <li className={styles.card}>
+              <p className={styles.label}>Pages with published content</p>
+              <p>{counts.pages} of {PAGE_SLUGS.length}</p>
+            </li>
+            <li className={styles.card}>
+              <p className={styles.label}>Published releases</p>
+              <p>{counts.releases} · drafts: {counts.draftReleases}</p>
+            </li>
+          </ul>
+        </section>
+      ) : null}
+
       <section className={styles.section} aria-labelledby="actions-heading">
         <h2 id="actions-heading" className={styles.sectionTitle}>Work</h2>
         <div className={styles.actions}>
           <Link href="/studio/pages" className={styles.button} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
-            Edit pages
+            Pages ({Object.values(PAGE_CONFIG).length})
+          </Link>
+          <Link href="/studio/music" className={`${styles.button} ${styles.buttonSecondary}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+            Music
+          </Link>
+          <Link href="/studio/design" className={`${styles.button} ${styles.buttonSecondary}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+            Design
           </Link>
           <Link href="/studio/media" className={`${styles.button} ${styles.buttonSecondary}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
-            Media library
+            Media
           </Link>
         </div>
       </section>

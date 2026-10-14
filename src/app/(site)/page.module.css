@@ -93,3 +93,7 @@
   }
 
 }
+
+.below {
+  padding-block: var(--space-16);
+}

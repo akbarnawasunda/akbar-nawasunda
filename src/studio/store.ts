@@ -1,80 +1,158 @@
 import "server-only";
 
 import { getReadyDb } from "./db";
-import { emptyPageDocument, parsePageDocument, PAGE_LABELS, type PageDocument, type PageSlug } from "./content-model";
+import * as repo from "./repository";
+import { DEFAULT_DESIGN, parseDesign, type DesignSettings } from "./design";
+import { PAGE_CONFIG, emptyPageDocument, parsePageDocument, type PageDocument, type PageSlug } from "./content-model";
+import { parseReleaseDocument, releaseKey, slugFromKey, type ReleaseDocument } from "./releases";
 import type { FailureState } from "./security";
 
-export interface PageRecord {
-  slug: PageSlug;
-  draft: PageDocument;
+/** A managed document as the Studio editor needs it. */
+export interface DocumentRecord<T> {
+  key: string;
+  draft: T;
   draftUpdatedAt: number;
-  published: PageDocument | null;
+  published: T | null;
   publishedAt: number | null;
 }
 
-/** Returns the page record, creating an empty draft the first time a page is touched. */
-export async function getPageRecord(slug: PageSlug): Promise<PageRecord> {
+export const DESIGN_KEY = "design";
+
+// ---------- pages (about, home) ----------
+
+function pageDefault(slug: PageSlug): PageDocument {
+  const config = PAGE_CONFIG[slug];
+  return emptyPageDocument(config.fields.title ? config.label : "");
+}
+
+export async function getPageRecord(slug: PageSlug): Promise<DocumentRecord<PageDocument>> {
   const db = await getReadyDb();
-  const nowMs = Date.now();
-  const fallback = emptyPageDocument(PAGE_LABELS[slug]);
-  await db.execute({
-    sql: "INSERT OR IGNORE INTO studio_pages (slug, draft_json, draft_updated_at) VALUES (?, ?, ?)",
-    args: [slug, JSON.stringify(fallback), nowMs],
-  });
-
-  const result = await db.execute({
-    sql: "SELECT draft_json, draft_updated_at, published_json, published_at FROM studio_pages WHERE slug = ?",
-    args: [slug],
-  });
-  const row = result.rows[0];
-  if (!row) throw new Error(`Page record missing for ${slug}`);
-
-  const draft = parsePageDocument(row.draft_json) ?? fallback;
-  const published = row.published_json == null ? null : parsePageDocument(row.published_json);
+  const fallback = pageDefault(slug);
+  await repo.ensureDocument(db, slug, JSON.stringify(fallback), Date.now());
+  const row = await repo.readDocument(db, slug);
+  if (!row) throw new Error(`Document missing: ${slug}`);
   return {
-    slug,
-    draft,
-    draftUpdatedAt: Number(row.draft_updated_at),
-    published,
-    publishedAt: row.published_at == null ? null : Number(row.published_at),
+    key: slug,
+    draft: parsePageDocument(row.draftJson) ?? fallback,
+    draftUpdatedAt: row.draftUpdatedAt,
+    published: row.publishedJson === null ? null : parsePageDocument(row.publishedJson),
+    publishedAt: row.publishedAt,
   };
 }
 
-/** Saves the draft only. The public site never reads drafts. */
-export async function saveDraft(slug: PageSlug, doc: PageDocument, nowMs: number): Promise<void> {
+export async function savePageDraft(slug: PageSlug, doc: PageDocument, nowMs: number): Promise<void> {
   const db = await getReadyDb();
-  await db.execute({
-    sql: "UPDATE studio_pages SET draft_json = ?, draft_updated_at = ? WHERE slug = ?",
-    args: [JSON.stringify(doc), nowMs, slug],
-  });
+  await repo.ensureDocument(db, slug, JSON.stringify(pageDefault(slug)), nowMs);
+  await repo.writeDraft(db, slug, JSON.stringify(doc), nowMs);
 }
 
-/** Saves the document as the draft and publishes it, in one atomic batch. */
-export async function publishDocument(slug: PageSlug, doc: PageDocument, nowMs: number): Promise<void> {
+export async function publishPage(slug: PageSlug, doc: PageDocument, nowMs: number): Promise<void> {
   const db = await getReadyDb();
-  const json = JSON.stringify(doc);
-  await db.batch(
-    [
-      {
-        sql: "UPDATE studio_pages SET draft_json = ?, draft_updated_at = ?, published_json = ?, published_at = ? WHERE slug = ?",
-        args: [json, nowMs, json, nowMs, slug],
-      },
-    ],
-    "write",
-  );
+  await repo.ensureDocument(db, slug, JSON.stringify(pageDefault(slug)), nowMs);
+  await repo.publishJson(db, slug, JSON.stringify(doc), nowMs);
 }
 
-/** Published content for public pages. Returns null when nothing has been published. */
-export async function getPublishedDocument(slug: PageSlug): Promise<PageDocument | null> {
+// ---------- design settings ----------
+
+export async function getDesignRecord(): Promise<DocumentRecord<DesignSettings>> {
   const db = await getReadyDb();
-  const result = await db.execute({
-    sql: "SELECT published_json FROM studio_pages WHERE slug = ?",
-    args: [slug],
-  });
-  const row = result.rows[0];
-  if (!row || row.published_json == null) return null;
-  return parsePageDocument(row.published_json);
+  const now = Date.now();
+  await repo.ensureDocument(db, DESIGN_KEY, JSON.stringify(DEFAULT_DESIGN), now);
+  const row = await repo.readDocument(db, DESIGN_KEY);
+  if (!row) throw new Error("Design settings missing");
+  return {
+    key: DESIGN_KEY,
+    draft: parseDesign(row.draftJson) ?? DEFAULT_DESIGN,
+    draftUpdatedAt: row.draftUpdatedAt,
+    published: row.publishedJson === null ? null : parseDesign(row.publishedJson),
+    publishedAt: row.publishedAt,
+  };
 }
+
+export async function saveDesignDraft(settings: DesignSettings, nowMs: number): Promise<void> {
+  const db = await getReadyDb();
+  await repo.ensureDocument(db, DESIGN_KEY, JSON.stringify(DEFAULT_DESIGN), nowMs);
+  await repo.writeDraft(db, DESIGN_KEY, JSON.stringify(settings), nowMs);
+}
+
+export async function publishDesign(settings: DesignSettings, nowMs: number): Promise<void> {
+  const db = await getReadyDb();
+  await repo.ensureDocument(db, DESIGN_KEY, JSON.stringify(DEFAULT_DESIGN), nowMs);
+  await repo.publishJson(db, DESIGN_KEY, JSON.stringify(settings), nowMs);
+}
+
+// ---------- releases ----------
+
+export interface ReleaseRecord {
+  slug: string;
+  draft: ReleaseDocument | null;
+  draftUpdatedAt: number;
+  published: ReleaseDocument | null;
+  publishedAt: number | null;
+}
+
+export async function releaseExists(slug: string): Promise<boolean> {
+  const db = await getReadyDb();
+  return (await repo.readDocument(db, releaseKey(slug))) !== null;
+}
+
+export async function getReleaseRecord(slug: string): Promise<ReleaseRecord | null> {
+  const db = await getReadyDb();
+  const row = await repo.readDocument(db, releaseKey(slug));
+  if (!row) return null;
+  return {
+    slug,
+    draft: parseReleaseDocument(row.draftJson),
+    draftUpdatedAt: row.draftUpdatedAt,
+    published: row.publishedJson === null ? null : parseReleaseDocument(row.publishedJson),
+    publishedAt: row.publishedAt,
+  };
+}
+
+/** Creates a release with an initial draft. Fails if the slug is already used. */
+export async function createReleaseDraft(slug: string, doc: ReleaseDocument, nowMs: number): Promise<boolean> {
+  const db = await getReadyDb();
+  const key = releaseKey(slug);
+  if ((await repo.readDocument(db, key)) !== null) return false;
+  await repo.ensureDocument(db, key, JSON.stringify(doc), nowMs);
+  return true;
+}
+
+export async function saveReleaseDraft(slug: string, doc: ReleaseDocument, nowMs: number): Promise<boolean> {
+  const db = await getReadyDb();
+  return repo.writeDraft(db, releaseKey(slug), JSON.stringify(doc), nowMs);
+}
+
+export async function publishRelease(slug: string, doc: ReleaseDocument, nowMs: number): Promise<boolean> {
+  const db = await getReadyDb();
+  return repo.publishJson(db, releaseKey(slug), JSON.stringify(doc), nowMs);
+}
+
+export async function unpublishRelease(slug: string): Promise<boolean> {
+  const db = await getReadyDb();
+  return repo.unpublish(db, releaseKey(slug));
+}
+
+/** All releases for the Studio list, including drafts. */
+export async function listReleaseRecords(): Promise<ReleaseRecord[]> {
+  const db = await getReadyDb();
+  const rows = await repo.listWithPrefix(db, "release:");
+  const out: ReleaseRecord[] = [];
+  for (const row of rows) {
+    const slug = slugFromKey(row.key);
+    if (!slug) continue;
+    out.push({
+      slug,
+      draft: parseReleaseDocument(row.draftJson),
+      draftUpdatedAt: row.draftUpdatedAt,
+      published: row.publishedJson === null ? null : parseReleaseDocument(row.publishedJson),
+      publishedAt: row.publishedAt,
+    });
+  }
+  return out;
+}
+
+// ---------- sessions and login failures ----------
 
 export async function createSession(tokenHash: string, createdMs: number, expiresMs: number): Promise<void> {
   const db = await getReadyDb();
@@ -119,15 +197,21 @@ export async function setFailureState(state: FailureState | null): Promise<void>
   });
 }
 
-/** Counts published pages for the dashboard. Reads only, never mutates. */
-export async function countPublishedPages(): Promise<number> {
-  const db = await getReadyDb();
-  const result = await db.execute("SELECT COUNT(*) AS n FROM studio_pages WHERE published_json IS NOT NULL");
-  return Number(result.rows[0]?.n ?? 0);
-}
-
 /** Round-trip check used by the dashboard. */
 export async function pingDatabase(): Promise<void> {
   const db = await getReadyDb();
-  await db.execute("SELECT 1");
+  await repo.ping(db);
+}
+
+/** Counts of published items for the dashboard. Read-only. */
+export async function publicationCounts(): Promise<{ pages: number; releases: number; draftReleases: number }> {
+  const db = await getReadyDb();
+  const pageRows = await repo.readPublishedWithPrefix(db, "");
+  const pages = pageRows.filter((row) => !row.key.includes(":") && row.key !== "design").length;
+  const releaseRows = await repo.listWithPrefix(db, "release:");
+  return {
+    pages,
+    releases: releaseRows.filter((row) => row.publishedJson !== null).length,
+    draftReleases: releaseRows.filter((row) => row.publishedJson === null).length,
+  };
 }

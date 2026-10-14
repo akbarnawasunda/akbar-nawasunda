@@ -95,3 +95,18 @@ a {
 .skip-link:focus {
   transform: none;
 }
+
+/* Design settings (NAWA STUDIO). Only these closed attribute values are ever emitted by the server. */
+.site-root[data-accent="bone"] {
+  --color-accent: #ece8df;
+  --color-focus: #ece8df;
+}
+
+.site-root[data-accent="cobalt"] {
+  --color-accent: #4f8cff;
+  --color-focus: #4f8cff;
+}
+
+.site-root[data-title-case="as-written"] .page-title {
+  text-transform: none;
+}

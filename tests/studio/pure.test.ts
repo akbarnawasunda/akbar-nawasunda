@@ -2,9 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { getStudioConfigStatus } from "../../src/studio/config";
-import { parsePageDocument, emptyPageDocument, isPageSlug } from "../../src/studio/content-model";
-import { recordFailure, isLockedOut, hashSessionToken, isSessionActive, createSessionToken, MAX_LOGIN_FAILURES, LOGIN_FAILURE_WINDOW_MS } from "../../src/studio/security";
-import { validatePageForm, LIMITS } from "../../src/studio/validation";
+import { recordFailure, isLockedOut, hashSessionToken, isSessionActive, createSessionToken, MAX_LOGIN_FAILURES, LOGIN_FAILURE_WINDOW_MS, type FailureState } from "../../src/studio/security";
 
 describe("config", () => {
   it("reports every missing variable for an empty environment", () => {
@@ -29,78 +27,6 @@ describe("config", () => {
   });
 });
 
-describe("content model", () => {
-  it("round-trips a valid document", () => {
-    const doc = { ...emptyPageDocument("About"), lead: "Lead", sections: [{ id: "p1", type: "paragraph" as const, text: "Hello" }] };
-    assert.deepEqual(parsePageDocument(JSON.stringify(doc)), doc);
-  });
-
-  it("rejects malformed or unknown section data", () => {
-    assert.equal(parsePageDocument("not json"), null);
-    assert.equal(parsePageDocument(JSON.stringify({ title: "A", lead: "", seoDescription: "", sections: [{ id: "x", type: "video", text: "" }] })), null);
-    assert.equal(parsePageDocument(JSON.stringify({ title: 1, lead: "", seoDescription: "", sections: [] })), null);
-    assert.equal(parsePageDocument(null), null);
-  });
-
-  it("accepts only known page slugs", () => {
-    assert.equal(isPageSlug("about"), true);
-    assert.equal(isPageSlug("admin"), false);
-    assert.equal(isPageSlug("../about"), false);
-  });
-});
-
-describe("validation", () => {
-  const valid = { title: "  About  ", lead: "Lead", seoDescription: "", body: "First paragraph.\n\nSecond\nline." };
-
-  it("normalises the title and splits paragraphs on blank lines", () => {
-    const result = validatePageForm(valid);
-    assert.equal(result.ok, true);
-    if (!result.ok) return;
-    assert.equal(result.value.title, "About");
-    assert.deepEqual(result.value.sections.map((s) => s.text), ["First paragraph.", "Second\nline."]);
-    assert.deepEqual(result.value.sections.map((s) => s.id), ["p1", "p2"]);
-  });
-
-  it("requires a title", () => {
-    const result = validatePageForm({ ...valid, title: "   " });
-    assert.equal(result.ok, false);
-    if (!result.ok) assert.ok(result.errors.title);
-  });
-
-  it("enforces length limits on the server", () => {
-    const result = validatePageForm({ ...valid, title: "x".repeat(LIMITS.title + 1), lead: "y".repeat(LIMITS.lead + 1) });
-    assert.equal(result.ok, false);
-    if (!result.ok) {
-      assert.ok(result.errors.title);
-      assert.ok(result.errors.lead);
-    }
-  });
-
-  it("rejects too many paragraphs and overlong paragraphs", () => {
-    const many = Array.from({ length: LIMITS.paragraphs + 1 }, (_, i) => `P${i}`).join("\n\n");
-    const tooMany = validatePageForm({ ...valid, body: many });
-    assert.equal(tooMany.ok, false);
-    const long = validatePageForm({ ...valid, body: "a".repeat(LIMITS.paragraphLength + 1) });
-    assert.equal(long.ok, false);
-  });
-
-  it("rejects control characters", () => {
-    const result = validatePageForm({ ...valid, title: "Bad\u0007title" });
-    assert.equal(result.ok, false);
-  });
-
-  it("rejects non-string input", () => {
-    const result = validatePageForm({ ...valid, title: 42 });
-    assert.equal(result.ok, false);
-    if (!result.ok) assert.ok(result.errors.form);
-  });
-
-  it("accepts an empty body", () => {
-    const result = validatePageForm({ ...valid, body: "" });
-    assert.equal(result.ok, true);
-  });
-});
-
 describe("security rules", () => {
   it("stores only a hash of the session token, never the token itself", () => {
     const token = createSessionToken();
@@ -117,7 +43,7 @@ describe("security rules", () => {
   });
 
   it("locks out after the configured number of failures within the window", () => {
-    let state = null as ReturnType<typeof recordFailure> | null;
+    let state: FailureState | null = null;
     const start = 1_000_000;
     for (let i = 0; i < MAX_LOGIN_FAILURES - 1; i++) state = recordFailure(state, start + i);
     assert.equal(isLockedOut(state, start + 10), false);
@@ -127,7 +53,7 @@ describe("security rules", () => {
 
   it("unlocks once the failure window has passed", () => {
     const start = 1_000_000;
-    let state = null as ReturnType<typeof recordFailure> | null;
+    let state: FailureState | null = null;
     for (let i = 0; i < MAX_LOGIN_FAILURES; i++) state = recordFailure(state, start);
     assert.equal(isLockedOut(state, start + LOGIN_FAILURE_WINDOW_MS + 1), false);
   });

@@ -1,8 +1,8 @@
 import Image from "next/image";
 
 import { ContentRequirement } from "@/components/content/ContentRequirement";
-import { PageDocumentBody } from "@/components/content/PageDocumentBody";
 import { PageIntro } from "@/components/content/PageIntro";
+import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
 import { getAsset, getImage } from "@/assets/manifest";
 import { siteConfig } from "@/config/site";
@@ -27,6 +27,7 @@ const portraitAlt = getAsset("portrait-optimized").alt ?? "";
 
 export default async function AboutPage() {
   const published = await getPublicPage("about");
+  const hasVisibleContent = published !== null && published.sections.some((section) => section.visible);
 
   return (
     <Container>
@@ -48,8 +49,8 @@ export default async function AboutPage() {
         />
       </figure>
 
-      {published && published.sections.length > 0 ? (
-        <PageDocumentBody doc={published} />
+      {published && hasVisibleContent ? (
+        <SectionsView sections={published.sections} />
       ) : (
         <ContentRequirement
           title="Biography pending"

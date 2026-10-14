@@ -3,34 +3,54 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageIntro } from "@/components/content/PageIntro";
+import { ReleaseView } from "@/components/content/ReleaseView";
 import { Container } from "@/components/layout/Container";
-import { getReleaseBySlug, releaseTypeLabel, releases } from "@/content/releases";
+import { getReleaseBySlug, releaseTypeLabel } from "@/content/releases";
 import { pageMetadata } from "@/lib/metadata";
+import { getPublishedRelease } from "@/studio/public";
 import styles from "./release.module.css";
+
+export const dynamic = "force-dynamic";
 
 interface ReleasePageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return releases.map((release) => ({ slug: release.slug }));
-}
-
+/** Published Studio release first; otherwise the verified static entry; otherwise 404. Drafts never show. */
 export async function generateMetadata({ params }: ReleasePageProps): Promise<Metadata> {
   const { slug } = await params;
+  const managed = await getPublishedRelease(slug);
+  if (managed) {
+    return pageMetadata({
+      title: managed.seoTitle || managed.title,
+      description: managed.seoDescription || managed.description || undefined,
+      path: `/music/${slug}`,
+    });
+  }
   const release = getReleaseBySlug(slug);
   if (!release) return { title: "Release not found" };
-
   return pageMetadata({
     title: release.title,
-    description:
-      release.description ?? `${releaseTypeLabel[release.type]} by Akbar Nawasunda, ${release.year}.`,
+    description: release.description ?? `${releaseTypeLabel[release.type]} by Akbar Nawasunda, ${release.year}.`,
     path: `/music/${release.slug}`,
   });
 }
 
 export default async function ReleasePage({ params }: ReleasePageProps) {
   const { slug } = await params;
+
+  const managed = await getPublishedRelease(slug);
+  if (managed) {
+    return (
+      <Container>
+        <ReleaseView doc={managed} />
+        <p className={styles.back}>
+          <Link href="/music">← All music</Link>
+        </p>
+      </Container>
+    );
+  }
+
   const release = getReleaseBySlug(slug);
   if (!release) notFound();
 

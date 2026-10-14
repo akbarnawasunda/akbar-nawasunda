@@ -6,6 +6,7 @@ import { dirname } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 
 import { getStudioConfigStatus } from "./config";
+import { applySchema } from "./schema";
 
 export class StudioNotConfiguredError extends Error {
   constructor(public readonly missing: string[]) {
@@ -44,29 +45,4 @@ export async function getReadyDb(): Promise<Client> {
   });
   await schemaReady;
   return db;
-}
-
-async function applySchema(db: Client): Promise<void> {
-  await db.batch(
-    [
-      `CREATE TABLE IF NOT EXISTS studio_sessions (
-        token_hash TEXT PRIMARY KEY,
-        created_at INTEGER NOT NULL,
-        expires_at INTEGER NOT NULL
-      )`,
-      `CREATE TABLE IF NOT EXISTS studio_pages (
-        slug TEXT PRIMARY KEY,
-        draft_json TEXT NOT NULL,
-        draft_updated_at INTEGER NOT NULL,
-        published_json TEXT,
-        published_at INTEGER
-      )`,
-      `CREATE TABLE IF NOT EXISTS studio_login_failures (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        failures INTEGER NOT NULL,
-        window_start INTEGER NOT NULL
-      )`,
-    ],
-    "write",
-  );
 }

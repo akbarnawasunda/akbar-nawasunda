@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/studio/auth";
-import { PAGE_LABELS, PAGE_SLUGS } from "@/studio/content-model";
+import { PAGE_CONFIG, PAGE_SLUGS } from "@/studio/content-model";
 import { getPageRecord } from "@/studio/store";
 import styles from "@/studio/ui/studio.module.css";
 
@@ -15,12 +15,12 @@ function formatTime(ms: number | null): string {
 
 export default async function StudioPages() {
   await requireAdmin();
-  const records = await Promise.all(PAGE_SLUGS.map((slug) => getPageRecord(slug)));
+  const rows = await Promise.all(PAGE_SLUGS.map(async (slug) => ({ slug, record: await getPageRecord(slug) })));
 
   return (
     <>
       <h1 className={styles.heading}>Pages</h1>
-      <p className={styles.lead}>Edit a page, save drafts, and publish when the content is ready.</p>
+      <p className={styles.lead}>Edit a page, save drafts, and publish when the content is ready. Drafts are never shown on the public site.</p>
 
       <section className={styles.section} aria-label="Page list">
         <div style={{ overflowX: "auto" }}>
@@ -34,19 +34,21 @@ export default async function StudioPages() {
               </tr>
             </thead>
             <tbody>
-              {records.map((record) => (
-                <tr key={record.slug}>
-                  <td>{PAGE_LABELS[record.slug]}<br /><span className={styles.muted}>/{record.slug}</span></td>
-                  <td>{formatTime(record.draftUpdatedAt)}</td>
-                  <td>{formatTime(record.publishedAt)}</td>
-                  <td>
-                    <div className={styles.actions}>
-                      <Link href={`/studio/pages/${record.slug}`} className={styles.link}>Edit</Link>
-                      <Link href={`/studio/preview/${record.slug}`} className={styles.link}>Preview draft</Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {rows.map(({ slug, record }) => {
+                return (
+                  <tr key={slug}>
+                    <td>{PAGE_CONFIG[slug].label}<br /><span className={styles.muted}>{PAGE_CONFIG[slug].path}</span></td>
+                    <td>{formatTime(record.draftUpdatedAt)}</td>
+                    <td>{formatTime(record.publishedAt)}</td>
+                    <td>
+                      <div className={styles.actions}>
+                        <Link href={`/studio/pages/${slug}`} className={styles.link}>Edit</Link>
+                        <Link href={`/studio/preview/${slug}`} className={styles.link}>Preview draft</Link>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -3,9 +3,9 @@
 NAWA STUDIO is the custom content management system for the Akbar Nawasunda website.
 It is built inside this project. No external CMS (WordPress, Sanity, Strapi, Contentful) is used.
 
-**Status: planned, not implemented.** No dashboard, login, upload, or publish action exists yet,
-because the infrastructure they depend on is not configured. Shipping placeholder controls would
-be misleading, so none were added.
+**Status: Phase B-3 (content management) implemented locally.** Login, page editing, release (music)
+management, homepage sections, design settings, and a read-only media view are built. Media uploads are
+not connected; see the Media section below.
 
 ## What the Studio will manage
 
@@ -105,3 +105,70 @@ Setup for the site owner (on a phone or desktop):
 4. Open `/studio/login` and sign in.
 
 Tests: `npm test` (pure modules: config, password, content model, validation, session rules). Browser flow checks were run against `next start` with a local file database (see the final report).
+
+## Status: content management (B-3)
+
+Implemented and tested locally. Each item below is in code and covered by `npm test` unless marked otherwise.
+
+**Storage model.** All editable documents live in the existing `studio_pages` table, one row per key:
+`about`, `home`, `design`, and `release:<slug>`. Each row has `draft_json` and `published_json`. Public routes
+read only `published_json`. No schema migration was needed.
+
+**Pages (`/studio/pages`).** `about` and `home` use structured sections, not free HTML. Section types:
+`heading`, `paragraph`, and (homepage only) `music-list`. Each section has a visibility flag. Save draft is
+private. Publish is an explicit, separate action. Preview at `/studio/preview/<slug>` shows only what the
+public site would show and reports how many sections are hidden. Public `/about` falls back to the static
+"Biography pending" text when nothing is published.
+
+**Homepage.** The hero is code-owned and cannot be edited. The builder adds optional blocks below it. Order and
+visibility are controlled, and the music-list block shows published releases only.
+
+**Music (`/studio/music`).** Create, edit, draft, and publish release records: title, slug, type, description,
+external links, SEO, and artwork. Rules:
+- Links must be `https://`, without credentials, with a label. `javascript:`, `http:`, and `data:` are refused.
+- A release date is stored and shown only when "date verified" is ticked. Unverified dates are never published.
+- Artwork can only be picked from the asset manifest, and only assets with role `release-artwork` and status
+  `approved` are offered. No such asset is approved yet, so the picker is empty. Nothing is invented.
+- Public `/music` and `/music/[slug]` show published releases. With none, they show the "Catalogue pending"
+  state. Static fallback data is still used when the database is unavailable.
+- Preview at `/studio/preview/release/<slug>`.
+
+**Design (`/studio/design`).** Closed options only: accent (`signal`, `bone`, `cobalt`) and title case
+(`uppercase`, `as-written`). Values are validated on the server, and the public site receives them only as
+`data-accent` and `data-title-case` attributes on the layout wrapper. No CSS input exists. Accent affects hover,
+focus, and selection only.
+
+**Media (`/studio/media`).** Read-only. It lists repository assets and shows storage status with the variable
+names only. **Uploads are not implemented and are not offered.** `src/studio/media/storage.ts` reports
+"not connected" until the R2 integration is written and configured.
+
+### Setup needed to activate uploads (not done; needs owner approval)
+
+1. A storage provider account. Cloudflare R2 is the candidate. Its pricing (free tier and paid overage)
+   must be checked against the official Cloudflare documentation before a decision. Some figures found
+   during research came from third-party aggregators and are not verified.
+2. A private bucket for originals and a public bucket or custom domain for delivered variants.
+3. Environment variables (names only): `MEDIA_R2_ACCOUNT_ID`, `MEDIA_R2_BUCKET`, `MEDIA_R2_ACCESS_KEY_ID`,
+   `MEDIA_R2_SECRET_ACCESS_KEY`, `MEDIA_PUBLIC_BASE_URL`.
+4. The upload handler itself: magic-byte checks, size limit, server-side dimensions, and a new key on every
+   replace. Only then set `UPLOADS_IMPLEMENTED` to true and add the upload UI.
+
+### Database setup needed
+
+- Local: `DATABASE_URL=file:./data/studio.db`. No token is needed.
+- Production: a libSQL database (for example Turso) must be created by the owner. Set `DATABASE_URL` and
+  `DATABASE_AUTH_TOKEN`. The schema is applied idempotently on first use.
+- No remote database was created or tested by the agent.
+
+### Tests and checks
+
+- `npm run check` runs the asset check, typecheck, lint, 65 tests (`tests/studio/*`), and the production build.
+- Tests cover config, sessions and lockout rules, content and design parsing, validation (page sections,
+  release fields, verified dates, links, slugs, artwork ids), media status, and repository behaviour on a
+  temporary libSQL file database: drafts not public, atomic publish, unpublish keeping the draft, release
+  listing, and persistence after reopening the connection.
+- Smoke test of `next start` with a temporary database: public routes return 200 with correct fallbacks, and
+  every `/studio/*` route redirects to login without a session.
+- **Not run:** browser end-to-end tests of the editors and a 390px mobile check. No browser could be launched in
+  the build environment. These remain open.
+

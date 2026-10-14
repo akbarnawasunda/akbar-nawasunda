@@ -64,3 +64,85 @@
   color: var(--color-bone-300);
   white-space: pre-line;
 }
+
+.sectionHeading {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-fg);
+  margin-top: var(--space-4);
+}
+
+.musicBlock {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.releaseList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid rgba(236, 232, 223, 0.18);
+}
+
+.releaseLink {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid rgba(236, 232, 223, 0.18);
+  color: var(--color-fg);
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.releaseLink:hover {
+  color: var(--color-accent);
+}
+
+.releaseMeta {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.release {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 62ch;
+  padding-bottom: var(--space-8);
+}
+
+.artwork {
+  margin: 0;
+  max-width: 420px;
+}
+
+.artworkImage {
+  width: 100%;
+  height: auto;
+}
+
+.releaseLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.releaseLinks a {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  color: var(--color-fg);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.releaseLinks a:hover {
+  color: var(--color-accent);
+}
