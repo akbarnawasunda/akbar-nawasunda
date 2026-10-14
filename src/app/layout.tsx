@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { displayFont } from "@/lib/fonts";
 import { siteConfig } from "@/config/site";
+import { defaultSocialImages } from "@/lib/metadata";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -22,11 +23,13 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     url: siteConfig.url,
+    images: defaultSocialImages,
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: siteConfig.name,
     description: siteConfig.description,
+    images: defaultSocialImages.map((image) => image.url),
   },
   formatDetection: { email: false, address: false, telephone: false },
 };

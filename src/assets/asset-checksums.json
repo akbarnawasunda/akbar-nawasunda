@@ -1,0 +1,140 @@
+{
+  "generatedBy": "scripts/check-assets.mjs --update",
+  "files": {
+    "akbar-editorial-stage-bg.webp": {
+      "sha256": "1d3845fd4c665b6f166377353585fbd51450928ed18859f7e55733b6e24b75ff",
+      "bytes": 63686,
+      "detected": "webp"
+    },
+    "akbar-favicon.jpg": {
+      "sha256": "78718113b8cedef8263afeb616cd1e10fff708494406300197d513b06dda4364",
+      "bytes": 71844,
+      "detected": "jpeg"
+    },
+    "akbar-future-red.webp": {
+      "sha256": "00838b89e4d057cefed1684a7b915796e4bf9bd859d4427e6aa98e135c395b45",
+      "bytes": 107800,
+      "detected": "webp"
+    },
+    "akbar-future-yellow.webp": {
+      "sha256": "08a9efb08438190fa662a44aed54047df77f6aaced979cfc4bbb1fcb75ea303c",
+      "bytes": 246986,
+      "detected": "webp"
+    },
+    "akbar-logo-fallback.webp": {
+      "sha256": "2a133eff4b04fd134c5800bfd2ce697500606c580539019b966a8cf2415358cf",
+      "bytes": 67454,
+      "detected": "webp"
+    },
+    "akbar-logo.webp": {
+      "sha256": "9890340df2f11bf3958cc147bf9c433cdbc9d503713a63c331a3a80087de9713",
+      "bytes": 13588,
+      "detected": "webp"
+    },
+    "akbar-mascot-doodle.avif": {
+      "sha256": "6ff0d222fd7001b310bbe4f99465d4dd24a77bc4bb62b755b4b5c325ab9e2fde",
+      "bytes": 7616,
+      "detected": "avif"
+    },
+    "akbar-mascot-doodle.webp": {
+      "sha256": "bddaaead526a23ad67b498f3e2f0a915b50b8e595a1c53c9d7c3b23656a9ae30",
+      "bytes": 13006,
+      "detected": "webp"
+    },
+    "akbar-nawasunda-official-portrait-1000.webp": {
+      "sha256": "c2284acc559d9d5f672f321e280a31e7f013d9ababa2b41f22b4df2ed245bbb3",
+      "bytes": 83564,
+      "detected": "webp"
+    },
+    "akbar-nawasunda-official-portrait.jpg": {
+      "sha256": "369c0b9cc4c945851b3205a183eb7c4bd42d4dd6698dc368cd42f165bbc01c55",
+      "bytes": 1264835,
+      "detected": "jpeg"
+    },
+    "akbar-nawasunda-official-portrait.webp": {
+      "sha256": "95376664741b18ef09dab1d8d8aafe09969dd241b0456ee8853e7cbb0beec722",
+      "bytes": 405496,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-hero-mobile-optimized.webp": {
+      "sha256": "8a826dec08e448d5d98c3c49ce7dc81931b226179f59dc3f8dc1c1b3e41a5bf2",
+      "bytes": 155180,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-hero-mobile.webp": {
+      "sha256": "11cd779ab7b68b586daa4259959253fc06a432a406e4e31569a88183f8baddcb",
+      "bytes": 160946,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-hero-optimized.webp": {
+      "sha256": "e38adc54a3bf5f6b471fee1b36d4d012b56c8adcdf78be052f3fb93e87b9086f",
+      "bytes": 664996,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-hero.webp": {
+      "sha256": "3300252def786b5b310fab77ba135261eaec1c0f9e2a75f68b11df0c42b23698",
+      "bytes": 810518,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-stage-mobile-optimized.webp": {
+      "sha256": "ac5a58d19434a769e19df1cff310f353a2d6542f7cac79b5ab57033fd2d0b363",
+      "bytes": 137504,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-stage-optimized.webp": {
+      "sha256": "b78f28f8291bf548197cc7b8cafac9a4b55fa7ae4cf88882fc1575a74f856ec8",
+      "bytes": 425592,
+      "detected": "webp"
+    },
+    "akbar-night-frequency-stage.webp": {
+      "sha256": "215b72a01290b2388c2e9c13daf32ce62eb5afda2c14a4b3a978d74c008180db",
+      "bytes": 468398,
+      "detected": "webp"
+    },
+    "akbar-official-portrait-optimized.webp": {
+      "sha256": "b3d91feffb193404a0b4483cf1f9925c7f4d71a01796717fb33559a0d7b791a3",
+      "bytes": 83756,
+      "detected": "webp"
+    },
+    "akbar-official-portrait.webp": {
+      "sha256": "390685d74df7fc3659ddf55caa189277a82617bfffc7213da0f0016b22ddbc2d",
+      "bytes": 112070,
+      "detected": "webp"
+    },
+    "akbar-rmx-mark-fallback.jpg": {
+      "sha256": "5f03a416d1a52d3e2fc6c6464eb19d95f2b2cb9606d07b4e6a802590ac49b2ae",
+      "bytes": 113784,
+      "detected": "jpeg"
+    },
+    "akbar-rmx-mark.webp": {
+      "sha256": "6854316902117ed791fae3ac2d37c20dc2fc0fde129b12e055a6c6916627bfcb",
+      "bytes": 46076,
+      "detected": "webp"
+    },
+    "akbar-social-preview-optimized.webp": {
+      "sha256": "e190769f0fd4983ee7f1be55e0cdb403b241934d2f1dbf659115354c9b71d683",
+      "bytes": 136488,
+      "detected": "webp"
+    },
+    "akbar-social-preview.webp": {
+      "sha256": "b5e8188bc76fa9ee538712bfa021969d813bca57ddf909030f274241f50f5b71",
+      "bytes": 166056,
+      "detected": "webp"
+    },
+    "edan": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1,
+      "detected": "unknown"
+    },
+    "favicon.png": {
+      "sha256": "78718113b8cedef8263afeb616cd1e10fff708494406300197d513b06dda4364",
+      "bytes": 71844,
+      "detected": "jpeg"
+    },
+    "logo-an.png": {
+      "sha256": "5f03a416d1a52d3e2fc6c6464eb19d95f2b2cb9606d07b4e6a802590ac49b2ae",
+      "bytes": 113784,
+      "detected": "jpeg"
+    }
+  }
+}

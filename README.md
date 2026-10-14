@@ -56,3 +56,13 @@ Performance behaviour:
 - Device pixel ratio is capped at 2.
 - The loop pauses when the canvas is off-screen or the tab is hidden.
 - `prefers-reduced-motion` renders one static frame and redraws only on resize.
+
+## Official assets
+
+Original brand and website files live in `AKBAR-NAWASUNDA-ASSETS/` and are never edited in place.
+
+- `src/assets/manifest.ts` is the registry: stable ids, roles, status, alt text, and build-time dimensions.
+- `src/assets/asset-checksums.json` records a SHA-256 for every file. Run `npm run assets:check` to verify.
+- Regenerate checksums only after a deliberate change: `node scripts/check-assets.mjs --update`.
+
+Plan for the content management system: `docs/nawa-studio.md`.

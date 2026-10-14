@@ -12,7 +12,8 @@
     "start": "next start -H 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "check": "npm run typecheck && npm run lint && npm run build"
+    "check": "npm run assets:check && npm run typecheck && npm run lint && npm run build",
+    "assets:check": "node scripts/check-assets.mjs"
   },
   "dependencies": {
     "next": "^16.4.0",
