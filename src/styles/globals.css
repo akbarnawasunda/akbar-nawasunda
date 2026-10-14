@@ -78,3 +78,20 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* Skip link: hidden until focused, so keyboard users can jump past the header. */
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-fg);
+  color: var(--color-ink-950);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}

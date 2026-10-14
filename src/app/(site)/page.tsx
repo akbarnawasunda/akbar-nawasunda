@@ -5,18 +5,17 @@ import { roles, siteConfig } from "@/config/site";
 import styles from "./page.module.css";
 
 /**
- * Homepage. Composition: spatial backdrop beneath, the name as the dominant typographic
- * element, and the three roles as an indexed list. No biography, releases or imagery.
+ * Homepage. The spatial backdrop sits beneath; the name is the dominant typographic element
+ * and the three roles are an indexed list. No biography, releases or imagery.
  */
 export default function HomePage() {
   return (
-    <main className={styles.hero}>
+    <section className={styles.hero} aria-label={siteConfig.name}>
       <SpatialBackdrop />
 
-      <header className={styles.chrome}>
-        <span>{siteConfig.name}</span>
-        <Link href="/experiments/lattice">Study 01 →</Link>
-      </header>
+      <Link href="/experiments/lattice" className={styles.study}>
+        Visual study 01 →
+      </Link>
 
       <div className={styles.content}>
         <ol className={styles.roles} aria-label="Roles">
@@ -32,11 +31,6 @@ export default function HomePage() {
           <span>Nawasunda</span>
         </h1>
       </div>
-
-      <footer className={styles.footer}>
-        <span>{siteConfig.role}</span>
-        <span>© {new Date().getFullYear()}</span>
-      </footer>
-    </main>
+    </section>
   );
 }
