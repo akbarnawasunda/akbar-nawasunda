@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+build/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+*.tsbuildinfo
+
+# env files (secrets never committed; copy .env.example instead)
+.env
+.env*.local
+
+# vercel / deploy metadata
+.vercel
+
+# local playwright / screenshot artifacts (kept out of git)
+/artifacts/
