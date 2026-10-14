@@ -66,3 +66,10 @@ Original brand and website files live in `AKBAR-NAWASUNDA-ASSETS/` and are never
 - Regenerate checksums only after a deliberate change: `node scripts/check-assets.mjs --update`.
 
 Plan for the content management system: `docs/nawa-studio.md`.
+
+## NAWA STUDIO (admin)
+
+Protected admin area at `/studio`. See `docs/nawa-studio.md` for the architecture and setup.
+
+- Local: copy `.env.example` to `.env.local`, set `DATABASE_URL=file:./data/studio.db` and `STUDIO_ADMIN_PASSWORD_HASH` (generate with `npm run -s studio:hash-password`, password on stdin), then `npm run dev`.
+- Tests: `npm test`. Full check: `npm run check`.

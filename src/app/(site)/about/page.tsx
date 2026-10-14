@@ -1,26 +1,40 @@
 import Image from "next/image";
 
 import { ContentRequirement } from "@/components/content/ContentRequirement";
+import { PageDocumentBody } from "@/components/content/PageDocumentBody";
 import { PageIntro } from "@/components/content/PageIntro";
 import { Container } from "@/components/layout/Container";
 import { getAsset, getImage } from "@/assets/manifest";
 import { siteConfig } from "@/config/site";
 import { pageMetadata } from "@/lib/metadata";
+import { getPublicPage } from "@/studio/public";
 import styles from "./about.module.css";
 
-export const metadata = pageMetadata({
-  title: "About",
-  description: `About ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`,
-  path: "/about",
-});
+// Published content is read on each request so a publish shows immediately and a read failure
+// never caches the static fallback.
+export const dynamic = "force-dynamic";
+
+const defaultDescription = `About ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`;
+
+export async function generateMetadata() {
+  const published = await getPublicPage("about");
+  const description = published?.seoDescription.trim() || defaultDescription;
+  return pageMetadata({ title: "About", description, path: "/about" });
+}
 
 const portrait = getImage("portrait-optimized");
 const portraitAlt = getAsset("portrait-optimized").alt ?? "";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const published = await getPublicPage("about");
+
   return (
     <Container>
-      <PageIntro eyebrow="Profile" title="About" lead={siteConfig.role} />
+      <PageIntro
+        eyebrow="Profile"
+        title={published?.title || "About"}
+        lead={published?.lead.trim() || siteConfig.role}
+      />
 
       <figure className={styles.figure}>
         <Image
@@ -34,14 +48,18 @@ export default function AboutPage() {
         />
       </figure>
 
-      <ContentRequirement
-        title="Biography pending"
-        description="The biography and career history will be published once they have been written and approved by the artist."
-        items={[
-          "Approved biography in English",
-          "Career timeline with verified dates and projects",
-        ]}
-      />
+      {published && published.sections.length > 0 ? (
+        <PageDocumentBody doc={published} />
+      ) : (
+        <ContentRequirement
+          title="Biography pending"
+          description="The biography and career history will be published once they have been written and approved by the artist."
+          items={[
+            "Approved biography in English",
+            "Career timeline with verified dates and projects",
+          ]}
+        />
+      )}
     </Container>
   );
 }

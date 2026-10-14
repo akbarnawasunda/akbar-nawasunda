@@ -52,3 +52,15 @@
   gap: var(--space-2);
   color: var(--color-bone-300);
 }
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 62ch;
+  padding-bottom: var(--space-8);
+}
+
+.paragraph {
+  color: var(--color-bone-300);
+  white-space: pre-line;
+}

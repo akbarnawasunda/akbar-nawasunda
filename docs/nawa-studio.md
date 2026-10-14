@@ -80,3 +80,28 @@ committed. `.env.example` lists the names only.
 3. Release editor with draft and publish states.
 4. Upload with validation and variant generation.
 5. Page and section editor, with the homepage as the first page.
+
+## Status: first functional slice (B-2)
+
+Implemented and verified locally:
+
+- Protected `/studio` routes. Every protected page calls `requireAdmin()` on the server; unauthenticated requests redirect to `/studio/login`. Auth fails closed (unconfigured or database error = not admin).
+- Single-admin login: password hashed with Node `scrypt` (`npm run studio:hash-password`), random session token stored as SHA-256, HttpOnly / SameSite=Lax cookie (Secure in production), 7-day expiry, DB-backed lockout after 5 failures in a 15-minute window.
+- Mutations via Server Actions (`login`, `logout`, `saveOrPublish`). Each re-checks the session on the server and validates input server-side (`validation.ts`).
+- About page content: draft save, publish (atomic batch), drafts never read by the public site, draft preview at `/studio/preview/about`.
+- Public `/about` shows published content when present; otherwise the static "Biography pending" fallback. A failed read returns null, so the fallback is shown.
+- Dashboard shows real status; Media page lists repository assets read-only and states that uploads are not connected.
+
+Not implemented (by design, this slice): uploads and object storage, pages other than About, music/release/navigation/SEO/design editors. The content model (`content-model.ts`) is extensible for these.
+
+Storage: Turso/libSQL via `@libsql/client` (local `file:` and remote `libsql://` use the same adapter). Tables: `studio_sessions`, `studio_pages`, `studio_login_failures`; created idempotently at first use.
+
+Environment variable names: `DATABASE_URL`, `DATABASE_AUTH_TOKEN` (remote only), `STUDIO_ADMIN_PASSWORD_HASH`. Values are never committed or displayed.
+
+Setup for the site owner (on a phone or desktop):
+1. Create a Turso database (not done by the agent; requires the owner's account).
+2. Run `read -rs PW && printf '%s' "$PW" | npm run -s studio:hash-password && unset PW` locally; copy the output into `STUDIO_ADMIN_PASSWORD_HASH`.
+3. Set `DATABASE_URL` and `DATABASE_AUTH_TOKEN` in the hosting dashboard, then deploy.
+4. Open `/studio/login` and sign in.
+
+Tests: `npm test` (pure modules: config, password, content model, validation, session rules). Browser flow checks were run against `next start` with a local file database (see the final report).

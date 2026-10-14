@@ -12,13 +12,17 @@
     "start": "next start -H 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "check": "npm run assets:check && npm run typecheck && npm run lint && npm run build",
-    "assets:check": "node scripts/check-assets.mjs"
+    "check": "npm run assets:check && npm run typecheck && npm run lint && npm run test && npm run build",
+    "assets:check": "node scripts/check-assets.mjs",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "studio:hash-password": "tsx scripts/studio-hash-password.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "next": "^16.4.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
@@ -26,6 +30,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }
