@@ -14,4 +14,7 @@ export const siteConfig = {
   themeColor: "#050506",
 } as const;
 
+/** The three roles the artist works in, in display order. Names only; no biography. */
+export const roles = ["Producer", "Remixer", "DJ"] as const;
+
 export type SiteConfig = typeof siteConfig;

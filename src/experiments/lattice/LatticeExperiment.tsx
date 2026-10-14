@@ -1,20 +1,17 @@
 import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
-import { LatticeCanvas } from "./LatticeCanvas";
+import { SpatialBackdrop } from "@/effects/SpatialBackdrop";
 import styles from "./LatticeExperiment.module.css";
 
 /**
  * Full-viewport composition for the Lattice study.
- * Layers: effects (canvas + vignette) < content (name) < chrome (navigation labels).
+ * Layers: effects (SpatialBackdrop) < content (name) < chrome (navigation labels).
  */
 export function LatticeExperiment() {
   return (
     <section className={styles.study} aria-labelledby="study-title">
-      <div className={styles.effects}>
-        <LatticeCanvas />
-      </div>
-      <div className={styles.vignette} aria-hidden="true" />
+      <SpatialBackdrop />
 
       <header className={styles.chrome}>
         <Link href="/">{siteConfig.name}</Link>

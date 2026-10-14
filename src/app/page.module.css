@@ -1,38 +1,123 @@
-.main {
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
   min-height: 100dvh;
+  overflow: hidden;
   display: grid;
-  align-items: end;
-  padding-inline: var(--gutter);
-  padding-block: var(--space-12);
+  grid-template-rows: auto 1fr auto;
+  background: var(--color-bg);
 }
 
-.inner {
-  display: grid;
+.chrome {
+  position: relative;
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
-  max-width: var(--container-max);
-  width: 100%;
-  margin-inline: auto;
-}
-
-.label {
+  min-height: var(--header-height);
+  padding-inline: var(--gutter);
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-muted);
 }
 
-.title {
-  font-size: var(--text-title);
+.chrome a {
+  color: var(--color-fg);
+  text-decoration: none;
+}
+
+.chrome a:hover {
+  color: var(--color-accent);
+}
+
+.content {
+  position: relative;
+  z-index: var(--z-content);
+  align-self: end;
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-bottom: var(--space-6);
+  display: grid;
+  gap: var(--space-8);
+}
+
+/* Roles: an indexed list with hairline rules. Three columns on wide screens, stacked on phones. */
+.roles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.role {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(236, 232, 223, 0.18);
+  font-size: clamp(1.125rem, 0.9rem + 0.9vw, 1.75rem);
   font-weight: 500;
-  line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
 }
 
-.note a {
-  color: var(--color-fg);
+.index {
+  font-size: var(--text-label);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-muted);
 }
 
-.note a:hover {
-  color: var(--color-accent);
+.title {
+  font-size: var(--text-display);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  margin-left: -0.04em;
+}
+
+.title span {
+  display: block;
+}
+
+.footer {
+  position: relative;
+  z-index: var(--z-chrome);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--gutter);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+@media (max-width: 640px) {
+  .roles {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .role {
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .chrome > a {
+    font-size: var(--text-label);
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
 }
