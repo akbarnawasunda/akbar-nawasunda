@@ -1,0 +1,57 @@
+/*
+ * Design tokens. Every colour, spacing step, type size, motion curve and z-layer used by the
+ * app is defined here. Components reference these variables; they never hard-code values.
+ */
+:root {
+  /* Colour: a near-black ink ramp, a warm bone ramp for text, and one signal accent. */
+  --color-ink-950: #050506;
+  --color-ink-900: #0b0b0d;
+  --color-ink-800: #17171b;
+  --color-bone-100: #ece8df;
+  --color-bone-300: #bdb8ae;
+  --color-bone-500: #8a867e;
+  --color-signal: #ff4f1f;
+
+  --color-bg: var(--color-ink-950);
+  --color-fg: var(--color-bone-100);
+  --color-muted: var(--color-bone-500);
+  --color-accent: var(--color-signal);
+  --color-focus: var(--color-signal);
+
+  /* Typography */
+  --font-sans: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --leading-tight: 0.88;
+  --leading-body: 1.5;
+  --tracking-tight: -0.035em;
+  --tracking-label: 0.14em;
+  --text-label: 0.75rem;
+  --text-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-title: clamp(2.25rem, 1.2rem + 5vw, 5.5rem);
+  /* Sized from the viewport width so the longest word always fits inside the gutters. */
+  --text-display: min(15.5vw, 15rem);
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Layout */
+  --container-max: 1440px;
+  --gutter: clamp(1rem, 0.6rem + 2.5vw, 2.5rem);
+  --header-height: 4.5rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 200ms;
+  --duration-base: 600ms;
+
+  /* Layers: effects sit beneath content so text is never obscured by the visual layer. */
+  --z-effects: 0;
+  --z-content: 10;
+  --z-chrome: 20;
+}

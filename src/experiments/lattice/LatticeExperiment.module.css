@@ -1,0 +1,75 @@
+.study {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--color-bg);
+}
+
+.chrome {
+  position: relative;
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: var(--header-height);
+  padding-block: var(--space-4);
+  padding-inline: var(--gutter);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.chrome a {
+  color: var(--color-fg);
+  text-decoration: none;
+}
+
+.chrome a:hover {
+  color: var(--color-accent);
+}
+
+.content {
+  position: relative;
+  z-index: var(--z-content);
+  align-self: end;
+  padding-inline: var(--gutter);
+  padding-bottom: var(--space-8);
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--container-max);
+  width: 100%;
+  margin-inline: auto;
+}
+
+.label {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.title {
+  font-size: var(--text-display);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  margin-left: -0.04em;
+}
+
+.title span {
+  display: block;
+}
+
+/* Narrow screens: keep the header to the wordmark so nothing clips. */
+@media (max-width: 520px) {
+  .chrome > span {
+    display: none;
+  }
+}
