@@ -10,6 +10,7 @@
  */
 
 import { getStudioConfigStatus } from "./config";
+import { normalizeStoredHash } from "./hash-format";
 
 export type SetupLevel = "ok" | "warn" | "bad" | "todo";
 
@@ -122,7 +123,7 @@ export interface PasswordHashInfo {
 }
 
 export function inspectPasswordHash(raw: string | undefined): PasswordHashInfo {
-  const value = raw?.trim() ?? "";
+  const value = normalizeStoredHash(raw ?? "");
   if (value.length === 0) {
     return { present: false, valid: false, detail: "Not set. Generate a hash on this page." };
   }

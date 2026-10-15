@@ -18,6 +18,17 @@ describe("password hashing", () => {
     assert.equal(await verifyPassword("spaced password", ` ${hash}`), false);
   });
 
+  it("accepts a stored hash with invisible or inner whitespace from copy-paste", async () => {
+    const pw = "invisible chars ok";
+    const hash = await hashPassword(pw);
+    const [a = "", N = "", r = "", p = "", salt = "", key = ""] = hash.split(":");
+    assert.equal(await verifyPassword(pw, `\u200B${hash}`), true);
+    assert.equal(await verifyPassword(pw, `\u00A0${hash}\u00A0`), true);
+    assert.equal(await verifyPassword(pw, [a, N, r, p, salt, `${key.slice(0, 20)} ${key.slice(20)}`].join(":")), true);
+    assert.equal(await verifyPassword(pw, [a, N, r, p, salt, `${key.slice(0, 40)}\n${key.slice(40)}`].join(":")), true);
+    assert.equal(await verifyPassword("invisible chars", `\u200B${hash}`), false);
+  });
+
   it("salts each hash, so the same password gives different stored values", async () => {
     const a = await hashPassword("same-password");
     const b = await hashPassword("same-password");
