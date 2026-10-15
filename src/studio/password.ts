@@ -38,7 +38,9 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   if (password.length === 0 || password.length > MAX_PASSWORD_LENGTH) return false;
 
-  const parts = stored.split(":");
+  // Surrounding whitespace comes from copy-paste into a host dashboard. The setup check trims it too,
+  // so login must read the same value. The password itself is never trimmed.
+  const parts = stored.trim().split(":");
   if (parts.length !== 6 || parts[0] !== "scrypt") return false;
 
   const N = Number(parts[1]);

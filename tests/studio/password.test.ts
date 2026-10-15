@@ -11,6 +11,13 @@ describe("password hashing", () => {
     assert.equal(await verifyPassword("", hash), false);
   });
 
+  it("accepts a stored hash with surrounding whitespace from copy-paste, without trimming the password", async () => {
+    const hash = await hashPassword("  spaced password  ");
+    assert.equal(await verifyPassword("  spaced password  ", `  ${hash}\n`), true);
+    assert.equal(await verifyPassword("  spaced password  ", `\n${hash}`), true);
+    assert.equal(await verifyPassword("spaced password", ` ${hash}`), false);
+  });
+
   it("salts each hash, so the same password gives different stored values", async () => {
     const a = await hashPassword("same-password");
     const b = await hashPassword("same-password");
