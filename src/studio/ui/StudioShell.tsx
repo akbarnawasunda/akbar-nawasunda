@@ -28,7 +28,7 @@ export function StudioShell({ signedIn, children }: StudioShellProps) {
               <Link href="/studio/media" className={styles.navLink}>Media</Link>
               <Link href="/" className={styles.navLink}>View site</Link>
             </nav>
-            <form action={logoutAction}>
+            <form action={logoutAction} className={styles.signOut}>
               <button type="submit" className={styles.linkButton}>Sign out</button>
             </form>
           </>

@@ -18,6 +18,13 @@
 .brand {
   color: var(--color-fg);
   text-decoration: none;
+  /*
+   * The header is the smallest type on the site (--text-label), so the link box was only 18px tall
+   * and too small to tap reliably. Measured at 320px before this fix: 137.8x18.
+   */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .desktopNav ul {

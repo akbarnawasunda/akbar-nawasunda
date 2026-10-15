@@ -33,7 +33,7 @@ export default async function StudioMusic() {
         {records.length === 0 ? (
           <p className={styles.muted}>No releases yet. Public Music page shows its &ldquo;Catalogue pending&rdquo; notice until one is published.</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
+          <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Release list table, scrolls sideways">
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -55,16 +55,16 @@ export default async function StudioMusic() {
                         : "Published · draft has changes";
                   return (
                     <tr key={record.slug}>
-                      <td>
+                      <td data-label="Release">
                         {title}
                         <br />
                         <span className={styles.muted}>
                           {type ? RELEASE_TYPE_LABELS[type as ReleaseKind] : "Unreadable"} · /music/{record.slug}
                         </span>
                       </td>
-                      <td>{status}</td>
-                      <td>{formatTime(record.draftUpdatedAt)}</td>
-                      <td>
+                      <td data-label="Status">{status}</td>
+                      <td data-label="Last draft">{formatTime(record.draftUpdatedAt)}</td>
+                      <td data-label="Actions">
                         <div className={styles.actions}>
                           <Link href={`/studio/music/${record.slug}`} className={styles.link}>Edit</Link>
                           <Link href={`/studio/preview/release/${record.slug}`} className={styles.link}>Preview</Link>

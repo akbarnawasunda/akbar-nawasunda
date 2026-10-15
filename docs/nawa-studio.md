@@ -191,8 +191,8 @@ names only. **Uploads are not implemented and are not offered.** `src/studio/med
   draft, release listing, and persistence after reopening the connection.
 - Smoke test of `next start` with a temporary database: public routes return 200 with correct fallbacks, and
   every `/studio/*` route redirects to login without a session.
-- **Not run:** browser end-to-end tests of the editors and a 390px mobile check. No browser could be launched in
-  the build environment. These remain open.
+- Browser checks: see the mobile audit section below. A headless Chromium was used on 2026-10-15; a physical
+  phone and a real mobile browser have still not been used.
 
 
 ## Status: activation tooling (B-4)
@@ -225,3 +225,44 @@ the owner to redeploy. A `file:` database is reported as a problem in production
 does not keep the file.
 
 Walkthrough: `docs/activate-nawa-studio.md`. Tests: `tests/studio/setup.test.ts`.
+
+## Status: mobile audit and fixes (B-5)
+
+**How it was checked.** Headless Chromium 153 with mobile emulation (touch, device scale factor 2, mobile
+viewport), against a production build (`next start`) with a seeded file database, at the widths **320, 360, 390
+and 430px**. Per page the harness measured the real document and element geometry (not the CSS source):
+horizontal overflow and scroll containers, elements painted past the viewport edge, text spilling out of its own
+box, tap-target sizes, field font sizes, table behaviour, notices past the edge, computed text/background
+contrast against WCAG AA, long unbreakable tokens, navigation reachability, and where keyboard focus lands. It
+also drove the real flows: sign-in through the form at 390px, a wrong password at 320px, the activation page and
+its hash generator on an unconfigured deployment at 320px, and a refused release save at 320px.
+
+Pages covered: `/studio/login`, `/studio/setup`, `/studio`, `/studio/pages`,
+`/studio/pages/about`, `/studio/music`, `/studio/music/new`, `/studio/music/<slug>`, `/studio/design`,
+`/studio/media`, `/studio/preview/about`, `/studio/preview/release/<slug>`, plus the public `/about` and
+`/music/<slug>` as a regression check for the shared stylesheets.
+
+**Problems found and fixed.** Every number below was measured in the browser before the fix.
+
+| Problem | Measured before | Fix |
+| --- | --- | --- |
+| The Studio shell grew to its header's content width, so every `/studio` page scrolled sideways | document 543px wide at a 320px viewport | explicit `grid-template-columns: minmax(0, 1fr)` on `.shell`, `min-width: 0` on the header, navigation and main column |
+| Navigation labels were painted on top of each other | six overlapping labels at 320px | `flex: none` on the links. The explicit `min-width: 44px` was replacing the flex item's automatic minimum size, so the boxes shrank below their `nowrap` labels while the text overflowed |
+| Navigation was cramped into one row with the brand and Sign out | strip started mid-page | on phones the header wraps into two rows: brand and Sign out, then the navigation across the full width, with scroll snapping |
+| Studio tables were unusable at phone widths | 4 columns / 993px content in a 285px box | rows become stacked cards below 720px, each cell labelled from its `data-label`; above 720px the table layout returns. A first attempt with a horizontally scrolling box was rejected: `min-width: max-content` inflated the document to 912px and the full-page screenshot came out 912px wide |
+| Long values widened blog-style content | a release paragraph reached 833px at a 320px viewport (a 172-character URL) | `overflow-wrap: anywhere` on the content text blocks plus `min-width: 0` on their grid containers, and a `body` fallback. Also affects the public `/about` and `/music/<slug>` pages, which had the same latent bug |
+| The public header brand link was too small to tap | 137.8 x 18px on every public page | `min-height: 44px` with centred content |
+| The skip link was slightly under the target size | 152 x 40px | `min-height: 44px` |
+| Long URLs, hashes and errors had no wrap rule in the Studio | asset file names and slugs forced tables wide | `overflow-wrap: anywhere` on the Studio main column and tables, plus the existing `.codeBlock` wrap rule for the generated password hash |
+
+**Rules to keep (they are covered by `tests/studio/mobile-layout.test.ts`).** The shell grid column stays capped;
+the studio navigation keeps `min-width: 0`, `flex: none` on links and its own phone row; tables keep the
+`data-label` cells and the stacked-card block; interactive controls keep `min-height: 44px`; text fields keep the
+16px minimum that stops iOS Safari from zooming on focus; content text keeps its wrap and shrink rules. The test
+file reads the stylesheets and page sources, so removing a rule fails `npm test` instead of silently reintroducing
+the bug.
+
+**Not verified.** A real mobile browser on a physical device (iOS Safari and Android Chrome were not available),
+the on-screen keyboard behaviour and viewport resizing it causes, touch gestures against the navigation snap, and
+device rotation. The audit was of a seeded local database, so real production content lengths may differ. A
+Vercel preview of this branch was not deployed.

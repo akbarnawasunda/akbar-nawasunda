@@ -17,6 +17,8 @@ body {
   min-height: 100dvh;
   background: var(--color-bg);
   color: var(--color-fg);
+  /* Safety net for narrow screens: a long value never widens the page. See content.module.css. */
+  overflow-wrap: break-word;
   font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: var(--leading-body);
@@ -85,6 +87,10 @@ a {
   left: var(--space-4);
   top: var(--space-2);
   z-index: 100;
+  /* 44px tall like every other target, even though it is only visible while focused. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   padding: var(--space-2) var(--space-4);
   background: var(--color-fg);
   color: var(--color-ink-950);

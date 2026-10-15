@@ -23,7 +23,7 @@ export default async function StudioPages() {
       <p className={styles.lead}>Edit a page, save drafts, and publish when the content is ready. Drafts are never shown on the public site.</p>
 
       <section className={styles.section} aria-label="Page list">
-        <div style={{ overflowX: "auto" }}>
+        <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Page list table, scrolls sideways">
           <table className={styles.table}>
             <thead>
               <tr>
@@ -37,10 +37,10 @@ export default async function StudioPages() {
               {rows.map(({ slug, record }) => {
                 return (
                   <tr key={slug}>
-                    <td>{PAGE_CONFIG[slug].label}<br /><span className={styles.muted}>{PAGE_CONFIG[slug].path}</span></td>
-                    <td>{formatTime(record.draftUpdatedAt)}</td>
-                    <td>{formatTime(record.publishedAt)}</td>
-                    <td>
+                    <td data-label="Page">{PAGE_CONFIG[slug].label}<br /><span className={styles.muted}>{PAGE_CONFIG[slug].path}</span></td>
+                    <td data-label="Last draft">{formatTime(record.draftUpdatedAt)}</td>
+                    <td data-label="Last published">{formatTime(record.publishedAt)}</td>
+                    <td data-label="Actions">
                       <div className={styles.actions}>
                         <Link href={`/studio/pages/${slug}`} className={styles.link}>Edit</Link>
                         <Link href={`/studio/preview/${slug}`} className={styles.link}>Preview draft</Link>

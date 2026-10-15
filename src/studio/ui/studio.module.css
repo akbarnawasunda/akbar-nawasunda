@@ -3,6 +3,13 @@
   min-height: 100dvh;
   display: grid;
   grid-template-rows: auto 1fr;
+  /*
+   * One explicit column capped at the container width. Without this, the implicit `auto` column
+   * grows to the max-content width of the header (the navigation strip is wider than a phone), and
+   * every page inherits a horizontal scrollbar. Measured at 320px before this fix: the document was
+   * 543px wide.
+   */
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .topbar {
@@ -14,6 +21,7 @@
   padding: var(--space-3) var(--gutter);
   border-bottom: 1px solid rgba(236, 232, 223, 0.14);
   background: var(--color-ink-900);
+  min-width: 0;
 }
 
 .brand {
@@ -32,12 +40,42 @@
   gap: var(--space-1);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   max-width: 100%;
+  /* min-width:0 lets the strip shrink to the viewport and scroll instead of widening the page. */
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .nav::-webkit-scrollbar {
   display: none;
+}
+
+/*
+ * Phones: give the navigation its own full-width row so the strip starts at the left edge and the
+ * cut-off item is visible as a scroll cue. Snapping keeps one item aligned after a swipe.
+ */
+@media (max-width: 719px) {
+  /* Two rows: brand and Sign out on the first, the navigation strip across the second. */
+  .brand {
+    order: 1;
+  }
+
+  .signOut {
+    order: 2;
+  }
+
+  .nav {
+    order: 3;
+    flex-basis: 100%;
+    scroll-snap-type: x proximity;
+  }
+
+  .navLink {
+    scroll-snap-align: start;
+    scroll-margin-inline: var(--gutter);
+  }
 }
 
 .navLink,
@@ -48,6 +86,12 @@
   align-items: center;
   padding-inline: var(--space-3);
   white-space: nowrap;
+  /*
+   * The explicit min-width above replaces the automatic minimum size of a flex item, so these links
+   * would otherwise shrink below their text and overlap each other (seen at 320px: the six labels
+   * were painted on top of one another). flex:none keeps each label whole and lets the strip scroll.
+   */
+  flex: none;
   color: var(--color-bone-300);
   text-decoration: none;
   background: none;
@@ -66,6 +110,13 @@
   max-width: 960px;
   width: 100%;
   margin-inline: auto;
+  /* Keeps long form fields and tables from widening the page instead of wrapping. */
+  min-width: 0;
+  /*
+   * Inherited by every Studio text element, so a long slug, URL or error message wraps instead of
+   * pushing the page sideways. Words only break when they cannot otherwise fit.
+   */
+  overflow-wrap: anywhere;
 }
 
 .heading {
@@ -254,6 +305,76 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+  /* Long unbroken values (asset file names, slugs, URLs) wrap instead of forcing the table wide. */
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Wrapper for every Studio table. A table with four columns cannot fit a 320px screen, so it scrolls
+ * inside this box instead of pushing the page sideways. The element is focusable (tabIndex=0 in the
+ * pages) so keyboard users can scroll it; the global :focus-visible outline marks it when focused.
+ */
+.tableScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  max-width: 100%;
+}
+
+/*
+ * Phones: the tables become stacked cards, one card per row, with the column name above each value
+ * (from the `data-label` attribute in the pages). A four-column table cannot fit 320px, and both
+ * alternatives are worse: crushing every cell, or a sideways-scrolling box whose content width
+ * inflates the document (measured: a 993px table made the document report 912px wide).
+ * Above 720px the real table layout is used, and .tableScroll handles any leftover overflow.
+ */
+@media (max-width: 719px) {
+  .tableScroll {
+    overflow-x: visible;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: auto;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
+    background: var(--color-ink-900);
+    border: 1px solid rgba(236, 232, 223, 0.14);
+  }
+
+  .table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .table td {
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* Cells without a label keep the stacked spacing but show no heading. */
+  .table td:not([data-label])::before {
+    content: none;
+  }
 }
 
 .table th,

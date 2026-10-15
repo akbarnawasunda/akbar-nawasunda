@@ -32,7 +32,7 @@ export default async function StudioMedia() {
 
       <section className={styles.section} aria-labelledby="repo-heading">
         <h2 id="repo-heading" className={styles.sectionTitle}>Repository assets ({assets.length}, read-only)</h2>
-        <div style={{ overflowX: "auto" }}>
+        <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Repository asset table, scrolls sideways">
           <table className={styles.table}>
             <caption className="sr-only">Assets from the reviewed manifest</caption>
             <thead>
@@ -46,10 +46,10 @@ export default async function StudioMedia() {
             <tbody>
               {assets.map((asset) => (
                 <tr key={asset.id}>
-                  <td><code>{asset.id}</code></td>
-                  <td>{asset.file.replace(/^AKBAR-NAWASUNDA-ASSETS\//, "")}</td>
-                  <td>{asset.status}</td>
-                  <td>{asset.roles.length ? asset.roles.join(", ") : "—"}</td>
+                  <td data-label="ID"><code>{asset.id}</code></td>
+                  <td data-label="File">{asset.file.replace(/^AKBAR-NAWASUNDA-ASSETS\//, "")}</td>
+                  <td data-label="Status">{asset.status}</td>
+                  <td data-label="Roles">{asset.roles.length ? asset.roles.join(", ") : "—"}</td>
                 </tr>
               ))}
             </tbody>

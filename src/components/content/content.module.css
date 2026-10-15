@@ -1,3 +1,42 @@
+/*
+ * CONTENT MODULE — text safety for narrow screens.
+ *
+ * Everything in this file can hold text typed in NAWA STUDIO: paragraphs, release descriptions, link
+ * labels and page titles. A single long unbreakable token (an https URL with query parameters, a
+ * pasted hash, a long hashtag) used to widen its box past the viewport: measured at 320px, a release
+ * paragraph reached 833px. `overflow-wrap: anywhere` lets the word break when nothing else fits and,
+ * unlike `break-word`, it also lowers the min-content width, which is what stops grid and flex tracks
+ * from growing. Normal prose is unaffected: breaking only happens when a word cannot fit on a line.
+ */
+.paragraph,
+.title,
+.lead,
+.eyebrow,
+.label,
+.sectionHeading,
+.requirementTitle,
+.requirementText,
+.requirementList,
+.release,
+.releaseMeta,
+.releaseLink,
+.releaseLinks a,
+.body,
+.intro {
+  overflow-wrap: anywhere;
+}
+
+/* Grid and flex items default to min-width:auto, which refuses to shrink below their content. */
+.body,
+.intro,
+.release,
+.musicBlock,
+.releaseList,
+.releaseLinks,
+.sectionList {
+  min-width: 0;
+}
+
 .intro {
   display: grid;
   gap: var(--space-4);
