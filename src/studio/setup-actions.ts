@@ -1,5 +1,7 @@
 "use server";
 
+import { reservePasswordAttempt } from "./store";
+
 /**
  * Server actions for the activation page (`/studio/setup`). Both actions exist to make activation
  * possible from a phone, without a terminal.
@@ -17,13 +19,15 @@
 import { getStudioConfigStatus } from "./config";
 import type { FormState } from "./form-state";
 import { hashPassword, verifyPassword } from "./password";
-import { isLockedOut, LOGIN_FAILURE_WINDOW_MS, recordFailure } from "./security";
+import { LOGIN_FAILURE_WINDOW_MS } from "./security";
 import { describePasswordProblem } from "./setup";
-import { getFailureState, setFailureState } from "./store";
+import { allowsBootstrapHash } from "./bootstrap-policy";
+import { setupHashBudget } from "./setup-budget";
+import { isAdminRequest } from "./auth";
 
 function lockedOutMessage(): string {
   const minutes = Math.ceil(LOGIN_FAILURE_WINDOW_MS / 60000);
-  return `Too many failed attempts. Wait up to ${minutes} minutes, then try again.`;
+  return `Too many password attempts. Wait up to ${minutes} minutes, then try again.`;
 }
 
 /** Hashes a new administrator password and returns it once, for pasting into the host's settings. */
@@ -32,8 +36,12 @@ export async function generateAdminHashAction(_previous: FormState, formData: Fo
     return {
       status: "error",
       message:
-        "An administrator password is already set on this deployment. Remove STUDIO_ADMIN_PASSWORD_HASH from the environment variables first if you really want to replace it.",
+        "An administrator password is already set on this deployment. Generate a replacement offline and update the configured value; do not remove it to expose setup.",
     };
+  }
+
+  if (!allowsBootstrapHash(process.env)) {
+    return { status: "error", message: "Browser bootstrap is disabled here. Generate the hash in a trusted local development environment or with the CLI." };
   }
 
   const password = formData.get("password");
@@ -45,6 +53,7 @@ export async function generateAdminHashAction(_previous: FormState, formData: Fo
   const problem = describePasswordProblem(password, confirmation);
   if (problem) return { status: "error", message: problem };
 
+  if (!setupHashBudget.acquire(Date.now())) return { status: "error", message: "Please wait before generating another hash." };
   try {
     const value = await hashPassword(password);
     return {
@@ -58,11 +67,14 @@ export async function generateAdminHashAction(_previous: FormState, formData: Fo
     };
   } catch {
     return { status: "error", message: "Could not hash the password on this server. Try again." };
+  } finally {
+    setupHashBudget.release();
   }
 }
 
 /** Checks a typed password against the stored hash, without signing in. Used to debug activation. */
 export async function testAdminPasswordAction(_previous: FormState, formData: FormData): Promise<FormState> {
+  if (!(await isAdminRequest())) return { status: "error", message: "Sign in to check configuration." };
   const config = getStudioConfigStatus();
   if (!config.ready) {
     return { status: "error", message: "Complete the missing settings above first." };
@@ -70,8 +82,7 @@ export async function testAdminPasswordAction(_previous: FormState, formData: Fo
 
   try {
     const now = Date.now();
-    const failure = await getFailureState();
-    if (isLockedOut(failure, now)) return { status: "error", message: lockedOutMessage() };
+    if (!(await reservePasswordAttempt(now))) return { status: "error", message: lockedOutMessage() };
 
     const password = formData.get("password");
     if (typeof password !== "string" || password.length === 0) {
@@ -80,11 +91,9 @@ export async function testAdminPasswordAction(_previous: FormState, formData: Fo
 
     const valid = await verifyPassword(password, process.env.STUDIO_ADMIN_PASSWORD_HASH as string);
     if (!valid) {
-      await setFailureState(recordFailure(failure, now));
       return { status: "error", message: "That password does not match the stored hash." };
     }
 
-    await setFailureState(null);
     return { status: "ok", message: "The password matches. Sign in at /studio/login with it." };
   } catch {
     return { status: "error", message: "The check could not run. The database may be unreachable." };

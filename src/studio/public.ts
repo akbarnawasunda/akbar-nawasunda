@@ -6,6 +6,7 @@ import { DEFAULT_DESIGN, parseDesign, type DesignSettings } from "./design";
 import { parsePageDocument, type PageDocument, type PageSlug } from "./content-model";
 import * as repo from "./repository";
 import { parseReleaseDocument, releaseKey, slugFromKey, type ReleaseDocument } from "./releases";
+import { DEFAULT_ARTIST_SETTINGS, parseArtistSettings, type ArtistSettings } from "./artist-settings";
 
 /**
  * Readers for public pages. They return only PUBLISHED data. When the Studio is not configured, or a
@@ -17,8 +18,8 @@ async function safely<T>(label: string, fallback: T, read: () => Promise<T>): Pr
   if (!getStudioConfigStatus().ready) return fallback;
   try {
     return await read();
-  } catch (error) {
-    console.error(`[studio] could not read ${label}`, error);
+  } catch {
+    console.error(`[studio] could not read ${label}`);
     return fallback;
   }
 }
@@ -36,6 +37,18 @@ export function getPublicDesign(): Promise<DesignSettings> {
     const db = await getReadyDb();
     const row = await repo.readDocument(db, "design");
     return (row?.publishedJson && parseDesign(row.publishedJson)) || DEFAULT_DESIGN;
+  });
+}
+
+/**
+ * Published artist settings. Nothing on the public site reads this yet: the footer still shows no
+ * social links until the owner authorises that public-site change.
+ */
+export function getPublicArtistSettings(): Promise<ArtistSettings> {
+  return safely("artist settings", DEFAULT_ARTIST_SETTINGS, async () => {
+    const db = await getReadyDb();
+    const row = await repo.readDocument(db, "settings");
+    return (row?.publishedJson && parseArtistSettings(row.publishedJson)) || DEFAULT_ARTIST_SETTINGS;
   });
 }
 

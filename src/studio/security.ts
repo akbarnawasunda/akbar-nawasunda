@@ -41,3 +41,8 @@ export function recordFailure(state: FailureState | null, nowMs: number): Failur
   }
   return { failures: state.failures + 1, windowStartMs: state.windowStartMs };
 }
+
+/** Changing the admin credential invalidates every previously issued session. */
+export function credentialSessionHash(token: string, credential: string): string {
+  return hashSessionToken(JSON.stringify([token, credential]));
+}

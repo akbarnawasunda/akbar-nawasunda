@@ -1,3 +1,13 @@
+> **Security update (2026-10-15, stage 2):** Unauthenticated browser hash generation
+> is now available only with `NODE_ENV=development` in a trusted local environment.
+> Production `/studio/setup` with no hash shows a generic offline-setup notice, not
+> the generator or diagnostics. Generate the hash locally with `npm run studio:hash-password`
+> (password via stdin), or use local development setup, then set the host environment.
+> Never delete an existing production hash to enable bootstrap. Rotate it directly
+> across all workers/deployments and retire stale previews; keep preview DB credentials separate.
+> Older phone-only setup instructions below are superseded where they imply public
+> production hash generation. See `security-review-stage2.md` for remaining limitations.
+
 # Activating NAWA STUDIO
 
 This is the phone-first path from "the deployment says Setup required" to a working Studio at
@@ -85,11 +95,72 @@ so an existing deployment keeps the old values until it is redeployed.
 
 ### Resetting the administrator password
 
-1. In Vercel, delete the `STUDIO_ADMIN_PASSWORD_HASH` variable (or clear its value) and redeploy.
-2. Open `/studio/setup` again. The generator is offered again.
-3. Generate a new hash, add the variable back, redeploy, and sign in.
-4. Old sign-in sessions stay valid until they expire (seven days). Sign out on devices you no longer use,
-   or wait it out.
+**Do not delete the existing hash.** The browser generator on `/studio/setup` is offline-only in production
+(see the security update at the top), so deleting the variable does not bring it back. It only locks you out
+until you set a new value offline.
+
+1. On a trusted computer with Node.js, generate the new hash locally. The password is read from stdin and is
+   never written to disk or sent anywhere:
+   ```bash
+   read -rs PW && printf '%s' "$PW" | npm run -s studio:hash-password && unset PW
+   ```
+   Copy the output (it starts with `scrypt:`). Do not paste it into chat or a ticket.
+2. In Vercel, **replace** the value of `STUDIO_ADMIN_PASSWORD_HASH` with the new hash, for Production and
+   Preview, then redeploy.
+3. Sign in on the new deployment.
+4. **Sessions and stale deployments.** Each session is bound to the hash that was active when it was created.
+   After the hash changes, sessions made with the old hash stop working on any deployment that reads the new
+   value. A deployment that still has the old value keeps accepting its sessions. Before you treat the reset
+   as finished, redeploy or retire every older deployment (preview deployments included) and make sure none of
+   them still has the old hash. Then sign out on devices you no longer use.
+5. Phone-only reset is not possible after this change. A reset needs a computer with Node.js, or the owner's
+   trusted local environment.
+
+### If you are locked out (login lockout)
+
+**Why it happens.** The Studio counts every sign-in attempt, correct or wrong, in one shared counter. After
+five attempts inside a 15-minute window, further attempts are refused with "Too many password attempts". The
+window is fixed: it ends 15 minutes after the first attempt in it. Refused attempts do not extend it. The
+counter is shared by all devices and browsers, so anyone who can reach `/studio/login` can use up the budget.
+That is the deliberate trade-off that protects the password from guessing. Several legitimate sign-ins in
+quick succession (for example, from more than one phone) can also trigger it.
+
+**Which records are involved.** Only one row: `studio_login_failures`, with the attempt count and the window
+start time. Sessions (`studio_sessions`), pages, releases, and design settings are not affected by the
+lockout. Waiting deletes nothing.
+
+**Recovery, in order:**
+
+1. Stop signing in. Read the message: "Too many password attempts" means the lockout. "Incorrect password"
+   means a wrong password, which the steps below do not fix.
+2. Check that nobody else is trying. Close other tabs and devices. If the lockout keeps coming back, someone
+   else is using the budget, and clearing it will not help.
+3. Wait at least 15 minutes after your last attempt, then try once.
+4. If you still cannot sign in, the next step depends on where the database is:
+   - **Local development only:** stop the local server, export your content first from `/studio/export`
+     (keep the file safe), then delete only the lockout row in your local file database, for example with the
+     `sqlite3` command-line tool if it is installed:
+     `sqlite3 data/studio.db "DELETE FROM studio_login_failures WHERE id = 1;"`
+     Never delete `data/studio.db` itself. It holds your drafts.
+   - **Production:** this is a separately approved production operation. It is not described here as a
+     routine step. It requires a verified backup or export, the database provider's own authenticated shell,
+     a single-row change limited to `studio_login_failures`, and a note of the date and time without any
+     credentials. It must never be done through an HTTP endpoint, a script in the repository, or by editing
+     source code.
+
+**Never do these as a workaround:**
+
+- Raise the attempt limit or the window length, or disable the lockout. That weakens protection against
+  password guessing for every visitor.
+- Add a bypass, a backdoor, or an emergency password, or a public reset endpoint.
+- Delete `STUDIO_ADMIN_PASSWORD_HASH` to reopen setup (see above).
+
+**Keep secrets out of support requests.** Do not paste cookies, passwords, hashes, database URLs, tokens, or
+full error text into chat, tickets, or screenshots. Describe the message you saw and the time.
+
+**Limits of this procedure.** The lockout is one global budget, so it cannot tell an attacker from the owner.
+Stopping an ongoing attack needs host-level controls and separation of the admin area, which are not part of
+this codebase yet. See `security-design-stage3.md`.
 
 ## What activation does not turn on
 

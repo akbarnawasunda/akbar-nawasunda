@@ -25,6 +25,19 @@ export async function ensureDocument(db: Client, key: string, defaultJson: strin
   });
 }
 
+/**
+ * Inserts a brand-new document with `json` as its draft. Returns false when the key already exists.
+ * Atomic: the primary key decides, not an earlier read, so two concurrent creations cannot both succeed.
+ * Never changes an existing row. Errors (for example a closed connection) are thrown, not reported as false.
+ */
+export async function insertNewDocument(db: Client, key: string, json: string, nowMs: number): Promise<boolean> {
+  const result = await db.execute({
+    sql: "INSERT INTO studio_pages (slug, draft_json, draft_updated_at) VALUES (?, ?, ?) ON CONFLICT(slug) DO NOTHING",
+    args: [key, json, nowMs],
+  });
+  return result.rowsAffected === 1;
+}
+
 export async function readDocument(db: Client, key: string): Promise<DocumentRow | null> {
   const result = await db.execute({
     sql: "SELECT slug, draft_json, draft_updated_at, published_json, published_at FROM studio_pages WHERE slug = ?",
@@ -100,4 +113,35 @@ function toDocumentRow(row: Record<string, unknown> | { [key: string]: unknown; 
     publishedJson: r.published_json == null ? null : String(r.published_json),
     publishedAt: r.published_at == null ? null : Number(r.published_at),
   };
+}
+
+/**
+ * Read-only source for the content export. Makes exactly two SELECT statements inside one read
+ * batch, so both see the same snapshot:
+ *   1. every key (for counting unrecognized keys), with no contents
+ *   2. full rows, only for `exactKeys` and keys starting with `prefix`
+ * Never calls ensureDocument or any write. Sessions and login failures are never queried here.
+ */
+export async function readExportSource(
+  db: Client,
+  exactKeys: readonly string[],
+  prefix: string,
+): Promise<{ allKeys: string[]; rows: DocumentRow[] }> {
+  const placeholders = exactKeys.map(() => "?").join(", ");
+  const results = await db.batch(
+    [
+      { sql: "SELECT slug FROM studio_pages ORDER BY slug", args: [] },
+      {
+        sql: `SELECT slug, draft_json, draft_updated_at, published_json, published_at
+              FROM studio_pages
+              WHERE slug IN (${placeholders || "NULL"}) OR substr(slug, 1, ?) = ?
+              ORDER BY slug`,
+        args: [...exactKeys, prefix.length, prefix],
+      },
+    ],
+    "read",
+  );
+  const allKeys = (results[0]?.rows ?? []).map((row) => String(row.slug));
+  const rows = (results[1]?.rows ?? []).map(toDocumentRow);
+  return { allKeys, rows };
 }

@@ -1,5 +1,7 @@
 "use server";
 
+import { reservePasswordAttempt } from "./store";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -10,8 +12,9 @@ import { isPageSlug, PAGE_CONFIG, type PageSlug } from "./content-model";
 import type { FormState } from "./form-state";
 import { releaseArtworkIds } from "./artwork";
 import { validateDesign, validatePageDocument, validateRelease, validateSlug } from "./validation";
-import { createReleaseDraft, createSession, getFailureState, getPageRecord, getReleaseRecord, publishDesign, publishPage, publishRelease, saveDesignDraft, savePageDraft, saveReleaseDraft, setFailureState, unpublishRelease } from "./store";
-import { createSessionToken, hashSessionToken, isLockedOut, LOGIN_FAILURE_WINDOW_MS, recordFailure, SESSION_TTL_MS } from "./security";
+import { createReleaseDraft, createSession, getPageRecord, getReleaseRecord, publishDesign, publishPage, publishRelease, publishSettings, saveDesignDraft, savePageDraft, saveReleaseDraft, saveSettingsDraft, unpublishRelease } from "./store";
+import { validateArtistSettings } from "./artist-settings";
+import { createSessionToken, credentialSessionHash, LOGIN_FAILURE_WINDOW_MS, SESSION_TTL_MS } from "./security";
 import { verifyPassword } from "./password";
 import { slugify } from "./releases";
 
@@ -28,10 +31,9 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
 
   try {
     const now = Date.now();
-    const failure = await getFailureState();
-    if (isLockedOut(failure, now)) {
+    if (!(await reservePasswordAttempt(now))) {
       const minutes = Math.ceil(LOGIN_FAILURE_WINDOW_MS / 60000);
-      return { status: "error", message: `Too many failed attempts. Wait up to ${minutes} minutes, then try again.` };
+      return { status: "error", message: `Too many password attempts. Wait up to ${minutes} minutes, then try again.` };
     }
 
     const password = formData.get("password");
@@ -41,13 +43,11 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
 
     const valid = await verifyPassword(password, process.env.STUDIO_ADMIN_PASSWORD_HASH as string);
     if (!valid) {
-      await setFailureState(recordFailure(failure, now));
       return { status: "error", message: "Incorrect password." };
     }
 
-    await setFailureState(null);
     const token = createSessionToken();
-    await createSession(hashSessionToken(token), now, now + SESSION_TTL_MS);
+    await createSession(credentialSessionHash(token, process.env.STUDIO_ADMIN_PASSWORD_HASH as string), now, now + SESSION_TTL_MS);
     await setSessionCookie(token);
   } catch (error) {
     return failureResult(error, "Sign-in failed. Try again.");
@@ -57,8 +57,8 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
 }
 
 export async function logoutAction(): Promise<void> {
-  await clearSession();
-  redirect("/studio/login");
+  const revoked = await clearSession();
+  redirect(revoked ? "/studio/login" : "/studio/login?logout=failed");
 }
 
 function text(formData: FormData, name: string): unknown {
@@ -128,6 +128,35 @@ export async function saveDesignAction(_previous: FormState, formData: FormData)
     }
     await saveDesignDraft(result.value, now);
     return { status: "ok", message: "Draft saved. The public site is unchanged until you publish.", unpublishedChanges: true, savedAt: now };
+  } catch (error) {
+    return failureResult(error, "Could not save. Try again in a moment.");
+  }
+}
+
+/** Saves or publishes the artist settings (name, role line, social links). Validated on the server. */
+export async function saveSettingsAction(_previous: FormState, formData: FormData): Promise<FormState> {
+  if (!(await isAdminRequest())) return NOT_SIGNED_IN;
+  const intent = intentOf(formData);
+  if (!intent) return { status: "error", message: "Unknown action." };
+
+  const result = validateArtistSettings({
+    artistName: formData.get("artistName"),
+    role: formData.get("role"),
+    socialLinks: formData.get("socialLinks"),
+  });
+  if (!result.ok) {
+    return { status: "error", message: "Some fields need attention. Check the highlighted items.", errors: result.errors };
+  }
+
+  try {
+    const now = Date.now();
+    if (intent === "publish") {
+      await publishSettings(result.value, now);
+      revalidatePath("/", "layout");
+      return { status: "ok", message: "Published. The settings are saved. The public site does not show social links yet.", unpublishedChanges: false, savedAt: now };
+    }
+    await saveSettingsDraft(result.value, now);
+    return { status: "ok", message: "Draft saved. Only you can see it until you publish.", unpublishedChanges: true, savedAt: now };
   } catch (error) {
     return failureResult(error, "Could not save. Try again in a moment.");
   }
@@ -226,6 +255,6 @@ function failureResult(error: unknown, fallback: string): FormState {
   if (error instanceof StudioNotConfiguredError) {
     return { status: "error", message: "NAWA STUDIO is not configured yet." };
   }
-  console.error("[studio] action failed", error);
+  console.error("[studio] action failed");
   return { status: "error", message: fallback };
 }

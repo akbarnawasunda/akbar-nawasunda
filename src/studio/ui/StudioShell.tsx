@@ -25,6 +25,7 @@ export function StudioShell({ signedIn, children }: StudioShellProps) {
               <Link href="/studio/pages" className={styles.navLink}>Pages</Link>
               <Link href="/studio/music" className={styles.navLink}>Music</Link>
               <Link href="/studio/design" className={styles.navLink}>Design</Link>
+              <Link href="/studio/settings" className={styles.navLink}>Settings</Link>
               <Link href="/studio/media" className={styles.navLink}>Media</Link>
               <Link href="/" className={styles.navLink}>View site</Link>
             </nav>

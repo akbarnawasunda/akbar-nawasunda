@@ -1,10 +1,11 @@
 import "server-only";
 
+import { revokeThenClear } from "./revoke-session";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { getStudioConfigStatus } from "./config";
-import { hashSessionToken, isSessionActive, SESSION_COOKIE, SESSION_TTL_MS } from "./security";
+import { credentialSessionHash, isSessionActive, SESSION_COOKIE, SESSION_TTL_MS } from "./security";
 import { deleteSession, findSessionExpiry } from "./store";
 
 /**
@@ -16,10 +17,10 @@ export async function isAdminRequest(): Promise<boolean> {
   try {
     const token = (await cookies()).get(SESSION_COOKIE)?.value;
     if (!token) return false;
-    const expiresAt = await findSessionExpiry(hashSessionToken(token));
+    const expiresAt = await findSessionExpiry(credentialSessionHash(token, process.env.STUDIO_ADMIN_PASSWORD_HASH as string));
     return expiresAt !== null && isSessionActive(expiresAt, Date.now());
-  } catch (error) {
-    console.error("[studio] session check failed", error);
+  } catch {
+    console.error("[studio] session check failed");
     return false;
   }
 }
@@ -39,15 +40,14 @@ export async function setSessionCookie(token: string): Promise<void> {
   });
 }
 
-export async function clearSession(): Promise<void> {
+export async function clearSession(): Promise<boolean> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (token && getStudioConfigStatus().ready) {
-    try {
-      await deleteSession(hashSessionToken(token));
-    } catch (error) {
-      console.error("[studio] could not delete session", error);
-    }
-  }
-  cookieStore.delete(SESSION_COOKIE);
+  if (token && !getStudioConfigStatus().ready) return false;
+  return revokeThenClear(
+    async () => {
+      if (token) await deleteSession(credentialSessionHash(token, process.env.STUDIO_ADMIN_PASSWORD_HASH as string));
+    },
+    () => cookieStore.delete(SESSION_COOKIE),
+  );
 }

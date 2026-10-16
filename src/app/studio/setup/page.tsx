@@ -1,8 +1,9 @@
+import { requireAdmin } from "@/studio/auth";
 import Link from "next/link";
 
 import { getStudioConfigStatus } from "@/studio/config";
 import { getReadyDb, StudioNotConfiguredError } from "@/studio/db";
-import { buildSetupChecks, isActivated, shortError, withConnectionResult, type SetupCheck } from "@/studio/setup";
+import { buildSetupChecks, isActivated, withConnectionResult, type SetupCheck } from "@/studio/setup";
 import { pingDatabase } from "@/studio/store";
 import { SetupHashForm } from "@/studio/ui/SetupHashForm";
 import { SetupPasswordTest } from "@/studio/ui/SetupPasswordTest";
@@ -18,7 +19,6 @@ const EXPECTED_TABLES = ["studio_pages", "studio_sessions", "studio_login_failur
  * returned: the URL and token are stripped out of any error text before it is shown.
  */
 async function probeConnection(): Promise<{ level: "ok" | "bad"; detail: string }> {
-  const secrets = [process.env.DATABASE_URL, process.env.DATABASE_AUTH_TOKEN];
   try {
     await pingDatabase();
     const db = await getReadyDb();
@@ -37,7 +37,7 @@ async function probeConnection(): Promise<{ level: "ok" | "bad"; detail: string 
     }
     return {
       level: "bad",
-      detail: `Could not connect: ${shortError(error, secrets)} — check the URL, the token, and that the token can write (creating the tables needs write access).`,
+      detail: `Could not connect: Database unavailable — check the URL, the token, and that the token can write (creating the tables needs write access).`,
     };
   }
 }
@@ -57,6 +57,11 @@ const levelWord: Record<SetupCheck["level"], string> = {
 };
 
 export default async function StudioSetupPage() {
+  // Once a credential exists, diagnostics are administrator-only, even if the DB is down.
+  if (process.env.STUDIO_ADMIN_PASSWORD_HASH?.trim()) await requireAdmin();
+  if (process.env.NODE_ENV !== "development" && !process.env.STUDIO_ADMIN_PASSWORD_HASH?.trim()) {
+    return <><h1 className={styles.heading}>Activation</h1><p className={styles.notice}>Browser bootstrap is disabled on this deployment. Generate an administrator hash in a trusted local development environment or with the CLI, then configure the host. Diagnostics require sign-in.</p></>;
+  }
   const config = getStudioConfigStatus();
   let checks = buildSetupChecks(process.env, { isProduction: process.env.NODE_ENV === "production" });
 
@@ -141,8 +146,7 @@ export default async function StudioSetupPage() {
           </li>
           <li>
             On the host (Vercel: Project → Settings → Environment Variables), add <code>DATABASE_URL</code>,{" "}
-            <code>DATABASE_AUTH_TOKEN</code>, and <code>STUDIO_ADMIN_PASSWORD_HASH</code>. Apply them to Production
-            and Preview.
+            <code>DATABASE_AUTH_TOKEN</code>, and <code>STUDIO_ADMIN_PASSWORD_HASH</code>. Use separate database credentials for Production and Preview.
           </li>
           <li>
             Redeploy the project. Environment variables are only read when a new deployment starts, so an existing
@@ -161,8 +165,7 @@ export default async function StudioSetupPage() {
         <section className={styles.section} aria-labelledby="test-heading">
           <h2 id="test-heading" className={styles.sectionTitle}>Not sure the password is the right one?</h2>
           <p className={styles.muted}>
-            Check it here without signing in. If it does not match, generate a new hash above — but that requires
-            removing the old value from the host first.
+            Check it here without signing in. If it does not match, generate a replacement hash offline and update the host setting without removing the existing value first.
           </p>
           <SetupPasswordTest />
         </section>

@@ -1,9 +1,12 @@
+import { reserveLoginAttempt } from "./login-budget";
 import "server-only";
 
 import { getReadyDb } from "./db";
 import * as repo from "./repository";
 import { DEFAULT_DESIGN, parseDesign, type DesignSettings } from "./design";
-import { PAGE_CONFIG, emptyPageDocument, parsePageDocument, type PageDocument, type PageSlug } from "./content-model";
+import { PAGE_CONFIG, PAGE_SLUGS, emptyPageDocument, parsePageDocument, type PageDocument, type PageSlug } from "./content-model";
+import { DESIGN_DOCUMENT_KEY, RELEASE_KEY_PREFIX, SETTINGS_DOCUMENT_KEY, type ExportSource } from "./export";
+import { DEFAULT_ARTIST_SETTINGS, parseArtistSettings, type ArtistSettings } from "./artist-settings";
 import { parseReleaseDocument, releaseKey, slugFromKey, type ReleaseDocument } from "./releases";
 import type { FailureState } from "./security";
 
@@ -17,6 +20,7 @@ export interface DocumentRecord<T> {
 }
 
 export const DESIGN_KEY = "design";
+const SETTINGS_KEY = SETTINGS_DOCUMENT_KEY;
 
 // ---------- pages (about, home) ----------
 
@@ -81,6 +85,35 @@ export async function publishDesign(settings: DesignSettings, nowMs: number): Pr
   await repo.publishJson(db, DESIGN_KEY, JSON.stringify(settings), nowMs);
 }
 
+// ---------- artist settings ----------
+
+export async function getSettingsRecord(): Promise<DocumentRecord<ArtistSettings>> {
+  const db = await getReadyDb();
+  const now = Date.now();
+  await repo.ensureDocument(db, SETTINGS_KEY, JSON.stringify(DEFAULT_ARTIST_SETTINGS), now);
+  const row = await repo.readDocument(db, SETTINGS_KEY);
+  if (!row) throw new Error("Artist settings missing");
+  return {
+    key: SETTINGS_KEY,
+    draft: parseArtistSettings(row.draftJson) ?? DEFAULT_ARTIST_SETTINGS,
+    draftUpdatedAt: row.draftUpdatedAt,
+    published: row.publishedJson === null ? null : parseArtistSettings(row.publishedJson),
+    publishedAt: row.publishedAt,
+  };
+}
+
+export async function saveSettingsDraft(settings: ArtistSettings, nowMs: number): Promise<void> {
+  const db = await getReadyDb();
+  await repo.ensureDocument(db, SETTINGS_KEY, JSON.stringify(DEFAULT_ARTIST_SETTINGS), nowMs);
+  await repo.writeDraft(db, SETTINGS_KEY, JSON.stringify(settings), nowMs);
+}
+
+export async function publishSettings(settings: ArtistSettings, nowMs: number): Promise<void> {
+  const db = await getReadyDb();
+  await repo.ensureDocument(db, SETTINGS_KEY, JSON.stringify(DEFAULT_ARTIST_SETTINGS), nowMs);
+  await repo.publishJson(db, SETTINGS_KEY, JSON.stringify(settings), nowMs);
+}
+
 // ---------- releases ----------
 
 export interface ReleaseRecord {
@@ -109,13 +142,13 @@ export async function getReleaseRecord(slug: string): Promise<ReleaseRecord | nu
   };
 }
 
-/** Creates a release with an initial draft. Fails if the slug is already used. */
+/**
+ * Creates a release with an initial draft. Returns false if the slug is already used. The insert is
+ * atomic (primary key), so concurrent duplicate creations cannot both report success.
+ */
 export async function createReleaseDraft(slug: string, doc: ReleaseDocument, nowMs: number): Promise<boolean> {
   const db = await getReadyDb();
-  const key = releaseKey(slug);
-  if ((await repo.readDocument(db, key)) !== null) return false;
-  await repo.ensureDocument(db, key, JSON.stringify(doc), nowMs);
-  return true;
+  return repo.insertNewDocument(db, releaseKey(slug), JSON.stringify(doc), nowMs);
 }
 
 export async function saveReleaseDraft(slug: string, doc: ReleaseDocument, nowMs: number): Promise<boolean> {
@@ -214,4 +247,23 @@ export async function publicationCounts(): Promise<{ pages: number; releases: nu
     releases: releaseRows.filter((row) => row.publishedJson !== null).length,
     draftReleases: releaseRows.filter((row) => row.publishedJson === null).length,
   };
+}
+
+/** Shared database-backed reservation for login and password diagnostics. */
+export async function reservePasswordAttempt(now: number): Promise<boolean> {
+  return reserveLoginAttempt(await getReadyDb(), now);
+}
+
+// ---------- content export ----------
+
+/**
+ * Read-only snapshot for the content export. Deliberately does NOT use getPageRecord or
+ * getDesignRecord, because those call ensureDocument and can create rows. Only the allowlisted keys
+ * are read in full; sessions and login failures are never queried.
+ */
+export async function getExportSource(): Promise<ExportSource> {
+  const db = await getReadyDb();
+  const exactKeys = [...PAGE_SLUGS, DESIGN_DOCUMENT_KEY, SETTINGS_DOCUMENT_KEY];
+  const source = await repo.readExportSource(db, exactKeys, RELEASE_KEY_PREFIX);
+  return { allKeys: source.allKeys, rows: source.rows };
 }

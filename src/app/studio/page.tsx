@@ -106,10 +106,30 @@ export default async function StudioDashboard() {
           <Link href="/studio/design" className={`${styles.button} ${styles.buttonSecondary}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
             Design
           </Link>
+          <Link href="/studio/settings" className={`${styles.button} ${styles.buttonSecondary}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+            Artist settings
+          </Link>
           <Link href="/studio/media" className={`${styles.button} ${styles.buttonSecondary}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
             Media
           </Link>
         </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="export-heading">
+        <h2 id="export-heading" className={styles.sectionTitle}>Export</h2>
+        <p className={styles.muted}>
+          Downloads a JSON copy of your pages, design, artist settings and releases, including unpublished drafts. Keep the
+          file private. It is not a full backup: media files and sign-in data are not included.
+        </p>
+        {/* A plain anchor on purpose: a Next.js Link would prefetch the download route. */}
+        <a
+          href="/studio/export"
+          download
+          className={styles.button}
+          style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", width: "fit-content" }}
+        >
+          Unduh ekspor
+        </a>
       </section>
     </>
   );

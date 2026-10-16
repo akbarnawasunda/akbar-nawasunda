@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -142,5 +142,95 @@ describe("persistence across connections", () => {
     await applySchema(db);
     const rows = await repo.listWithPrefix(db, "release:");
     assert.ok(rows.length >= 3);
+  });
+});
+
+describe("atomic release creation (insertNewDocument)", () => {
+  let createDir: string;
+  let createFile: string;
+  const clients: Client[] = [];
+  const open = () => {
+    const client = createClient({ url: `file:${createFile}` });
+    clients.push(client);
+    return client;
+  };
+
+  before(async () => {
+    createDir = mkdtempSync(join(tmpdir(), "studio-create-"));
+    createFile = join(createDir, "create.db");
+    await applySchema(open());
+  });
+
+  after(() => {
+    clients.forEach((client) => client.close());
+    rmSync(createDir, { recursive: true, force: true });
+  });
+
+  it("creates a new release as a private draft", async () => {
+    const db = open();
+    const json = JSON.stringify(release("First Release"));
+    assert.equal(await repo.insertNewDocument(db, "release:first-release", json, 1_000), true);
+    const row = await repo.readDocument(db, "release:first-release");
+    assert.equal(row?.draftJson, json);
+    assert.equal(row?.publishedJson, null);
+    assert.equal(row?.draftUpdatedAt, 1_000);
+  });
+
+  it("reports a duplicate without changing the existing draft or published snapshot", async () => {
+    const db = open();
+    const key = "release:kept-release";
+    const original = JSON.stringify(release("Original"));
+    assert.equal(await repo.insertNewDocument(db, key, original, 2_000), true);
+    assert.equal(await repo.publishJson(db, key, original, 2_500), true);
+
+    const replacement = JSON.stringify(release("Replacement that must not win"));
+    assert.equal(await repo.insertNewDocument(db, key, replacement, 3_000), false);
+
+    const row = await repo.readDocument(db, key);
+    assert.equal(row?.draftJson, original);
+    assert.equal(row?.draftUpdatedAt, 2_500, "publishing updated the draft timestamp; the duplicate must not change it");
+    assert.equal(row?.publishedJson, original);
+    assert.equal(row?.publishedAt, 2_500);
+  });
+
+  it("lets exactly one of many concurrent duplicate creations succeed, across separate connections", async () => {
+    const key = "release:race-release";
+    const attempts = Array.from({ length: 12 }, (_, i) => ({ i, json: JSON.stringify(release(`Racer ${i}`)) }));
+    const clientsForRace = Array.from({ length: 4 }, () => open());
+    const outcomes = await Promise.all(
+      attempts.map(({ i, json }) => repo.insertNewDocument(clientsForRace[i % 4]!, key, json, 4_000 + i)),
+    );
+
+    assert.equal(outcomes.filter(Boolean).length, 1, "exactly one creation may report success");
+    const winnerIndex = outcomes.indexOf(true);
+    const row = await repo.readDocument(open(), key);
+    assert.equal(row?.draftJson, attempts[winnerIndex]!.json, "the stored draft must be the winning creation");
+    const rows = await repo.listWithPrefix(open(), "release:race-release");
+    assert.equal(rows.length, 1, "no duplicate rows may exist");
+  });
+
+  it("throws on a failed write instead of reporting a false creation", async () => {
+    const closed = open();
+    closed.close();
+    await assert.rejects(repo.insertNewDocument(closed, "release:never-written", "{}", 5_000));
+    assert.equal(await repo.readDocument(open(), "release:never-written"), null);
+  });
+
+  it("leaves other release records intact", async () => {
+    const db = open();
+    await repo.insertNewDocument(db, "release:neighbour", JSON.stringify(release("Neighbour")), 6_000);
+    await repo.insertNewDocument(db, "release:neighbour", JSON.stringify(release("Attempted overwrite")), 6_100);
+    const neighbour = await repo.readDocument(db, "release:neighbour");
+    assert.equal(parseReleaseDocument(neighbour?.draftJson ?? null)?.title, "Neighbour");
+    assert.equal(neighbour?.draftUpdatedAt, 6_000);
+    const first = await repo.readDocument(db, "release:first-release");
+    assert.equal(parseReleaseDocument(first?.draftJson ?? null)?.title, "First Release");
+  });
+
+  it("the store uses the atomic insert and no longer checks for existence before writing", () => {
+    const store = readFileSync("src/studio/store.ts", "utf8");
+    const body = store.split("export async function createReleaseDraft")[1]!.split("export async function saveReleaseDraft")[0]!;
+    assert.match(body, /repo\.insertNewDocument\(/);
+    assert.doesNotMatch(body, /readDocument|ensureDocument|writeDraft/);
   });
 });
