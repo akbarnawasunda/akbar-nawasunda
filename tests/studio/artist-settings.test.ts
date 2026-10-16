@@ -6,6 +6,7 @@ import {
   DEFAULT_ARTIST_SETTINGS,
   parseArtistSettings,
   parseSocialLinkLines,
+  resolveArtistIdentity,
   socialLinksToText,
   validateArtistSettings,
 } from "../../src/studio/artist-settings";
@@ -123,5 +124,31 @@ describe("settings in the content export", () => {
     const exported = buildContentExport(source, now);
     assert.equal(exported.complete, false);
     assert.deepEqual(exported.unreadable, [{ key: "settings", part: "draft", status: "unreadable" }]);
+  });
+});
+
+describe("resolveArtistIdentity", () => {
+  const fallback = { name: "Site Name", role: "Site role" };
+
+  it("keeps the site wording when nothing is published", () => {
+    assert.deepEqual(resolveArtistIdentity(null, fallback), { name: "Site Name", role: "Site role", socialLinks: [] });
+    assert.deepEqual(resolveArtistIdentity(DEFAULT_ARTIST_SETTINGS, fallback), {
+      name: "Site Name",
+      role: "Site role",
+      socialLinks: [],
+    });
+  });
+
+  it("uses a published name and role, and treats whitespace-only fields as blank", () => {
+    const identity = resolveArtistIdentity({ artistName: "Nama Uji", role: "   ", socialLinks: [] }, fallback);
+    assert.equal(identity.name, "Nama Uji");
+    assert.equal(identity.role, "Site role");
+  });
+
+  it("passes published social links through unchanged", () => {
+    const links = [{ label: "Instagram", href: "https://example.com/a" }];
+    const identity = resolveArtistIdentity({ artistName: "", role: "", socialLinks: links }, fallback);
+    assert.deepEqual(identity.socialLinks, links);
+    assert.equal(identity.name, "Site Name");
   });
 });

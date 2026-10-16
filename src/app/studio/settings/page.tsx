@@ -16,7 +16,7 @@ export default async function SettingsPage() {
     <>
       <h1 className={styles.heading}>Artist settings</h1>
       <p className={styles.lead}>
-        Name, role line, and social links. Nothing is filled in for you: blank fields keep the current site wording.
+        Name and role line show in the site header and footer. Social links show in the footer. Nothing is filled in for you: blank fields keep the current site wording, and nothing changes publicly until you publish.
       </p>
       <SettingsForm initial={record.draft} initialUnpublishedChanges={unpublished} />
     </>

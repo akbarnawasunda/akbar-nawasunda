@@ -227,6 +227,38 @@ async function main(): Promise<void> {
     check("draft-only release is never exposed publicly", !pub.includes(secretDraftTitle) && detail.status !== 200, `${detail.status}`);
   }
 
+  // --- ARTIST IDENTITY -----------------------------------------------------
+  // Published name, role line and social links show on the public site. A saved draft does not, and a
+  // blank published field keeps the site wording.
+  {
+    const settingsHtml = await (await request("/studio/settings", { headers: { Cookie: cookie } })).text();
+    const fields = actionFieldsFor(settingsHtml, 'name="socialLinks"');
+    check("artist settings form exposes its server action", fields !== null);
+    if (fields) {
+      const draftOnly = await submitAction("/studio/settings", { ...fields, artistName: "Draf Identitas", role: "Peran Draf", socialLinks: "", intent: "save" }, cookie);
+      check("artist settings draft saves", (await draftOnly.text()).includes("Draft saved"), `${draftOnly.status}`);
+      const beforePublish = await (await request("/about")).text();
+      check("unpublished artist draft does not reach the public site", !beforePublish.includes("Draf Identitas") && beforePublish.includes("Akbar Nawasunda"));
+
+      const publishIdentity = await submitAction(
+        "/studio/settings",
+        { ...fields, artistName: "Nama Uji", role: "Peran Uji", socialLinks: "Instagram | https://example.com/uji-ig", intent: "publish" },
+        cookie,
+      );
+      check("artist settings publish", (await publishIdentity.text()).includes("Published."), `${publishIdentity.status}`);
+      const shown = await (await request("/about")).text();
+      check("published artist name shows on the public site", shown.includes("Nama Uji") && !shown.includes("Akbar Nawasunda</a>"));
+      check("published role shows in the footer", shown.includes("Peran Uji"));
+      check("published social link shows in the footer", shown.includes('aria-label="Social"') && shown.includes('href="https://example.com/uji-ig"'));
+
+      const revert = await submitAction("/studio/settings", { ...fields, artistName: "", role: "", socialLinks: "", intent: "publish" }, cookie);
+      check("blank artist settings publish", (await revert.text()).includes("Published."), `${revert.status}`);
+      const reverted = await (await request("/about")).text();
+      check("blank published name keeps the site name", reverted.includes("Akbar Nawasunda") && !reverted.includes("Nama Uji"));
+      check("no social links are shown when none are published", !reverted.includes('aria-label="Social"'));
+    }
+  }
+
   // --- SESSION REQUIRED FOR WRITES ---------------------------------------
   // Use the REAL action IDs taken from the signed-in editor, but send them without any session cookie.
   // A refusal here proves the server-side check, not just a malformed request.

@@ -5,14 +5,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 
 import { primaryNav } from "@/config/navigation";
-import { siteConfig } from "@/config/site";
 import styles from "./SiteHeader.module.css";
 
 /**
  * Site header with the primary navigation. Desktop shows inline links; below 720px the links
  * move into a disclosure panel that closes on Escape and after navigation.
  */
-export function SiteHeader() {
+export function SiteHeader({ name }: { name: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -32,7 +31,7 @@ export function SiteHeader() {
     <header className={styles.header}>
       <div className={styles.bar}>
         <Link href="/" className={styles.brand}>
-          {siteConfig.name}
+          {name}
         </Link>
 
         <nav aria-label="Primary" className={styles.desktopNav}>

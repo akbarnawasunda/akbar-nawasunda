@@ -99,3 +99,25 @@ export function validateArtistSettings(input: Record<string, unknown>): Validati
 export function socialLinksToText(links: readonly ReleaseLinkDoc[]): string {
   return links.map((link) => `${link.label} | ${link.href}`).join("\n");
 }
+
+/** What the public chrome shows. Each field is the owner's published value, or the site fallback when blank. */
+export interface ArtistIdentity {
+  name: string;
+  role: string;
+  socialLinks: ReleaseLinkDoc[];
+}
+
+/**
+ * Public identity: a blank or missing published field keeps the fallback wording, and social links
+ * appear only when the owner has published at least one. Nothing here adds text of its own.
+ */
+export function resolveArtistIdentity(
+  settings: ArtistSettings | null | undefined,
+  fallback: { name: string; role: string },
+): ArtistIdentity {
+  return {
+    name: settings?.artistName.trim() || fallback.name,
+    role: settings?.role.trim() || fallback.role,
+    socialLinks: settings?.socialLinks ?? [],
+  };
+}

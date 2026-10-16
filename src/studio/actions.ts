@@ -153,7 +153,7 @@ export async function saveSettingsAction(_previous: FormState, formData: FormDat
     if (intent === "publish") {
       await publishSettings(result.value, now);
       revalidatePath("/", "layout");
-      return { status: "ok", message: "Published. The settings are saved. The public site does not show social links yet.", unpublishedChanges: false, savedAt: now };
+      return { status: "ok", message: "Published. The public site uses these settings. Blank fields keep the current wording.", unpublishedChanges: false, savedAt: now };
     }
     await saveSettingsDraft(result.value, now);
     return { status: "ok", message: "Draft saved. Only you can see it until you publish.", unpublishedChanges: true, savedAt: now };

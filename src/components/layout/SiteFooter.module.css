@@ -29,6 +29,28 @@
   color: var(--color-muted);
 }
 
+.social {
+  margin-top: var(--space-2);
+}
+
+.social ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.social a {
+  color: var(--color-bone-300);
+  text-decoration: none;
+}
+
+.social a:hover {
+  color: var(--color-accent);
+}
+
 .nav ul {
   list-style: none;
   margin: 0;
