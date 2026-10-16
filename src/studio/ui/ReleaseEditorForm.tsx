@@ -199,9 +199,23 @@ export function ReleaseEditorForm({ mode, slug, initial, artwork, publishedNow, 
           <button type="submit" name="intent" value="save" className={`${styles.button} ${styles.buttonSecondary}`} disabled={pending}>Save draft</button>
           <button type="submit" name="intent" value="publish" className={styles.button} disabled={pending}>Publish</button>
           {publishedNow ? (
-            <button type="submit" name="intent" value="unpublish" className={`${styles.button} ${styles.buttonSecondary}`} disabled={pending}>Unpublish</button>
+            <button
+              type="submit"
+              name="intent"
+              value="unpublish"
+              className={`${styles.button} ${styles.buttonSecondary}`}
+              disabled={pending}
+              onClick={(event) => {
+                if (!window.confirm("Unpublish this release? It disappears from the public site. Your draft is kept.")) event.preventDefault();
+              }}
+            >
+              Unpublish
+            </button>
           ) : null}
           <Link href={`/studio/preview/release/${slug}`} className={styles.link}>Preview draft</Link>
+          {publishedNow ? (
+            <Link href={`/music/${slug}`} className={styles.link}>View public page</Link>
+          ) : null}
         </div>
       )}
     </form>

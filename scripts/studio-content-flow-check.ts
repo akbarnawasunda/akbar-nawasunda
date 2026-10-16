@@ -260,6 +260,15 @@ async function main(): Promise<void> {
     }
   }
 
+  // --- EDITOR LINKS ---------------------------------------------------------
+  // The editors link to the public page they change, so the owner can check a publish on the phone.
+  if (cookie) {
+    const releaseEditor = await (await request("/studio/music/lagu-uji", { headers: { Cookie: cookie } })).text();
+    check("published release editor links to its public page", releaseEditor.includes('href="/music/lagu-uji"'));
+    const pageEditor = await (await request("/studio/pages/about", { headers: { Cookie: cookie } })).text();
+    check("page editor links to its public page", pageEditor.includes('href="/about"'));
+  }
+
   // --- SESSION REQUIRED FOR WRITES ---------------------------------------
   // Use the REAL action IDs taken from the signed-in editor, but send them without any session cookie.
   // A refusal here proves the server-side check, not just a malformed request.

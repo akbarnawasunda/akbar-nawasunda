@@ -113,6 +113,11 @@ a {
   --color-focus: #4f8cff;
 }
 
+.site-root[data-accent="steel"] {
+  --color-accent: #7d97ad;
+  --color-focus: #7d97ad;
+}
+
 .site-root[data-title-case="as-written"] .page-title {
   text-transform: none;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { saveOrPublishAction } from "../actions";
@@ -112,6 +113,9 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
         <button type="submit" name="intent" value="publish" className={styles.button} disabled={pending}>
           Publish
         </button>
+        <Link href={PAGE_CONFIG[slug].path} className={styles.link}>
+          View public page
+        </Link>
       </div>
     </form>
   );

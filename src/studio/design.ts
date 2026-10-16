@@ -7,6 +7,7 @@ export const ACCENT_OPTIONS = {
   signal: { label: "Signal orange (current)", value: "signal", hex: "#ff4f1f" },
   bone: { label: "Bone white", value: "bone", hex: "#ece8df" },
   cobalt: { label: "Cobalt blue", value: "cobalt", hex: "#4f8cff" },
+  steel: { label: "Steel blue (muted)", value: "steel", hex: "#7d97ad" },
 } as const;
 
 export const TITLE_CASE_OPTIONS = {

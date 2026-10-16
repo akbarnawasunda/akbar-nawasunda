@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { PAGE_CONFIG, PAGE_SLUGS, emptyPageDocument, isPageSlug, parsePageDocument } from "../../src/studio/content-model";
-import { DEFAULT_DESIGN, designAttributes, isAccent, isTitleCase, parseDesign } from "../../src/studio/design";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import { ACCENT_OPTIONS, DEFAULT_DESIGN, designAttributes, isAccent, isTitleCase, parseDesign } from "../../src/studio/design";
 import { parseReleaseDocument, publicReleaseDate, slugFromKey, releaseKey, type ReleaseDocument } from "../../src/studio/releases";
 
 describe("page content model", () => {
@@ -102,5 +105,48 @@ describe("release model", () => {
     assert.equal(releaseKey("night-frequency"), "release:night-frequency");
     assert.equal(slugFromKey("release:night-frequency"), "night-frequency");
     assert.equal(slugFromKey("about"), null);
+  });
+});
+
+describe("accent options", () => {
+  const css = readFileSync(join(process.cwd(), "src/styles/globals.css"), "utf8");
+  const tokens = readFileSync(join(process.cwd(), "src/styles/tokens.css"), "utf8");
+
+  function luminance(hex: string): number {
+    const value = hex.replace("#", "");
+    const channels = [0, 2, 4].map((i) => parseInt(value.slice(i, i + 2), 16) / 255);
+    const linear = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * (linear[0] ?? 0) + 0.7152 * (linear[1] ?? 0) + 0.0722 * (linear[2] ?? 0);
+  }
+
+  it("every option has a matching CSS rule, so a published choice always changes the accent", () => {
+    for (const key of Object.keys(ACCENT_OPTIONS)) {
+      if (key === "signal") {
+        // Signal is the token default in tokens.css, so it has no data-accent rule of its own.
+        assert.match(tokens, /--color-accent:\s*var\(--color-signal\)/, "signal default missing");
+        continue;
+      }
+      const rule = new RegExp("\\.site-root\\[data-accent=\"" + key + "\"\\] \\{[^}]*--color-accent");
+      assert.match(css, rule, `missing CSS for ${key}`);
+    }
+  });
+
+  it("the new steel option parses as a valid design choice", () => {
+    assert.equal(isAccent("steel"), true);
+    assert.deepEqual(parseDesign(JSON.stringify({ accent: "steel", titleCase: "uppercase" })), { accent: "steel", titleCase: "uppercase" });
+  });
+
+  it("every accent keeps at least 3:1 contrast against the page background (focus visibility)", () => {
+    const background = luminance("#050506");
+    for (const option of Object.values(ACCENT_OPTIONS)) {
+      const lighter = Math.max(luminance(option.hex), background);
+      const darker = Math.min(luminance(option.hex), background);
+      const ratio = (lighter + 0.05) / (darker + 0.05);
+      assert.ok(ratio >= 3, `${option.value} contrast ${ratio.toFixed(2)}`);
+    }
+  });
+
+  it("the default stays signal orange, so nothing changes publicly until the owner chooses another accent", () => {
+    assert.equal(DEFAULT_DESIGN.accent, "signal");
   });
 });
