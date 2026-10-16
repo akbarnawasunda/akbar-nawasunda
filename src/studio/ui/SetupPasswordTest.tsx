@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { testAdminPasswordAction } from "../setup-actions";
 import { initialFormState } from "../form-state";
+import { PasswordInput } from "./PasswordInput";
 import styles from "./studio.module.css";
 
 /**
@@ -17,10 +18,9 @@ export function SetupPasswordTest() {
     <form action={formAction} className={styles.section}>
       <div className={styles.field}>
         <label htmlFor="test-password" className={styles.label}>Check the password against the stored hash</label>
-        <input
+        <PasswordInput
           id="test-password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           className={styles.input}

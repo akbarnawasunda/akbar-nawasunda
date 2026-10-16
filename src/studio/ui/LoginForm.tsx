@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { loginAction } from "../actions";
 import { initialFormState } from "../form-state";
+import { PasswordInput } from "./PasswordInput";
 import styles from "./studio.module.css";
 
 export function LoginForm() {
@@ -13,10 +14,9 @@ export function LoginForm() {
     <form action={formAction} className={styles.section} style={{ maxWidth: 420 }}>
       <div className={styles.field}>
         <label htmlFor="password" className={styles.label}>Admin password</label>
-        <input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           className={styles.input}

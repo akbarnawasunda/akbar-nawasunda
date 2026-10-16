@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { generateAdminHashAction } from "../setup-actions";
 import { initialFormState } from "../form-state";
 import { MIN_ADMIN_PASSWORD_LENGTH } from "../setup";
+import { PasswordInput } from "./PasswordInput";
 import styles from "./studio.module.css";
 
 /**
@@ -24,10 +25,9 @@ export function SetupHashForm() {
 
       <div className={styles.field}>
         <label htmlFor="setup-password" className={styles.label}>New administrator password</label>
-        <input
+        <PasswordInput
           id="setup-password"
           name="password"
-          type="password"
           autoComplete="new-password"
           minLength={MIN_ADMIN_PASSWORD_LENGTH}
           required
@@ -38,10 +38,9 @@ export function SetupHashForm() {
 
       <div className={styles.field}>
         <label htmlFor="setup-confirmation" className={styles.label}>Type it again</label>
-        <input
+        <PasswordInput
           id="setup-confirmation"
           name="confirmation"
-          type="password"
           autoComplete="new-password"
           minLength={MIN_ADMIN_PASSWORD_LENGTH}
           required
