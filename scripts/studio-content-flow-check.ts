@@ -113,6 +113,17 @@ async function main(): Promise<void> {
     const publicAfter = await (await request("/about")).text();
     check("published page shows on the public site", publicAfter.includes(draftTitle));
 
+    // A newer draft must not leak into the public page: the published version stays until republished.
+    const newerDraft = await submitAction(
+      "/studio/pages/about",
+      { ...pageFields, slug: "about", title: "Tentang Draf Kedua", lead: "Pengantar uji", seoDescription: "Deskripsi uji", sections: "[]", intent: "save" },
+      cookie,
+    );
+    check("newer page draft saves", (await newerDraft.text()).includes("Draft saved"), `${newerDraft.status}`);
+    const aboutWithDraft = await (await request("/about")).text();
+    check("public page keeps the published version while a newer draft exists", aboutWithDraft.includes(draftTitle) && !aboutWithDraft.includes("Tentang Draf Kedua"));
+    check("published SEO description reaches the public page", aboutWithDraft.includes("Deskripsi uji"));
+
     const badSave = await submitAction(
       "/studio/pages/about",
       { ...pageFields, slug: "about", title: "", lead: "x", seoDescription: "", sections: "[]", intent: "save" },
@@ -177,14 +188,20 @@ async function main(): Promise<void> {
       check("published release shows on the public Music page", musicAfter.includes("Lagu Uji Revisi"));
       const detailAfter = await request(`/music/${slug}`);
       check("published release has a public page", detailAfter.status === 200, `${detailAfter.status}`);
+      const detailText = await detailAfter.text();
+      check("published release page shows its description", detailText.includes("Deskripsi lagu uji"));
 
       const exported = await (await request("/studio/export", { headers: { Cookie: cookie } })).text();
       check("export includes the published release", exported.includes("Lagu Uji Revisi"));
+      check("export declares its format", /"format"\s*:\s*"nawa-studio-content-export"/.test(exported));
+      check("export has pages, settings, and releases sections", /"pages"\s*:/.test(exported) && /"settings"\s*:/.test(exported) && /"releases"\s*:/.test(exported));
 
       const unpublish = await submitAction(`/studio/music/${slug}`, { ...base, intent: "unpublish" }, cookie);
       check("release unpublish", (await unpublish.text()).includes("Unpublished."), `${unpublish.status}`);
       const musicAfterUnpublish = await (await request("/music")).text();
       check("unpublished release disappears from the public Music page", !musicAfterUnpublish.includes("Lagu Uji Revisi"));
+      const detailAfterUnpublish = await request(`/music/${slug}`);
+      check("unpublished release page returns 404", detailAfterUnpublish.status === 404, `${detailAfterUnpublish.status}`);
 
       const restore = await submitAction(`/studio/music/${slug}`, { ...base, intent: "publish" }, cookie);
       check("release republish after unpublish", (await restore.text()).includes("Published."), `${restore.status}`);
