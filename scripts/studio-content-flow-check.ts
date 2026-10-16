@@ -190,6 +190,7 @@ async function main(): Promise<void> {
       check("published release has a public page", detailAfter.status === 200, `${detailAfter.status}`);
       const detailText = await detailAfter.text();
       check("published release page shows its description", detailText.includes("Deskripsi lagu uji"));
+      check("release without links shows the honest notice", detailText.includes("Listening links for this release are not available yet."));
 
       const exported = await (await request("/studio/export", { headers: { Cookie: cookie } })).text();
       check("export includes the published release", exported.includes("Lagu Uji Revisi"));

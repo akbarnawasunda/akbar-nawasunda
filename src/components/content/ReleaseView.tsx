@@ -38,7 +38,9 @@ export function ReleaseView({ doc, preview = false }: ReleaseViewProps) {
             </li>
           ))}
         </ul>
-      ) : null}
+      ) : (
+        <p className={styles.noLinks}>Listening links for this release are not available yet.</p>
+      )}
     </article>
   );
 }

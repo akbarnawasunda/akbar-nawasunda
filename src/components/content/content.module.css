@@ -185,3 +185,7 @@
 .releaseLinks a:hover {
   color: var(--color-accent);
 }
+
+.noLinks {
+  color: var(--color-muted);
+}
