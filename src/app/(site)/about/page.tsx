@@ -53,12 +53,8 @@ export default async function AboutPage() {
         <SectionsView sections={published.sections} />
       ) : (
         <ContentRequirement
-          title="Biography pending"
-          description="The biography and career history will be published once they have been written and approved by the artist."
-          items={[
-            "Approved biography in English",
-            "Career timeline with verified dates and projects",
-          ]}
+          title="Biography"
+          description="The full biography and career history will be published here."
         />
       )}
     </Container>

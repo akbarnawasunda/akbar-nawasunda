@@ -40,6 +40,7 @@ export default async function MusicPage() {
                     {date ? ` · ${date}` : ""}
                   </span>
                   <span className={styles.name}>{doc.title}</span>
+                  <span className={styles.cue} aria-hidden="true">→</span>
                 </Link>
               </li>
             );
@@ -54,19 +55,15 @@ export default async function MusicPage() {
                   {releaseTypeLabel[release.type]} · {release.year}
                 </span>
                 <span className={styles.name}>{release.title}</span>
+                <span className={styles.cue} aria-hidden="true">→</span>
               </Link>
             </li>
           ))}
         </ul>
       ) : (
         <ContentRequirement
-          title="Catalogue pending"
-          description="The official release list is not published yet. Releases appear here once their details are confirmed."
-          items={[
-            "Confirmed list of releases, with titles, types and release years",
-            "Official streaming or purchase link for each release",
-            "Artwork cleared for use on this website",
-          ]}
+          title="Releases"
+          description="No releases are listed yet. Releases appear here as soon as they are published."
         />
       )}
     </Container>

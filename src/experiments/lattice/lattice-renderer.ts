@@ -32,7 +32,7 @@ const LEVELS = 24;
 const ACCENT_THRESHOLD = 0.86;
 
 const BONE_RGB = "236, 232, 223";
-const ACCENT_RGB = "255, 79, 31";
+const ACCENT_RGB = "125, 151, 173";
 
 function buildPalette(): string[] {
   const palette: string[] = [];

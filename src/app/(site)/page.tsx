@@ -41,6 +41,18 @@ export default async function HomePage() {
             <span>Akbar</span>
             <span>Nawasunda</span>
           </h1>
+
+          <nav aria-label="Explore" className={styles.paths}>
+            <Link href="/music" className={styles.path}>
+              Music <span aria-hidden="true">→</span>
+            </Link>
+            <Link href="/about" className={styles.path}>
+              About <span aria-hidden="true">→</span>
+            </Link>
+            <Link href="/contact" className={styles.path}>
+              Contact <span aria-hidden="true">→</span>
+            </Link>
+          </nav>
         </div>
       </section>
 

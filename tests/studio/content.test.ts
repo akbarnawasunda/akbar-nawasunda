@@ -72,7 +72,7 @@ describe("design settings", () => {
   });
 
   it("emits only the approved attribute values", () => {
-    assert.deepEqual(designAttributes(DEFAULT_DESIGN), { "data-accent": "signal", "data-title-case": "uppercase" });
+    assert.deepEqual(designAttributes(DEFAULT_DESIGN), { "data-accent": "steel", "data-title-case": "uppercase" });
   });
 });
 
@@ -146,7 +146,8 @@ describe("accent options", () => {
     }
   });
 
-  it("the default stays signal orange, so nothing changes publicly until the owner chooses another accent", () => {
-    assert.equal(DEFAULT_DESIGN.accent, "signal");
+  it("the default is the steel blue accent, and signal stays selectable", () => {
+    assert.equal(DEFAULT_DESIGN.accent, "steel");
+    assert.equal(isAccent("signal"), true);
   });
 });

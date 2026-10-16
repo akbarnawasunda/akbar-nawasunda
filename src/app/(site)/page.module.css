@@ -94,6 +94,35 @@
 
 }
 
+/* Listening paths under the name. Each link is at least 44px tall for touch. */
+.paths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  border-top: 1px solid rgba(236, 232, 223, 0.18);
+  padding-top: var(--space-2);
+}
+
+.path {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-bone-100);
+  text-decoration: none;
+}
+
+.path span {
+  margin-left: var(--space-2);
+  color: var(--color-accent);
+}
+
+.path:hover {
+  color: var(--color-accent);
+}
+
 .below {
   padding-block: var(--space-16);
 }

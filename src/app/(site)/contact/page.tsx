@@ -15,16 +15,11 @@ export default function ContactPage() {
       <PageIntro
         eyebrow="Enquiries"
         title="Contact"
-        lead="No contact form is available yet. It will be added once a destination for enquiries is confirmed."
+        lead="For bookings, remix requests, and licensing enquiries."
       />
       <ContentRequirement
-        title="Contact details pending"
-        description="Official contact details will be listed here once they are confirmed."
-        items={[
-          "Booking enquiry address or management contact",
-          "Remix and collaboration enquiry route",
-          "Music licensing contact, if licensing is offered",
-        ]}
+        title="Contact details"
+        description="Contact details will be listed here."
       />
     </Container>
   );

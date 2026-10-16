@@ -4,10 +4,10 @@
  */
 
 export const ACCENT_OPTIONS = {
-  signal: { label: "Signal orange (current)", value: "signal", hex: "#ff4f1f" },
+  signal: { label: "Signal orange", value: "signal", hex: "#ff4f1f" },
   bone: { label: "Bone white", value: "bone", hex: "#ece8df" },
   cobalt: { label: "Cobalt blue", value: "cobalt", hex: "#4f8cff" },
-  steel: { label: "Steel blue (muted)", value: "steel", hex: "#7d97ad" },
+  steel: { label: "Steel blue (muted, default)", value: "steel", hex: "#7d97ad" },
 } as const;
 
 export const TITLE_CASE_OPTIONS = {
@@ -23,7 +23,7 @@ export interface DesignSettings {
   titleCase: TitleCaseOption;
 }
 
-export const DEFAULT_DESIGN: DesignSettings = { accent: "signal", titleCase: "uppercase" };
+export const DEFAULT_DESIGN: DesignSettings = { accent: "steel", titleCase: "uppercase" };
 
 export function parseDesign(raw: unknown): DesignSettings | null {
   if (typeof raw !== "string") return null;
