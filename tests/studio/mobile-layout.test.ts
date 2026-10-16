@@ -158,13 +158,13 @@ describe("touch targets", () => {
 
 describe("text that must never widen the page", () => {
   it("lets user-written content break long tokens", () => {
-    for (const selector of [".paragraph", ".title", ".sectionHeading", ".releaseLinks a", ".lead", ".releaseMeta"]) {
+    for (const selector of [".paragraph", ".title", ".sectionHeading", ".releaseLinkList a", ".lead", ".releaseMeta", ".cardTitle", ".cardMeta"]) {
       assert.ok(hasDeclaration(contentCss, selector, "overflow-wrap: anywhere"), `${selector} should wrap long tokens`);
     }
   });
 
   it("lets the content grid items shrink", () => {
-    for (const selector of [".body", ".release", ".releaseLinks", ".musicBlock"]) {
+    for (const selector of [".body", ".release", ".releaseLinkList", ".musicBlock", ".cardBody"]) {
       assert.ok(hasDeclaration(contentCss, selector, "min-width: 0"), `${selector} should allow shrinking`);
     }
   });

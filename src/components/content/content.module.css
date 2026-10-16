@@ -20,7 +20,11 @@
 .release,
 .releaseMeta,
 .releaseLink,
-.releaseLinks a,
+.cardTitle,
+.cardMeta,
+.cardOpen,
+.releaseLinkList a,
+.notice,
 .body,
 .intro {
   overflow-wrap: anywhere;
@@ -32,8 +36,12 @@
 .release,
 .musicBlock,
 .releaseList,
-.releaseLinks,
-.sectionList {
+.sectionList,
+.card,
+.cardBody,
+.cardSleeve,
+.releaseInfo,
+.releaseLinkList {
   min-width: 0;
 }
 
@@ -70,7 +78,7 @@
   gap: var(--space-4);
   max-width: 62ch;
   padding-block: var(--space-8);
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
+  border-top: 1px solid var(--color-line);
 }
 
 .requirementTitle {
@@ -122,14 +130,14 @@
   margin: 0;
   padding: 0;
   display: grid;
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
+  border-top: 1px solid var(--color-line);
 }
 
 .releaseLink {
   display: grid;
   gap: var(--space-1);
   padding-block: var(--space-4);
-  border-bottom: 1px solid rgba(236, 232, 223, 0.18);
+  border-bottom: 1px solid var(--color-line);
   color: var(--color-fg);
   text-decoration: none;
   min-height: 44px;
@@ -146,46 +154,182 @@
   color: var(--color-muted);
 }
 
+
+/* Sleeve: square artwork frame. With no approved artwork it shows a neutral typographic sleeve. */
+.sleeve {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+}
+
+.sleeveImage {
+  object-fit: cover;
+}
+
+.sleeveBlank {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: linear-gradient(160deg, var(--color-ink-800), var(--color-ink-950));
+}
+
+.sleeveRule {
+  width: 2.5rem;
+  height: 2px;
+  background: var(--color-accent);
+}
+
+.sleeveType {
+  font-size: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  color: var(--color-bone-300);
+}
+
+/* Archive card: sleeve beside the text on phones, stacked on wider screens. */
+.card {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  min-height: 44px;
+  padding-block: var(--space-6);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-fg);
+  text-decoration: none;
+}
+
+.cardSleeve {
+  display: block;
+  min-width: 0;
+}
+
+/* Small sleeves in the archive: the type label is set smaller so words like REMIX never break. */
+.cardSleeve .sleeveBlank {
+  padding: var(--space-3);
+}
+
+.cardSleeve .sleeveType {
+  font-size: 0.9375rem;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+.cardBody {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  align-content: start;
+}
+
+.cardMeta {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.cardTitle {
+  font-size: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+.cardOpen {
+  margin-top: var(--space-2);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-bone-300);
+}
+
+.card:hover .cardTitle,
+.card:hover .cardOpen {
+  color: var(--color-accent);
+}
+
+@media (min-width: 900px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--color-line);
+  }
+
+  .card:hover {
+    border-color: var(--color-accent);
+  }
+}
+
+/* Release detail: artwork and information side by side on wide screens, stacked on phones. */
 .release {
   display: grid;
-  gap: var(--space-6);
-  max-width: 62ch;
+  gap: var(--space-8);
+  min-width: 0;
+  padding-top: var(--space-8);
   padding-bottom: var(--space-8);
 }
 
-.artwork {
-  margin: 0;
-  max-width: 420px;
+.releaseHead {
+  display: grid;
+  gap: var(--space-8);
+  min-width: 0;
 }
 
-.artworkImage {
-  width: 100%;
-  height: auto;
+.releaseSleeve {
+  width: min(100%, 320px);
 }
 
-.releaseLinks {
+.releaseInfo {
+  display: grid;
+  gap: var(--space-6);
+  align-content: start;
+  min-width: 0;
+}
+
+.releaseLinkList {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  max-width: 36rem;
 }
 
-.releaseLinks a {
-  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-  color: var(--color-fg);
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
+.releaseLinkList .button {
+  justify-content: space-between;
+  width: 100%;
+  min-height: 56px;
+  font-size: var(--text-label);
 }
 
-.releaseLinks a:hover {
-  color: var(--color-accent);
+.notice {
+  max-width: 36rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-line);
+  color: var(--color-bone-300);
 }
 
-.noLinks {
-  color: var(--color-muted);
+@media (min-width: 900px) {
+  .releaseHead {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-16);
+    align-items: start;
+  }
+
+  .releaseSleeve {
+    width: 100%;
+    max-width: 480px;
+  }
 }

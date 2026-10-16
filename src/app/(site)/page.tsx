@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 
+import { getAsset, getImage } from "@/assets/manifest";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
 import { SpatialBackdrop } from "@/effects/SpatialBackdrop";
@@ -18,6 +20,8 @@ export default async function HomePage() {
   const [home, releases] = await Promise.all([getPublicPage("home"), getPublishedReleases()]);
   const sections = home?.sections ?? [];
   const hasSections = sections.some((section) => section.visible);
+  const portrait = getImage("portrait-optimized");
+  const portraitAlt = getAsset("portrait-optimized").alt ?? "";
 
   return (
     <>
@@ -43,17 +47,45 @@ export default async function HomePage() {
           </h1>
 
           <nav aria-label="Explore" className={styles.paths}>
-            <Link href="/music" className={styles.path}>
+            <Link href="/music" className={`button button-primary ${styles.primary}`}>
               Music <span aria-hidden="true">→</span>
             </Link>
             <Link href="/about" className={styles.path}>
-              About <span aria-hidden="true">→</span>
+              About
             </Link>
             <Link href="/contact" className={styles.path}>
-              Contact <span aria-hidden="true">→</span>
+              Contact
             </Link>
           </nav>
         </div>
+      </section>
+
+      <section className={styles.profile} aria-labelledby="profile-heading">
+        <Container className={styles.profileInner}>
+          <figure className={styles.portrait}>
+            <Image
+              src={portrait}
+              alt={portraitAlt}
+              width={portrait.width}
+              height={portrait.height}
+              sizes="(min-width: 900px) 36vw, 80vw"
+              unoptimized
+              className={styles.portraitImage}
+            />
+          </figure>
+          <div className={styles.profileText}>
+            <p className={styles.eyebrow}>Profile</p>
+            <h2 id="profile-heading" className={styles.profileTitle}>
+              {siteConfig.role}
+            </h2>
+            <p className={styles.profileLead}>
+              Releases, remixes and mixes are listed in the music archive.
+            </p>
+            <Link href="/about" className="button">
+              Read the profile <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </Container>
       </section>
 
       {hasSections ? (

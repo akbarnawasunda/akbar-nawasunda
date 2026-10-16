@@ -17,6 +17,10 @@
   --color-muted: var(--color-bone-500);
   --color-accent: var(--color-signal);
   --color-focus: var(--color-signal);
+  /* Hairlines and surfaces, shared by every rule, card and button so the site reads as one system. */
+  --color-line: rgba(236, 232, 223, 0.18);
+  --color-line-strong: rgba(236, 232, 223, 0.32);
+  --color-surface: var(--color-ink-900);
 
   /* Typography */
   --font-sans: var(--font-display), ui-sans-serif, system-ui, sans-serif;

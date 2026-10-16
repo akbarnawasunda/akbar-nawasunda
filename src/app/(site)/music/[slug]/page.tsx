@@ -44,9 +44,11 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
     return (
       <Container>
         <ReleaseView doc={managed} />
-        <p className={styles.back}>
-          <Link href="/music">← All music</Link>
-        </p>
+        <nav aria-label="Release navigation" className={styles.back}>
+          <Link href="/music" className="button">
+            ← Back to music
+          </Link>
+        </nav>
       </Container>
     );
   }
@@ -63,11 +65,12 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       />
 
       {release.links.length > 0 ? (
-        <ul className={styles.links}>
+        <ul className={styles.links} aria-label="Listen">
           {release.links.map((link) => (
             <li key={link.href}>
-              <a href={link.href} rel="noopener noreferrer">
-                {link.label}
+              <a className="button" href={link.href} rel="noopener noreferrer">
+                <span>{link.label}</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </li>
           ))}
@@ -76,9 +79,11 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
         <p className={styles.empty}>Listening links for this release are not available yet.</p>
       )}
 
-      <p className={styles.back}>
-        <Link href="/music">← All music</Link>
-      </p>
+      <nav aria-label="Release navigation" className={styles.back}>
+        <Link href="/music" className="button">
+          ← Back to music
+        </Link>
+      </nav>
     </Container>
   );
 }

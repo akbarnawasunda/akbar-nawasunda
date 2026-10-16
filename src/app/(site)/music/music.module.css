@@ -1,41 +1,92 @@
-.list {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 var(--space-16);
+/* Header: the neutral stage image sits behind the title and fades into the page. Decorative only. */
+.header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  object-fit: cover;
+  opacity: 0.32;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(5, 5, 6, 0.2) 0%, var(--color-bg) 100%);
+}
+
+.headerInner {
   display: grid;
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
+  gap: var(--space-4);
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
 }
 
-.item {
-  display: grid;
-  gap: var(--space-2);
-  padding-block: var(--space-6);
-  border-bottom: 1px solid rgba(236, 232, 223, 0.18);
-  color: var(--color-fg);
-  text-decoration: none;
+.eyebrow {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-bone-300);
 }
 
-.item:hover .name {
-  color: var(--color-accent);
+.title {
+  font-size: var(--text-title);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
 }
 
-/* Arrow shows that the row is a link. Decorative, so it is hidden from screen readers. */
-.cue {
-  margin-left: var(--space-3);
-  color: var(--color-accent);
-}
-
-.meta {
+.count {
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-muted);
 }
 
-.name {
-  font-size: var(--text-title);
+.body {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-16);
+}
+
+/* Phones: one column of rows, each with a sleeve. Wide screens: a three-column grid of cards. */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.empty {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  max-width: 40rem;
+  padding-block: var(--space-8);
+}
+
+.emptyTitle {
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.25rem);
   font-weight: 500;
-  line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
+}
+
+.emptyText {
+  color: var(--color-bone-300);
+  margin-bottom: var(--space-2);
+}
+
+@media (min-width: 900px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
 }

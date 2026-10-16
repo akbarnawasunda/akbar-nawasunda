@@ -3,27 +3,27 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  max-width: 36rem;
   padding-bottom: var(--space-8);
 }
 
 .links a {
-  font-size: var(--text-title);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-  color: var(--color-fg);
+  width: 100%;
+  min-height: 56px;
+  justify-content: space-between;
 }
 
-.links a:hover {
-  color: var(--color-accent);
-}
-
+/* Same notice treatment as the release page, so the empty state looks intentional. */
 .empty {
-  padding-bottom: var(--space-8);
-  color: var(--color-muted);
+  max-width: 36rem;
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+  border: 1px solid var(--color-line);
+  color: var(--color-bone-300);
 }
 
 .back {
+  display: flex;
   padding-bottom: var(--space-16);
 }

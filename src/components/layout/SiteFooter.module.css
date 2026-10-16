@@ -1,7 +1,7 @@
 .footer {
   position: relative;
   z-index: var(--z-chrome);
-  border-top: 1px solid rgba(236, 232, 223, 0.12);
+  border-top: 1px solid var(--color-line);
   padding-block: var(--space-8);
   padding-inline: var(--gutter);
   font-size: var(--text-label);

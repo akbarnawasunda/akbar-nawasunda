@@ -121,3 +121,45 @@ a {
 .site-root[data-title-case="as-written"] .page-title {
   text-transform: none;
 }
+
+/*
+ * Public buttons. One style for every call to action on the public site: a 48px touch target,
+ * a hairline frame, and a bone fill for the single primary action on a screen. Steel (the accent)
+ * appears only as a hover and focus signal, never as a large fill.
+ */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-fg);
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.button-primary {
+  background: var(--color-fg);
+  border-color: var(--color-fg);
+  color: var(--color-ink-950);
+}
+
+.button-primary:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-ink-950);
+}
