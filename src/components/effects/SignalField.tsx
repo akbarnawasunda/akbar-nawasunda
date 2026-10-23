@@ -11,8 +11,10 @@
  * gives the thin inner glow. Motion is CSS-only: breathing 1 → 1.03 over 6s, rotation 0 → 3deg over
  * 20s, both disabled under prefers-reduced-motion.
  *
- * Phase 7 may swap this for a Three.js particle system. It should keep the same 600x600 footprint,
- * layer and motion so nothing on the page moves when it is replaced.
+ * Phase 7 role: this is the permanent static layer, not a placeholder to be deleted. `HeroSignal`
+ * renders it on the server and layers the WebGL field on top once the page is idle; whenever the
+ * renderer is skipped or gives up — no WebGL, shader failure, <30 fps, prefers-reduced-motion — this
+ * SVG is what the visitor sees. Same 600x600 footprint, same layer, same motion as the canvas.
  */
 import styles from "./SignalField.module.css";
 

@@ -1,7 +1,23 @@
 # Screenshots (2026-10-23)
 
-Three sets. `home-*`, `music-*` are the Phase 2 revision; `phase5-*` are the Phase 5 routes added
-after the revision was approved; `studio-*` are the Phase 6 Studio flow.
+Four sets. `home-*`, `music-*` are the Phase 2 revision; `phase5-*` are the Phase 5 routes added
+after the revision was approved; `studio-*` are the Phase 6 Studio flow; `phase7-*` are the hero with
+the Liquid Signal layered in.
+
+## Phase 7 Liquid Signal
+
+| File | What it shows |
+|---|---|
+| `phase7-hero-1280.webp` | Hero at 1280 × 900, `prefers-reduced-motion: reduce` — the static SVG field, which is what the fallback always shows |
+| `phase7-hero-390.webp` | Same at 390 × 844: H1 on the first screen, field crescent behind the portrait |
+| `phase7-home-390-full.webp` | Whole homepage at 390 |
+| `phase7-field-reference.webp` | **Not a browser capture.** `npx tsx scripts/liquid-signal-reference.ts /tmp/field.png 5600 2.5` — an offscreen render that replays the exact maths of `liquid-signal/shaders.ts` (lattice, jitter, wobble, depth, rim, dot size, palette) at 600 px, 5 600 points, t = 2.5 s |
+
+Why a reference render instead of a screenshot: Chromium headless in this sandbox cannot rasterise
+WebGL at all — any `drawArrays` kills the frame (1 triangle, `gl.POINTS`, blending or not). Everything
+around the canvas *is* verified in the browser (deferred load, reduced-motion path, no-WebGL path,
+no-JS path, shader compile/link, chunk size); the running field itself needs a real GPU, so it is
+checked via the reference render plus the owner's preview.
 
 ## Phase 6 Studio (draft → publish)
 

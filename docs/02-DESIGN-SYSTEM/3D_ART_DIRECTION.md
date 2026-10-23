@@ -42,3 +42,25 @@ Bukan bola bercahaya generik.
 - [ ] Fallback works with JS disabled? At least readable
 - [ ] No blocking text, no preventing click
 - [ ] Reduced-motion media query respected
+
+---
+
+## Implementasi Phase 7 (2026-10-23)
+
+Rekomendasi "Prefer Three.js + R3F" **tidak** dipakai. Alasannya angka: `three@0.186` mengirim
+127 KB gz + 279 KB gz inti sebelum tree-shaking, sedangkan budget chunk 3D adalah < 70 KB gz, dan
+yang dibutuhkan di sini hanya satu point cloud tanpa lighting, loader, atau post-processing. Yang
+dibangun adalah renderer WebGL tulis tangan (±3,1 KB gz) — detail keputusan di D-050…D-054.
+
+| Butir spec | Status Phase 7 |
+|---|---|
+| Satu scene / satu komponen | `liquid-signal/` + `HeroSignal`; hanya dipakai di hero beranda |
+| Bukan bola bercahaya generik | Field titik dengan tepi menyala (rim) dan interior redup; bagian dalam tidak pernah menutup jadi bola |
+| Dot 1.5–3 px, palet #0087FF → #8AE8FF → #7800FF | Ya: titik 2–9 px menurut kedalaman/rim di buffer device px, warna dari tinggi + rim, latar #0A0A0E |
+| Breathing 1 → 1.03 / 6 s, rotasi Y 5° / 20 s | Ya (`breathScale`, `signalViewMatrix`) |
+| Reduced-motion → statis | Ya, renderer tidak pernah diimpor |
+| Fallback tanpa WebGL | Ya: SVG server-rendered adalah lapisan dasar, bukan placeholder |
+| FPS < 30 selama 2 s → statis | Ya, governor di renderer (lihat D-053) |
+| Dispose saat unmount | Ya: buffer, program, context (`WEBGL_lose_context`) |
+| Init setelah LCP | Ya: `load` → `requestIdleCallback` (timeout 1.2 s) |
+| Tilt pointer ≤ 10° / parallax −10% | **Belum** — ditunda ke Phase 8, lihat §17 di audit |

@@ -515,3 +515,84 @@ rilis terverifikasi, dan `/artist` kembali menampilkan keadaan `[NEEDS OWNER]`-n
 - Unggah media ke object storage: tombol unggah belum ada, menunggu kredensial storage.
 - `/privacy`: sengaja dilewati, teksnya harus dari owner.
 - Artwork 6 rilis: menunggu file dari owner.
+
+---
+
+## 17. Phase 7 — Liquid Signal WebGL asli (2026-10-23)
+
+Mengganti placeholder SVG dot-matrix di hero dengan field WebGL sungguhan, tanpa mengorbankan
+halaman bagi perangkat yang tidak bisa menjalankannya.
+
+### Yang dibangun
+
+| Berkas | Isi |
+|---|---|
+| `src/components/effects/liquid-signal/geometry.ts` | Matematika murni: lattice Fibonacci, jitter radial, `pointBudget`, `frameState` (proyeksi + kamera + ukuran titik), `breathScale`, `shouldAnimate`. Tanpa DOM/WebGL, jadi bisa dites |
+| `src/components/effects/liquid-signal/shaders.ts` | Vertex + fragment GLSL ES 1.00 (satu sumber untuk WebGL1 & WebGL2). Quad menghadap kamera; ukuran/alpha dari kedalaman + rim |
+| `src/components/effects/liquid-signal/renderer.ts` | Context, program, buffer, loop 50 fps, ResizeObserver, deteksi <30 FPS, `dispose()` yang melepas buffer + program + context |
+| `src/components/effects/HeroSignal.tsx` | Pembungkus klien: render SVG dari server, impor renderer setelah `load` + idle, pause saat tab tersembunyi / canvas keluar viewport |
+| `src/components/effects/SignalField.tsx` | Tidak dihapus: sekarang berperan sebagai lapisan statis permanen |
+
+Keputusan teknis: **D-050…D-054** di `DECISION_LOG.md`.
+
+### Angka
+
+| Metrik | Hasil | Budget |
+|---|---|---|
+| Chunk renderer (dinamis, tidak ada di HTML awal) | **3.1 KB gz** (6.968 B raw) | < 70 KB gz |
+| Tambahan JS awal dari wrapper + fallback | **+1.6 KB gz** (181.096 → 182.736 B) | < 180 KB gz total — sudah 180.2 KB sejak Phase 1, lihat catatan |
+| LCP (390×844, DPR 2, 1.6 Mbps, CPU 4×) | **1,80 s** (FCP 0,74 s, load 2,62 s) | < 2,5 s |
+| Buffer vertex terbesar (5.600 titik) | 0,8 MB, dibuat sekali per resize | — |
+| Loop | maks 50 fps, `depth:false`, `antialias:false`, DPR ≤ 2 | FPS > 45 perangkat menengah |
+
+Catatan jujur soal JS awal: angka 180,2 KB sudah tercatat di §9 sebelum Phase 7, dan budget 180 KB
+dilewati tipis oleh framework + halaman sejak Phase 1. Phase 7 menambah 1,6 KB (pembungkus klien),
+bukan lompatan. Phase 8 tetap harus menurunkan angka ini; menaikkan budget bukan penyelesaian.
+
+### Perilaku yang diverifikasi di browser (headless Chromium, build produksi)
+
+| Skenario | Hasil |
+|---|---|
+| `prefers-reduced-motion: reduce` | `data-signal-state="static"`, SVG opasitas 1, **chunk renderer tidak pernah diminta** |
+| WebGL dimatikan (`getContext` webgl → `null`, `WebGLRenderingContext` dihapus) | state `static`, chunk tidak diminta, tidak ada error di konsol |
+| HTML tanpa JavaScript | hero lengkap: H1, paragraf, CTA, portrait, dan field SVG tetap tampil |
+| Chunk renderer di HTML awal | tidak ada (0 kecocokan nama chunk di HTML `/`) |
+| Shader | compile + link sukses di WebGL2 nyata; 3 atribut dan 8 uniform semuanya ter-resolve |
+
+### Batas lingkungan (penting untuk Phase 8)
+
+Chromium headless di sandbox ini **tidak bisa merasterisasi WebGL sama sekali**: `drawArrays` apa pun
+(1 segitiga, `gl.POINTS`, bahkan tanpa blending) mematikan frame. Yang bisa diverifikasi di sini
+adalah kontrak di sekitar field: pemuatan tertunda, fallback, shader compile/link, ukuran chunk, dan
+layout. Tampilan field saat berjalan **belum** terverifikasi dari browser di sandbox — karena itu:
+
+- `screenshots/phase7-hero-*` adalah tangkapan nyata halaman pada keadaan fallback statis (persis
+  yang dilihat pengguna tanpa WebGL / dengan reduced motion).
+- `screenshots/phase7-field-reference.webp` adalah **render referensi offscreen**, bukan tangkapan
+  browser: `scripts/liquid-signal-reference.ts` mengulang rumus `shaders.ts` baris per baris
+  (lattice, jitter, wobble, kedalaman, rim, ukuran titik, palet) ke PNG, tanpa dependensi:
+
+  ```
+  npx tsx scripts/liquid-signal-reference.ts /tmp/field.png 5600 2.5
+  ``` Dipakai untuk menyetel jumlah titik,
+  ukuran titik, dan palet — dan memang menangkap satu bug nyata: pemetaan kedalaman awalnya membuat
+  seluruh sisi dekat jatuh ke nilai 0, sehingga field tampil sebagai cakram ungu gelap.
+- Verifikasi visual terakhir ada di tangan owner lewat preview (browser sungguhan).
+
+### Test
+
+`npm run test` = **116 test** (83 Studio + 33 komponen baru); `npm run test:db` tetap 8 dijalankan terpisah:
+
+- `tests/components/liquid-signal-geometry.test.ts` — 33 test: PRNG deterministik, anggaran titik per
+  perangkat, batas DPR, aturan `shouldAnimate`, posisi titik pada bola satuan, sebaran kutub,
+  ekspansi quad (6 vertex/partikel, semua sudut, seed seragam), jitter radial, matriks kolom-mayor
+  (identitas, ortogonal, near/far plane), kamera (kembali ke posisi awal setelah 1440 s, < 10°/detik),
+  napas 1 → 1,03, dan `frameState` (ukuran titik mengikuti tinggi buffer).
+
+### Yang belum dikerjakan
+
+- Verifikasi FPS nyata di Snapdragon 680 / Moto G4 (butuh perangkat; governor <30 FPS sudah terpasang
+  tapi belum pernah terpicu di perangkat asli).
+- Parallax scroll (−10% dolly) dan tilt pointer ≤10° dari 3D_ART_DIRECTION belum diimplementasikan;
+  hero saat ini hanya bernapas dan berputar 5°/20 s seperti versi SVG.
+- `/privacy` tetap tidak disentuh.

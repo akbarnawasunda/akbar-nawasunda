@@ -1,0 +1,41 @@
+/* Host sits exactly where the SVG field used to sit; the canvas is a layer on top of it. */
+.host {
+  position: relative;
+  display: block;
+}
+
+/* The inline SVG fills the host, so layout is identical before and after the swap. */
+.host > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+/* Only cross-fade once the renderer has actually drawn something. */
+.host[data-signal-state="live"] .canvas {
+  opacity: 1;
+}
+
+.host[data-signal-state="live"] > svg {
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+/* Reduced motion never gets here (the renderer is not started), but the CSS is explicit anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .canvas,
+  .host[data-signal-state="live"] > svg {
+    transition: none;
+  }
+}

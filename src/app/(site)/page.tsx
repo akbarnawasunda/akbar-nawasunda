@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { portraitAlt, portraitSize, portraitSources } from "@/assets/web";
+import { HeroSignal } from "@/components/effects/HeroSignal";
 import { SignalField } from "@/components/effects/SignalField";
 import { ReleaseBento } from "@/components/content/ReleaseBento";
 import { Container } from "@/components/layout/Container";
@@ -110,7 +111,11 @@ export default async function HomePage() {
           </div>
 
           <figure className={styles.visual}>
-            <SignalField variant="dots" idPrefix="hero" size={600} className={styles.signal} />
+            <HeroSignal className={styles.signal}>
+              {/* Server-rendered static field: the page is complete without WebGL, and this stays
+                  on screen under prefers-reduced-motion or if the renderer bails out. */}
+              <SignalField variant="dots" idPrefix="hero" size={600} />
+            </HeroSignal>
             <div className={styles.portraitFrame}>
               <picture>
                 <source
