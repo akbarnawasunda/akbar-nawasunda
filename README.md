@@ -1,77 +1,25 @@
-# akbar-nawasunda
+# Akbar Nawasunda — Documentation Package
 
-Official website foundation for Akbar Nawasunda (electronic music producer, remixer, DJ).
-This repository is a new Next.js + TypeScript project; it does not reuse any previous site code.
+Ini adalah blueprint lengkap untuk website akbarnawasunda.my.id. Dibuat untuk AI coding agent, bukan untuk dibaca casual.
 
-## Requirements
+## Struktur
+- `AGENTS.md` → pintu masuk wajib
+- `docs/00-PROJECT-FOUNDATION/` → visi, PRD, scope
+- `docs/01-BRAND-IDENTITY/` → identitas, fakta terverifikasi
+- `docs/02-DESIGN-SYSTEM/` → tokens, 3D, motion
+- `docs/03-USER-EXPERIENCE/` → sitemap, flows
+- `docs/04-TECHNICAL-ARCHITECTURE/` → tech spec, security, performance
+- `docs/05-CONTENT-AND-ASSETS/` → content model, aset
+- `docs/06-STUDIO-CMS/` → Studio PRD & workflow
+- `docs/07-QUALITY-AND-TESTING/` → testing
+- `docs/08-IMPLEMENTATION/` → roadmap, decision log
 
-- Node.js 22 (see `.nvmrc`; Node 20.9+ is the minimum)
-- npm
+## Status Tahap A (Audit)
+Fakta terverifikasi diambil dari: akbarnawasunda.my.id, Medium bio (Idel Akbar Ramadan, 1 Nov 2005, Bandung Barat), sndo.ffm.to releases. Sisanya placeholder berlabel.
 
-## Commands
+## Next Step untuk Owner
+1. Upload ZIP repo terbaru + logo AN asli (hitam-biru tajam) + foto portrait neon + 2 homepage concept + screenshot referensi website yang lu kirim ke GPT.
+2. Konfirmasi fakta di FACTS_AND_VERIFICATION.md.
+3. Setujui arah 3D Liquid Signal di 3D_ART_DIRECTION.md.
 
-```bash
-npm install
-npm run dev        # development server on 0.0.0.0:3000
-npm run build      # production build
-npm run start      # serve the production build on 0.0.0.0:3000
-npm run typecheck  # tsc --noEmit
-npm run lint       # eslint
-npm run check      # typecheck + lint + build
-```
-
-## Structure
-
-```
-src/
-  app/                  Routes only (App Router). Pages compose components; they hold little logic.
-    layout.tsx          Root layout, metadata defaults, viewport, font variable.
-    page.tsx            Placeholder home page (production site not yet built).
-    experiments/lattice Isolated visual study 01 (noindex).
-  config/site.ts        Site identity and metadata source of truth.
-  lib/fonts.ts          Font loading (vendored font, no runtime third-party requests).
-  styles/               Design tokens (tokens.css) and global styles.
-  components/layout/    Reusable layout primitives (Container).
-  effects/              Reusable, content-agnostic motion/media hooks.
-  experiments/          Self-contained visual studies; each one owns its files.
-  assets/fonts/         Vendored font files and license.
-```
-
-Conventions:
-- Colours, spacing, type sizes, motion curves and z-layers come from `src/styles/tokens.css`.
-- Components use CSS Modules co-located with the component.
-- Effects sit in a layer beneath content (`--z-effects` < `--z-content` < `--z-chrome`).
-- Animation code keeps its state in refs and never triggers React re-renders per frame.
-
-## Visual study 01 — Lattice
-
-Route: `/experiments/lattice` (not indexed).
-
-A grid of points forms a sound-surface: two slow interference waves, and a ring that
-travels outward once per beat (124 BPM). Rendered with Canvas 2D; no 3D library.
-Tunables live in `src/experiments/lattice/lattice-config.ts`.
-
-Performance behaviour:
-- Point density is reduced below 720px wide.
-- Device pixel ratio is capped at 2.
-- The loop pauses when the canvas is off-screen or the tab is hidden.
-- `prefers-reduced-motion` renders one static frame and redraws only on resize.
-
-## Official assets
-
-Original brand and website files live in `AKBAR-NAWASUNDA-ASSETS/` and are never edited in place.
-
-- `src/assets/manifest.ts` is the registry: stable ids, roles, status, alt text, and build-time dimensions.
-- `src/assets/asset-checksums.json` records a SHA-256 for every file. Run `npm run assets:check` to verify.
-- Regenerate checksums only after a deliberate change: `node scripts/check-assets.mjs --update`.
-
-Plan for the content management system: `docs/nawa-studio.md`.
-
-## NAWA STUDIO (admin)
-
-Protected admin area at `/studio`. See `docs/nawa-studio.md` for the architecture and setup.
-
-- Local: copy `.env.example` to `.env.local`, set `DATABASE_URL=file:./data/studio.db` and `STUDIO_ADMIN_PASSWORD_HASH` (generate with `npm run -s studio:hash-password`, password on stdin), then `npm run dev`.
-- Content: pages (About, homepage sections), music releases, and design options are edited in `/studio`. Drafts stay private until published.
-- Media is read-only. Uploads are not connected (see `docs/nawa-studio.md`).
-- Tests: `npm test`. Full check: `npm run check`.
+Setelah itu lanjut Tahap B full detailing.
