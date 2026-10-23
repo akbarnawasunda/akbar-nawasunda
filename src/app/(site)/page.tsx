@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 
-import { anMark, lockup, portraitAlt, portraitSize, portraitSources, stageFrame } from "@/assets/web";
+import { portraitAlt, portraitSize, portraitSources } from "@/assets/web";
 import { SignalField } from "@/components/effects/SignalField";
 import { ReleaseBento } from "@/components/content/ReleaseBento";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
-import { VisualGrid, type VisualItem } from "@/components/media/VisualGrid";
+import { SectionsView } from "@/components/content/SectionsView";
+import { VisualGrid } from "@/components/media/VisualGrid";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { resolveCover } from "@/content/covers";
 import { fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
+import { homepageVisuals } from "@/content/visuals";
 import { siteConfig } from "@/config/site";
 import { getSocialLink, listenUrl } from "@/config/socials";
+import { getPublicPage } from "@/studio/public";
 import styles from "./page.module.css";
 
 /**
@@ -42,39 +45,13 @@ const catalogue = releases.map((release) => fromStaticRelease(release, resolveCo
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
 
-const visuals: readonly VisualItem[] = [
-  {
-    id: "portrait",
-    src: "/media/portrait-480.webp",
-    full: "/media/portrait-960.webp",
-    caption: "Potret resmi",
-    alt: portraitAlt,
-  },
-  {
-    id: "mark",
-    src: anMark.src,
-    caption: "Monogram AN",
-    alt: "Monogram AN Akbar Nawasunda, garis putih dengan ujung biru",
-    onSurface: true,
-  },
-  {
-    id: "lockup",
-    src: lockup.src,
-    caption: "Lockup resmi",
-    alt: "Lockup Akbar Nawasunda RMX dengan monogram dan wordmark",
-    onSurface: true,
-  },
-  {
-    id: "stage",
-    src: stageFrame.thumb.webp,
-    full: stageFrame.webp,
-    caption: "Panggung",
-    alt: "Akbar Nawasunda dari belakang di jalan kota dengan lampu neon",
-  },
-];
-
-export default function HomePage() {
+export default async function HomePage() {
   if (!featured) return null;
+  // Studio-managed homepage sections (below the built-in hero, catalogue and archive). Nothing is
+  // rendered until the owner publishes some, so the page is unchanged by default — but the Studio
+  // editor is no longer a form that writes somewhere the site never reads.
+  const home = await getPublicPage("home");
+  const homeSections = home?.sections.filter((section) => section.visible) ?? [];
   const rest = catalogue.slice(1, 6);
 
   return (
@@ -198,12 +175,22 @@ export default function HomePage() {
             id="visuals-title"
             action={{ href: youtube.href, label: "YouTube" }}
           />
-          <VisualGrid items={visuals} />
+          <VisualGrid items={homepageVisuals} />
           <p className={styles.footnote}>
-            Empat aset resmi. Foto panggung dan video akan menyusul di halaman Visuals.
+            Empat aset resmi. Foto panggung dan video akan menyusul di{" "}
+            <a href="/visuals">halaman Visuals</a>.
           </p>
         </Container>
       </section>
+
+      {homeSections.length > 0 ? (
+        <section className={styles.section} aria-labelledby="catatan-title">
+          <Container>
+            <SectionHeader eyebrow="03 — Catatan" title="Dari Studio" id="catatan-title" />
+            <SectionsView sections={homeSections} />
+          </Container>
+        </section>
+      ) : null}
     </>
   );
 }

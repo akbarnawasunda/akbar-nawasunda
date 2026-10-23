@@ -1,3 +1,5 @@
+import { existsSync, mkdirSync } from "node:fs";
+
 /**
  * Database connection settings, read from the environment.
  *
@@ -38,6 +40,26 @@ export function readDatabaseEnv(env: Env = process.env): DatabaseEnv {
     authToken: token.value,
     source: { url: url.name, authToken: token.name },
   };
+}
+
+/**
+ * Creates the directory for a `file:` URL before anything opens it.
+ *
+ * libSQL refuses to create a missing parent directory ("Unable to open connection ... 14"), which is
+ * exactly the state of a fresh checkout: `.gitignore` keeps `/data/` out of git, so the folder does
+ * not exist until something makes it. The app already did this in studio/db.ts; the seed script and
+ * drizzle-kit did not, so `npm run db:seed` failed on the first run of a new clone.
+ *
+ * Returns the path it created, or null for remote URLs and for directories that already existed.
+ */
+export function ensureDatabaseDirectory(url: string | null): string | null {
+  if (!url?.startsWith("file:")) return null;
+  const path = url.slice("file:".length);
+  const dir = path.slice(0, path.lastIndexOf("/"));
+  if (!dir) return null;
+  if (existsSync(dir)) return null;
+  mkdirSync(dir, { recursive: true });
+  return dir;
 }
 
 /** True when the URL is remote (libsql://, https://, wss://) and therefore needs an auth token. */

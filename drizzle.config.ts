@@ -1,6 +1,7 @@
+import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
 
-import { readDatabaseEnv } from "./src/lib/turso";
+import { ensureDatabaseDirectory, readDatabaseEnv } from "./src/lib/turso";
 
 /**
  * drizzle-kit configuration.
@@ -9,7 +10,11 @@ import { readDatabaseEnv } from "./src/lib/turso";
  * (D-014). Without any URL it points at the local development file, so `npm run db:generate` works
  * offline; `db:migrate` and `db:push` need a real URL and token.
  */
+// drizzle-kit is a standalone process: it does not read .env.local the way `next` does.
+loadEnvConfig(process.cwd());
+
 const { url, authToken } = readDatabaseEnv();
+ensureDatabaseDirectory(url);
 
 export default defineConfig({
   dialect: "turso",

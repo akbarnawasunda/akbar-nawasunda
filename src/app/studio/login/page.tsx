@@ -7,7 +7,7 @@ import { SetupRequired } from "@/studio/ui/SetupRequired";
 import styles from "@/studio/ui/studio.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Sign in" };
+export const metadata = { title: "Masuk" };
 
 export default async function StudioLogin() {
   if (await isAdminRequest()) redirect("/studio");
@@ -15,8 +15,8 @@ export default async function StudioLogin() {
 
   return (
     <>
-      <h1 className={styles.heading}>Sign in</h1>
-      <p className={styles.lead}>Restricted to the site administrator.</p>
+      <h1 className={styles.heading}>Masuk</h1>
+      <p className={styles.lead}>Hanya untuk administrator situs.</p>
       {config.ready ? <LoginForm /> : <SetupRequired missing={config.missing} />}
     </>
   );

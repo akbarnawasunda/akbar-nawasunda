@@ -443,3 +443,75 @@ Dua suite baru:
 - `/privacy` (ada di SITEMAP.md) belum dibuat: isinya harus ditinjau owner, bukan dikarang.
 - Bio panjang, kontak booking, dan tanggal-tanggal linimasa 2021–2024 menunggu owner lewat Studio
   (`/studio/pages/about`).
+
+## 16. Phase 6 — Studio CMS: login, draf, terbit (2026-10-23)
+
+Phase 5 disetujui owner. Phase 6 tidak membangun Studio dari nol — sebagian besar kode sudah ada sejak
+Phase 3 — tetapi mengikatnya ke database sungguhan, memperbaiki bagian yang ternyata tidak tersambung,
+dan membuktikan alurnya.
+
+### Yang dibuktikan (bukan hanya diklaim)
+
+`npm run test:db` menjalankan 8 skenario terhadap database libSQL sungguhan (file sementara, SQL yang
+sama dengan Turso):
+
+1. dokumen baru belum punya versi terbit;
+2. menyimpan draf **tidak** menerbitkan apa pun;
+3. pembaca publik (`getPublicPage`) tetap `null` selama hanya ada draf;
+4. publish membuat dokumen itu terbaca publik, persis seperti yang ditinjau;
+5. draf setelah publish tidak mengubah halaman publik;
+6. teks panjang (bio 500+ karakter) tersimpan dan terbaca utuh;
+7. sesi hanya menyimpan hash: token mentah tidak cocok;
+8. password benar diterima, salah/ kosong ditolak.
+
+Alur browser juga dijalankan ujung ke ujung dengan Chromium:
+
+```
+/studio (belum masuk)        → 307 /studio/login
+password salah               → "Password salah", tetap di login
+password benar               → /studio (dashboard)
+/studio/pages/about          → tulis "Kalimat pembuka" + satu paragraf
+Simpan draf                  → "Draf tersimpan"; /artist TIDAK berisi draf
+/studio/preview/about        → draf terlihat (khusus admin)
+Terbitkan                    → "Terbit. Halaman publik …"; /artist memuat paragraf itu
+Keluar                       → /studio/login; /studio dijaga lagi
+```
+
+Tangkapan layar: `docs/08-IMPLEMENTATION/screenshots/studio-01..09`.
+
+### Perbaikan yang ketemu saat mengerjakan
+
+| Masalah | Akibat | Perbaikan |
+|---|---|---|
+| Editor `home` menulis dokumen yang tidak pernah dirender beranda | Owner menerbitkan, tidak ada yang berubah | Beranda merender section terbit sebagai "Dari Studio" (D-044) |
+| `db:seed` gagal di checkout bersih: `data/` tidak ada | Instruksi setup tidak bisa diikuti | `ensureDatabaseDirectory()` dipakai bersama (D-046) |
+| Script mandiri tidak membaca `.env.local` | "DATABASE_URL is not set" padahal sudah diisi | `loadEnvConfig()` di seed & drizzle config (D-047) |
+| Dashboard crash bila hanya `TURSO_*` yang diisi | Dashboard putih di setup yang didukung D-028 | Baca lewat `readDatabaseEnv()` (D-048) |
+| UI Studio berbahasa Inggris | Campur bahasa dengan situs | Lokalisasi penuh, tes validasi ikut disesuaikan (D-045) |
+| Label "Introduction" di halaman Artist | Tidak jelas bahwa itu kalimat pembuka, bukan bio | Label per halaman (D-043) |
+
+### Artwork untuk owner
+
+`/studio/media` sekarang memuat ceklis: setiap rilis, slug, dan path yang ditunggu
+(`public/assets/covers/<slug>.webp`). Menaruh file dengan nama itu sudah cukup — tidak ada edit kode
+atau database. Di produksi file ikut deploy berikutnya.
+
+### Test & build
+
+```
+npm run check
+  assets:check        ✓ (3 warning lama)
+  typecheck, lint     ✓
+  test                83/83
+  test:db             8/8
+  build               ✓
+```
+
+`.env.local` dan `data/` tetap di luar git. Database preview direset setelah pengujian: hanya enam
+rilis terverifikasi, dan `/artist` kembali menampilkan keadaan `[NEEDS OWNER]`-nya.
+
+### Belum dikerjakan
+
+- Unggah media ke object storage: tombol unggah belum ada, menunggu kredensial storage.
+- `/privacy`: sengaja dilewati, teksnya harus dari owner.
+- Artwork 6 rilis: menunggu file dari owner.

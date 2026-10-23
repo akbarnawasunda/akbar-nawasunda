@@ -22,14 +22,14 @@ export function StudioShell({ signedIn, children }: StudioShellProps) {
           <>
             <nav aria-label="Studio" className={styles.nav}>
               <Link href="/studio" className={styles.navLink}>Dashboard</Link>
-              <Link href="/studio/pages" className={styles.navLink}>Pages</Link>
-              <Link href="/studio/music" className={styles.navLink}>Music</Link>
-              <Link href="/studio/design" className={styles.navLink}>Design</Link>
+              <Link href="/studio/pages" className={styles.navLink}>Halaman</Link>
+              <Link href="/studio/music" className={styles.navLink}>Musik</Link>
+              <Link href="/studio/design" className={styles.navLink}>Desain</Link>
               <Link href="/studio/media" className={styles.navLink}>Media</Link>
-              <Link href="/" className={styles.navLink}>View site</Link>
+              <Link href="/" className={styles.navLink}>Lihat situs</Link>
             </nav>
             <form action={logoutAction}>
-              <button type="submit" className={styles.linkButton}>Sign out</button>
+              <button type="submit" className={styles.linkButton}>Keluar</button>
             </form>
           </>
         ) : null}

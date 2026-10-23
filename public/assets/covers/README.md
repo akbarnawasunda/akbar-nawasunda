@@ -2,6 +2,10 @@
 
 Drop 1:1 artwork here and it appears automatically — no code change, no Studio edit.
 
+**Production note:** `next start`/Vercel serve `public/` as it was at build time, so a new cover file
+needs the normal deploy (commit the file, let Vercel build). In local development with `next dev` it
+is picked up immediately. Nothing else is required — the lookup is by file name only.
+
 - File name **must** be the release slug: `cinta-terbuang.webp`
 - Accepted: `.webp` (preferred), `.avif`, `.jpg`, `.jpeg`, `.png`
 - Square, at least 600x600, under ~150 KB

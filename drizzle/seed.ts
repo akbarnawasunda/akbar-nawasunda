@@ -10,15 +10,20 @@
 // Writes to `studio_pages` under `release:<slug>`, with draft and published set to the same JSON so
 // the release appears on /music immediately. Rows that already exist are left untouched, so running
 // this again never overwrites an edit made in the Studio.
+import { loadEnvConfig } from "@next/env";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
 import { releaseDisplayTitle, releases } from "../src/content/releases";
-import { readDatabaseEnv } from "../src/lib/turso";
+import { ensureDatabaseDirectory, readDatabaseEnv } from "../src/lib/turso";
 import { applySchema } from "../src/studio/schema";
 import type { ReleaseDocument } from "../src/studio/releases";
 import { releaseKey } from "../src/studio/releases";
 import { studioPages } from "./schema";
+
+// Next loads .env.local for the server, but a standalone script does not: without this, `npm run
+// db:seed` ignored the DATABASE_URL the owner had just put in .env.local and claimed it was unset.
+loadEnvConfig(process.cwd());
 
 const dryRun = process.argv.includes("--dry");
 
@@ -64,6 +69,7 @@ async function main() {
   }
   console.log(`Seeding ${url} (url from ${source.url ?? "unknown"}, token from ${source.authToken ?? "none"})`);
 
+  ensureDatabaseDirectory(url);
   const client = createClient({ url, authToken: authToken ?? undefined });
   const db = drizzle(client);
 

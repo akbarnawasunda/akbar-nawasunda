@@ -74,3 +74,23 @@ npm run db:seed -- --dry   # preview what would be written
 
 `npm run db:seed` also creates the tables if they are missing, so a fresh database works without the
 migration step. Running it twice never overwrites rows the owner has edited in the Studio.
+
+## Phase 6 — Studio sudah diuji dengan variabel ini
+
+Nama (bukan nilai):
+
+| Variabel | Wajib | Dipakai untuk |
+|---|---|---|
+| `DATABASE_URL` (atau `TURSO_DATABASE_URL`) | ya | `file:./data/studio.db` lokal, `libsql://…` di produksi |
+| `DATABASE_AUTH_TOKEN` (atau `TURSO_AUTH_TOKEN`) | hanya untuk `libsql://` | token Turso |
+| `STUDIO_ADMIN_PASSWORD_HASH` | ya | hash scrypt dari `npm run studio:hash-password` |
+
+Catatan yang terverifikasi pada Phase 6:
+
+- `npm run db:seed` dan `drizzle-kit` sekarang membaca `.env.local` (`loadEnvConfig`), jadi tidak perlu
+  mengekspor variabel manual.
+- Folder `data/` dibuat otomatis bila belum ada; sebelumnya seed gagal di clone baru.
+- `.env.local` dan `data/` tetap di-gitignore. Nilai tidak pernah ditampilkan di layar Studio mana pun.
+
+Untuk produksi, isi nama-nama di atas pada pengaturan environment Vercel, lalu deploy. Tidak ada
+variabel lain yang dibutuhkan Studio saat ini: unggah media (storage) belum aktif.

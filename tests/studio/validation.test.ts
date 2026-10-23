@@ -36,7 +36,7 @@ describe("page document validation", () => {
   it("rejects section types a page does not support", () => {
     const result = validatePageDocument("about", aboutInput([{ type: "music-list", heading: "", count: 3 }]));
     assert.equal(result.ok, false);
-    if (!result.ok) assert.match(result.errors["section-0"] ?? "", /does not support/);
+    if (!result.ok) assert.match(result.errors["section-0"] ?? "", /tidak didukung/);
   });
 
   it("allows the music list only on the homepage", () => {
@@ -58,7 +58,7 @@ describe("page document validation", () => {
     assert.equal(result.ok, false);
     if (!result.ok) {
       assert.equal(result.errors["section-0"], undefined);
-      assert.match(result.errors["section-1"] ?? "", /Section 2/);
+      assert.match(result.errors["section-1"] ?? "", /Bagian 2/);
     }
   });
 
@@ -144,7 +144,7 @@ describe("release validation", () => {
   it("refuses to store a date that has not been verified", () => {
     const result = validateRelease({ ...base, releaseDate: "2026-02-14" }, options);
     assert.equal(result.ok, false);
-    if (!result.ok) assert.match(result.errors.releaseDate ?? "", /date verified/);
+    if (!result.ok) assert.match(result.errors.releaseDate ?? "", /tanggal terverifikasi/);
   });
 
   it("stores a verified date", () => {

@@ -1,11 +1,8 @@
 import "server-only";
 
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
-
 import { createClient, type Client } from "@libsql/client";
 
-import { readDatabaseEnv } from "../lib/turso";
+import { ensureDatabaseDirectory, readDatabaseEnv } from "../lib/turso";
 import { getStudioConfigStatus } from "./config";
 import { applySchema } from "./schema";
 
@@ -27,9 +24,7 @@ export function getDb(): Client {
   if (!client) {
     const { url, authToken } = readDatabaseEnv();
     if (!url) throw new StudioNotConfiguredError(["DATABASE_URL (or TURSO_DATABASE_URL)"]);
-    if (url.startsWith("file:")) {
-      mkdirSync(dirname(url.slice("file:".length)), { recursive: true });
-    }
+    ensureDatabaseDirectory(url);
     client = createClient({ url, authToken: authToken ?? undefined });
   }
   return client;

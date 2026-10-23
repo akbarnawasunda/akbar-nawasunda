@@ -10,7 +10,7 @@ import styles from "@/studio/ui/studio.module.css";
 import content from "@/components/content/content.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Draft preview", robots: { index: false, follow: false } };
+export const metadata = { title: "Pratinjau draf", robots: { index: false, follow: false } };
 
 /**
  * Admin-only preview of a page DRAFT, clearly separated from the public page by the banner.
@@ -29,11 +29,11 @@ export default async function DraftPreview({ params }: { params: Promise<{ slug:
   return (
     <>
       <div className={styles.previewBanner} role="status">
-        Draft preview of {PAGE_CONFIG[slug].label}. Only signed-in administrators can see this. It is not published.{" "}
-        <Link href={`/studio/pages/${slug}`} className={styles.link}>Back to editor</Link>
+        Pratinjau draf {PAGE_CONFIG[slug].label}. Hanya administrator yang masuk yang bisa melihat ini. Belum diterbitkan.{" "}
+        <Link href={`/studio/pages/${slug}`} className={styles.link}>Kembali ke editor</Link>
       </div>
       <article className={styles.preview}>
-        <p className={styles.muted}>{PAGE_CONFIG[slug].label} · draft</p>
+        <p className={styles.muted}>{PAGE_CONFIG[slug].label} · draf</p>
         {PAGE_CONFIG[slug].fields.title ? (
           <h1 className={`${styles.heading} page-title`} style={{ marginTop: "0.5rem" }}>{doc.title}</h1>
         ) : null}
@@ -43,7 +43,7 @@ export default async function DraftPreview({ params }: { params: Promise<{ slug:
         </div>
         {hidden > 0 ? (
           <p className={styles.hint} style={{ marginTop: "2rem" }}>
-            {hidden} hidden section{hidden === 1 ? " is" : "s are"} not shown here or on the public site.
+            {hidden} bagian disembunyikan dan tidak tampil di sini maupun di situs publik.
           </p>
         ) : null}
       </article>

@@ -1,7 +1,25 @@
 # Screenshots (2026-10-23)
 
-Two sets. `home-*`, `music-*` are the Phase 2 revision; `phase5-*` are the Phase 5 routes added
-after the revision was approved.
+Three sets. `home-*`, `music-*` are the Phase 2 revision; `phase5-*` are the Phase 5 routes added
+after the revision was approved; `studio-*` are the Phase 6 Studio flow.
+
+## Phase 6 Studio (draft → publish)
+
+| File | What it shows |
+|---|---|
+| `studio-01-login.png` | `/studio/login` while signed out |
+| `studio-02-dashboard.png` | Dashboard with database + password + media status |
+| `studio-03-pages.png` | Page list (`/studio/pages`) |
+| `studio-04-editor-filled.png` | `/studio/pages/about` with the bio editor filled in |
+| `studio-05-draft-saved.png` | Same page after "Simpan draf" (status message, draft ≠ published) |
+| `studio-06-preview.png` | Admin-only draft preview with the unsaved banner |
+| `studio-07-published.png` | After "Terbitkan" |
+| `studio-08-artist-bio.png` | `/artist` showing the published bio |
+| `studio-09-media-covers.png` | `/studio/media` with the artwork checklist |
+
+These were captured with a local `file:` database and a throwaway password. The test bio was removed
+and `/artist` was re-published back to its "Yang belum ditulis" state before committing, so the
+screenshots show the flow without leaving sample copy in the preview database.
 
 ## Phase 5 routes
 

@@ -6,7 +6,7 @@ import { getReleaseRecord } from "@/studio/store";
 import styles from "@/studio/ui/studio.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Release draft preview", robots: { index: false, follow: false } };
+export const metadata = { title: "Pratinjau draf rilis", robots: { index: false, follow: false } };
 
 /** Admin-only preview of a release draft. Never linked from the public site. */
 export default async function ReleaseDraftPreview({ params }: { params: Promise<{ slug: string }> }) {
@@ -18,10 +18,10 @@ export default async function ReleaseDraftPreview({ params }: { params: Promise<
   return (
     <>
       <div className={styles.previewBanner} role="status">
-        Draft preview. Only signed-in administrators can see this. It is not published.
+        Pratinjau draf. Hanya administrator yang masuk yang bisa melihat ini. Belum diterbitkan.
       </div>
       <div className={styles.preview}>
-        {record.draft ? <ReleaseView doc={record.draft} preview /> : <p className={styles.error}>This draft could not be read.</p>}
+        {record.draft ? <ReleaseView doc={record.draft} preview /> : <p className={styles.error}>Draf ini tidak bisa dibaca.</p>}
       </div>
     </>
   );

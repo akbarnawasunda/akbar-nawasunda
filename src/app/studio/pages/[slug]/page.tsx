@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return { title: isPageSlug(slug) ? `Edit ${PAGE_CONFIG[slug].label}` : "Not found" };
+  return { title: isPageSlug(slug) ? `Sunting ${PAGE_CONFIG[slug].label}` : "Tidak ditemukan" };
 }
 
 export default async function EditPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -26,19 +26,19 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
   return (
     <>
       <p className={styles.muted}>
-        <Link href="/studio/pages" className={styles.link}>← Pages</Link>
+        <Link href="/studio/pages" className={styles.link}>← Halaman</Link>
       </p>
-      <h1 className={styles.heading}>Edit {PAGE_CONFIG[slug].label}</h1>
+      <h1 className={styles.heading}>Sunting {PAGE_CONFIG[slug].label}</h1>
       <p className={styles.lead}>
-        Changes stay private until you publish. The public page at <code>{PAGE_CONFIG[slug].path}</code> shows the last published version only.
+        Perubahan tetap privat sampai diterbitkan. Halaman publik di <code>{PAGE_CONFIG[slug].path}</code> hanya menampilkan versi terbit terakhir.
       </p>
 
       <PageEditorForm slug={slug} initial={record.draft} initialUnpublishedChanges={unpublished} />
 
-      <section className={styles.section} aria-label="Preview">
+      <section className={styles.section} aria-label="Pratinjau">
         <div className={styles.actions}>
-          <Link href={`/studio/preview/${slug}`} className={styles.link}>Preview draft</Link>
-          {record.published ? <Link href={PAGE_CONFIG[slug].path} className={styles.link}>View published page</Link> : null}
+          <Link href={`/studio/preview/${slug}`} className={styles.link}>Pratinjau draf</Link>
+          {record.published ? <Link href={PAGE_CONFIG[slug].path} className={styles.link}>Lihat halaman terbit</Link> : null}
         </div>
       </section>
     </>

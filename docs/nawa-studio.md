@@ -3,9 +3,10 @@
 NAWA STUDIO is the custom content management system for the Akbar Nawasunda website.
 It is built inside this project. No external CMS (WordPress, Sanity, Strapi, Contentful) is used.
 
-**Status: Phase B-3 (content management) implemented locally.** Login, page editing, release (music)
-management, homepage sections, design settings, and a read-only media view are built. Media uploads are
-not connected; see the Media section below.
+**Status: Phase 6 — implemented and exercised end to end against a real database.** Password login,
+server-side sessions, page editing (`/studio/pages/about` → `/artist`), release management, homepage
+sections, design settings and a read-only media view are built. Media *uploads* are still not
+connected; artwork goes in by file name convention instead (see "Release artwork" below).
 
 ## What the Studio will manage
 
@@ -22,7 +23,10 @@ not connected; see the Media section below.
 
 ## Current state of the content model
 
-- `src/content/releases.ts`: release type with an empty catalogue. Studio writes will target this shape.
+- `src/content/releases.ts`: six verified releases. These are also seeded into the database (D-018).
+- Stored documents live in one table, `studio_pages`, keyed by slug (`about`, `home`, `design`,
+  `release:<slug>`), each with a draft JSON and a published JSON. Drafts are never read by the public
+  readers in `src/studio/public.ts` (D-025).
 - `src/config/site.ts` and `src/config/navigation.ts`: site identity and navigation.
 - `src/assets/manifest.ts`: asset registry, with stable ids, roles, status, and alt text.
 - `AKBAR-NAWASUNDA-ASSETS/`: original files. These stay untouched and are the source of truth.
@@ -32,20 +36,33 @@ and changes go through pull requests.
 
 ## Storage decisions
 
-**Database.** Postgres, using a managed free-tier provider (for example Neon). Reasoning: relational
-data (releases, pages, sections, drafts), standard tooling, and easy export. It needs a connection string
-from the owner. Not configured.
+**Database.** Turso (libSQL) — what the owner chose on 2026-10-23; the earlier Postgres/Neon plan in
+this file is obsolete. Local development uses `file:./data/studio.db`, which the same client and the
+same SQL serve. Connection settings are read through `src/lib/turso.ts`, which accepts both
+`DATABASE_URL`/`DATABASE_AUTH_TOKEN` and the older `TURSO_*` spellings (D-014, D-028). The schema is
+applied idempotently at boot, and `drizzle/` holds the declarative schema plus the generated migration.
 
 **Media.** Object storage with an S3-compatible API (for example Cloudflare R2 or Supabase Storage).
 Reasons: originals must be kept, files need serving through a CDN, and egress cost matters. Originals go
 to private storage; delivered variants go to public storage. Not configured.
 
-**Authentication.** A single administrator account, with sessions stored server-side in the database
-and an HttpOnly, SameSite cookie. Credentials are a hashed password or a passkey, depending on the owner's
-preference. Not configured. No authentication has been implemented.
+**Authentication.** One administrator password, stored only as a scrypt hash
+(`STUDIO_ADMIN_PASSWORD_HASH`, generated with `npm run studio:hash-password`). Sessions are random
+tokens whose SHA-256 hash is stored in `studio_sessions` with an expiry; the browser holds the raw
+token in an HttpOnly, SameSite=Lax cookie, `Secure` in production. Failed logins are rate-limited
+(five attempts per fifteen minutes, `studio_login_failures`). Every server action re-checks the
+session; a page render does too, via `requireAdmin()`.
 
 **Secrets.** Database URL, storage keys, and session secret go in environment variables. They are never
 committed. `.env.example` lists the names only.
+
+## Release artwork (what the owner does today)
+
+Uploads are not connected, so artwork is a file convention rather than an upload: put a square file
+named after the release slug in `public/assets/covers/` (`cinta-terbuang.webp`). `src/content/covers.ts`
+resolves it at request time, cards and the release page use it, and nothing is written to the database.
+`/studio/media` lists every release with the exact filename it is waiting for. In production the file
+ships with the next deploy, like any other asset.
 
 ## Media library requirements
 
@@ -104,7 +121,11 @@ Setup for the site owner (on a phone or desktop):
 3. Set `DATABASE_URL` and `DATABASE_AUTH_TOKEN` in the hosting dashboard, then deploy.
 4. Open `/studio/login` and sign in.
 
-Tests: `npm test` (pure modules: config, password, content model, validation, session rules). Browser flow checks were run against `next start` with a local file database (see the final report).
+Tests: `npm test` (pure modules) plus `npm run test:db`, which drives the real path — draft saved,
+public reader blind to it, publish, draft-after-publish, session hash, password verify — against a
+temporary libSQL file. `npm run check` runs both. The whole flow was also walked in a browser:
+login → wrong password rejected → editor → save draft → `/artist` unchanged → preview → publish →
+`/artist` shows the bio → sign out → `/studio` guarded again.
 
 ## Status: content management (B-3)
 
@@ -114,11 +135,13 @@ Implemented and tested locally. Each item below is in code and covered by `npm t
 `about`, `home`, `design`, and `release:<slug>`. Each row has `draft_json` and `published_json`. Public routes
 read only `published_json`. No schema migration was needed.
 
-**Pages (`/studio/pages`).** `about` and `home` use structured sections, not free HTML. Section types:
-`heading`, `paragraph`, and (homepage only) `music-list`. Each section has a visibility flag. Save draft is
-private. Publish is an explicit, separate action. Preview at `/studio/preview/<slug>` shows only what the
-public site would show and reports how many sections are hidden. Public `/about` falls back to the static
-"Biography pending" text when nothing is published.
+**Pages (`/studio/pages`).** `about` (route `/artist`, label "Artist") and `home` use structured
+sections, not free HTML. Section types: `heading`, `paragraph`, and (homepage only) `music-list`. Each
+section has a visibility flag. Save draft is private. Publish is an explicit, separate action. Preview
+at `/studio/preview/<slug>` shows only what the public site would show and reports how many sections
+are hidden. On `/artist`, the document's `lead` is the one-line positioning under the name and the
+paragraph sections are the long bio; with nothing published, the page falls back to its verified line
+and the `[NEEDS OWNER]` list.
 
 **Homepage.** The hero is code-owned and cannot be edited. The builder adds optional blocks below it. Order and
 visibility are controlled, and the music-list block shows published releases only.

@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { saveOrPublishAction } from "../actions";
-import { PAGE_CONFIG, type PageDocument, type PageSlug } from "../content-model";
+import { PAGE_CONFIG, type EditorCopy, type PageDocument, type PageSlug } from "../content-model";
 import { initialFormState } from "../form-state";
 import { LIMITS } from "../validation";
 import { SectionsEditor } from "./SectionsEditor";
@@ -24,6 +24,7 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
   const [lead, setLead] = useState(initial.lead);
   const [seoDescription, setSeoDescription] = useState(initial.seoDescription);
 
+  const copy: EditorCopy = config.editor ?? {};
   const errors = state.status === "error" ? state.errors ?? {} : {};
   const unpublished = state.unpublishedChanges ?? initialUnpublishedChanges;
 
@@ -33,7 +34,7 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
 
       {config.fields.title ? (
         <div className={styles.field}>
-          <label htmlFor="title" className={styles.label}>Title</label>
+          <label htmlFor="title" className={styles.label}>Judul</label>
           <input
             id="title"
             name="title"
@@ -43,7 +44,7 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
             aria-invalid={errors.title ? true : undefined}
             aria-describedby="title-hint title-error"
           />
-          <p id="title-hint" className={styles.hint}>{title.trim().length} / {LIMITS.title} characters</p>
+          <p id="title-hint" className={styles.hint}>{title.trim().length} / {LIMITS.title} karakter</p>
           {errors.title ? <p id="title-error" className={styles.error}>{errors.title}</p> : null}
         </div>
       ) : (
@@ -52,7 +53,7 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
 
       {config.fields.lead ? (
         <div className={styles.field}>
-          <label htmlFor="lead" className={styles.label}>Introduction</label>
+          <label htmlFor="lead" className={styles.label}>{copy.leadLabel ?? "Pembuka"}</label>
           <textarea
             id="lead"
             name="lead"
@@ -63,18 +64,27 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
             aria-invalid={errors.lead ? true : undefined}
             aria-describedby="lead-hint lead-error"
           />
-          <p id="lead-hint" className={styles.hint}>Shown under the page title. {lead.length} / {LIMITS.lead}</p>
+          <p id="lead-hint" className={styles.hint}>
+            {copy.leadHint ?? "Tampil di bawah judul halaman."} {lead.length} / {LIMITS.lead}
+          </p>
           {errors.lead ? <p id="lead-error" className={styles.error}>{errors.lead}</p> : null}
         </div>
       ) : (
         <input type="hidden" name="lead" value="" />
       )}
 
-      <SectionsEditor slug={slug} initial={initial.sections} errors={errors} disabled={pending} />
+      <SectionsEditor
+        slug={slug}
+        initial={initial.sections}
+        errors={errors}
+        disabled={pending}
+        label={copy.sectionsLabel}
+        hint={copy.sectionsHint}
+      />
 
       {config.fields.seoDescription ? (
         <div className={styles.field}>
-          <label htmlFor="seoDescription" className={styles.label}>Search description</label>
+          <label htmlFor="seoDescription" className={styles.label}>Deskripsi pencarian</label>
           <textarea
             id="seoDescription"
             name="seoDescription"
@@ -85,7 +95,7 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
             aria-invalid={errors.seoDescription ? true : undefined}
             aria-describedby="seo-hint seo-error"
           />
-          <p id="seo-hint" className={styles.hint}>Used by search engines and link previews. Optional. {seoDescription.length} / {LIMITS.seoDescription}</p>
+          <p id="seo-hint" className={styles.hint}>Dipakai mesin pencari dan pratinjau tautan. Opsional. {seoDescription.length} / {LIMITS.seoDescription}</p>
           {errors.seoDescription ? <p id="seo-error" className={styles.error}>{errors.seoDescription}</p> : null}
         </div>
       ) : (
@@ -102,15 +112,15 @@ export function PageEditorForm({ slug, initial, initialUnpublishedChanges }: Pag
       ) : null}
 
       <p className={styles.muted} aria-live="polite">
-        {unpublished ? "The draft differs from the published page." : "The draft matches the published page."}
+        {unpublished ? "Draf berbeda dari halaman terbit." : "Draf sama dengan halaman terbit."}
       </p>
 
       <div className={styles.actions}>
         <button type="submit" name="intent" value="save" className={`${styles.button} ${styles.buttonSecondary}`} disabled={pending}>
-          Save draft
+          Simpan draf
         </button>
         <button type="submit" name="intent" value="publish" className={styles.button} disabled={pending}>
-          Publish
+          Terbitkan
         </button>
       </div>
     </form>
