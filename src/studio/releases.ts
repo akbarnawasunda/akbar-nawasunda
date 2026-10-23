@@ -3,10 +3,15 @@
  * Release documents are stored under the key `release:<slug>`.
  */
 
-export const RELEASE_TYPES = ["single", "ep", "album", "remix", "mix"] as const;
+/**
+ * "unknown" is a real state, not a placeholder: the owner has confirmed some titles but not their
+ * type yet, and the site must not assert "single" on their behalf. It renders as "Rilis".
+ */
+export const RELEASE_TYPES = ["unknown", "single", "ep", "album", "remix", "mix"] as const;
 export type ReleaseKind = (typeof RELEASE_TYPES)[number];
 
 export const RELEASE_TYPE_LABELS: Record<ReleaseKind, string> = {
+  unknown: "Rilis",
   single: "Single",
   ep: "EP",
   album: "Album",

@@ -8,7 +8,10 @@ describe("config", () => {
   it("reports every missing variable for an empty environment", () => {
     const status = getStudioConfigStatus({});
     assert.equal(status.ready, false);
-    assert.deepEqual(status.missing, ["DATABASE_URL", "STUDIO_ADMIN_PASSWORD_HASH"]);
+    assert.deepEqual(status.missing, [
+      "DATABASE_URL (or TURSO_DATABASE_URL)",
+      "STUDIO_ADMIN_PASSWORD_HASH",
+    ]);
   });
 
   it("does not require an auth token for a local file database", () => {
@@ -18,12 +21,12 @@ describe("config", () => {
 
   it("requires an auth token for a remote libsql URL", () => {
     const status = getStudioConfigStatus({ DATABASE_URL: "libsql://example.turso.io", STUDIO_ADMIN_PASSWORD_HASH: "x" });
-    assert.deepEqual(status.missing, ["DATABASE_AUTH_TOKEN"]);
+    assert.deepEqual(status.missing, ["DATABASE_AUTH_TOKEN (or TURSO_AUTH_TOKEN)"]);
   });
 
   it("treats whitespace-only values as missing", () => {
     const status = getStudioConfigStatus({ DATABASE_URL: "   ", STUDIO_ADMIN_PASSWORD_HASH: "x" });
-    assert.deepEqual(status.missing, ["DATABASE_URL"]);
+    assert.deepEqual(status.missing, ["DATABASE_URL (or TURSO_DATABASE_URL)"]);
   });
 });
 

@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { portraitAlt, portraitSize, portraitSources, stageFrame } from "@/assets/web";
+import { ReleaseGrid } from "@/components/content/ReleaseGrid";
+import { SignalField } from "@/components/effects/SignalField";
 import { Container } from "@/components/layout/Container";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { resolveCover } from "@/content/covers";
+import { fromStaticRelease } from "@/content/release-view";
+import { releases } from "@/content/releases";
 import { genres, siteConfig } from "@/config/site";
 import { getSocialLink, listenUrl } from "@/config/socials";
-import { releaseDisplayTitle, releaseEyebrow, releases } from "@/content/releases";
 import styles from "./page.module.css";
 
 /**
- * Homepage prototype (Phase 2). Static by intention: no CMS read on this route while the visual
- * direction is being reviewed. Hero copy uses only verified facts; release titles come from
- * src/content/releases.ts, which holds the verified list.
+ * Homepage prototype (Phase 2, approved 2026-10-23 with notes).
+ *
+ * Static by intention: no CMS read on this route while the visual direction is being reviewed.
+ * Copy uses only verified facts; the catalogue comes from src/content/releases.ts and picks up
+ * artwork automatically once files are dropped into public/assets/covers/.
  */
 export const metadata: Metadata = {
   title: {
@@ -22,6 +29,7 @@ export const metadata: Metadata = {
 };
 
 const youtube = getSocialLink("youtube");
+const catalogue = releases.map((release) => fromStaticRelease(release, resolveCover(release.slug)));
 
 export default function HomePage() {
   return (
@@ -56,20 +64,17 @@ export default function HomePage() {
             </p>
 
             <div className={styles.actions}>
-              <a className={styles.primary} href={listenUrl} target="_blank" rel="noopener noreferrer">
+              <ButtonLink href={listenUrl} variant="primary" external>
                 Dengar Sekarang
-                <span aria-hidden="true">↗</span>
-              </a>
-              <a className={styles.secondary} href="#visuals">
+              </ButtonLink>
+              <ButtonLink href="#visuals" variant="secondary">
                 Lihat Visuals
-              </a>
+              </ButtonLink>
             </div>
           </div>
 
           <figure className={styles.portraitWrap}>
-            {/* Liquid Signal placeholder (Phase 7 replaces this with the real WebGL scene).
-                Sits at z-index -1 behind the portrait, 600x600, breathing 1 → 1.03 over 6s. */}
-            <div className={styles.signalCanvas} aria-hidden="true" />
+            <SignalField />
             <div className={styles.portraitFrame}>
               <picture>
                 <source
@@ -108,54 +113,18 @@ export default function HomePage() {
 
       <section className={styles.section} id="music" aria-labelledby="music-title">
         <Container>
-          <div className={styles.sectionHead}>
-            <div>
-              <p className={styles.eyebrow}>01 — Katalog</p>
-              <h2 id="music-title" className={styles.sectionTitle}>
-                Rilis terpilih
-              </h2>
-            </div>
-            <Link href="/music" className={styles.sectionLink}>
-              Semua rilis <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+          <SectionHeader
+            eyebrow="01 — Katalog"
+            title="Rilis terpilih"
+            id="music-title"
+            action={{ href: "/music", label: "Semua rilis" }}
+          />
 
-          <ol className={styles.grid}>
-            {releases.map((release, index) => (
-              <li key={release.slug}>
-                <Link href={`/music/${release.slug}`} className={styles.card}>
-                  <span className={styles.cardTop}>
-                    <span className={styles.cardIndex}>{String(index + 1).padStart(2, "0")}</span>
-                    <span className={styles.cardArrow} aria-hidden="true">
-                      ↗
-                    </span>
-                  </span>
-                  <span className={styles.cardBody}>
-                    <span className={styles.cardTitle}>{releaseDisplayTitle(release)}</span>
-                    <span className={styles.cardMeta}>{releaseEyebrow(release)}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link href="/music" className={`${styles.card} ${styles.cardIndexTile}`}>
-                <span className={styles.cardTop}>
-                  <span className={styles.cardIndex}>06</span>
-                  <span className={styles.cardArrow} aria-hidden="true">
-                    →
-                  </span>
-                </span>
-                <span className={styles.cardBody}>
-                  <span className={styles.cardTitle}>Semua rilis</span>
-                  <span className={styles.cardMeta}>Buka katalog</span>
-                </span>
-              </Link>
-            </li>
-          </ol>
+          <ReleaseGrid items={catalogue} limit={6} />
 
           <p className={styles.footnote}>
             Tahun rilis, artwork, dan tautan platform per rilis belum dikonfirmasi.{" "}
-            <span className={styles.placeholder}>[NEEDS OWNER: data rilis 2–5]</span>
+            <span className={styles.placeholder}>[NEEDS OWNER: data rilis]</span>
           </p>
         </Container>
       </section>
@@ -190,15 +159,9 @@ export default function HomePage() {
                 Foto panggung dan video resmi akan tampil di sini. Sementara ini, dokumentasi
                 visual terbaru ada di kanal YouTube resmi.
               </p>
-              <a
-                className={styles.secondary}
-                href={youtube.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <ButtonLink href={youtube.href} variant="secondary" external>
                 Buka YouTube
-                <span aria-hidden="true">↗</span>
-              </a>
+              </ButtonLink>
             </div>
           </div>
         </Container>

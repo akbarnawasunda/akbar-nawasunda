@@ -1,0 +1,35 @@
+/* Position, size and motion are the ones 3D_ART_DIRECTION.md specifies, so swapping in the WebGL
+   scene later does not move anything on the page. */
+.signal {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: min(600px, 118%);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 64% 38%, rgba(0, 135, 255, 0.55) 0%, rgba(0, 135, 255, 0) 46%),
+    radial-gradient(circle at 38% 62%, rgba(120, 0, 255, 0.5) 0%, rgba(120, 0, 255, 0) 58%),
+    radial-gradient(circle at 50% 50%, rgba(138, 232, 255, 0.18) 0%, rgba(138, 232, 255, 0) 40%);
+  filter: blur(30px);
+  opacity: 0.6;
+  animation: breathe var(--duration-breath) var(--ease) infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal {
+    animation: none;
+  }
+}

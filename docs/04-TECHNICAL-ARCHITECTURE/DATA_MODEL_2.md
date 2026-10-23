@@ -1,3 +1,7 @@
+> **STATUS (2026-10-23): superseded by `drizzle/schema.ts`.** The tables below were an early
+> proposal; the shipped Studio stores pages, design settings and releases as documents so that the
+> "draft never leaks" rule lives in one place (D-025). Kept for history only.
+
 # DATA_MODEL — Turso Drizzle Schema
 
 ```ts

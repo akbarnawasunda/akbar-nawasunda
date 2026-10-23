@@ -1,61 +1,44 @@
-import Link from "next/link";
-
 import { ContentRequirement } from "@/components/content/ContentRequirement";
 import { PageIntro } from "@/components/content/PageIntro";
+import { ReleaseGrid } from "@/components/content/ReleaseGrid";
 import { Container } from "@/components/layout/Container";
-import { releaseDisplayTitle, releaseEyebrow, releases as staticReleases } from "@/content/releases";
+import { resolveCover } from "@/content/covers";
+import { fromReleaseDocument, fromStaticRelease, type ReleaseView } from "@/content/release-view";
+import { releases as staticReleases } from "@/content/releases";
 import { pageMetadata } from "@/lib/metadata";
-import { RELEASE_TYPE_LABELS, publicReleaseDate } from "@/studio/releases";
 import { getPublishedReleases } from "@/studio/public";
-import styles from "./music.module.css";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Music",
-  description: "Releases, remixes and mixes by Akbar Nawasunda.",
+  description: "Rilis, remix, dan mix Akbar Nawasunda.",
   path: "/music",
 });
 
 /**
- * Published releases from the Studio take precedence. If none are published, the verified static
- * list in src/content/releases.ts is shown; if that is empty too, the honest "pending" notice shows.
+ * Published Studio releases take precedence. If none are published, the verified static list in
+ * src/content/releases.ts is shown; if that is empty too, the honest "pending" notice shows.
+ * Artwork is picked up from public/assets/covers/<slug>.* in both cases.
  */
 export default async function MusicPage() {
   const published = await getPublishedReleases();
 
+  const items: ReleaseView[] =
+    published.length > 0
+      ? published.map(({ slug, doc }) => fromReleaseDocument(slug, doc, resolveCover(slug)))
+      : staticReleases.map((release) => fromStaticRelease(release, resolveCover(release.slug)));
+
   return (
     <Container>
-      <PageIntro eyebrow="Katalog" title="Music" />
+      <PageIntro
+        eyebrow="Katalog"
+        title="Music"
+        lead="Rilis, remix, dan mix Akbar Nawasunda. Tahun dan tautan per rilis menyusul."
+      />
 
-      {published.length > 0 ? (
-        <ul className={styles.list}>
-          {published.map(({ slug, doc }) => {
-            const date = publicReleaseDate(doc);
-            return (
-              <li key={slug}>
-                <Link href={`/music/${slug}`} className={styles.item}>
-                  <span className={styles.meta}>
-                    {RELEASE_TYPE_LABELS[doc.type]}
-                    {date ? ` · ${date}` : ""}
-                  </span>
-                  <span className={styles.name}>{doc.title}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      ) : staticReleases.length > 0 ? (
-        <ul className={styles.list}>
-          {staticReleases.map((release) => (
-            <li key={release.slug}>
-              <Link href={`/music/${release.slug}`} className={styles.item}>
-                <span className={styles.meta}>{releaseEyebrow(release)}</span>
-                <span className={styles.name}>{releaseDisplayTitle(release)}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      {items.length > 0 ? (
+        <ReleaseGrid items={items} />
       ) : (
         <ContentRequirement
           title="Katalog menyusul"

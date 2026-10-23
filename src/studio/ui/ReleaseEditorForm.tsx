@@ -26,7 +26,7 @@ interface ReleaseEditorFormProps {
 
 const EMPTY: ReleaseDocument = {
   title: "",
-  type: "single",
+  type: "unknown",
   releaseDate: null,
   dateVerified: false,
   description: "",
@@ -101,7 +101,9 @@ export function ReleaseEditorForm({ mode, slug, initial, artwork, publishedNow, 
           <label htmlFor="type" className={styles.label}>Type</label>
           <select id="type" name="type" className={styles.input} value={type} onChange={(e) => setType(e.target.value as ReleaseKind)} aria-invalid={errors.type ? true : undefined}>
             {RELEASE_TYPES.map((t) => (
-              <option key={t} value={t}>{RELEASE_TYPE_LABELS[t]}</option>
+              <option key={t} value={t}>
+                {t === "unknown" ? "Rilis (jenis belum diverifikasi)" : RELEASE_TYPE_LABELS[t]}
+              </option>
             ))}
           </select>
           {errors.type ? <p className={styles.error}>{errors.type}</p> : null}

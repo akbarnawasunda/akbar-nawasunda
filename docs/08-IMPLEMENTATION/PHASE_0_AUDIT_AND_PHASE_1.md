@@ -246,3 +246,77 @@ perlu, atau revisi budget), Lighthouse mobile, axe, dan uji 390/768/1280.
   memakai not-found bawaan Next di root. Perbaikan (tambah `src/app/not-found.tsx`) masuk Phase 5.
 - **Halaman `/experiments/lattice`** masih ada dan dapat diakses publik; bukan bagian dari sitemap
   final. Putuskan Phase 5: hapus atau sembunyikan.
+
+---
+
+## 11. Phase 2 review — catatan owner (2026-10-23) dan penutupannya
+
+Owner menyetujui Phase 2 dengan empat catatan. Status masing-masing:
+
+| Catatan owner | Status | Bukti |
+|---|---|---|
+| 1. Tambah judul ke-6 "Hitungan Cinta Breakbeat Super Exc" (era DJ Akbar Remix); tahun/URL/artwork dikosongkan | ✅ | `src/content/releases.ts` (6 entri), `releaseEyebrow()` → "Era DJ Akbar Remix"; kartu tetap tipografis |
+| 2. Env: `DATABASE_URL` dulu, alias `TURSO_*` didukung | ✅ | `src/lib/turso.ts`, dipakai `studio/config.ts`, `studio/db.ts`, `drizzle.config.ts`, `drizzle/seed.ts`; tes `tests/studio/turso.test.ts` |
+| 3. Route `/artist` + `/visuals` di Phase 5, redirect permanen dari `/about` | 📅 Phase 5 | D-024 |
+| 4. Mobile: H1 harus terlihat dalam 5 detik | ✅ | D-023: copy dulu, potret di bawah; H1 2.75–4rem mulai di ~90px dari atas |
+
+Tambahan dari Phase 4: `RELEASE_TYPES` punya nilai `unknown` (D-026) supaya rilis tanpa jenis
+terverifikasi tidak dipaksa jadi "single".
+
+**Artwork:** owner akan upload ke `public/assets/covers/`. Konvensinya
+`<slug>.(webp|avif|jpg|jpeg|png)` — drop file, kartu langsung memakainya (D-027, `README.md` di
+folder itu memuat daftar slug). Tidak ada perubahan kode yang diperlukan.
+
+---
+
+## 12. Phase 3 — Components (selesai)
+
+| Komponen | File | Dipakai di |
+|---|---|---|
+| `ButtonLink` (primary / secondary / ghost, external + sr-only note) | `src/components/ui/ButtonLink.tsx` | hero, pita visual |
+| `SectionHeader` (mono eyebrow + display title + optional action) | `src/components/layout/SectionHeader.tsx` | homepage, /music (berikutnya) |
+| `ReleaseCard` (1:1, cover atau tipografis, indeks mono) | `src/components/content/ReleaseCard.tsx` | homepage, /music |
+| `ReleaseGrid` (1/2/3 kolom + limit) | `src/components/content/ReleaseGrid.tsx` | homepage (`limit=6`), /music (semua) |
+| `SignalField` (placeholder Liquid Signal, CSS-only) | `src/components/effects/SignalField.tsx` | hero |
+| `release-view` (pemetaan data → tampilan, pure) | `src/content/release-view.ts` | homepage, /music |
+
+`/music` sekarang memakai grid yang sama dengan homepage (sebelumnya daftar baris terpisah dengan CSS
+sendiri), dan `music.module.css` dihapus.
+
+---
+
+## 13. Phase 4 — Music + Turso/Drizzle (selesai)
+
+### Yang diperbaiki
+
+`drizzle/seed.ts` sebelumnya tidak bisa dikompilasi (impor `drizzle-orm/libsql` dan `./schema` yang
+tidak ada) dan memakai nama env yang berbeda dari aplikasi.
+
+1. `drizzle-orm@0.45.4` (dependency) + `drizzle-kit@0.31.11` (devDependency) terpasang.
+2. `drizzle/schema.ts` — skema deklaratif untuk tabel yang **benar-benar dipakai** aplikasi
+   (`studio_pages`, `studio_sessions`, `studio_login_failures`), termasuk CHECK single-row (D-025).
+3. `drizzle.config.ts` — dialect turso, membaca env lewat resolver yang sama dengan aplikasi,
+   fallback `file:./data/studio.db` supaya `db:generate` jalan offline.
+4. `drizzle/migrations/0000_*.sql` dihasilkan; isinya identik dengan DDL runtime.
+5. `drizzle/seed.ts` ditulis ulang: menulis 6 rilis verified ke `release:<slug>` (draft = published),
+   idempoten (`onConflictDoNothing`), dan menjalankan `applySchema` lebih dulu sehingga database baru
+   langsung bisa dipakai.
+6. `tsconfig.json` kembali meng-include `drizzle/` (exclude sementara D-022 dicabut).
+7. Script baru: `db:generate`, `db:migrate`, `db:push`, `db:seed` (+ `-- --dry`).
+
+### Verifikasi yang dijalankan
+
+```
+npm run db:seed (DATABASE_URL=file:/tmp/seedtest.db)     Inserted 6 release document(s).
+npm run db:seed (ulang)                                  Inserted 0 · Skipped 6 (left untouched)
+TURSO_DATABASE_URL=file:/tmp/seedtest2.db npm run db:seed Inserted 6 (alias TURSO_* bekerja)
+```
+
+Server dijalankan dengan `DATABASE_URL=file:/tmp/seedtest.db`: `/music` menampilkan 6 kartu dari
+database (bukan daftar statis), dan `/music/cinta-terbuang` menampilkan `Rilis` + judul tanpa tahun
+palsu. Tanpa env, situs kembali ke daftar statis — perilaku fallback tetap utuh.
+
+### Dampak ke Studio
+
+`/studio/music` kini mengenal jenis rilis "Rilis (jenis belum diverifikasi)" dan draft baru default ke
+nilai itu, bukan "single" (D-026).

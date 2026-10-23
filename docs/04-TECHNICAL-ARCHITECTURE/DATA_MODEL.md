@@ -1,3 +1,7 @@
+> **STATUS (2026-10-23): superseded.** The implemented model is the document store in
+> `drizzle/schema.ts` (`studio_pages` with draft/published JSON). See D-025. The sketch below is kept
+> for history only — do not build new code against it.
+
 # DATA_MODEL
 
 ```ts

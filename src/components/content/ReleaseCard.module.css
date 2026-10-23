@@ -1,0 +1,118 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+  aspect-ratio: 1;
+  padding: var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(158deg, var(--color-bg-surface-2) 0%, var(--color-bg-surface) 62%);
+  text-decoration: none;
+  transition:
+    border-color var(--duration-base) var(--ease),
+    transform var(--duration-base) var(--ease);
+}
+
+/* A single blue signal edge grows on hover. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--color-signal-blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease);
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
+}
+
+.card:hover::after {
+  transform: scaleX(1);
+}
+
+/* Artwork: fills the tile, text reads over a bottom scrim. */
+.withCover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10, 10, 14, 0.94) 0%,
+    rgba(10, 10, 14, 0.55) 34%,
+    rgba(10, 10, 14, 0) 68%
+  );
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.card:hover .cover img {
+  transform: scale(1.03);
+}
+
+.top,
+.body {
+  position: relative;
+  z-index: 1;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.index,
+.meta {
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.arrow {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  transition:
+    transform var(--duration-base) var(--ease),
+    color var(--duration-base) var(--ease);
+}
+
+.card:hover .arrow {
+  color: var(--color-signal-icy);
+  transform: translate(2px, -2px);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.0625rem, 0.85rem + 0.8vw, 1.375rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}

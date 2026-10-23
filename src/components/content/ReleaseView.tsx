@@ -8,10 +8,15 @@ interface ReleaseViewProps {
   doc: ReleaseDocument;
   /** Studio preview: shows the date as it would be shown, and marks the page as a draft. */
   preview?: boolean;
+  /**
+   * Owner-uploaded 1:1 artwork from public/assets/covers/<slug>.* (see src/content/covers.ts).
+   * Takes precedence over the manifest artwork id; the Studio preview passes none.
+   */
+  coverUrl?: string | null;
 }
 
 /** Shared view for a release. Used by the public release page and the Studio draft preview. */
-export function ReleaseView({ doc, preview = false }: ReleaseViewProps) {
+export function ReleaseView({ doc, preview = false, coverUrl = null }: ReleaseViewProps) {
   const date = preview ? doc.releaseDate : publicReleaseDate(doc);
   const artwork = getReleaseArtwork(doc.artworkId);
   return (
@@ -22,7 +27,12 @@ export function ReleaseView({ doc, preview = false }: ReleaseViewProps) {
         {preview && doc.releaseDate && !doc.dateVerified ? " · date not verified (hidden publicly)" : ""}
       </p>
       <h1 className={styles.title}>{doc.title}</h1>
-      {artwork ? (
+      {coverUrl ? (
+        <figure className={styles.artwork}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- owner-uploaded 1:1 file, served as-is */}
+          <img src={coverUrl} alt="" width={800} height={800} className={styles.artworkImage} />
+        </figure>
+      ) : artwork ? (
         <figure className={styles.artwork}>
           <Image src={artwork.image} alt={artwork.alt} sizes="(min-width: 720px) 420px, 90vw" unoptimized className={styles.artworkImage} />
         </figure>
