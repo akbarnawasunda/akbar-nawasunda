@@ -145,7 +145,7 @@
     radial-gradient(circle at 38% 62%, rgba(120, 0, 255, 0.5) 0%, rgba(120, 0, 255, 0) 58%),
     radial-gradient(circle at 50% 50%, rgba(138, 232, 255, 0.18) 0%, rgba(138, 232, 255, 0) 40%);
   filter: blur(30px);
-  opacity: 0.75;
+  opacity: 0.6;
   animation: breathe var(--duration-breath) var(--ease) infinite;
 }
 
