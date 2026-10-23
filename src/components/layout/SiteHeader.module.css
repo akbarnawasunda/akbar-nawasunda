@@ -80,7 +80,8 @@
   padding: 10px 20px;
   border-radius: var(--radius-pill);
   background: var(--color-signal-blue);
-  color: #fff;
+  /* Near-black text: white on #0087FF is 3.55:1, this is 5.56:1 (D-071). */
+  color: var(--color-bg);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
@@ -153,7 +154,7 @@
   padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-pill);
   background: var(--color-signal-blue);
-  color: #fff;
+  color: var(--color-bg);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;

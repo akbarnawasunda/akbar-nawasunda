@@ -30,6 +30,7 @@ export const portraitAlt =
  */
 export const portraitSources = [
   { width: 480, height: 600, avif: "/media/portrait-480.avif", webp: "/media/portrait-480.webp" },
+  { width: 600, height: 750, avif: "/media/portrait-600.avif", webp: "/media/portrait-600.webp" },
   { width: 720, height: 899, avif: "/media/portrait-720.avif", webp: "/media/portrait-720.webp" },
   { width: 960, height: 1199, avif: "/media/portrait-960.avif", webp: "/media/portrait-960.webp" },
 ] as const;

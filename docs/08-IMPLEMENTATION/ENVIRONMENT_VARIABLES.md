@@ -41,6 +41,18 @@ preview stays reviewable without exposing credentials.
 NEXT_PUBLIC_SITE_URL=
 ```
 
+## Preview framing (sandbox only)
+
+```env
+# Widens CSP frame-ancestors by https://*.e2b.app so the sandbox preview can be embedded in the
+# review UI. NEVER set this in Production or on Vercel.
+PREVIEW_FRAMING=1
+```
+
+Without it the production CSP is `frame-ancestors 'self'` plus `X-Frame-Options: SAMEORIGIN`, and
+the preview would be blank. The value is read when the build evaluates `next.config.ts`, so a preview
+that needs framing must be built with it set (see DEPLOYMENT_RUNBOOK §1).
+
 ## Not used (yet)
 
 These appear in older docs but no code reads them. Do not add them to Vercel until a feature needs
@@ -51,6 +63,7 @@ them — an unused secret is a liability:
 | `AUTH_SECRET` / `AUTH_URL` | Not read. Studio sessions use their own hashed cookie (`src/studio/auth.ts`). |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Not read. There is one owner password hash, no user table. |
 | `BLOB_READ_WRITE_TOKEN` | Not read. Uploads are disabled (`UPLOADS_IMPLEMENTED = false`); the planned provider is Cloudflare R2 (see `src/studio/media/storage.ts`). |
+| `ANALYTICS_*` | Not read. There is no analytics script on the site (docs/04-TECHNICAL-ARCHITECTURE/ANALYTICS_SPEC.md is still a plan). |
 
 ## Rules
 

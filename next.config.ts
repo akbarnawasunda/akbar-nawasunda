@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
+import { securityHeaders } from "./src/lib/security-headers";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /**
+   * CSS is NOT inlined (experimental.inlineCss reverted, D-072): it grew the document from 11 KB to
+   * 43 KB of transferred HTML and made first paint *later* in Lighthouse's model, because the HTML
+   * is a single HTTP/1.1 response while the three stylesheets are separate cacheable requests.
+   */
   poweredByHeader: false,
   /**
    * D-024: /artist is canonical. /about was the Phase 2 holding route; a permanent (308) redirect
@@ -9,6 +16,10 @@ const nextConfig: NextConfig = {
    */
   async redirects() {
     return [{ source: "/about", destination: "/artist", permanent: true }];
+  },
+  /** One header set for every route, including /studio and /api (D-073). */
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders() }];
   },
 };
 

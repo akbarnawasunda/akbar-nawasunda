@@ -20,9 +20,11 @@
   transform: translateY(-1px);
 }
 
+/* The brand blue stays exactly #0087FF; the text is near-black instead of white.
+   White on #0087FF is 3.55:1 and fails AA for 11–14px labels, #0A0A0E on it is 5.56:1. */
 .primary {
   background: var(--color-signal-blue);
-  color: #fff;
+  color: var(--color-bg);
 }
 
 .primary:hover {

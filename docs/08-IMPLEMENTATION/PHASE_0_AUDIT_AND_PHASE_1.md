@@ -740,3 +740,109 @@ Test baru: 3 test `web-assets` (editorial dan maskot) dan 3 test resolusi sampul
 - Bio panjang dan linimasa 2021–2024 (`[NEEDS OWNER]`).
 - Angka `+5 tahun` di brief berbeda dengan hitungan nyata 6 tahun (D-070).
 - `/privacy` tetap tidak disentuh.
+
+---
+
+## 20. Phase 8 — QA final (2026-10-23)
+
+Semua angka di bawah diambil dari **build produksi** (`next build && next start`) di sandbox ini,
+bukan dari dev server. Yang tidak bisa dilakukan dari sandbox: upload ke Vercel, jadi langkah itu
+tetap di tangan owner (`DEPLOYMENT_RUNBOOK.md`).
+
+### 20.1 Lighthouse
+
+Dijalankan dengan Lighthouse 12 terhadap `http://127.0.0.1:3000/` (Chromium 153 headless).
+
+| Profil | Performance | Accessibility | Best practices | SEO | LCP | FCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|---|
+| Desktop preset | **100** | **100** | **100** | **100** | 0.8 s | 0.4 s | 0 ms | 0 |
+| Mobile, `--throttling-method=devtools` | **99** | **100** | **96** | **100** | 1.8 s | 1.6 s | 70 ms | 0 |
+| Mobile, simulasi Lantern (default LH) | 90–91 | **100** | **96** | **100** | 3.5 s | 1.5 s | 40 ms | 0 |
+
+Catatan jujur soal baris ketiga: mode default Lighthouse memakai model simulasi (RTT 562 ms, 1.6
+Mbps) di atas server lokal **HTTP/1.1**, sehingga 20+ request JS mengantre per koneksi. Dengan
+throttling nyata (baris kedua) LCP 1.8 s, dan di produksi Vercel (HTTP/2, CDN) antrean itu hilang.
+Selisih 8 poin antara dua mode bukan regresi halaman; keduanya dilaporkan supaya tidak ada angka
+yang dipilih sepihak.
+
+`best-practices` 96 (bukan 100) berasal dari satu audit: `font-size`, karena label mono 11 px sesuai
+brief (D-077). Accessibility 100 dan axe 0 violation.
+
+### 20.2 axe-core
+
+`npm run a11y` — axe-core 4.14, 7 rute × 390/1280 = **14 pemuatan halaman**.
+
+```
+0 violation(s) across 14 page loads
+```
+
+Temuan yang diperbaiki sampai nol: kontras putih-di-biru pada tombol primer (3.55:1 → 5.56:1,
+D-071), `label-content-name-mismatch` pada kartu bento, `scrollable-region-focusable` pada genre
+tape. Satu hasil `incomplete` (kontras teks di atas artwork) diperiksa manual: `#A1A1B5` di atas
+scrim `rgba(10,10,14,0.92)` ≈ 7.54:1.
+
+### 20.3 Header keamanan
+
+Diverifikasi dengan `curl -sI` pada `/`:
+
+| Header | Nilai |
+|---|---|
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'` |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()` |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` |
+| `Cross-Origin-Opener-Policy` / `-Resource-Policy` | `same-origin` |
+| `X-Frame-Options` | `SAMEORIGIN` (produksi) |
+
+`script-src 'unsafe-inline'` adalah kompromi yang dicatat (D-073): Next menstreaming payload RSC
+sebagai script inline. Tidak ada konten pengguna yang dirender sebagai HTML; satu-satunya
+`dangerouslySetInnerHTML` adalah JSON-LD yang di-escape (`serializeJsonLd` mengganti setiap `<`).
+
+### 20.4 SEO
+
+| Berkas | Isi |
+|---|---|
+| `/sitemap.xml` | 6 halaman + 6 rilis = 12 URL; tanpa `/studio`, `/api`, `/about`, `/privacy` |
+| `/robots.txt` | `Allow: /`, `Disallow: /studio`, `/studio/`, `/api/`, host + sitemap absolut |
+| `/manifest.webmanifest` | nama, warna `#0A0A0E`, ikon 64 dan 180 |
+| JSON-LD | `MusicGroup`: nama, `alternateName` DJ Akbar Remix, genre terverifikasi, `foundingDate` 2020, 4 `sameAs` resmi |
+| Meta | canonical per halaman, OG 1000×1000 + alt, Twitter `summary`, `lang="id"` |
+
+### 20.5 Anggaran performa
+
+| Metrik | Hasil | Anggaran |
+|---|---|---|
+| JS awal `/` | **181.1 KB** gzip (10 chunk) | < 200 KB |
+| CSS | **9.8 KB** gzip (3 berkas) | < 30 KB |
+| LCP mobile (throttle nyata) | **1.8 s** | < 2.5 s |
+| LCP desktop | **0.8 s** | < 2.5 s |
+| CLS | 0 | < 0.1 |
+| `canvas` | 0 di 7 rute | — |
+
+### 20.6 Test
+
+| Suite | Hasil |
+|---|---|
+| `npm run test` | **107 test, 107 lulus, 0 gagal** (26 suite) |
+| `npm run test:db` | 8 lulus (publish flow, drafts tidak bocor) |
+| `npm run typecheck` | bersih |
+| `npm run lint` | bersih |
+| `npm run build` | sukses |
+| `npm run a11y` | 0 violation |
+
+Test baru Phase 8: `security-headers.test.ts` (4) dan `seo.test.ts` (5) — total 9, dari 98 ke 107.
+
+### 20.7 Tangkapan layar
+
+42 berkas di `screenshots/final/`: `/`, `/music`, `/music/masih-mencintainya-papinka`, `/artist`,
+`/visuals`, `/epk`, `/nope` × 390/768/1280 (layar pertama + halaman penuh). `canvas` 0, gambar
+rusak 0, overflow horizontal 0.
+
+### 20.8 Yang masih menunggu owner
+
+- **`/privacy`** — tidak dibuat; teksnya milik owner.
+- **Merge ke `main` + deploy produksi** — belum dilakukan. Branch tetap
+  `arena/e02160ef-akbar-nawasunda`; langkahnya ada di `DEPLOYMENT_RUNBOOK.md` §2 dan §3.
+- URL Spotify per rilis (6) → artwork level 2.
+- Bio panjang dan linimasa 2021–2024 (`[NEEDS OWNER]`).

@@ -33,9 +33,13 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
   return (
     <div className={styles.bento}>
       <article className={`${styles.card} ${styles.featured}`}>
-        <Link href={featured.href} className={styles.hitArea} aria-label={`${featured.title} — buka rilis`}>
+        {/* No aria-label: axe's label-content-name-mismatch rule requires the accessible name to
+            contain the visible text, and this card shows the title, the meta and "Buka rilis". The
+            content already reads correctly, so it is left to speak for itself. */}
+        <Link href={featured.href} className={styles.hitArea}>
           <span className={styles.featuredCover}>
-            <ReleaseCover artwork={featured.artwork} title={featured.title} shape="wide" priority showTitle={false} />
+            {/* Not priority: the card sits below the hero, and preloading it competed with the LCP portrait. */}
+            <ReleaseCover artwork={featured.artwork} title={featured.title} shape="wide" showTitle={false} />
           </span>
 
           <span className={styles.featuredBody}>
@@ -61,7 +65,7 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
 
       {tiles.map((item, index) => (
         <article key={item.slug} className={`${styles.card} ${styles.tile}`}>
-          <Link href={item.href} className={styles.hitArea} aria-label={`${item.title} — buka rilis`}>
+          <Link href={item.href} className={styles.hitArea}>
             <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             <span className={styles.tileBody}>
               <span className={styles.tileIndex}>{String(index + 2).padStart(2, "0")}</span>

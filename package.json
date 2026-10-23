@@ -22,7 +22,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx drizzle/seed.ts",
-    "test:db": "node --conditions=react-server --import tsx --test \"tests/database/*.test.ts\""
+    "test:db": "node --conditions=react-server --import tsx --test \"tests/database/*.test.ts\"",
+    "a11y": "node scripts/a11y-audit.mjs",
+    "lighthouse": "npx --yes lighthouse@12 --preset=desktop --chrome-flags=\"--headless=new --no-sandbox\""
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
@@ -36,9 +38,11 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "axe-core": "^4.14.0",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.0",
+    "puppeteer-core": "^25.16.0",
     "sharp": "^0.35.5",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"

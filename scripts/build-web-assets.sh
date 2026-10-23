@@ -27,7 +27,7 @@ convert "$SRC/akbar-nawasunda-full-transparent.png" \
 
 # Official portrait: three widths, WebP + AVIF. Delivered through a hand-written srcset so the
 # bytes are exactly what this script produced (no build-time image optimizer in the path).
-for w in 480 720 960; do
+for w in 480 600 720 960; do
   convert "$SRC/akbar-nawasunda-official-portrait-1200.webp" -resize "${w}x" -quality 78 "$MEDIA/portrait-$w.webp"
   convert "$SRC/akbar-nawasunda-official-portrait-1200.webp" -resize "${w}x" -quality 55 "$MEDIA/portrait-$w.avif"
 done

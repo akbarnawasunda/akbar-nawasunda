@@ -16,6 +16,7 @@ import { heroStats } from "@/content/stats";
 import { homepageVisuals } from "@/content/visuals";
 import { siteConfig } from "@/config/site";
 import { getSocialLink, listenUrl } from "@/config/socials";
+import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage } from "@/studio/public";
 import styles from "./page.module.css";
 
@@ -57,11 +58,17 @@ export default async function HomePage() {
   // rendered until the owner publishes some, so the page is unchanged by default — but the Studio
   // editor is no longer a form that writes somewhere the site never reads.
   const home = await getPublicPage("home");
+  // Structured data for search engines: only facts that are already on the page (see src/lib/structured-data.ts).
+  const jsonLd = serializeJsonLd(artistJsonLd(`${siteConfig.url.replace(/\/$/, "")}/brand/an-mark.webp`));
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
   const rest = catalogue.slice(1, 6);
 
   return (
     <>
+      {/* JSON-LD rather than microdata: one block, no markup noise, and the `<` escaping in
+          serializeJsonLd means the payload cannot close the script element. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+
       {/*
         One preload only, for the AVIF variant: browsers without AVIF ignore it and discover the
         WebP <source> in the parser. A second preload would download both files.
@@ -72,6 +79,7 @@ export default async function HomePage() {
         type="image/avif"
         imageSrcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
         imageSizes="(min-width: 1024px) 40vw, 92vw"
+        fetchPriority="high"
       />
 
       <section className={styles.hero} aria-labelledby="hero-title">
@@ -132,6 +140,7 @@ export default async function HomePage() {
                   alt={portraitAlt}
                   width={portraitSize.width}
                   height={portraitSize.height}
+                  fetchPriority="high"
                   decoding="async"
                 />
               </picture>

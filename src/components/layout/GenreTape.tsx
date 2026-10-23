@@ -11,8 +11,11 @@ import styles from "./GenreTape.module.css";
  */
 export function GenreTape() {
   return (
-    <div className={styles.tape} aria-label="Genre">
-      <ul className={styles.track}>
+    // The <ul> is the element that actually scrolls below 720px, so it is the one that needs to be
+    // focusable — a scroll container that cannot take focus is unreachable by keyboard
+    // (axe: scrollable-region-focusable).
+    <div className={styles.tape} role="group" aria-label="Genre">
+      <ul className={styles.track} tabIndex={0}>
         {genres.map((genre) => (
           <li key={genre} className={styles.item}>
             {genre}

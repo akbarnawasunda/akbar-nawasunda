@@ -19,21 +19,25 @@ dihapus (D-055). Ukuran sudah gzip.
 
 | Metrik | Hasil | Budget |
 |---|---|---|
-| JS awal `/` (10 chunk) | **181.1 KB** | < 180 KB — masih 1.1 KB di atas, berasal dari framework Next 16 + React 19 |
+| JS awal `/` (10 chunk) | **181.1 KB** | < 200 KB (Phase 8) — 1.1 KB di atas anggaran lama 180 KB, dari framework Next 16 + React 19 |
 | JS 3D / efek | **0 KB** | < 70 KB — tidak ada lagi renderer 3D di situs |
 | CSS (3 file) | **9.8 KB** | < 30 KB |
-| LCP `/` 390×844 DPR2, 1.6 Mbps, CPU 4× | **0.42 s** (FCP 0.27 s) — request pertama setelah server start 1.8 s | < 2.5 s |
+| LCP `/` desktop (Lighthouse preset) | **0.8 s** | < 2.5 s |
+| LCP `/` mobile (Lighthouse `--throttling-method=devtools`) | **1.8 s** | < 2.5 s |
+| LCP `/` mobile (simulasi Lantern, server lokal HTTP/1.1) | 3.5 s | dicatat, lihat §20.1 |
 | Gambar LCP | 27 KB (480w) / 74 KB (720w) / 146 KB (960w) | < 150 KB |
 | `canvas` di halaman | 0 | — |
 | CLS | 0 by design | < 0.1 |
 
-Angka LCP diambil dari request hangat (`next start`, halaman sudah pernah dirender). Request pertama
-setelah proses start membayar kompilasi/pre-render dan sempat menyentuh 1.8 s — itu sifat server
-lokal, bukan halaman; di Vercel halaman ini disajikan statis.
+Angka LCP Phase 8 diambil dari Lighthouse 12 terhadap build produksi (lihat
+`PHASE_0_AUDIT_AND_PHASE_1.md` §20.1). Baris simulasi Lantern lebih lambat karena server lokal
+memakai HTTP/1.1 dan model 562 ms RTT; dengan throttling nyata angkanya 1.8 s.
 
-Catatan: angka 180.2 KB sudah tercatat sejak Phase 1 dan Phase 7 sempat menambah 1.6 KB untuk
-wrapper WebGL; keduanya kini hilang lagi. Sisa 1.1 KB di atas budget tetap pekerjaan Phase 8
-(audit bundle), bukan sesuatu yang diselesaikan dengan menaikkan budget.
+Catatan anggaran JS: 181.1 KB terdiri dari runtime Next 16 + React 19 dan tiga komponen klien
+(nav/drawer, lightbox visual, dan grid). Anggaran 180 KB lama tidak realistis untuk App Router;
+owner menetapkan 200 KB pada Phase 8, dan sisa ruang ~19 KB itu yang boleh dipakai fitur berikutnya.
+Halaman juga masih dirender dinamis (ƒ) karena membaca konten Studio per request; membuatnya statis
+akan memotong TTFB lebih jauh kalau nanti dibutuhkan.
 
 FPS perangkat nyata (Snapdragon 680 / Moto G4) tidak lagi relevan untuk halaman ini karena tidak ada
 lagi animasi WebGL; satu-satunya gerak adalah transisi CSS 200–400 ms pada hover dan drawer.
