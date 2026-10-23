@@ -34,10 +34,13 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
     });
   }
   const release = getReleaseBySlug(slug);
-  if (!release) return { title: "Release not found" };
+  // No such release: the page calls notFound(), so keep the title neutral and out of the index.
+  if (!release) return { title: "Rilis tidak ditemukan", robots: { index: false, follow: true } };
   return pageMetadata({
     title: release.title,
-    description: release.description ?? `${releaseDisplayTitle(release)} — a verified release by Akbar Nawasunda.`,
+    description:
+      release.description ??
+      `${releaseDisplayTitle(release)} — rilis terverifikasi Akbar Nawasunda.`,
     path: `/music/${release.slug}`,
   });
 }

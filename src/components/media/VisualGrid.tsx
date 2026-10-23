@@ -20,6 +20,11 @@ export interface VisualItem {
 
 interface VisualGridProps {
   items: readonly VisualItem[];
+  /**
+   * "grid" is the homepage 2x2 block with a staggered second column.
+   * "masonry" is the archive layout: CSS columns, tiles keep their own aspect ratio.
+   */
+  variant?: "grid" | "masonry";
 }
 
 /**
@@ -29,7 +34,7 @@ interface VisualGridProps {
  * it opens, and focus returns to the tile that opened it. It is the only interactive client island
  * on the homepage besides the header, so it stays small.
  */
-export function VisualGrid({ items }: VisualGridProps) {
+export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -53,7 +58,7 @@ export function VisualGrid({ items }: VisualGridProps) {
 
   return (
     <>
-      <ul className={styles.grid}>
+      <ul className={variant === "masonry" ? `${styles.grid} ${styles.masonry}` : styles.grid}>
         {items.map((item) => (
           <li key={item.id} className={item.onSurface ? styles.surfaceTile : styles.photoTile}>
             <button

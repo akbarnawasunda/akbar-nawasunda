@@ -1,0 +1,61 @@
+/* Archive page: masonry wall on the left, a narrow note column on the right.
+   The note is deliberately small and sticky on wide screens — it is a colophon, not a hero. */
+.body {
+  display: grid;
+  gap: var(--space-8);
+  padding-bottom: var(--space-16);
+}
+
+.note {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background: var(--color-bg-surface);
+}
+
+.noteLabel {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.noteLabel:not(:first-child) {
+  margin-top: var(--space-4);
+}
+
+.noteText {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.noteText code {
+  font-family: var(--font-mono-stack);
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+}
+
+.needs {
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 1024px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .note {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-6));
+  }
+}

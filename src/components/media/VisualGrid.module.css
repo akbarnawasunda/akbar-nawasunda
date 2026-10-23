@@ -28,12 +28,13 @@
   place-items: center;
 }
 
-/* Stagger the second column so the block does not read as a symmetric 2x2 (reference 3). */
-.grid li:nth-child(2) {
+/* Stagger the second column so the block does not read as a symmetric 2x2 (reference 3).
+   Scoped to the grid variant: in the masonry the tiles already sit at different heights. */
+.grid:not(.masonry) li:nth-child(2) {
   margin-top: var(--space-8);
 }
 
-.grid li:nth-child(3) {
+.grid:not(.masonry) li:nth-child(3) {
   margin-top: calc(var(--space-8) * -1);
 }
 
@@ -159,12 +160,61 @@
   cursor: pointer;
 }
 
+/* ------------------------------------------------------------------ masonry */
+
+/*
+  The archive keeps the source aspect ratios (4:5 portrait, 1:1 stage) instead of forcing every tile
+  into one box, which is what makes it read as a contact sheet rather than a product grid.
+  CSS columns do the packing; the li owns the aspect ratio and the tile fills it, so the trigger's
+  `height: 100%` always has a definite box to resolve against.
+*/
+.masonry {
+  display: block;
+  columns: 1;
+  column-gap: var(--space-4);
+}
+
+.masonry li {
+  display: block;
+  break-inside: avoid;
+  margin: 0 0 var(--space-4);
+}
+
+.masonry .photoTile,
+.masonry .surfaceTile {
+  aspect-ratio: auto;
+  display: block;
+  height: 100%;
+}
+
+.masonry li:nth-child(1) {
+  aspect-ratio: 4 / 5;
+}
+
+.masonry li:nth-child(2),
+.masonry li:nth-child(3) {
+  aspect-ratio: 4 / 3;
+}
+
+.masonry li:nth-child(4) {
+  aspect-ratio: 1 / 1;
+}
+
+/* Two columns from 560px: with four assets a third column leaves a hole under the shortest one,
+   and two wider columns give the portrait the room it needs. */
+@media (min-width: 560px) {
+  .masonry {
+    columns: 2;
+  }
+}
+
 @media (max-width: 559px) {
-  .grid li:nth-child(2) {
+
+  .grid:not(.masonry) li:nth-child(2) {
     margin-top: var(--space-4);
   }
 
-  .grid li:nth-child(3) {
+  .grid:not(.masonry) li:nth-child(3) {
     margin-top: calc(var(--space-4) * -1);
   }
 }

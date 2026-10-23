@@ -4,22 +4,23 @@ export interface NavItem {
 }
 
 /**
- * Primary navigation.
+ * Primary navigation — the final sitemap (SITEMAP.md): Music / Visuals / Artist / EPK.
  *
- * The final sitemap is Music / Visuals / Artist / EPK. Visuals already exists as a homepage section
- * (Phase 2) and Artist is served by /about until Phase 5 renames the route (D-024). EPK is not
- * linked yet: a nav item that 404s is a broken promise, and the audit rule is no dead links (D-016).
+ * Every entry points at a route that exists (D-016): /visuals and /artist are real pages since
+ * Phase 5, and /about is a 308 to /artist (D-024), so it is no longer linked anywhere.
  */
 export const primaryNav: readonly NavItem[] = [
   { href: "/music", label: "Music" },
-  { href: "/#visuals", label: "Visuals" },
-  { href: "/about", label: "Artist" },
+  { href: "/visuals", label: "Visuals" },
+  { href: "/artist", label: "Artist" },
+  { href: "/epk", label: "EPK" },
 ];
 
 /** Secondary links, shown in the footer. */
 export const footerNav: readonly NavItem[] = [
   { href: "/music", label: "Music" },
-  { href: "/#visuals", label: "Visuals" },
-  { href: "/about", label: "Artist" },
+  { href: "/visuals", label: "Visuals" },
+  { href: "/artist", label: "Artist" },
+  { href: "/epk", label: "Press kit" },
   { href: "/contact", label: "Kontak" },
 ];

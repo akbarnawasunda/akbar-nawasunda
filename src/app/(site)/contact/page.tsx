@@ -4,7 +4,7 @@ import { Container } from "@/components/layout/Container";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
-  title: "Contact",
+  title: "Kontak",
   description: "Kontak resmi untuk booking, permintaan remix, dan lisensi.",
   path: "/contact",
 });
@@ -14,7 +14,7 @@ export default function ContactPage() {
     <Container>
       <PageIntro
         eyebrow="Kontak"
-        title="Contact"
+        title="Kontak"
         lead="Formulir kontak belum tersedia. Akan ditambahkan setelah alamat tujuan pesan dikonfirmasi."
       />
       <ContentRequirement

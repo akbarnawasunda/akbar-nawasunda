@@ -1,0 +1,137 @@
+/* 404: oversized ghost mark bleeding off the left edge, text hard-left on top of it,
+   mono error code, signal strip at the very bottom. */
+.wrap {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: min(62vh, 560px);
+  padding-block: var(--space-12) var(--space-12);
+  overflow: hidden;
+}
+
+/* Ghost mark on the right; the copy stays hard-left so the two never fight for the same pixels. */
+.ghost {
+  position: absolute;
+  right: -6%;
+  top: 50%;
+  translate: 0 -50%;
+  width: min(62vw, 560px);
+  height: auto;
+  opacity: 0.1;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 720px) {
+  .wrap {
+    min-height: 52vh;
+    padding-block: var(--space-8);
+    align-items: start;
+  }
+
+  /* On a phone the ghost goes behind the block, not behind the text lines. */
+  .ghost {
+    top: auto;
+    bottom: -4%;
+    translate: none;
+    right: -18%;
+    width: 86vw;
+    opacity: 0.09;
+  }
+
+  .title {
+    font-size: clamp(2.75rem, 15vw, 4rem);
+  }
+
+  .links {
+    margin-top: var(--space-6);
+  }
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  max-width: 60ch;
+}
+
+.code {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  margin-top: var(--space-4);
+  font-family: var(--font-display-stack);
+  font-size: clamp(3rem, 1.5rem + 7vw, 7rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+.faded {
+  color: var(--color-text-secondary);
+}
+
+.lead {
+  margin-top: var(--space-4);
+  max-width: 44ch;
+  color: var(--color-text-secondary);
+}
+
+.links {
+  display: grid;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+
+.primary {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  background: var(--color-signal-blue);
+  color: #fff;
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.primary:hover {
+  background: var(--color-signal-blue-hover);
+}
+
+.links ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+}
+
+.links ul a {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.links ul a:hover {
+  color: var(--color-text-primary);
+}
+
+/* The same 5px signal strip that closes the footer, so a dead end still ends on the brand. */
+.strip {
+  height: 5px;
+  background: var(--color-signal-blue);
+}

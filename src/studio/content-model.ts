@@ -7,9 +7,15 @@
  */
 
 export const PAGE_CONFIG = {
+  /**
+   * Key stays `about` on purpose: stored documents live under this key, and renaming it would
+   * orphan whatever the owner has already published. The route and label are what users see, and
+   * those are `/artist` + "Artist" since D-024. Moving the key would need a data migration for no
+   * visible benefit.
+   */
   about: {
-    label: "About",
-    path: "/about",
+    label: "Artist",
+    path: "/artist",
     fields: { title: true, lead: true, seoDescription: true },
     sectionTypes: ["heading", "paragraph"],
     maxSections: 30,

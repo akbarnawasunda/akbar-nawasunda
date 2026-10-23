@@ -1,4 +1,20 @@
-# Screenshots — Phase 2 revision (2026-10-23)
+# Screenshots (2026-10-23)
+
+Two sets. `home-*`, `music-*` are the Phase 2 revision; `phase5-*` are the Phase 5 routes added
+after the revision was approved.
+
+## Phase 5 routes
+
+| Route | Widths |
+|---|---|
+| `/artist` | 390 × 844, 768 × 1024, 1280 × 900 |
+| `/visuals` | 390 × 844, 768 × 1024, 1280 × 900 |
+| `/epk` | 390 × 844, 768 × 1024, 1280 × 900 |
+| `/tidak-ada` (404) | 390 × 844, 768 × 1024, 1280 × 900 |
+
+`/about` is not captured because it no longer renders: it answers 308 → `/artist` (D-024).
+
+## Phase 2 revision
 
 Captured from the local production build (`npm run build && npm run start`) with headless Chromium
 at `deviceScaleFactor: 1`, `prefers-reduced-motion: reduce`, after `networkidle0`.

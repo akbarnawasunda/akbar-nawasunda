@@ -376,3 +376,70 @@ Tangkapan layar 390 / 768 / 1280 untuk `/`, `/music`, `/music/masih-mencintainya
   data yang sama (2020 → 2026, 6 judul). Angka yang berbeda akan butuh data owner.
 - Phase 5 belum dijalankan (menunggu persetujuan revisi Phase 2): `/artist` kanonik, `/about` → 308,
   `/visuals` sebagai route.
+
+## 15. Phase 5 — sitemap final, EPK, 404, lokalisasi (2026-10-23)
+
+Revisi Phase 2 disetujui owner, jadi Phase 5 dikerjakan. `main` tidak disentuh.
+
+### Route baru
+
+| Route | Isi | Catatan |
+|---|---|---|
+| `/artist` | Split asimetris: fakta terverifikasi di kiri, potret 4:5 di kanan, `PlatformRow` + `GenreTape`, linimasa, panel monogram/lockup | Kanonik (D-033). Key dokumen Studio tetap `about` (D-034) supaya konten owner tidak yatim |
+| `/visuals` | Masonry dua kolom berisi empat aset resmi + lightbox (komponen `VisualGrid` yang sama dengan homepage) | 3 kolom menyisakan lubang dengan 4 aset (D-038) |
+| `/epk` | Halaman press kit: tombol unduh `.zip`, manifest 5 file, fact sheet, kontak | Zip nyata 977 KB (D-036, D-037) |
+| 404 | Ghost AN 10% kanan, "Sinyal hilang", CTA + nav, strip biru 5px | Satu komponen untuk dua file not-found (D-039) |
+
+### Redirect
+
+```
+/about  →  308  →  /artist      (next.config.ts, D-033)
+```
+
+Halaman `src/app/(site)/about/` dihapus; tes `routes.test.ts` mengunci perilaku ini.
+
+### Linimasa `/artist`
+
+Hanya tonggak yang punya sumber: 2020 alias DJ Akbar Remix, 2025 "Masih Mencintainya — Papinka",
+"Sekarang" Akbar Nawasunda. Periode 2021–2024 tampil sebagai baris **putus-putus** dengan tanda
+`[NEEDS OWNER]` — bukan dikosongkan, bukan dikarang (D-035).
+
+### EPK
+
+`scripts/build-epk.sh` menghasilkan dari aset owner:
+
+```
+press-photo-print.jpg     1200 px, 394 KB
+press-photo-web.webp       960 px, 143 KB
+an-mark-transparent.png    256 warna, 231 KB
+lockup-transparent.png     256 warna, 202 KB
+README.md                  fakta terverifikasi + ketentuan pemakaian
+→ akbar-nawasunda-epk.zip  977 KB
+```
+
+### Lokalisasi yang tersisa
+
+- `/contact`: judul & metadata jadi "Kontak".
+- `/music/[slug]`: judul metadata "Rilis tidak ditemukan" + `noindex` untuk slug yang tidak ada.
+- Nav & footer: Music / Visuals / Artist / EPK / Kontak; `/about` tidak lagi ditautkan di mana pun.
+
+### Test
+
+```
+npm run check   ✓ assets + typecheck + lint + build
+# tests 83 · # pass 83 · # fail 0
+```
+
+Dua suite baru:
+
+- `tests/studio/css-tokens.test.ts` — setiap `var(--x)` di `src/**/*.css` harus punya definisi.
+  Menangkap kelas bug D-032 (deklarasi CSS dibuang browser tanpa error).
+- `tests/studio/routes.test.ts` — redirect 308, nav hanya menunjuk route yang ada, dan lima file
+  EPK benar-benar ada di `public/epk/`.
+
+### Belum dikerjakan
+
+- Artwork 6 rilis: owner akan mengunggah setelah Phase 5. Sampai itu, kartu memakai watermark AN.
+- `/privacy` (ada di SITEMAP.md) belum dibuat: isinya harus ditinjau owner, bukan dikarang.
+- Bio panjang, kontak booking, dan tanggal-tanggal linimasa 2021–2024 menunggu owner lewat Studio
+  (`/studio/pages/about`).

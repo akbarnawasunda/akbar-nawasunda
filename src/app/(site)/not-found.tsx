@@ -1,18 +1,8 @@
-import Link from "next/link";
+import { NotFoundView } from "@/components/content/NotFoundView";
 
-import { PageIntro } from "@/components/content/PageIntro";
-import { Container } from "@/components/layout/Container";
-import { pageMetadata } from "@/lib/metadata";
+export { notFoundMetadata as metadata } from "@/lib/not-found";
 
-export const metadata = pageMetadata({ title: "Halaman tidak ditemukan", path: "/" });
-
+/** notFound() raised inside a site route (e.g. an unknown release slug). Site chrome is present. */
 export default function NotFound() {
-  return (
-    <Container>
-      <PageIntro eyebrow="404" title="Halaman tidak ditemukan" lead="Halaman ini tidak ada atau sudah dipindahkan." />
-      <p>
-        <Link href="/">Kembali ke beranda</Link>
-      </p>
-    </Container>
-  );
+  return <NotFoundView />;
 }
