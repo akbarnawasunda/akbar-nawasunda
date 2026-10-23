@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { coverArtwork } from "@/content/covers";
 import type { ReleaseView } from "@/content/release-view";
 
 import { ReleaseCover } from "./ReleaseCover";
@@ -15,8 +16,8 @@ interface ReleaseCardProps {
  * 1:1 release tile.
  *
  * Artwork-first, like the homepage bento: a real cover when one exists, otherwise the designed
- * Level-3 sleeve (title + AN mark + 4px signal rule). The title only repeats under the sleeve when
- * the sleeve is a photograph, because the generated sleeve already carries it.
+ * Level-3 sleeve (title + AN mark + 4px signal rule). The title under the tile is only printed for
+ * real artwork; a generated sleeve already carries it inside the image.
  */
 export function ReleaseCard({ release, index }: ReleaseCardProps) {
   return (
@@ -36,14 +37,14 @@ export function ReleaseCard({ release, index }: ReleaseCardProps) {
 
       <span className={styles.cover}>
         <ReleaseCover
-          artwork={release.coverUrl ? { kind: "image", src: release.coverUrl } : { kind: "generated" }}
+          artwork={release.coverUrl ? { kind: "image", src: release.coverUrl } : coverArtwork(release.slug)}
           title={release.title}
           showTitle={false}
         />
       </span>
 
       <span className={styles.body}>
-        <span className={styles.title}>{release.title}</span>
+        {release.coverUrl ? <span className={styles.title}>{release.title}</span> : null}
         <span className={styles.meta}>{release.meta}</span>
       </span>
     </Link>

@@ -5,7 +5,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
 
-import { coverArtwork, coverCandidates, resolveCover } from "../../src/content/covers";
+import {
+  coverArtwork,
+  coverCandidates,
+  resolveCover,
+  resolveSleeve,
+  sleeveCandidate,
+} from "../../src/content/covers";
+import { releases } from "../../src/content/releases";
 import { homepageSourceFiles, BANNED_HOMEPAGE_PATTERNS } from "../fixtures/anti-ai";
 
 const root = join(import.meta.dirname, "../..");
@@ -95,6 +102,34 @@ describe("cover artwork waterfall", () => {
       kind: "image",
       src: "/assets/covers/cinta-terbuang.avif",
     });
+  });
+
+  it("serves the generated sleeve as a file, not as a component, when one exists", () => {
+    mkdirSync(join(publicDir, "assets/covers"), { recursive: true });
+    writeFileSync(join(publicDir, "assets/covers/masih-dihatiku@sleeve.webp"), "fake");
+    assert.equal(sleeveCandidate("masih-dihatiku"), "/assets/covers/masih-dihatiku@sleeve.webp");
+    assert.equal(resolveSleeve("masih-dihatiku", publicDir), "/assets/covers/masih-dihatiku@sleeve.webp");
+    assert.deepEqual(coverArtwork("masih-dihatiku", publicDir), {
+      kind: "sleeve",
+      src: "/assets/covers/masih-dihatiku@sleeve.webp",
+    });
+  });
+
+  it("prefers real artwork over a generated sleeve", () => {
+    mkdirSync(join(publicDir, "assets/covers"), { recursive: true });
+    writeFileSync(join(publicDir, "assets/covers/bayang-tanpa-kata@sleeve.webp"), "fake");
+    writeFileSync(join(publicDir, "assets/covers/bayang-tanpa-kata.webp"), "real");
+    assert.deepEqual(coverArtwork("bayang-tanpa-kata", publicDir), {
+      kind: "image",
+      src: "/assets/covers/bayang-tanpa-kata.webp",
+    });
+  });
+
+  it("has a sleeve on disk for every verified release", () => {
+    for (const release of releases) {
+      if (resolveCover(release.slug)) continue;
+      assert.ok(resolveSleeve(release.slug), `no artwork and no sleeve for ${release.slug}`);
+    }
   });
 
   it("has the directory the owner drops files into", () => {

@@ -22,7 +22,8 @@ import { releases } from "../src/content/releases";
 
 const force = process.argv.includes("--force");
 const publicDir = join(process.cwd(), "public", "assets", "covers");
-const SIZE = 1000;
+const SIZE = 800;
+const MAX_BYTES = 150 * 1024;
 
 function spotifyUrl(links: readonly { label: string; href: string }[]): string | null {
   const match = links.find(
@@ -47,10 +48,14 @@ async function fetchArtwork(slug: string, url: string) {
   if (!image.ok) throw new Error(`thumbnail ${image.status}`);
 
   const bytes = Buffer.from(await image.arrayBuffer());
-  const webp = await sharp(bytes)
-    .resize(SIZE, SIZE, { fit: "cover", position: "centre" })
-    .webp({ quality: 90 })
-    .toBuffer();
+  const source = sharp(bytes).resize(SIZE, SIZE, { fit: "cover", position: "centre" });
+
+  // 800x800, and never over the 150 KB artwork budget: step the quality down until it fits.
+  let webp = await source.clone().webp({ quality: 88 }).toBuffer();
+  for (const quality of [80, 72, 64]) {
+    if (webp.byteLength <= MAX_BYTES) break;
+    webp = await source.clone().webp({ quality }).toBuffer();
+  }
 
   writeFileSync(join(publicDir, `${slug}.webp`), webp);
   return webp.byteLength;

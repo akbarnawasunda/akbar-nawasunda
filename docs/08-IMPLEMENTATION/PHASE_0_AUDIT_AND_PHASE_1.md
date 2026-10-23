@@ -660,8 +660,8 @@ jadi katalog **tidak kosong** dan tidak memakai artwork milik orang lain. Begitu
 | Gambar rusak | 0 |
 | Dependensi `three`/R3F | tidak ada |
 | JS awal `/` | 181.1 KB gz (dulu 182.7 KB dengan renderer 3D) |
-| CSS | 8.1 KB gz |
-| LCP `/` 390×844 DPR2, 1.6 Mbps, CPU 4× | 0.93 s |
+| CSS | 9.8 KB gz (3 berkas) |
+| LCP `/` 390×844 DPR2, 1.6 Mbps, CPU 4× | 0.42 s hangat / 1.8 s request pertama |
 | Tangkapan layar | 21 kombinasi route × lebar di `screenshots/final/` |
 
 Test baru: `tests/studio/anti-ai.test.ts` (10 test) — memastikan komponen efek yang dihapus tidak
@@ -675,3 +675,68 @@ beranda. Total 93 test (83 lama + 10 baru).
 - Bio panjang, linimasa 2021–2024: masih `[NEEDS OWNER]`.
 - `/privacy` tidak disentuh.
 - Tangkapan layar 390/768/1280 ada di `docs/08-IMPLEMENTATION/screenshots/final-*`.
+
+---
+
+## 19. Langkah 2 lanjutan — konsolidasi aset dan sampul otomatis (2026-10-23)
+
+Bagian ini menutup tiga hal yang di §18 masih terbuka: berkas aset yang tersebar, `covers/` yang
+kosong, dan arsip visual yang baru berisi empat tile.
+
+### 19.1 Root dan aset
+
+Root repo tetap hanya berisi `AGENTS.md`, `README.md`, `HANDOFF_TO_CODING_AGENT.md`, `CLAUDE.md`,
+`GITHUB_REPO_README.md` + config. Tidak ada `PROMPT_*.md`, `*_2.md`, maupun `*.example.tsx` yang
+tersisa; salinannya ada di `docs/08-IMPLEMENTATION/prompts/archive/` dan tidak dibaca lagi.
+
+`public/assets/` sekarang memuat rak aset pemilik dengan nama yang diminta (potret `.webp`/`.jpg`,
+`-1200.webp`, `logo-an.png`, `akbar-logo*.webp`, `akbar-rmx-mark.webp`,
+`akbar-night-frequency-hero*.webp`, `akbar-editorial-stage-bg.webp`, dua PNG transparan), 2.5 MB
+total. Berkas besar diturunkan dulu; halaman tetap memakai turunan `/brand` dan `/media` yang lebih
+kecil. `scripts/build-web-assets.sh` kini juga menghasilkan `editorial-{720,1400}` dan
+`mascot-420`.
+
+`night-frequency-hero` adalah foto yang sama dengan frame panggung, jadi hanya ada satu tile untuk
+foto itu (D-067).
+
+### 19.2 Sampul: dari komponen ke berkas
+
+`npm run covers:sleeves` (`scripts/generate-placeholder-covers.mjs`) merender enam sleeve
+1000×1000 ke `public/assets/covers/<slug>@sleeve.webp`. Isinya hanya fakta terverifikasi: judul,
+artis asal dan tahun bila ada, monogram AN 10%, latar `#101014`, pil mono, dan rule 4 px.
+
+Jalur artwork menjadi: `image` (berkas asli/Spotify) → `sleeve` (berkas generated) → `generated`
+(komponen, hanya bila belum ada berkas). Perbedaan `sleeve` vs `image` dipakai untuk satu hal:
+sleeve sudah mencetak judul, jadi tile tidak mencetak judul yang sama lagi di bawahnya.
+
+Pembungkusan judul memakai tabel lebar glyph Syne yang sebenarnya (D-065); perkiraan 0.55 em
+sebelumnya membuat judul meluber keluar kanvas.
+
+### 19.3 Verifikasi
+
+| Cek | Hasil |
+|---|---|
+| `npm run check` | assets ✓ · typecheck ✓ · lint ✓ · **98 test** ✓ · 8 DB test ✓ · build ✓ |
+| Rute | `/` 200 · `/music` 200 · `/music/masih-mencintainya-papinka` 200 · `/artist` 200 · `/visuals` 200 · `/epk` 200 · `/nope` 404 |
+| `canvas` | 0 di seluruh rute |
+| Gambar rusak | 0 (`imgsBroken` 0 setelah halaman digulir penuh) |
+| Overflow horizontal | tidak ada di 390 / 768 / 1280 |
+| Sampul | 6 berkas `@sleeve.webp`, 8–15 KB masing-masing |
+| Arsip visual | 6 tile, rasio asli dipertahankan |
+
+Test baru: 3 test `web-assets` (editorial dan maskot) dan 3 test resolusi sampul
+(`sleeve` dikenali, artwork asli menang atas sleeve, setiap rilis punya visual). Total 98.
+
+### 19.4 Catatan alat
+
+- Tangkapan full-page harus menggulir halaman dulu; gambar artwork memakai `loading="lazy"`, jadi
+  tanpa gulir tile tampak kosong (D-069).
+- Sleeve dirender dengan Syne dan JetBrains Mono yang terpasang di mesin yang menjalankan skrip.
+  Tanpa font itu librsvg jatuh ke sans sistem dan hasilnya tidak sesuai merek.
+
+### 19.5 Masih menunggu owner
+
+- URL Spotify per rilis: 6. Selama kosong, `covers:fetch` melaporkan dan tidak mengarang tautan.
+- Bio panjang dan linimasa 2021–2024 (`[NEEDS OWNER]`).
+- Angka `+5 tahun` di brief berbeda dengan hitungan nyata 6 tahun (D-070).
+- `/privacy` tetap tidak disentuh.

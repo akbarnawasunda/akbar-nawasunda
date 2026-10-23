@@ -178,7 +178,7 @@ export default async function HomePage() {
           />
           <VisualGrid items={homepageVisuals} />
           <p className={styles.footnote}>
-            Empat aset resmi. Foto panggung dan video akan menyusul di{" "}
+            Enam aset resmi. Video dan still panggung akan menyusul di{" "}
             <a href="/visuals">halaman Visuals</a>.
           </p>
         </Container>

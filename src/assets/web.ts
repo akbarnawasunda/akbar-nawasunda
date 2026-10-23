@@ -38,6 +38,21 @@ export const portraitSources = [
 export const portraitSize = { width: 960, height: 1199 } as const;
 
 /**
+ * Editorial stage backdrop (1600x900). Empty stage under a single warm spot: the one landscape
+ * frame in the archive, used as the wide tile in the masonry and as the lightbox image.
+ */
+export const editorialFrame = {
+  width: 1400,
+  height: 788,
+  avif: "/media/editorial-1400.avif",
+  webp: "/media/editorial-1400.webp",
+  thumb: { width: 720, height: 405, webp: "/media/editorial-720.webp", avif: "/media/editorial-720.avif" },
+} as const;
+
+/** Mascot doodle (420x420): the AN character on a blue disc, used in the archive. */
+export const mascotFrame = { width: 420, height: 420, webp: "/media/mascot-420.webp" } as const;
+
+/**
  * Square stage frame for the visual-archive band below the fold. Decorative: the artwork carries no
  * information the copy does not, so it is rendered with an empty alt.
  */

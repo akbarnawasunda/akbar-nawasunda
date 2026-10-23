@@ -39,5 +39,19 @@ for w in 480 700; do
   convert "$STAGE_SRC/akbar-night-frequency-stage-optimized.webp" -resize "${w}x${w}" -quality 45 "$MEDIA/stage-$w.avif"
 done
 
+# Archive frames added for the /visuals masonry (final pass). Same rule: owner originals in,
+# web-sized derivatives out. The lightbox gets the large file, the tile gets the small one.
+# The night-frequency hero file is byte-for-byte the same photograph as the stage frame above, so it
+# is not shipped a second time: one photograph, one tile.
+
+# Editorial stage backdrop: 1600x900 landscape.
+for w in 720 1400; do
+  convert "$STAGE_SRC/akbar-editorial-stage-bg.webp" -resize "${w}x" -quality 74 "$MEDIA/editorial-$w.webp"
+  convert "$STAGE_SRC/akbar-editorial-stage-bg.webp" -resize "${w}x" -quality 50 "$MEDIA/editorial-$w.avif"
+done
+
+# Mascot doodle: the one drawn asset, 420x420, shown at its native size.
+convert "$STAGE_SRC/akbar-mascot-doodle.webp" -quality 82 "$MEDIA/mascot-420.webp"
+
 echo "Built:"
 ls -l "$BRAND" "$MEDIA"

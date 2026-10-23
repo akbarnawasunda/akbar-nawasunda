@@ -11,7 +11,7 @@ import styles from "./visuals.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "Visuals",
   description:
-    "Arsip visual resmi Akbar Nawasunda: potret, monogram AN, lockup, dan foto panggung.",
+    "Arsip visual resmi Akbar Nawasunda: potret, foto jalan malam, panggung, maskot, monogram AN, dan lockup.",
   path: "/visuals",
 });
 
@@ -21,7 +21,7 @@ const youtube = getSocialLink("youtube");
  * /visuals — the archive as its own route (SITEMAP.md). The masonry keeps each asset's own aspect
  * ratio; the lightbox and keyboard behaviour come from the same VisualGrid used on the homepage.
  *
- * Only four owner-supplied files exist today. The page says so instead of padding the wall with
+ * Only six owner-supplied files exist today. The page says so instead of padding the wall with
  * stock photos or video thumbnails scraped from YouTube.
  */
 export default function VisualsPage() {
@@ -41,8 +41,8 @@ export default function VisualsPage() {
         <aside className={styles.note} aria-label="Catatan arsip">
           <p className={styles.noteLabel}>Isi arsip</p>
           <p className={styles.noteText}>
-            Empat aset resmi: potret studio, foto panggung, monogram AN, dan lockup penuh. Semua file
-            berasal dari pemilik, bukan stok atau hasil generate.
+            Enam aset resmi: potret studio, foto jalan malam, panggung kosong, maskot, monogram AN,
+            dan lockup penuh. Semua file berasal dari pemilik, bukan stok atau hasil generate.
           </p>
           <p className={styles.noteLabel}>Menyusul</p>
           <p className={styles.noteText}>

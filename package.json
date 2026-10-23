@@ -15,6 +15,7 @@
     "check": "npm run assets:check && npm run typecheck && npm run lint && npm run test && npm run test:db && npm run build",
     "assets:check": "node scripts/check-assets.mjs",
     "covers:fetch": "tsx scripts/fetch-spotify-artwork.ts",
+    "covers:sleeves": "tsx scripts/generate-placeholder-covers.mjs",
     "test": "tsx --test \"tests/studio/*.test.ts\"",
     "studio:hash-password": "tsx scripts/studio-hash-password.ts",
     "db:generate": "drizzle-kit generate",

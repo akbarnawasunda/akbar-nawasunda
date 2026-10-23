@@ -192,16 +192,21 @@
 }
 
 .masonry li:nth-child(2),
-.masonry li:nth-child(3) {
-  aspect-ratio: 4 / 3;
-}
-
 .masonry li:nth-child(4) {
   aspect-ratio: 1 / 1;
 }
 
-/* Two columns from 560px: with four assets a third column leaves a hole under the shortest one,
-   and two wider columns give the portrait the room it needs. */
+.masonry li:nth-child(3) {
+  aspect-ratio: 16 / 9;
+}
+
+.masonry li:nth-child(5),
+.masonry li:nth-child(6) {
+  aspect-ratio: 4 / 3;
+}
+
+/* Two columns from 560px: a third column leaves a hole under the shortest tile, and two wider
+   columns give the portrait the room it needs. */
 @media (min-width: 560px) {
   .masonry {
     columns: 2;

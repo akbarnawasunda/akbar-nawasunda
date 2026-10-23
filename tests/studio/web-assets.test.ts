@@ -3,7 +3,14 @@ import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-import { anMark, lockup, portraitSources, stageFrame } from "../../src/assets/web";
+import {
+  anMark,
+  editorialFrame,
+  lockup,
+  mascotFrame,
+  portraitSources,
+  stageFrame,
+} from "../../src/assets/web";
 
 const publicDir = join(import.meta.dirname, "../../public");
 
@@ -54,6 +61,17 @@ describe("web brand assets", () => {
   it("ships the stage frame in both formats", () => {
     expectFile(stageFrame.avif, stageFrame.width, stageFrame.height);
     expectFile(stageFrame.webp, stageFrame.width, stageFrame.height);
+  });
+
+  it("ships the editorial stage frame in both formats and both sizes", () => {
+    expectFile(editorialFrame.avif, editorialFrame.width, editorialFrame.height);
+    expectFile(editorialFrame.webp, editorialFrame.width, editorialFrame.height);
+    expectFile(editorialFrame.thumb.avif, editorialFrame.thumb.width, editorialFrame.thumb.height);
+    expectFile(editorialFrame.thumb.webp, editorialFrame.thumb.width, editorialFrame.thumb.height);
+  });
+
+  it("ships the mascot doodle at its native size", () => {
+    expectFile(mascotFrame.webp, mascotFrame.width, mascotFrame.height);
   });
 
   it("ships every portrait variant in both formats, under the LCP budget", () => {

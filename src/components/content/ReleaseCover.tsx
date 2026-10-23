@@ -19,10 +19,12 @@ interface ReleaseCoverProps {
 /**
  * One release sleeve, in either of the two shapes the site actually has.
  *
- * When a real file exists it is used as-is. When it does not, the sleeve is built from the three
- * things that are definitely true — the title, the AN mark and the brand palette — at 24px on
- * #101014 with a 4px #0087FF → #7800FF rule along the bottom edge. That is the brief's Level 3
- * artwork: a designed sleeve, not an empty card and not someone else's photograph.
+ * A real file (owner upload or Spotify download) is used as-is. A generated sleeve file
+ * (`<slug>@sleeve.webp`) is also served as an image — it was rendered offline by
+ * scripts/generate-placeholder-covers.mjs, which is why it can print the title without a layout
+ * shift. Only when no file exists at all does the sleeve get drawn in the browser, from the three
+ * things that are definitely true: the title, the AN mark and the brand palette, on #101014 with a
+ * 4px #0087FF → #7800FF rule along the bottom edge.
  */
 export function ReleaseCover({
   artwork,
@@ -31,13 +33,16 @@ export function ReleaseCover({
   priority = false,
   showTitle = true,
 }: ReleaseCoverProps) {
-  if (artwork.kind === "image") {
+  if (artwork.kind !== "generated") {
+    const isSleeve = artwork.kind === "sleeve";
     return (
       <span className={`${styles.cover} ${shape === "wide" ? styles.wide : styles.square}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- owner-uploaded file, exact bytes */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- local file, exact bytes */}
         <img
           src={artwork.src}
-          alt={`Artwork ${title}`}
+          /* A generated sleeve already prints the title, so its alt names the object instead of
+             repeating the words that are visible in the image. */
+          alt={isSleeve ? `Sampul ${title}` : `Artwork ${title}`}
           width={shape === "wide" ? 1200 : 600}
           height={shape === "wide" ? 675 : 600}
           loading={priority ? "eager" : "lazy"}

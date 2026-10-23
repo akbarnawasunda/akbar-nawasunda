@@ -1,6 +1,10 @@
 /**
  * The presentation shape for one release, shared by the static catalogue and the Studio records.
  * Keeping the mapping here means cards and pages never contain content rules.
+ *
+ * The artwork waterfall itself lives next door in ./covers.ts (it touches the filesystem, so it is
+ * server-only) and is re-exported here as the single content entry point: real file → Spotify
+ * download → generated sleeve file → component sleeve.
  */
 import { RELEASE_TYPE_LABELS, publicReleaseDate, type ReleaseDocument } from "../studio/releases";
 import { releaseDisplayTitle, releaseEyebrow, type Release } from "./releases";
@@ -41,3 +45,11 @@ export function fromReleaseDocument(slug: string, doc: ReleaseDocument, coverUrl
     managed: true,
   };
 }
+
+export {
+  coverArtwork,
+  resolveCover,
+  resolveSleeve,
+  sleeveCandidate,
+  type CoverArtwork,
+} from "./covers";

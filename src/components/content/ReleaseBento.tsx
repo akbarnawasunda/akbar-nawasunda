@@ -65,7 +65,11 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
             <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             <span className={styles.tileBody}>
               <span className={styles.tileIndex}>{String(index + 2).padStart(2, "0")}</span>
-              <span className={styles.tileTitle}>{item.title}</span>
+              {/* The generated sleeve prints the title inside the artwork, so the scrim only
+                  carries the index and the verified meta. Real artwork gets the title here. */}
+              {item.artwork.kind === "image" ? (
+                <span className={styles.tileTitle}>{item.title}</span>
+              ) : null}
               <span className={styles.meta}>{item.meta}</span>
             </span>
             <span className={styles.overlay} aria-hidden="true">

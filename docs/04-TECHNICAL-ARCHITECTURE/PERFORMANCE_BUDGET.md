@@ -21,11 +21,15 @@ dihapus (D-055). Ukuran sudah gzip.
 |---|---|---|
 | JS awal `/` (10 chunk) | **181.1 KB** | < 180 KB — masih 1.1 KB di atas, berasal dari framework Next 16 + React 19 |
 | JS 3D / efek | **0 KB** | < 70 KB — tidak ada lagi renderer 3D di situs |
-| CSS (2 file) | **8.1 KB** | < 30 KB |
-| LCP `/` 390×844 DPR2, 1.6 Mbps, CPU 4× | **0.93 s** (FCP 0.84 s, load 2.78 s) | < 2.5 s |
+| CSS (3 file) | **9.8 KB** | < 30 KB |
+| LCP `/` 390×844 DPR2, 1.6 Mbps, CPU 4× | **0.42 s** (FCP 0.27 s) — request pertama setelah server start 1.8 s | < 2.5 s |
 | Gambar LCP | 27 KB (480w) / 74 KB (720w) / 146 KB (960w) | < 150 KB |
 | `canvas` di halaman | 0 | — |
 | CLS | 0 by design | < 0.1 |
+
+Angka LCP diambil dari request hangat (`next start`, halaman sudah pernah dirender). Request pertama
+setelah proses start membayar kompilasi/pre-render dan sempat menyentuh 1.8 s — itu sifat server
+lokal, bukan halaman; di Vercel halaman ini disajikan statis.
 
 Catatan: angka 180.2 KB sudah tercatat sejak Phase 1 dan Phase 7 sempat menambah 1.6 KB untuk
 wrapper WebGL; keduanya kini hilang lagi. Sisa 1.1 KB di atas budget tetap pekerjaan Phase 8
