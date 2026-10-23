@@ -1,105 +1,182 @@
+/* Footer: the back page. Deepest ink on the site, a 2% watermark, four columns and the signal strip. */
 .footer {
   position: relative;
-  margin-top: var(--section-padding);
+  isolation: isolate;
+  overflow: hidden;
+  padding-top: var(--space-24);
+  background: var(--color-ink-black);
   border-top: 1px solid var(--color-border);
-  background: var(--color-bg);
+}
+
+/* Oversized monogram, 2% — texture, not a logo lockup. */
+.ghost {
+  position: absolute;
+  z-index: 0;
+  top: -4%;
+  left: 50%;
+  translate: -50% 0;
+  width: min(70vw, 680px);
+  height: auto;
+  opacity: 0.03;
+  pointer-events: none;
+  user-select: none;
 }
 
 .inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) repeat(4, minmax(0, 1fr));
+  gap: var(--space-8);
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: var(--space-16) var(--gutter) var(--space-8);
-  display: grid;
-  gap: var(--space-8);
-}
-
-.identity {
-  display: grid;
-  gap: var(--space-2);
-  justify-items: start;
-  align-content: start;
+  padding-inline: var(--gutter);
 }
 
 .mark {
-  height: 48px;
+  height: 40px;
   width: auto;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .name {
   font-family: var(--font-display-stack);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
 .mono {
   font-family: var(--font-mono-stack);
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
+  line-height: 1.7;
 }
 
-.column {
-  display: grid;
-  gap: var(--space-3);
-  align-content: start;
-}
-
-.heading {
-  font-family: var(--font-mono-stack);
-  font-size: 0.625rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
+.stamp {
+  margin-top: var(--space-6);
+  color: var(--color-stamp);
+  font-size: 0.5625rem;
 }
 
 .column ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.column li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: var(--space-2);
 }
 
 .column a {
-  font-size: var(--text-small);
-  color: var(--color-text-primary);
+  font-size: 0.875rem;
   text-decoration: none;
+  color: var(--color-text-secondary);
   transition: color var(--duration-fast) var(--ease);
 }
 
-.column a:hover {
-  color: var(--color-signal-icy);
+.column a:hover,
+.column a:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.heading {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.year {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 .external {
-  margin-left: 0.4em;
+  margin-left: 4px;
   font-size: 0.75em;
+}
+
+.pending {
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
 
-.meta {
-  max-width: var(--container-max);
-  margin-inline: auto;
-  padding: var(--space-4) var(--gutter) var(--space-6);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-6);
-  justify-content: space-between;
-  border-top: 1px solid var(--color-border);
+.needs {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--color-stamp);
+  white-space: nowrap;
 }
 
-/* The 5px signal strip that closes every page. */
+.meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: var(--container-max);
+  margin: var(--space-12) auto 0;
+  padding: var(--space-4) var(--gutter);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.smallprint {
+  position: relative;
+  z-index: 1;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter) var(--space-8);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  line-height: 1.8;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  opacity: 0.75;
+}
+
+/* The 5px strip that closes the page. */
 .strip {
+  position: relative;
+  z-index: 1;
   height: 5px;
   background: var(--color-signal-blue);
 }
 
-@media (min-width: 720px) {
+@media (max-width: 1023px) {
   .inner {
-    grid-template-columns: 1.6fr 1fr 1fr;
-    gap: var(--space-12);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-6);
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer {
+    padding-top: var(--space-16);
+  }
+
+  .inner {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

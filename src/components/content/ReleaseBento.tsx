@@ -48,6 +48,12 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
               Rilis terbaru
             </span>
             <span className={styles.featuredTitle}>{featured.title}</span>
+            {/* Decorative waveform: bars, no numbers, so it cannot be read as stream data. */}
+            <span className={styles.wave} aria-hidden="true">
+              {Array.from({ length: 28 }, (_, index) => (
+                <span key={index} style={{ height: `${18 + ((index * 37) % 62)}%` }} />
+              ))}
+            </span>
             <span className={styles.meta}>{featured.meta}</span>
             <span className={styles.count}>{String(total).padStart(2, "0")} rilis terverifikasi</span>
 
@@ -67,6 +73,7 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
         <article key={item.slug} className={`${styles.card} ${styles.tile}`}>
           <Link href={item.href} className={styles.hitArea}>
             <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
+            <span className={styles.tileTape} aria-hidden="true" />
             <span className={styles.tileBody}>
               <span className={styles.tileIndex}>{String(index + 2).padStart(2, "0")}</span>
               {/* The generated sleeve prints the title inside the artwork, so the scrim only

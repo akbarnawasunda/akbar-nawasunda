@@ -1,4 +1,8 @@
 .row {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 5;
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
   display: flex;
   align-items: center;
   gap: var(--space-6);
@@ -28,6 +32,9 @@
 }
 
 .item {
+  /* Containing block for the visually-hidden "(membuka tab baru)" label: without it the label is
+     positioned against the page and pushes the document 62px wide on a 320px screen. */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);

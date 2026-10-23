@@ -908,3 +908,62 @@ unduhan EPK, enam sampul, tidak ada `<canvas>`). Sudah dijalankan terhadap build
 | `npm run smoke` | 24/24 |
 | `/privacy` | tidak dibuat |
 | `main` | tidak disentuh dari sesi ini |
+
+## 22. Redesign beranda — lapisan zine (2026-10-23)
+
+Permintaan berikutnya dari owner adalah beranda yang "anti-AI, handmade, punk zine, brutalist
+editorial, ultra premium 3D dan scroll animation", dengan stack yang disebut literal (Three.js,
+GSAP ScrollTrigger, Lenis, WebGL displacement, kursor kustom, 100 partikel). Empat pertanyaan
+klarifikasi dikirim; owner melewatinya dan mengirim berkas potret stiker, dengan catatan "sisanya ada
+di repo di folder `AKBAR-NAWASUNDA-ASSETS`".
+
+### 22.1 Yang diambil, yang diadaptasi, yang tidak dipakai
+
+| Dari prompt | Keputusan | Alasan |
+|---|---|---|
+| Bahasa visual zine (selotip, kertas, stempel, semprotan, potongan yang menimpa) | **dipakai** | Bisa dibuat dengan CSS murni; tidak melanggar D-055 |
+| Potret sebagai potongan stiker di atas H1 | **dipakai**, dengan berkas asli owner | D-082 |
+| Three.js + R3F, 100 partikel, WebGL displacement, bloom | **tidak dipakai** | D-055 + anggaran 200 KB; `tests/fixtures/anti-ai.ts` akan merah |
+| GSAP ScrollTrigger + Lenis | **tidak dipakai** | ~24 KB JS untuk gerak yang bisa dicapai CSS scroll-timeline (D-086) |
+| Angka panggung (stream, award, jumlah rilisan fiktif) | **tidak dipakai** | Aturan tetap: hanya fakta terverifikasi. Stats dihitung (`+6 tahun`, `+6 rilis`, `4 tautan`) |
+| Booking email `/privacy` "siap" | **tidak dipakai** | Alamat dan teks privasi belum ada dari owner; keduanya `[NEEDS OWNER]` dan bukan tautan |
+
+### 22.2 Komposisi beranda
+
+1. Header 64 → 56 px dengan tag RMX, nav pil, pil Listen.
+2. Hero: slab biru sobek di belakang "Akbar", potret stiker menimpa H1 dan slab, tape strip "Bandung
+   Barat · sejak 2020 · +6 rilis", tiga kartu angka terhitung.
+3. Manifesto strip dengan stempel merah `HUMAN MADE / NO AI ARTWORK`.
+4. Platform row (sticky) — empat tautan terverifikasi.
+5. Genre tape 46 s.
+6. `Rilisan terbaru`: bento artwork-first + waveform lime dekoratif (bukan data).
+7. `Enam aset, tanpa stok`: rail arsip `scroll-snap` (bukan grid 2×2 lagi).
+8. Press kit di atas lembar kertas dengan tepi sobek, timeline, dan `[NEEDS OWNER]` pada tahun yang
+   belum dikonfirmasi.
+9. EPK card + catatan kontak.
+10. Footer lima kolom, monogram ghost, stempel, small print; **tanpa** tautan `/privacy`.
+
+### 22.3 Hasil QA
+
+| Item | Hasil |
+|---|---|
+| `npm run test` / `npm run test:db` | **107 / 107** dan **8 / 8** |
+| `npm run a11y` (14 pemuatan) | **0 violation** |
+| `npm run smoke` | **24/24** |
+| Lighthouse desktop | **99 · 100 · 100 · 100**, LCP 0.9 s, TBT 10 ms, CLS 0 |
+| Lighthouse mobile (`--throttling-method=devtools`) | **98 · 100 · 100 · 100**, LCP 1.7 s, TBT 100 ms |
+| Lighthouse mobile (Lantern, server lokal) | **89–91**, LCP 3.3–3.7 s (tiga kali jalan; lihat §20.1) |
+| JS / CSS gzip | **182.5 KB / 13.2 KB** (budget 200 KB / 30 KB) |
+| Luapan horizontal | **0 px** pada 320 / 360 / 390 / 430 / 768 / 1024 / 1280 / 1440 × 8 rute |
+| `canvas` / komponen signal | **0 / 0** |
+| Tangkapan layar | 42 berkas (7 rute × 3 lebar × lipatan + full-page) digenerate ulang |
+
+Tiga bug ditemukan justru karena pengukuran, bukan dari melihat tangkapan layar: `scrollWidth`
+dokumen 382 px pada layar 320 px (label `sr-only` tanpa containing block), H1 terpotong di semua
+ponsel, dan judul press sheet meluber. Semuanya diperbaiki di D-087.
+
+### 22.4 Yang masih menunggu owner
+
+Sama seperti §21: teks `/privacy`, merge `main`, deploy Vercel/Turso, tahun rilis + URL Spotify per
+rilis, bio panjang + timeline 2021–2024, alamat booking, dan angka stream resmi. Semua tempatnya
+sudah ada di halaman dan ditandai `[NEEDS OWNER]` — tidak ada yang dikarang untuk mengisi ruang.

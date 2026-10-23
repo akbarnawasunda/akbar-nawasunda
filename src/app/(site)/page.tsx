@@ -1,40 +1,52 @@
 import type { Metadata } from "next";
 
-import { portraitAlt, portraitSize, portraitSources } from "@/assets/web";
+import {
+  portraitAlt,
+  portraitSize,
+  portraitSources,
+  stickerPortraitAlt,
+  stickerPortraitSize,
+  stickerPortraitSources,
+} from "@/assets/web";
 import { ReleaseBento } from "@/components/content/ReleaseBento";
+import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
-import { SectionsView } from "@/components/content/SectionsView";
-import { VisualGrid } from "@/components/media/VisualGrid";
+import { VisualRail } from "@/components/media/VisualRail";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Magnetic } from "@/components/zine/Magnetic";
+import { Reveal } from "@/components/zine/Reveal";
 import { coverArtwork } from "@/content/covers";
 import { fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
-import { homepageVisuals } from "@/content/visuals";
+import { visualItems } from "@/content/visuals";
+import { artistFacts, artistTimeline } from "@/content/artist";
 import { siteConfig } from "@/config/site";
-import { getSocialLink, listenUrl } from "@/config/socials";
+import { listenUrl, socialLinks } from "@/config/socials";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage } from "@/studio/public";
 import styles from "./page.module.css";
 
 /**
- * Homepage — final anti-AI pass (2026-10-23).
+ * Homepage — the "zine" pass (2026-10-23).
  *
- * What is deliberately NOT here, because it is what made earlier versions read as generated:
- * no particle field, no dot-matrix blob, no WebGL canvas, no glowing sphere, no full-screen
- * gradient, no glass panel, no centred stack of six identical cards. The hero is a 60/40 split:
- * type on the left, the official portrait on the right, separated by a 1px rule and the surface
- * step. The only decoration on the page is a 2% grain layer (GrainOverlay, rendered by the layout).
+ * What this page is: a printed object that happens to scroll. Tape, paper, a rubber stamp, a blue
+ * spray slab behind the first letter, a sticker portrait cut out of its studio background and dropped
+ * on top of the type. Every one of those is a flat colour, a 1px edge or a torn clip-path — there is
+ * still no canvas, no shader, no particle field and no purple glow anywhere (D-055 stands).
  *
- * What carries the page instead: a real photograph as the LCP image, tight -0.02em display type,
- * 11px mono labels in #A1A1B5, and artwork-first release cards. Releasing artwork comes from
- * public/assets/covers/<slug>.* when the owner uploads it, and from a designed sleeve built out of
- * the title + AN mark + palette when they have not (src/components/content/ReleaseCover.tsx).
+ * What carries it instead of effects:
+ * - a real cut-out portrait at three widths, deliberately overflowing its column so the H1 and the
+ *   artist overlap, which is the one compositional idea the references all share;
+ * - the owner's own materials: tawny tape, off-white stock, a red stamp;
+ * - type set tight (-0.03em) at a size that only fits because the layout is asymmetric.
  *
- * Copy is limited to verified facts; counts are derived (src/content/stats.ts), not typed by hand.
+ * Copy rules are unchanged and non-negotiable: counts are derived (src/content/stats.ts), the four
+ * social platforms are the only verified ones, and anything the owner has not confirmed is either
+ * absent or literally printed as [NEEDS OWNER]. No stream totals, no awards, no booking address.
  */
 export const metadata: Metadata = {
   title: {
@@ -44,7 +56,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const youtube = getSocialLink("youtube");
+const youtube = socialLinks.find((link) => link.platform === "youtube");
 const catalogue = releases.map((release) => ({
   ...fromStaticRelease(release, null),
   artwork: coverArtwork(release.slug),
@@ -54,149 +66,295 @@ const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
 
 export default async function HomePage() {
   if (!featured) return null;
-  // Studio-managed homepage sections (below the built-in hero, catalogue and archive). Nothing is
-  // rendered until the owner publishes some, so the page is unchanged by default — but the Studio
-  // editor is no longer a form that writes somewhere the site never reads.
   const home = await getPublicPage("home");
-  // Structured data for search engines: only facts that are already on the page (see src/lib/structured-data.ts).
-  const jsonLd = serializeJsonLd(artistJsonLd(`${siteConfig.url.replace(/\/$/, "")}/brand/an-mark.webp`));
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
   const rest = catalogue.slice(1, 6);
+  const facts = artistFacts.slice(0, 4);
+  const timeline = artistTimeline;
 
   return (
     <>
-      {/* JSON-LD rather than microdata: one block, no markup noise, and the `<` escaping in
-          serializeJsonLd means the payload cannot close the script element. */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(artistJsonLd(`${siteConfig.url.replace(/\/$/, "")}/brand/an-mark.webp`)),
+        }}
+      />
 
-      {/*
-        One preload only, for the AVIF variant: browsers without AVIF ignore it and discover the
-        WebP <source> in the parser. A second preload would download both files.
-      */}
       <link
         rel="preload"
         as="image"
         type="image/avif"
-        imageSrcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-        imageSizes="(min-width: 1024px) 40vw, 92vw"
+        imageSrcSet={stickerPortraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
+        imageSizes="(min-width: 1024px) 46vw, 80vw"
         fetchPriority="high"
       />
 
+      {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
-        <div className={styles.heroGrid}>
-          <div className={styles.copy}>
-            <p className={styles.eyebrow}>
-              <span className={styles.eyebrowRule} aria-hidden="true" />
-              {siteConfig.origin} • Since {siteConfig.since}
+        <span className={styles.heroGrid} aria-hidden="true" />
+        <span className={styles.heroSpray} aria-hidden="true" />
+
+        <div className={styles.heroInner}>
+          <div className={styles.heroCopy}>
+            <p className={`tape ${styles.eyebrow}`}>
+              {siteConfig.origin.replace(", Indonesia", "")} • Sejak {siteConfig.since} • +{stats.releaseCount} rilis
             </p>
 
             <h1 id="hero-title" className={styles.title}>
-              <span>Akbar</span> <span>Nawasunda</span>
+              <span className={styles.titleLine}>
+                <span className={styles.blueSlab} aria-hidden="true" />
+                <span className={styles.titleWord}>Akbar</span>
+              </span>
+              <span className={styles.titleLine}>
+                <span className={styles.titleWord}>Nawasunda</span>
+              </span>
             </h1>
 
             <p className={styles.sub}>
-              Produser, remixer, dan DJ asal Bandung Barat. Breakbeat / Indo Bass.
+              Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — musik
+              yang dibuat dengan tangan, bukan template.
             </p>
 
             <div className={styles.actions}>
-              <ButtonLink href={listenUrl} variant="primary" external>
-                Dengar Sekarang
-              </ButtonLink>
-              <ButtonLink href="#visuals" variant="secondary">
-                Lihat Visuals
-              </ButtonLink>
+              <Magnetic>
+                <ButtonLink href={listenUrl} variant="primary" external>
+                  Dengar Sekarang
+                </ButtonLink>
+              </Magnetic>
+              <Magnetic>
+                <ButtonLink href="#music" variant="secondary">
+                  Lihat Katalog
+                </ButtonLink>
+              </Magnetic>
             </div>
 
-            {/* Two counters, mono 12px: a quiet line under the CTAs, not a dashboard. Both
-                numbers are derived (src/content/stats.ts), never typed by hand. */}
+            {/* Every number is derived: years from siteConfig.since, releases from the verified
+                catalogue, platforms from the four confirmed links. Nothing is typed by hand. */}
             <dl className={styles.stats}>
               <div className={styles.stat}>
-                <dd className={styles.statValue}>+{stats.yearsActive}</dd>
-                <dt className={styles.statLabel}>tahun aktif</dt>
+                <dt>Rilis</dt>
+                <dd>
+                  <span className={styles.statValue}>+{stats.releaseCount}</span>
+                  <span className={styles.statNote}>terverifikasi</span>
+                </dd>
               </div>
               <div className={styles.stat}>
-                <dd className={styles.statValue}>+{stats.releaseCount}</dd>
-                <dt className={styles.statLabel}>rilis terverifikasi</dt>
+                <dt>Tahun aktif</dt>
+                <dd>
+                  <span className={styles.statValue}>+{stats.yearsActive}</span>
+                  <span className={styles.statNote}>sejak {siteConfig.since}</span>
+                </dd>
+              </div>
+              <div className={styles.stat}>
+                <dt>Platform</dt>
+                <dd>
+                  <span className={styles.statValue}>{socialLinks.length}</span>
+                  <span className={styles.statNote}>tautan resmi</span>
+                </dd>
               </div>
             </dl>
           </div>
 
-          <figure className={styles.visual}>
-            <div className={styles.portraitFrame}>
-              <picture>
-                <source
-                  type="image/avif"
-                  srcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-                  sizes="(min-width: 1024px) 40vw, 92vw"
-                />
-                <source
-                  type="image/webp"
-                  srcSet={portraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-                  sizes="(min-width: 1024px) 40vw, 92vw"
-                />
-                <img
-                  className={styles.portrait}
-                  src={portraitSources[1].webp}
-                  alt={portraitAlt}
-                  width={portraitSize.width}
-                  height={portraitSize.height}
-                  fetchPriority="high"
-                  decoding="async"
-                />
-              </picture>
-              {/* The only treatment on the photograph: a bottom vignette so the frame edge never
-                  cuts a hard line across the image. No gradient behind it, no glow. */}
-              <span className={styles.vignette} aria-hidden="true" />
-            </div>
-            <figcaption className={styles.caption}>
-              <span aria-hidden="true" />
-              Potret resmi
+          <figure className={styles.sticker}>
+            <span className={styles.stickerTape} aria-hidden="true" />
+            <picture>
+              <source
+                type="image/avif"
+                srcSet={stickerPortraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
+                sizes="(min-width: 1024px) 46vw, 80vw"
+              />
+              <source
+                type="image/webp"
+                srcSet={stickerPortraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
+                sizes="(min-width: 1024px) 46vw, 80vw"
+              />
+              <img
+                className={styles.stickerImg}
+                src={stickerPortraitSources[1].webp}
+                alt={stickerPortraitAlt}
+                width={stickerPortraitSize.width}
+                height={stickerPortraitSize.height}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
+            <figcaption className={styles.stickerCaption}>
+              Potret resmi — dipotong dari latar studio, file asli pemilik
             </figcaption>
           </figure>
         </div>
+
+        <p className={styles.scrollCue} aria-hidden="true">
+          <span>Gulir</span>
+          <span className={styles.scrollLine} />
+        </p>
       </section>
+
+      {/* ------------------------------------------------------- manifesto strip */}
+      <div className={styles.manifesto}>
+        <Container>
+          <div className={styles.manifestoInner}>
+            <p className={`stamp ${styles.manifestoStamp}`}>
+              Human made
+              <br />
+              no AI artwork
+            </p>
+            <p className={styles.manifestoText}>
+              Semua foto di situs ini file asli pemilik, semua sampul rilis dibuat dari judul dan
+              monogram. Tidak ada gambar hasil generate dan tidak ada angka yang dikarang.
+            </p>
+          </div>
+        </Container>
+      </div>
 
       <PlatformRow />
       <GenreTape />
 
+      {/* ----------------------------------------------------------------- music */}
       <section className={styles.section} id="music" aria-labelledby="music-title">
         <Container>
           <SectionHeader
             eyebrow="01 — Katalog"
-            title="Rilis terbaru"
+            title="Rilisan terbaru"
             id="music-title"
             action={{ href: "/music", label: "Semua rilis" }}
           />
-
-          <ReleaseBento featured={featured} rest={rest} total={stats.releaseCount} />
-
+          <Reveal>
+            <ReleaseBento featured={featured} rest={rest} total={stats.releaseCount} />
+          </Reveal>
           <p className={styles.footnote}>
-            Tahun rilis, artwork, dan tautan platform per rilis belum dikonfirmasi pemilik katalog.{" "}
-            <span className={styles.placeholder}>[NEEDS OWNER]</span>
+            Tahun rilis, artwork resmi, dan tautan platform per rilis belum dikonfirmasi pemilik
+            katalog. <span className={styles.needs}>[NEEDS OWNER]</span>
           </p>
         </Container>
       </section>
 
+      {/* --------------------------------------------------------------- visuals */}
       <section className={styles.section} id="visuals" aria-labelledby="visuals-title">
         <Container>
           <SectionHeader
-            eyebrow="02 — Visual"
-            title="Arsip visual"
+            eyebrow="02 — Arsip"
+            title="Enam aset, tanpa stok"
             id="visuals-title"
-            action={{ href: youtube.href, label: "YouTube" }}
+            action={youtube ? { href: youtube.href, label: "YouTube" } : undefined}
           />
-          <VisualGrid items={homepageVisuals} />
-          <p className={styles.footnote}>
-            Enam aset resmi. Video dan still panggung akan menyusul di{" "}
-            <a href="/visuals">halaman Visuals</a>.
-          </p>
+        </Container>
+        <VisualRail items={visualItems} />
+      </section>
+
+      {/* ------------------------------------------------------------- press kit */}
+      <section className={styles.section} id="press" aria-labelledby="press-title">
+        <Container>
+          <div className={styles.pressWrap}>
+            <div className={`paper ${styles.press}`}>
+              <span className={styles.pressTape} aria-hidden="true" />
+              <p className={styles.pressEyebrow}>03 — Press kit</p>
+              <h2 id="press-title" className={styles.pressTitle}>
+                Akbar Nawasunda
+              </h2>
+              <p className={styles.pressLead}>
+                Produser dan DJ asal Bandung Barat. Aktif sejak {siteConfig.since} dengan nama
+                panggung DJ Akbar Remix, sekarang tampil sebagai Akbar Nawasunda.
+              </p>
+
+              <ol className={styles.timeline}>
+                {timeline.map((entry) => (
+                  <li key={`${entry.marker}-${entry.title}`} className={entry.pending ? styles.pending : undefined}>
+                    <span className={styles.timelineYear}>{entry.marker}</span>
+                    <span className={styles.timelineBody}>
+                      <span className={styles.timelineTitle}>
+                        {entry.title}
+                        {entry.pending ? <span className={styles.needs}> [NEEDS OWNER]</span> : null}
+                      </span>
+                      <span className={styles.timelineDetail}>{entry.detail}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              <dl className={styles.facts}>
+                {facts.map((fact) => (
+                  <div key={fact.label}>
+                    <dt>{fact.label}</dt>
+                    <dd>{fact.value ?? <span className={styles.needs}>[NEEDS OWNER]</span>}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            <figure className={styles.pressPhoto}>
+              <picture>
+                <source
+                  type="image/avif"
+                  srcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
+                  sizes="(min-width: 1024px) 32vw, 86vw"
+                />
+                <source
+                  type="image/webp"
+                  srcSet={portraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
+                  sizes="(min-width: 1024px) 32vw, 86vw"
+                />
+                <img
+                  src={portraitSources[1].webp}
+                  alt={portraitAlt}
+                  width={portraitSize.width}
+                  height={portraitSize.height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+              <figcaption className={styles.pressPhotoCaption}>
+                Untuk pers — unduh versi cetak di press kit
+              </figcaption>
+            </figure>
+          </div>
+        </Container>
+      </section>
+
+      {/* ------------------------------------------------------------------- epk */}
+      <section className={styles.section} aria-labelledby="epk-title">
+        <Container>
+          <div className={styles.epk}>
+            <div>
+              <p className={styles.epkEyebrow}>04 — Booking &amp; pers</p>
+              <h2 id="epk-title" className={styles.epkTitle}>
+                Press kit siap unduh
+              </h2>
+              <p className={styles.epkText}>
+                Bio singkat, fakta terverifikasi, potret resolusi cetak, monogram, dan lockup dalam
+                satu arsip. Semua isinya file asli pemilik.
+              </p>
+              <div className={styles.epkActions}>
+                <Magnetic>
+                  <ButtonLink href="/epk/akbar-nawasunda-epk.zip" variant="primary">
+                    Unduh EPK (.zip)
+                  </ButtonLink>
+                </Magnetic>
+                <ButtonLink href="/epk" variant="secondary">
+                  Lihat isi press kit
+                </ButtonLink>
+              </div>
+            </div>
+            <div className={styles.epkNote}>
+              <p className={styles.epkNoteLabel}>Kontak booking</p>
+              <p className={styles.epkNoteValue}>
+                Belum ada alamat resmi yang bisa dipublikasikan.{" "}
+                <span className={styles.needs}>[NEEDS OWNER]</span>
+              </p>
+              <p className={styles.epkNoteLabel}>Formulir</p>
+              <p className={styles.epkNoteValue}>
+                Sengaja tidak ada. Form tanpa tujuan hanya terlihat seperti situs orang lain.
+              </p>
+            </div>
+          </div>
         </Container>
       </section>
 
       {homeSections.length > 0 ? (
         <section className={styles.section} aria-labelledby="catatan-title">
           <Container>
-            <SectionHeader eyebrow="03 — Catatan" title="Dari Studio" id="catatan-title" />
+            <SectionHeader eyebrow="05 — Catatan" title="Dari Studio" id="catatan-title" />
             <SectionsView sections={homeSections} />
           </Container>
         </section>

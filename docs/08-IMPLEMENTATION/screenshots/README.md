@@ -4,7 +4,7 @@ Four sets.
 
 | Folder / prefix | What it is | Status |
 |---|---|---|
-| `final/` | The current site after the Liquid Signal was deleted (D-055) | **current** |
+| `final/` | The current site: zine/brutalist-editorial homepage (D-081–D-089) on top of the Phase 8 build | **current** |
 | `home-*`, `music-*` | Phase 2 revision | history |
 | `phase5-*` | Phase 5 routes (`/artist`, `/visuals`, `/epk`, 404) | history — the routes still exist |
 | `studio-*` | Phase 6 Studio flow (draft → publish) | current for Studio |
@@ -16,7 +16,12 @@ Liquid Signal, no WebGL canvas and no particle field in the codebase any more.
 
 `final/<route>-<width>.webp` is the first screen and `final/<route>-<width>-full.webp` is the whole
 page, captured from the production build (`npm run build && npm run start`) with headless Chromium at
-`deviceScaleFactor: 1` and `prefers-reduced-motion: reduce`.
+`deviceScaleFactor: 1` and `prefers-reduced-motion: reduce`. The set was regenerated after the
+homepage redesign (2026-10-23): the homepage now leads with the cut-out sticker portrait over the H1,
+and `/visuals` in the screenshots is the section as the archive rail presents it.
+
+Before capturing, the script scrolls the page in 0.8 viewport steps (so lazy artwork decodes), returns
+to the top, and **then** measures overflow, broken images and `canvas` count.
 
 | Route | Widths |
 |---|---|

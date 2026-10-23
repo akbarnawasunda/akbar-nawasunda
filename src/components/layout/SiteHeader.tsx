@@ -63,7 +63,9 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.bar}>
-        <Link href="/" className={styles.brand} aria-label={`${siteConfig.name} — beranda`}>
+        {/* The accessible name is the visible text (mark + wordmark + RMX tag), so aria-label would
+            make axe's label-content-name-mismatch fail. The link target is obvious from the mark. */}
+        <Link href="/" className={styles.brand}>
           {/* eslint-disable-next-line @next/next/no-img-element -- 13 KB static mark, exact bytes */}
           <img
             src={anMark.src}
@@ -73,7 +75,10 @@ export function SiteHeader() {
             className={styles.mark}
             decoding="async"
           />
-          <span className={styles.wordmark}>{siteConfig.name}</span>
+          <span className={styles.wordmarkWrap}>
+            <span className={styles.wordmark}>{siteConfig.name}</span>
+            <span className={styles.rmx}>RMX</span>
+          </span>
         </Link>
 
         <nav aria-label="Navigasi utama" className={styles.desktopNav}>

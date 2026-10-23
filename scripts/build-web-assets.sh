@@ -44,6 +44,13 @@ done
 # The night-frequency hero file is byte-for-byte the same photograph as the stage frame above, so it
 # is not shipped a second time: one photograph, one tile.
 
+# Sticker portrait: owner-supplied PNG cut out of its background, with the hand-drawn white and
+# black outline baked in. Transparency is preserved (WebP and AVIF both carry alpha).
+for w in 480 720 960 1200; do
+  convert "$STAGE_SRC/akbar-nawasunda-sticker-portrait.png" -resize "${w}x" -quality 82 "$MEDIA/sticker-$w.webp"
+  convert "$STAGE_SRC/akbar-nawasunda-sticker-portrait.png" -resize "${w}x" -quality 58 "$MEDIA/sticker-$w.avif"
+done
+
 # Editorial stage backdrop: 1600x900 landscape.
 for w in 720 1400; do
   convert "$STAGE_SRC/akbar-editorial-stage-bg.webp" -resize "${w}x" -quality 74 "$MEDIA/editorial-$w.webp"

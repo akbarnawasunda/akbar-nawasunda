@@ -39,6 +39,25 @@ export const portraitSources = [
 export const portraitSize = { width: 960, height: 1199 } as const;
 
 /**
+ * Sticker portrait (1516x1894 -> four widths, alpha preserved). The owner cut it out of the studio
+ * background and baked in the hand-drawn white + black outline, so it is used as a cut-out object on
+ * the page rather than as a rectangular photograph. This is the hero image now (D-082): it is the
+ * only asset that lets the type sit *behind* and *beside* the artist instead of in a box next to a
+ * portrait, which is what the reference layout is doing.
+ */
+export const stickerPortraitSources = [
+  { width: 480, height: 600, avif: "/media/sticker-480.avif", webp: "/media/sticker-480.webp" },
+  { width: 720, height: 900, avif: "/media/sticker-720.avif", webp: "/media/sticker-720.webp" },
+  { width: 960, height: 1199, avif: "/media/sticker-960.avif", webp: "/media/sticker-960.webp" },
+  { width: 1200, height: 1499, avif: "/media/sticker-1200.avif", webp: "/media/sticker-1200.webp" },
+] as const;
+
+export const stickerPortraitSize = { width: 1200, height: 1499 } as const;
+
+export const stickerPortraitAlt =
+  "Akbar Nawasunda, potongan stiker berlatar transparan: jaket hitam dengan monogram AN di dada, tangan di saku";
+
+/**
  * Editorial stage backdrop (1600x900). Empty stage under a single warm spot: the one landscape
  * frame in the archive, used as the wide tile in the masonry and as the lightbox image.
  */

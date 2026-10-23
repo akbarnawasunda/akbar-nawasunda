@@ -1,0 +1,93 @@
+.wrap {
+  position: relative;
+}
+
+.rail {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  padding: var(--space-2) var(--gutter) var(--space-6);
+  scrollbar-width: thin;
+}
+
+.rail:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.panel {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(78vw, 420px);
+  margin: 0;
+  scroll-snap-align: start;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background: var(--color-bg-surface);
+}
+
+.media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+/* Logo artwork keeps its own transparency on the surface colour instead of being cropped. */
+.onSurface {
+  object-fit: contain;
+  padding: var(--space-12);
+  background: var(--color-bg-surface);
+}
+
+.index {
+  position: absolute;
+  z-index: 1;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: 2px 6px;
+  background: var(--color-ink-black);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  color: var(--color-text-secondary);
+}
+
+.caption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--space-6) var(--space-4) var(--space-3);
+  background: linear-gradient(to top, rgb(0 0 0 / 82%), transparent);
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.hint {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-inline: var(--gutter);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    width: min(30vw, 460px);
+  }
+
+  .panel:nth-child(even) {
+    /* Alternating heights keep the rail from reading as six identical cards. */
+    margin-top: var(--space-8);
+  }
+}

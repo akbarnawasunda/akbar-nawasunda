@@ -1,158 +1,159 @@
-/* ============================================================== hero (split 60/40) */
+/*
+  Homepage — zine pass.
+
+  Materials, not effects: a spray slab cut with a torn clip-path, masking tape, paper stock, a rubber
+  stamp, a sticker portrait that overlaps the type. Every surface is a flat colour; the only gradient
+  on the page is the 40% vignette at the bottom of the hero, and it exists to stop the photograph from
+  ending on a hard line.
+
+  There is no canvas, no shader, no blur filter and no radial gradient in this file — the anti-AI guard
+  test (tests/studio/anti-ai.test.ts) fails the build if one comes back.
+*/
+
+/* ------------------------------------------------------------------ hero */
 
 .hero {
   position: relative;
-  overflow: clip;
-  /* 96px desktop / 64px mobile of air above and below the hero. */
-  padding-block: var(--space-16);
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-ink-black);
+  border-bottom: 1px solid var(--color-border);
+  padding-block: var(--space-16) var(--space-24);
 }
 
+/* Faint vertical rules: the only structure behind the composition. */
 .heroGrid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-border) 55%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: calc(100% / 6) 100%;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* The blue slab: an off-register rectangle of spray, clipped so its edges are ragged. It sits behind
+   the first word rather than around it, which is what makes the tag read as printed rather than boxed. */
+.heroSpray {
+  position: absolute;
+  z-index: 0;
+  top: 22%;
+  left: 0;
+  width: min(58vw, 720px);
+  height: min(30vw, 380px);
+  background: var(--color-signal-blue);
+  opacity: 0.16;
+  transform: rotate(-1.4deg);
+  clip-path: polygon(
+    0 12%, 6% 4%, 18% 9%, 27% 2%, 39% 7%, 52% 1%, 63% 6%, 74% 2%, 86% 8%, 96% 3%, 100% 14%,
+    98% 38%, 100% 64%, 97% 84%, 88% 96%, 74% 91%, 61% 99%, 48% 93%, 35% 98%, 22% 92%, 10% 97%,
+    2% 88%, 4% 62%, 0 38%
+  );
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
-  display: grid;
-  gap: var(--space-8);
-  align-items: center;
+  padding-block: var(--space-8) 0;
 }
 
-.copy {
+.heroCopy {
   position: relative;
-  /* Sits above the portrait so the headline can cross the column boundary. */
-  z-index: 3;
-  display: grid;
-  gap: var(--space-6);
+  z-index: 2;
   min-width: 0;
 }
 
 .eyebrow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-family: var(--font-mono-stack);
-  font-size: 0.6875rem;
-  letter-spacing: 0.2em;
+  margin-bottom: var(--space-6);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  /* #A1A1B5 = 7.8:1 on #0A0A0E. #6B6B80 would be 3.8:1 and fail for text this size. */
-  color: var(--color-text-secondary);
-}
-
-.eyebrowRule {
-  display: inline-block;
-  width: 24px;
-  height: 1px;
-  background: var(--color-signal-blue);
 }
 
 .title {
+  position: relative;
+  margin: 0;
   font-family: var(--font-display-stack);
-  font-size: var(--text-hero);
-  font-weight: 700;
-  line-height: 0.9;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  /* 8.2vw is the largest size at which the nine letters of NAWASUNDA still fit the gutter-to-gutter
+     width; the 48px floor overflowed the H1 on every phone (measured: 529px of word in 358px). */
+  font-size: clamp(1.625rem, 8.2vw, 6.5rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
-  /* Optical alignment against the gutter. */
-  margin-left: -0.03em;
+  color: var(--color-text-primary);
 }
 
-.title span {
+.titleLine {
+  position: relative;
   display: block;
 }
 
+.titleWord {
+  position: relative;
+  z-index: 1;
+}
+
+/* The blue block sits *behind* the first word and extends past it on the left, like a sprayed
+   highlight that missed the paper edge — the N.JEY reference, without the robot. */
+.blueSlab {
+  position: absolute;
+  z-index: 0;
+  top: 0.06em;
+  left: -0.08em;
+  width: 0.92em;
+  height: 0.78em;
+  background: var(--color-signal-blue);
+  transform: rotate(-1.6deg);
+  clip-path: polygon(2% 8%, 100% 0, 97% 22%, 100% 58%, 95% 100%, 6% 96%, 0 64%, 3% 34%);
+}
+
 .sub {
-  max-width: 45ch;
-  font-size: var(--text-body);
-  line-height: 1.6;
+  max-width: 46ch;
+  margin-top: var(--space-6);
   color: var(--color-text-secondary);
+  font-size: 1.0625rem;
+  line-height: 1.6;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-
-/* ------------------------------------------------------------------ stats row */
-
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-  margin: var(--space-2) 0 0;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-  font-family: var(--font-mono-stack);
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-/* One line per counter: "+5  TAHUN AKTIF". Value in white, label in secondary. */
-.stat {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.statValue {
-  margin: 0;
-  color: var(--color-text-primary);
-}
-
-.statLabel {
-  color: var(--color-text-secondary);
-}
-
-/* ---------------------------------------------------------------- portrait */
-
-.visual {
-  position: relative;
-  margin: 0;
-  /* 70vh tall on desktop and still exactly 4:5: the width follows the height, so the photograph is
-     never cropped through the face to fit a column. */
-  width: 100%;
-  max-width: min(100%, calc(70vh * 0.8));
-  margin-inline-start: auto;
-}
-
-.portraitFrame {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
-}
-
-.portrait {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  object-position: 50% 0;
-}
-
-/* Bottom vignette only: the frame edge shouldn't end on a bright highlight. 40% of the height,
-   #0A0A0E at 60% — nothing else is layered over the photograph. */
-.vignette {
-  position: absolute;
-  inset: auto 0 0;
-  height: 40%;
-  pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 10, 14, 0.6), rgba(10, 10, 14, 0));
-}
-
-.caption {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   gap: var(--space-3);
-  margin-top: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+/* Stats as three small printed cards, not a dashboard. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  max-width: 34rem;
+  margin: var(--space-8) 0 0;
+  padding: 0;
+}
+
+.stat {
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.stat dt {
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.2em;
@@ -160,73 +161,455 @@
   color: var(--color-text-secondary);
 }
 
-.caption span {
-  width: 24px;
-  height: 1px;
-  background: var(--color-border-strong);
+.stat dd {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 0;
 }
 
-/* ------------------------------------------------------------------- sections */
-
-.section {
-  padding-block: var(--section-padding) 0;
-  scroll-margin-top: calc(var(--header-height) + var(--space-4));
-}
-
-.footnote {
-  margin-top: var(--space-4);
-  font-family: var(--font-mono-stack);
-  font-size: 0.625rem;
-  letter-spacing: 0.06em;
-  line-height: 1.7;
-  color: var(--color-text-secondary);
-}
-
-.placeholder {
+.statValue {
+  font-family: var(--font-display-stack);
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
 
-/* ----------------------------------------------------------------- breakpoints */
+.statNote {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* --------------------------------------------------------------- sticker */
+
+/* The portrait is deliberately wider and taller than its column and pulled up, so the H1 and the
+   cut-out overlap. That overlap is the whole composition. */
+.sticker {
+  position: relative;
+  z-index: 1;
+  justify-self: end;
+  width: min(46vw, 560px);
+  margin: 0;
+  translate: 0 -4%;
+}
+
+.stickerTape {
+  position: absolute;
+  z-index: 3;
+  top: 6%;
+  right: 18%;
+  width: 42%;
+  height: 34px;
+  background: color-mix(in srgb, var(--color-tape) 82%, transparent);
+  transform: rotate(-7deg);
+  clip-path: polygon(0 12%, 4% 0, 96% 4%, 100% 18%, 98% 82%, 94% 100%, 6% 96%, 2% 84%);
+  pointer-events: none;
+}
+
+.stickerImg {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: auto;
+  /* Drop shadow lives on the image so it follows the cut-out silhouette, not a rectangle. */
+  /* 12px, not 40px: a 40px blur on the largest element costs ~2 Lighthouse points on a throttled
+     phone for a shadow nobody can see against #050507. */
+  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 45%));
+}
+
+.stickerCaption {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.scrollCue {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: var(--container-max);
+  margin: var(--space-12) auto 0;
+  padding-inline: var(--gutter);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.scrollLine {
+  display: block;
+  width: 72px;
+  height: 1px;
+  background: linear-gradient(to right, var(--color-signal-blue), var(--color-border));
+}
+
+/* ------------------------------------------------------------- manifesto */
+
+.manifesto {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.manifestoInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding-block: var(--space-8);
+}
+
+.manifestoStamp {
+  flex: none;
+  color: var(--color-stamp);
+  font-size: 0.625rem;
+  line-height: 1.4;
+}
+
+.manifestoText {
+  max-width: 62ch;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* --------------------------------------------------------------- sections */
+
+.section {
+  padding-block: var(--space-16);
+}
+
+.footnote {
+  margin-top: var(--space-6);
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.needs {
+  font-family: var(--font-mono-stack);
+  font-size: 0.75em;
+  letter-spacing: 0.1em;
+  color: var(--color-stamp);
+  white-space: nowrap;
+}
+
+/* The stamp red is a print ink; on the sheet it needs the darker mix (4.98:1 vs 2.84:1). */
+.press .needs {
+  color: var(--color-stamp-ink);
+}
+
+/* ------------------------------------------------------------- press kit */
+
+.pressWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  align-items: start;
+  gap: var(--space-8);
+}
+
+.press {
+  position: relative;
+  padding: var(--space-12) var(--space-8) var(--space-16);
+  transform: rotate(-0.8deg);
+  border-radius: 2px;
+}
+
+.pressTape {
+  position: absolute;
+  top: -14px;
+  left: 12%;
+  width: 34%;
+  height: 30px;
+  background: color-mix(in srgb, var(--color-tape) 88%, transparent);
+  transform: rotate(-3deg);
+  clip-path: polygon(0 14%, 3% 0, 97% 3%, 100% 20%, 98% 86%, 95% 100%, 4% 97%, 1% 82%);
+}
+
+.pressEyebrow,
+.pressTitle,
+.pressLead,
+.timelineTitle,
+.timelineDetail,
+.facts dt,
+.facts dd {
+  color: var(--color-paper-ink);
+}
+
+.pressEyebrow {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.pressTitle {
+  margin-top: var(--space-2);
+  font-family: var(--font-display-stack);
+  font-weight: 800;
+  /* Syne is wide: "NAWASUNDA" measures ~11em, so the floor has to be small enough for a 320px
+     screen (the sheet's content box is 100vw - 80px there). */
+  font-size: clamp(1.25rem, 4.2vw, 2.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.pressLead {
+  max-width: 42ch;
+  margin-top: var(--space-4);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.timeline {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid color-mix(in srgb, var(--color-paper-ink) 28%, transparent);
+}
+
+.timeline li {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: var(--space-4);
+  padding-left: var(--space-4);
+  position: relative;
+}
+
+/* The dot on the timeline rule. */
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-signal-blue);
+}
+
+.pending::before {
+  background: transparent !important;
+  border: 1px dashed var(--color-paper-ink);
+}
+
+.timelineYear {
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.timelineBody {
+  display: grid;
+  gap: 2px;
+}
+
+.timelineTitle {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.timelineDetail {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  opacity: 0.78;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-8) 0 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid color-mix(in srgb, var(--color-paper-ink) 22%, transparent);
+}
+
+.facts dt {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.facts dd {
+  margin: 2px 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pressPhoto {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-6));
+  margin: 0;
+  transform: rotate(1.2deg);
+}
+
+.pressPhoto img {
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 12px 14px 0 var(--color-bg-surface-2);
+}
+
+.pressPhotoCaption {
+  margin-top: var(--space-3);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* ------------------------------------------------------------------- epk */
+
+.epk {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  gap: var(--space-8);
+  padding: var(--space-8);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+}
+
+.epkEyebrow {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-signal-blue);
+}
+
+.epkTitle {
+  margin-top: var(--space-2);
+  font-family: var(--font-display-stack);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.epkText {
+  max-width: 48ch;
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+.epkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.epkNote {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+  padding-left: var(--space-6);
+  border-left: 1px dashed var(--color-border-strong);
+}
+
+.epkNoteLabel {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.epkNoteValue {
+  margin-bottom: var(--space-3);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+/* ---------------------------------------------------------------- mobile */
 
 @media (max-width: 1023px) {
-
-  /* Copy first on small screens: the H1 has to be inside the first screen. */
-  .visual {
-    max-width: min(100%, calc(50vh * 0.8));
-    margin-inline: auto;
-  }
-
-  .title {
-    font-size: clamp(2.5rem, 11vw, 3.75rem);
-  }
-
-  /* The eyebrow is one line by design; at 390 px it needs 1px less and a little less tracking
-     rather than a widow ("2020" alone on line two). */
-  .eyebrow {
-    font-size: 0.5625rem;
-    letter-spacing: 0.14em;
-    white-space: nowrap;
-  }
-}
-
-@media (min-width: 1024px) {
   .hero {
-    padding-block: var(--space-24);
+    padding-block: var(--space-12) var(--space-16);
   }
 
-  .heroGrid {
-    grid-template-columns: 60fr 40fr;
-    gap: var(--space-12);
-    align-items: center;
+  .heroInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
   }
 
-  .stats {
-    gap: var(--space-12);
+  .heroSpray {
+    top: 10%;
+    width: 92vw;
+    height: 42vw;
+    opacity: 0.13;
+  }
+
+  .sticker {
+    justify-self: center;
+    /* Smaller than the copy column on purpose: the portrait should not fill the first screen, so the
+       H1 is already peeking above the fold. */
+    width: min(66vw, 340px);
+    translate: 0;
+    order: -1;
+  }
+
+  .pressWrap,
+  .epk {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pressPhoto {
+    position: static;
+    transform: none;
+    max-width: 320px;
+  }
+
+  .epkNote {
+    padding-left: 0;
+    padding-top: var(--space-4);
+    border-left: 0;
+    border-top: 1px dashed var(--color-border-strong);
   }
 }
 
-@media (min-width: 1280px) {
-  .copy {
-    padding-right: var(--space-8);
+@media (max-width: 640px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manifestoInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .press {
+    padding: var(--space-8) var(--space-6) var(--space-12);
+    transform: none;
+  }
+
+  .timeline li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
   }
 }

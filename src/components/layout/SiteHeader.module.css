@@ -34,12 +34,61 @@
   width: auto;
 }
 
+.wordmarkWrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
 .wordmark {
   font-family: var(--font-display-stack);
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
+  text-transform: uppercase;
   white-space: nowrap;
+}
+
+/* The RMX tag is a piece of tape, not a second logo. */
+.rmx {
+  padding: 1px 5px;
+  background: var(--color-signal-blue);
+  color: var(--color-bg);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+/* Scroll-driven: the bar loses 8px once the page is moving, so the chrome gets out of the way without
+   a scroll listener. Browsers without scroll timelines simply keep 64px (D-086). */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .bar {
+      animation: bar-shrink linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 220px;
+    }
+
+    .mark {
+      animation: mark-shrink linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 220px;
+    }
+  }
+}
+
+@keyframes bar-shrink {
+  to {
+    height: 56px;
+  }
+}
+
+@keyframes mark-shrink {
+  to {
+    height: 26px;
+  }
 }
 
 .desktopNav ul {
@@ -51,18 +100,35 @@
 }
 
 .desktopNav a {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--color-text-secondary);
-  transition: color var(--duration-fast) var(--ease);
+  transition:
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    background var(--duration-fast) var(--ease);
 }
 
 .desktopNav a:hover,
-.desktopNav a[aria-current="page"] {
+.desktopNav a:focus-visible {
   color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+/* Current page gets the tape treatment: the only warm colour in the chrome. */
+.desktopNav a[aria-current="page"] {
+  color: var(--color-tape-ink);
+  background: var(--color-tape);
+  border-color: var(--color-tape);
+  transform: rotate(-1.5deg);
 }
 
 .actions {

@@ -25,6 +25,22 @@
   --color-border: #2a2a38;
   --color-border-strong: #3a3a48;
 
+  /*
+   * Zine layer (D-083). The site keeps one dark ink ramp, and gains the physical materials the
+   * "handmade, not AI" direction needs: paper, masking tape, a rubber stamp, a poster accent and a
+   * waveform lime. Nothing here is a gradient wash — every one of them is a flat colour.
+   */
+  --color-ink-black: #050507; /* deeper than the page, used only behind the hero and the footer */
+  --color-paper: #e8e6e1;
+  --color-paper-ink: #0a0a0e;
+  --color-tape: #d4b896;
+  --color-tape-ink: #2b2118;
+  --color-stamp: #ff3b30;
+  /* Same ink, darker mix: 2.84:1 on paper is unreadable, 4.98:1 clears AA at label sizes. */
+  --color-stamp-ink: #c01810;
+  --color-poster-yellow: #ffd60a;
+  --color-wave-lime: #c2ff00;
+
   /* Semantic aliases used by components. */
   --color-bg: var(--color-bg-base);
   --color-fg: var(--color-text-primary);
