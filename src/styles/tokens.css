@@ -9,7 +9,7 @@
 :root {
   /* --- Colour: near-black ink ramp + signal accents -------------------------------- */
   --color-bg-base: #0a0a0e;
-  --color-bg-surface: #101012;
+  --color-bg-surface: #101014;
   --color-bg-surface-2: #1a1a22;
   --color-bg-surface-3: #242432;
 
@@ -22,8 +22,8 @@
   --color-signal-purple: #7800ff;
   --color-signal-icy: #8ae8ff;
 
-  --color-border: #2a2a3a;
-  --color-border-strong: #3a3a4a;
+  --color-border: #2a2a38;
+  --color-border-strong: #3a3a48;
 
   /* Semantic aliases used by components. */
   --color-bg: var(--color-bg-base);
@@ -59,7 +59,7 @@
   --tracking-label: 0.16em;
 
   /* Sized so the longest word ("NAWASUNDA") always fits its column without clipping. */
-  --text-hero: clamp(2.5rem, 7.2vw, 6rem);
+  --text-hero: clamp(2.5rem, 8vw, 6rem);
   --text-title: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
   --text-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
   --text-small: 0.875rem;

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { anMark } from "@/assets/web";
+import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseView } from "@/components/content/ReleaseView";
 import { Container } from "@/components/layout/Container";
-import { resolveCover } from "@/content/covers";
+import { coverArtwork, resolveCover } from "@/content/covers";
 import {
   getReleaseBySlug,
   releaseDisplayTitle,
@@ -63,7 +63,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
   const release = getReleaseBySlug(slug);
   if (!release) notFound();
 
-  const coverUrl = release.cover ?? resolveCover(release.slug);
+  const artwork = release.cover ? ({ kind: "image", src: release.cover } as const) : coverArtwork(slug);
 
   return (
     <Container>
@@ -92,16 +92,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
         </div>
 
         <aside className={styles.artwork} aria-label="Artwork">
-          {coverUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element -- owner-uploaded 1:1 file, served as-is */
-            <img src={coverUrl} alt={`Artwork ${releaseDisplayTitle(release)}`} width={800} height={800} />
-          ) : (
-            <span className={styles.artworkEmpty}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- 13 KB brand mark used as texture */}
-              <img src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" decoding="async" />
-              <span className={styles.artworkCaption}>Artwork belum diunggah</span>
-            </span>
-          )}
+          <ReleaseCover artwork={artwork} title={releaseDisplayTitle(release)} />
         </aside>
       </div>
 

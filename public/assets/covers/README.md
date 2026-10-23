@@ -9,7 +9,12 @@ is picked up immediately. Nothing else is required — the lookup is by file nam
 - File name **must** be the release slug: `cinta-terbuang.webp`
 - Accepted: `.webp` (preferred), `.avif`, `.jpg`, `.jpeg`, `.png`
 - Square, at least 600x600, under ~150 KB
-- Until a file exists, the release renders as a typographic card (no placeholder art, by design)
+- Until a file exists, the release renders as a **designed sleeve** built from its title, the AN mark
+  at 10% and a 4px #0087FF → #7800FF rule. Never an empty card, never borrowed artwork.
+- Automatic path: `npm run covers:fetch` pulls each release's artwork from Spotify's public oEmbed
+  endpoint and writes `public/assets/covers/<slug>.webp` here. It needs a Spotify URL in the
+  release's `links` (`src/content/releases.ts`); with no URL it reports the slug and skips it
+  instead of guessing.
 
 Slugs currently in use:
 

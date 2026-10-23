@@ -2,7 +2,8 @@
 
 Repo ini adalah **single source of truth** untuk pembangunan website Akbar Nawasunda Official.
 
-AI coding agent (Cursor, Claude Code, Codex, Windsurf) WAJIB baca `AGENTS.md` dulu, lalu `PROMPT_AWAL_AGENT.md`.
+AI coding agent (Cursor, Claude Code, Codex, Windsurf) WAJIB baca `AGENTS.md` dulu. Prompt bootstrap lama sudah diarsipkan di
+`docs/08-IMPLEMENTATION/prompts/archive/`.
 
 ## Struktur Rekomendasi (taruh di repo utama website lu)
 
@@ -10,7 +11,6 @@ AI coding agent (Cursor, Claude Code, Codex, Windsurf) WAJIB baca `AGENTS.md` du
 / (root repo akbarnawasunda.my.id)
 ├── AGENTS.md  <- entry point utama (Cursor, Windsurf baca ini)
 ├── CLAUDE.md  <- symlink/copy dari AGENTS.md buat Claude Code
-├── PROMPT_AWAL_AGENT.md <- prompt bootstrap pertama kali (copy-paste ke agent)
 ├── HANDOFF_TO_CODING_AGENT.md <- instruksi eksekusi bertahap
 ├── README.md
 ├── docs/
@@ -39,7 +39,7 @@ Jangan namain `untuk pembuatan website gue` — terlalu generik, agent bingung. 
 ## Cara Pakai untuk Agent Baru
 
 1. Clone repo / buka di Cursor
-2. Copy-paste isi `PROMPT_AWAL_AGENT.md` ke Composer (Ctrl+I) atau Claude Code
+2. Minta agent membaca `AGENTS.md` (prompt lama ada di `docs/08-IMPLEMENTATION/prompts/archive/`)
 3. Agent akan baca AGENTS.md + semua MD + audit repo + mulai Phase 0 & 1
 4. Agent kasih Vercel Preview URL Phase 2 homepage prototype — lu review di HP
 5. Approve Phase 2 baru lanjut

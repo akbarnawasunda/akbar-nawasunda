@@ -1,23 +1,36 @@
 # Screenshots (2026-10-23)
 
-Four sets. `home-*`, `music-*` are the Phase 2 revision; `phase5-*` are the Phase 5 routes added
-after the revision was approved; `studio-*` are the Phase 6 Studio flow; `phase7-*` are the hero with
-the Liquid Signal layered in.
+Four sets.
 
-## Phase 7 Liquid Signal
+| Folder / prefix | What it is | Status |
+|---|---|---|
+| `final/` | The current site after the Liquid Signal was deleted (D-055) | **current** |
+| `home-*`, `music-*` | Phase 2 revision | history |
+| `phase5-*` | Phase 5 routes (`/artist`, `/visuals`, `/epk`, 404) | history — the routes still exist |
+| `studio-*` | Phase 6 Studio flow (draft → publish) | current for Studio |
 
-| File | What it shows |
+The `phase7-*` captures were deleted together with the effect they documented: there is no
+Liquid Signal, no WebGL canvas and no particle field in the codebase any more.
+
+## Final pass (current site)
+
+`final/<route>-<width>.webp` is the first screen and `final/<route>-<width>-full.webp` is the whole
+page, captured from the production build (`npm run build && npm run start`) with headless Chromium at
+`deviceScaleFactor: 1` and `prefers-reduced-motion: reduce`.
+
+| Route | Widths |
 |---|---|
-| `phase7-hero-1280.webp` | Hero at 1280 × 900, `prefers-reduced-motion: reduce` — the static SVG field, which is what the fallback always shows |
-| `phase7-hero-390.webp` | Same at 390 × 844: H1 on the first screen, field crescent behind the portrait |
-| `phase7-home-390-full.webp` | Whole homepage at 390 |
-| `phase7-field-reference.webp` | **Not a browser capture.** `npx tsx scripts/liquid-signal-reference.ts /tmp/field.png 5600 2.5` — an offscreen render that replays the exact maths of `liquid-signal/shaders.ts` (lattice, jitter, wobble, depth, rim, dot size, palette) at 600 px, 5 600 points, t = 2.5 s |
+| `/` | 390 × 844, 768 × 1024, 1280 × 900 |
+| `/music` | 390, 768, 1280 |
+| `/music/masih-mencintainya-papinka` | 390, 768, 1280 |
+| `/artist` | 390, 768, 1280 |
+| `/visuals` | 390, 768, 1280 |
+| `/epk` | 390, 768, 1280 |
+| `/nope` (404) | 390, 768, 1280 |
 
-Why a reference render instead of a screenshot: Chromium headless in this sandbox cannot rasterise
-WebGL at all — any `drawArrays` kills the frame (1 triangle, `gl.POINTS`, blending or not). Everything
-around the canvas *is* verified in the browser (deferred load, reduced-motion path, no-WebGL path,
-no-JS path, shader compile/link, chunk size); the running field itself needs a real GPU, so it is
-checked via the reference render plus the owner's preview.
+All 21 route/width pairs render with `canvas` count 0, no broken images, and no horizontal overflow.
+Measure overflow *before* the full-page capture: headless shell resizes the viewport for it, and a
+measurement taken afterwards reports a phantom 2639 px scroll width.
 
 ## Phase 6 Studio (draft → publish)
 
@@ -37,7 +50,7 @@ These were captured with a local `file:` database and a throwaway password. The 
 and `/artist` was re-published back to its "Yang belum ditulis" state before committing, so the
 screenshots show the flow without leaving sample copy in the preview database.
 
-## Phase 5 routes
+## Phase 5 routes (history)
 
 | Route | Widths |
 |---|---|
@@ -48,10 +61,10 @@ screenshots show the flow without leaving sample copy in the preview database.
 
 `/about` is not captured because it no longer renders: it answers 308 → `/artist` (D-024).
 
-## Phase 2 revision
+## Phase 2 revision (history)
 
-Captured from the local production build (`npm run build && npm run start`) with headless Chromium
-at `deviceScaleFactor: 1`, `prefers-reduced-motion: reduce`, after `networkidle0`.
+Captured from the local production build with headless Chromium at `deviceScaleFactor: 1`,
+`prefers-reduced-motion: reduce`, after `networkidle0`.
 
 | Route | Widths |
 |---|---|
@@ -63,9 +76,5 @@ Two files per width: `<name>-<width>.webp` is the first screen, `<name>-<width>-
 page. Files are WebP (quality 82) because the full-page PNGs were 17 MB in total; the framed edges are
 identical.
 
-The dot-matrix hero field is frozen at its reduced-motion state in these captures (static dot field,
-no rotation). Without that media query it animates 1 → 1.03 scale over 6 s and 0 → 3° over 20 s.
-
-Note on the sandbox: large image decodes occasionally fail in this particular Chromium build, which
-produced blank photo tiles in earlier captures. The thumbnails served by the site are now 480 px
-side, which both avoids that and matches the size the archive tile actually needs.
+These still show the dot-matrix hero field that was later removed (D-055). They are kept only as the
+record of what Phase 2 was approved with.

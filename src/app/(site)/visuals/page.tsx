@@ -31,6 +31,7 @@ export default function VisualsPage() {
         eyebrow="02 — Visual"
         title="Arsip visual"
         id="visuals-title"
+        as="h1"
         action={{ href: youtube.href, label: "YouTube" }}
       />
 

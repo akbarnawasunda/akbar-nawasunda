@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "check": "npm run assets:check && npm run typecheck && npm run lint && npm run test && npm run test:db && npm run build",
     "assets:check": "node scripts/check-assets.mjs",
-    "test": "tsx --test \"tests/studio/*.test.ts\" \"tests/components/*.test.ts\"",
+    "covers:fetch": "tsx scripts/fetch-spotify-artwork.ts",
+    "test": "tsx --test \"tests/studio/*.test.ts\"",
     "studio:hash-password": "tsx scripts/studio-hash-password.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -37,6 +38,7 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.0",
+    "sharp": "^0.35.5",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }

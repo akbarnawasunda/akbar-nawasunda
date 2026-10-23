@@ -1,0 +1,83 @@
+/* A release sleeve. Two shapes only: 1:1 in the grid, 16:9 on the featured card. */
+.cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-2xl);
+}
+
+.square {
+  aspect-ratio: 1 / 1;
+}
+
+.wide {
+  aspect-ratio: 16 / 9;
+}
+
+.cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+/* Level 3 sleeve: surface colour, AN mark at 10%, title at 24px, 4px signal rule. */
+.generated {
+  display: grid;
+  align-content: end;
+  padding: var(--space-4);
+  /* The rule is drawn as a border so it never sits under the title. */
+  /* 4px signal rule along the bottom edge only. Drawn as a pseudo-element rather than border-image,
+     which would also paint the other three edges. */
+  border-bottom: 4px solid transparent;
+  background: var(--color-bg-surface);
+}
+
+.ghost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(46%, 400px);
+  height: auto;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.generated::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-signal-blue), var(--color-signal-purple));
+}
+
+.generated .title {
+  position: relative;
+  font-family: var(--font-display-stack);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+/* On the 16:9 sleeve the title has more room, so it can hold two lines without crowding the mark. */
+.wide.generated {
+  padding: var(--space-8);
+}
+
+.wide.generated::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-signal-blue), var(--color-signal-purple));
+}
+
+.generated .title {
+  max-width: 22ch;
+  font-size: clamp(1.5rem, 1rem + 1.2vw, 2rem);
+}

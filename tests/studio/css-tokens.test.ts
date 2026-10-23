@@ -34,7 +34,6 @@ describe("css custom properties", () => {
     const missing: string[] = [];
 
     for (const file of globSync("src/**/*.css", { cwd: root })) {
-      if (file.includes("experiments/")) continue; // parked experiment, not shipped
       const css = readFileSync(join(root, file), "utf8");
       for (const match of css.matchAll(/var\(\s*(--[a-z0-9-]+)/gi)) {
         const name = match[1] ?? "";

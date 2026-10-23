@@ -518,7 +518,7 @@ rilis terverifikasi, dan `/artist` kembali menampilkan keadaan `[NEEDS OWNER]`-n
 
 ---
 
-## 17. Phase 7 — Liquid Signal WebGL asli (2026-10-23)
+## 17. Phase 7 — Liquid Signal WebGL asli (2026-10-23) — **SUPERSEDED by §18**
 
 Mengganti placeholder SVG dot-matrix di hero dengan field WebGL sungguhan, tanpa mengorbankan
 halaman bagi perangkat yang tidak bisa menjalankannya.
@@ -566,18 +566,11 @@ Chromium headless di sandbox ini **tidak bisa merasterisasi WebGL sama sekali**:
 adalah kontrak di sekitar field: pemuatan tertunda, fallback, shader compile/link, ukuran chunk, dan
 layout. Tampilan field saat berjalan **belum** terverifikasi dari browser di sandbox — karena itu:
 
-- `screenshots/phase7-hero-*` adalah tangkapan nyata halaman pada keadaan fallback statis (persis
-  yang dilihat pengguna tanpa WebGL / dengan reduced motion).
-- `screenshots/phase7-field-reference.webp` adalah **render referensi offscreen**, bukan tangkapan
-  browser: `scripts/liquid-signal-reference.ts` mengulang rumus `shaders.ts` baris per baris
-  (lattice, jitter, wobble, kedalaman, rim, ukuran titik, palet) ke PNG, tanpa dependensi:
-
-  ```
-  npx tsx scripts/liquid-signal-reference.ts /tmp/field.png 5600 2.5
-  ``` Dipakai untuk menyetel jumlah titik,
-  ukuran titik, dan palet — dan memang menangkap satu bug nyata: pemetaan kedalaman awalnya membuat
-  seluruh sisi dekat jatuh ke nilai 0, sehingga field tampil sebagai cakram ungu gelap.
+- Tangkapan `phase7-*` dan skrip `scripts/liquid-signal-reference.ts` sudah dihapus bersama efeknya
+  (D-055); yang berlaku sekarang ada di `screenshots/final/` dan dibuat dari halaman tanpa WebGL.
 - Verifikasi visual terakhir ada di tangan owner lewat preview (browser sungguhan).
+
+Bagian ini disimpan hanya sebagai catatan sejarah: kode yang dijelaskan di sini tidak ada lagi.
 
 ### Test
 
@@ -596,3 +589,89 @@ layout. Tampilan field saat berjalan **belum** terverifikasi dari browser di san
 - Parallax scroll (−10% dolly) dan tilt pointer ≤10° dari 3D_ART_DIRECTION belum diimplementasikan;
   hero saat ini hanya bernapas dan berputar 5°/20 s seperti versi SVG.
 - `/privacy` tetap tidak disentuh.
+
+
+---
+
+## 18. Final anti-AI pass (2026-10-23)
+
+Dua langkah: bersihkan root, lalu hapus semua yang membuat situs terbaca sebagai template.
+
+### 18.1 Root repo
+
+`PROMPT_AWAL_AGENT.md`, `AGENTS_2.md`, dan `README_2.md` dipindah ke
+`docs/08-IMPLEMENTATION/prompts/archive/` (lihat `README.md` di sana untuk alasan tiap file).
+Root sekarang: `AGENTS.md`, `README.md`, `HANDOFF_TO_CODING_AGENT.md`, `CLAUDE.md`,
+`GITHUB_REPO_README.md` + config (`next.config.ts`, `package.json`, `tsconfig.json`,
+`vercel.json`, `eslint.config.mjs`, `drizzle.config.ts`).
+
+`PROMPT_FINAL_V10_SINGLE_SOURCE.md` **tidak ada** di checkout ini maupun di `origin/main`, jadi file
+itu tidak bisa dibaca. Brief yang dikirim lewat chat dipakai sebagai acuan, dan isinya direkam di
+D-055…D-062 supaya tidak bergantung pada percakapan.
+
+### 18.2 Yang dihapus (bukan disembunyikan)
+
+| Dihapus | Keterangan |
+|---|---|
+| `src/components/effects/SignalField.tsx` + `.module.css` | SVG dot-matrix |
+| `src/components/effects/HeroSignal.tsx` + `.module.css` | pembungkus WebGL |
+| `src/components/effects/liquid-signal/` (`geometry.ts`, `shaders.ts`, `renderer.ts`) | renderer WebGL Phase 7 |
+| `scripts/liquid-signal-reference.ts` | render referensi field |
+| `tests/components/liquid-signal-geometry.test.ts` (29 test) | test untuk kode yang sudah tidak ada |
+| `src/app/experiments/lattice/`, `src/experiments/`, `src/effects/` | eksperimen lattice + SpatialBackdrop yang hanya dipakai di sana |
+| `.signal`, `.signal-field`, `.signal-blob`, `.signal-dots` | CSS efek |
+| Impor `SignalField`/`HeroSignal` di `app/(site)/page.tsx` | hero sekarang murni foto + tipografi |
+
+Tidak ada `three`, `@react-three/fiber`, `@react-three/drei`, atau `MusicNotesField` di repo ini sejak
+awal — pengecekannya tetap ditambahkan ke test supaya tidak masuk diam-diam.
+
+### 18.3 Yang dibangun
+
+| Area | Hasil |
+|---|---|
+| Hero | split 60/40, padding 96/64px, potret 4:5 (70vh / 50vh) radius 24px + vignette 40%, H1 `clamp(2.5rem, 8vw, 6rem)` −0.02em, stats mono 12px `+5 tahun / +6 rilis` |
+| Nav | 64px, hairline, blur 12px, AN 32px, wordmark Syne 14px −0.02em, link mono 11px uppercase, pill Listen → Spotify |
+| Platform row | 4 platform terverifikasi, padding 32px |
+| Genre tape | Breakbeat · Indo Bass · Jedag Jedug · Jungle Dutch, statis |
+| Katalog | kartu 16:9 (cover 60% / info 40%) + 5 tile 1:1 + sel "Katalog lengkap": semua bersleeve, tidak ada sel kosong |
+| Artwork | waterfall 4 level (D-057) + `npm run covers:fetch` |
+| Token | surface `#101014`, border `#2A2A38` (D-059), grain 2% |
+| `/visuals` | sekarang punya `h1` (D-060) |
+| EPK | tetap `.zip` nyata 999.465 B (977 KB) |
+| 404 | ghost AN 10% kanan, "Sinyal hilang", strip biru 5px |
+
+### 18.4 Artwork: kondisi hari ini (jujur)
+
+`npm run covers:fetch` jalan, tetapi **0 dari 6 rilis punya URL Spotify** di `src/content/releases.ts`
+— judul terverifikasi, tautan per rilis masih `[NEEDS OWNER]`. Skrip melaporkan keenam slug dan tidak
+mengarang URL. Selama itu, keenam kartu memakai sleeve generated level 3 (judul + AN 10% + rule 4px),
+jadi katalog **tidak kosong** dan tidak memakai artwork milik orang lain. Begitu owner mengisi
+`links` (atau menaruh file di `public/assets/covers/`), semua permukaan ikut berubah tanpa edit kode.
+
+### 18.5 Verifikasi
+
+| Cek | Hasil |
+|---|---|
+| `npm run check` | assets ✓ · typecheck ✓ · lint ✓ · **93 test** ✓ · 8 DB test ✓ · build ✓ |
+| Route | `/` 200, `/music` 200, `/music/masih-mencintainya-papinka` 200, `/artist` 200, `/visuals` 200, `/epk` 200, `/nope` 404 |
+| `canvas` di seluruh `src/app` + `src/components` | 0 (dijaga `anti-ai.test.ts`) |
+| `h1` per halaman | 1 di setiap halaman yang diaudit (sebelumnya `/visuals` tidak punya) |
+| Overflow horizontal di 390/768/1280 | tidak ada |
+| Gambar rusak | 0 |
+| Dependensi `three`/R3F | tidak ada |
+| JS awal `/` | 181.1 KB gz (dulu 182.7 KB dengan renderer 3D) |
+| CSS | 8.1 KB gz |
+| LCP `/` 390×844 DPR2, 1.6 Mbps, CPU 4× | 0.93 s |
+| Tangkapan layar | 21 kombinasi route × lebar di `screenshots/final/` |
+
+Test baru: `tests/studio/anti-ai.test.ts` (10 test) — memastikan komponen efek yang dihapus tidak
+kembali, tidak ada `<canvas>`, tidak ada dependensi 3D, dan pola terlarang tidak muncul di berkas
+beranda. Total 93 test (83 lama + 10 baru).
+
+### 18.6 Belum / menunggu owner
+
+- URL Spotify per rilis (6) → baru artwork level 2 bisa ditarik.
+- Artwork resmi dari owner (level 1/4) — opsional, sleeve generated sudah tampil.
+- Bio panjang, linimasa 2021–2024: masih `[NEEDS OWNER]`.
+- `/privacy` tidak disentuh.
+- Tangkapan layar 390/768/1280 ada di `docs/08-IMPLEMENTATION/screenshots/final-*`.

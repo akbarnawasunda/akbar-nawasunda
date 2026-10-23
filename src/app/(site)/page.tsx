@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 
 import { portraitAlt, portraitSize, portraitSources } from "@/assets/web";
-import { HeroSignal } from "@/components/effects/HeroSignal";
-import { SignalField } from "@/components/effects/SignalField";
 import { ReleaseBento } from "@/components/content/ReleaseBento";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
@@ -11,7 +9,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { SectionsView } from "@/components/content/SectionsView";
 import { VisualGrid } from "@/components/media/VisualGrid";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { resolveCover } from "@/content/covers";
+import { coverArtwork } from "@/content/covers";
 import { fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
@@ -22,14 +20,18 @@ import { getPublicPage } from "@/studio/public";
 import styles from "./page.module.css";
 
 /**
- * Homepage — Phase 2 revision from the owner's four references.
+ * Homepage — final anti-AI pass (2026-10-23).
  *
- * Composition rules that keep it from reading as a generated template:
- * - an asymmetric split hero (55/45) whose H1 runs across the column boundary;
- * - the Liquid Signal as a dot-matrix SVG, not a solid glowing sphere;
- * - depth from surface steps and 1px hairlines, never from glass or full-bleed gradients;
- * - a bento catalogue (one 16:9 card, four squares, one wide tile, one CTA) instead of a row of
- *   identical cards.
+ * What is deliberately NOT here, because it is what made earlier versions read as generated:
+ * no particle field, no dot-matrix blob, no WebGL canvas, no glowing sphere, no full-screen
+ * gradient, no glass panel, no centred stack of six identical cards. The hero is a 60/40 split:
+ * type on the left, the official portrait on the right, separated by a 1px rule and the surface
+ * step. The only decoration on the page is a 2% grain layer (GrainOverlay, rendered by the layout).
+ *
+ * What carries the page instead: a real photograph as the LCP image, tight -0.02em display type,
+ * 11px mono labels in #A1A1B5, and artwork-first release cards. Releasing artwork comes from
+ * public/assets/covers/<slug>.* when the owner uploads it, and from a designed sleeve built out of
+ * the title + AN mark + palette when they have not (src/components/content/ReleaseCover.tsx).
  *
  * Copy is limited to verified facts; counts are derived (src/content/stats.ts), not typed by hand.
  */
@@ -42,7 +44,10 @@ export const metadata: Metadata = {
 };
 
 const youtube = getSocialLink("youtube");
-const catalogue = releases.map((release) => fromStaticRelease(release, resolveCover(release.slug)));
+const catalogue = releases.map((release) => ({
+  ...fromStaticRelease(release, null),
+  artwork: coverArtwork(release.slug),
+}));
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
 
@@ -66,7 +71,7 @@ export default async function HomePage() {
         as="image"
         type="image/avif"
         imageSrcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-        imageSizes="(min-width: 1024px) 42vw, 92vw"
+        imageSizes="(min-width: 1024px) 40vw, 92vw"
       />
 
       <section className={styles.hero} aria-labelledby="hero-title">
@@ -94,39 +99,32 @@ export default async function HomePage() {
               </ButtonLink>
             </div>
 
+            {/* Two counters, mono 12px: a quiet line under the CTAs, not a dashboard. Both
+                numbers are derived (src/content/stats.ts), never typed by hand. */}
             <dl className={styles.stats}>
               <div className={styles.stat}>
-                <dt className={styles.statLabel}>Tahun aktif</dt>
                 <dd className={styles.statValue}>+{stats.yearsActive}</dd>
+                <dt className={styles.statLabel}>tahun aktif</dt>
               </div>
               <div className={styles.stat}>
-                <dt className={styles.statLabel}>Rilis terverifikasi</dt>
                 <dd className={styles.statValue}>+{stats.releaseCount}</dd>
-              </div>
-              <div className={styles.stat}>
-                <dt className={styles.statLabel}>Berbasis di</dt>
-                <dd className={styles.statValueSmall}>{stats.base}</dd>
+                <dt className={styles.statLabel}>rilis terverifikasi</dt>
               </div>
             </dl>
           </div>
 
           <figure className={styles.visual}>
-            <HeroSignal className={styles.signal}>
-              {/* Server-rendered static field: the page is complete without WebGL, and this stays
-                  on screen under prefers-reduced-motion or if the renderer bails out. */}
-              <SignalField variant="dots" idPrefix="hero" size={600} />
-            </HeroSignal>
             <div className={styles.portraitFrame}>
               <picture>
                 <source
                   type="image/avif"
                   srcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-                  sizes="(min-width: 1024px) 42vw, 92vw"
+                  sizes="(min-width: 1024px) 40vw, 92vw"
                 />
                 <source
                   type="image/webp"
                   srcSet={portraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-                  sizes="(min-width: 1024px) 42vw, 92vw"
+                  sizes="(min-width: 1024px) 40vw, 92vw"
                 />
                 <img
                   className={styles.portrait}
@@ -137,6 +135,9 @@ export default async function HomePage() {
                   decoding="async"
                 />
               </picture>
+              {/* The only treatment on the photograph: a bottom vignette so the frame edge never
+                  cuts a hard line across the image. No gradient behind it, no glow. */}
+              <span className={styles.vignette} aria-hidden="true" />
             </div>
             <figcaption className={styles.caption}>
               <span aria-hidden="true" />
@@ -158,12 +159,7 @@ export default async function HomePage() {
             action={{ href: "/music", label: "Semua rilis" }}
           />
 
-          <ReleaseBento
-            featured={featured}
-            rest={rest}
-            total={stats.releaseCount}
-            since={siteConfig.since}
-          />
+          <ReleaseBento featured={featured} rest={rest} total={stats.releaseCount} />
 
           <p className={styles.footnote}>
             Tahun rilis, artwork, dan tautan platform per rilis belum dikonfirmasi pemilik katalog.{" "}

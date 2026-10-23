@@ -1,5 +1,12 @@
 # 3D_ART_DIRECTION — Liquid Signal
 
+> **WITHDRAWN (2026-10-23).** The owner removed the Liquid Signal from the site: the hero, the
+> catalogue and the 404 now carry no 3D, no canvas, no particle field (D-055). The Phase 7 WebGL
+> implementation this document describes was deleted, not disabled. This file stays as the record of
+> how the effect was specified, in case it is ever revisited — it is **not** a description of the
+> current site. The current visual language is in `DESIGN.md`: real photography, tight display type,
+> 11px mono labels, hairlines, one 2% grain layer.
+
 ## Concept Meaning
 Liquid Signal = visualisasi sinyal bass yang cair, metalik, mengalir. Representasi transisi: dari remix culture yang cair, tidak berbentuk (DJ Akbar Remix) → identitas yang solid tapi tetap fluid (Akbar Nawasunda). Menggabungkan elemen air (Sunda: flow, sungai) + metal (modern bass, studio gear).
 

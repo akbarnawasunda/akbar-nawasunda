@@ -1,9 +1,10 @@
-/* ============================================================== hero (split 55/45) */
+/* ============================================================== hero (split 60/40) */
 
 .hero {
   position: relative;
   overflow: clip;
-  padding-block: var(--space-12) var(--space-16);
+  /* 96px desktop / 64px mobile of air above and below the hero. */
+  padding-block: var(--space-16);
 }
 
 .heroGrid {
@@ -72,74 +73,53 @@
   gap: var(--space-4);
 }
 
+
 /* ------------------------------------------------------------------ stats row */
 
 .stats {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
-  margin: var(--space-4) 0 0;
+  gap: var(--space-6);
+  margin: var(--space-2) 0 0;
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono-stack);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
+/* One line per counter: "+5  TAHUN AKTIF". Value in white, label in secondary. */
 .stat {
   display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-1);
+  align-items: baseline;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .statValue {
   margin: 0;
-  font-family: var(--font-display-stack);
-  font-size: 1.625rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.statValueSmall {
-  margin: 0;
-  font-family: var(--font-display-stack);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
 }
 
 .statLabel {
-  font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   color: var(--color-text-secondary);
 }
 
-/* ------------------------------------------------------------ portrait + signal */
+/* ---------------------------------------------------------------- portrait */
 
 .visual {
   position: relative;
   margin: 0;
-  isolation: isolate;
-}
-
-/* The blob is the ambient layer. It sits up and to the left of the portrait, so its dot body
-   occupies the negative space where the headline crosses the column boundary (reference 2) instead
-   of hiding behind an opaque image. */
-.signal {
-  position: absolute;
-  z-index: 1;
-  top: -16%;
-  left: -20%;
-  width: 114%;
-  height: auto;
-  opacity: 0.8;
+  /* 70vh tall on desktop and still exactly 4:5: the width follows the height, so the photograph is
+     never cropped through the face to fit a column. */
+  width: 100%;
+  max-width: min(100%, calc(70vh * 0.8));
+  margin-inline-start: auto;
 }
 
 .portraitFrame {
   position: relative;
-  z-index: 2;
   width: 100%;
   overflow: hidden;
   border-radius: var(--radius-2xl);
@@ -148,6 +128,7 @@
 }
 
 .portrait {
+  display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 5;
@@ -155,9 +136,18 @@
   object-position: 50% 0;
 }
 
+/* Bottom vignette only: the frame edge shouldn't end on a bright highlight. 40% of the height,
+   #0A0A0E at 60% — nothing else is layered over the photograph. */
+.vignette {
+  position: absolute;
+  inset: auto 0 0;
+  height: 40%;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 10, 14, 0.6), rgba(10, 10, 14, 0));
+}
+
 .caption {
   position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -199,19 +189,11 @@
 /* ----------------------------------------------------------------- breakpoints */
 
 @media (max-width: 1023px) {
-  .hero {
-    padding-block: var(--space-8) var(--space-12);
-  }
 
   /* Copy first on small screens: the H1 has to be inside the first screen. */
   .visual {
-    max-width: 560px;
-  }
-
-  .signal {
-    top: -10%;
-    left: -14%;
-    width: 104%;
+    max-width: min(100%, calc(50vh * 0.8));
+    margin-inline: auto;
   }
 
   .title {
@@ -229,19 +211,13 @@
 
 @media (min-width: 1024px) {
   .hero {
-    padding-block: var(--space-16) var(--space-24);
+    padding-block: var(--space-24);
   }
 
   .heroGrid {
-    grid-template-columns: 55fr 45fr;
+    grid-template-columns: 60fr 40fr;
     gap: var(--space-12);
-    align-items: end;
-  }
-
-  /* The headline crosses the column boundary and runs over the edge of the dot field (reference 2
-     overlap). It stops short of the face, so legibility never depends on the photograph. */
-  .title {
-    margin-right: -120px;
+    align-items: center;
   }
 
   .stats {

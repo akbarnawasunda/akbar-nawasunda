@@ -1,5 +1,5 @@
 /* Bento: 12 columns, 16px gutters, 24px radii, one hairline border. No glass, no blur, no shadow —
-   depth comes from the surface step (#0A0A0E page → #101012 card). */
+   depth comes from the surface step (#0A0A0E page → #101014 sleeve). */
 .bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -8,21 +8,24 @@
 
 .card {
   position: relative;
-  overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   background: var(--color-bg-surface);
   transition: border-color var(--duration-base) var(--ease);
 }
 
-.card:hover {
+.card:hover,
+.card:focus-within {
   border-color: var(--color-border-strong);
 }
 
 .hitArea {
-  display: flex;
+  position: relative;
+  display: block;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
 }
@@ -31,50 +34,25 @@
 
 .featured {
   grid-column: span 12;
-  /* Slightly shorter than a full 16:9 so the card reads as a card, not an empty 16:9 panel. */
-  aspect-ratio: 21 / 9;
 }
 
 .featured .hitArea {
-  flex-direction: row;
-}
-
-.featuredMedia {
-  position: relative;
-  flex: 0 0 60%;
-  overflow: hidden;
-  border-right: 1px solid var(--color-border);
-  background:
-    radial-gradient(120% 90% at 30% 20%, rgba(0, 135, 255, 0.12), transparent 60%),
-    var(--color-bg-surface);
-}
-
-.featuredMedia img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--duration-slow) var(--ease-out);
-}
-
-.featured:hover .featuredMedia img {
-  transform: scale(1.03);
-}
-
-.ghost {
   display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
+  grid-template-columns: 60fr 40fr;
 }
 
-.ghost img {
-  width: min(52%, 300px);
-  height: auto;
-  opacity: 0.16;
+.featuredCover {
+  display: block;
+  border-right: 1px solid var(--color-border);
+}
+
+/* The 16:9 sleeve fills its column exactly, so the card has no empty shoulder. */
+.featuredCover > span {
+  height: 100%;
+  border-radius: 0;
 }
 
 .featuredBody {
-  flex: 1 1 40%;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -118,35 +96,10 @@
   color: var(--color-text-secondary);
 }
 
-/* Nested stat panel inside the featured card (reference 3). */
-.nested {
-  display: flex;
-  gap: var(--space-6);
-  margin-top: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-base);
-}
-
-.nestedItem {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.nestedValue {
-  font-family: var(--font-display-stack);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.nestedLabel {
+.count {
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.14em;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
@@ -155,6 +108,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  margin-top: var(--space-3);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
@@ -162,82 +116,45 @@
   color: var(--color-text-primary);
 }
 
-.featured:hover .openRow span:last-child {
-  color: var(--color-signal-icy);
-}
-
-/* ------------------------------------------------------------------- square tiles */
+/* ------------------------------------------------------------------ 1:1 tiles */
 
 .tile {
-  grid-column: span 3;
-  aspect-ratio: 1;
+  grid-column: span 4;
 }
 
-.tileWide {
-  grid-column: span 6;
-  aspect-ratio: 2 / 1;
+.tile .hitArea {
+  aspect-ratio: 1 / 1;
 }
 
-.tile .hitArea,
-.tileWide .hitArea {
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.media {
+.tile .hitArea > span:first-child {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  display: block;
+  border-radius: 0;
 }
 
-/* Must follow `.media`: same specificity, so file order decides, and the mark has to be centred
-   rather than sit flush at the top of the tile. */
-.mediaGhost {
-  display: grid;
-  place-items: center;
-}
-
-.media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--duration-base) var(--ease-out);
-}
-
-.tile:hover .media img,
-.tileWide:hover .media img {
-  transform: scale(1.05);
-}
-
-/* Scrim so the title stays legible over artwork (and gives the ghost mark a ground). */
-.tile .hitArea::before,
-.tileWide .hitArea::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    to top,
-    rgba(10, 10, 14, 0.92) 0%,
-    rgba(10, 10, 14, 0.6) 38%,
-    rgba(10, 10, 14, 0.05) 72%
-  );
-}
-
-.mediaGhost img {
-  width: 34%;
-  height: auto;
-  opacity: 0.1;
-}
-
+/* Index and meta sit on the sleeve's bottom scrim, not in a separate white box. */
 .tileBody {
-  position: relative;
+  position: absolute;
+  inset: auto 0 0;
   z-index: 2;
   display: grid;
-  gap: var(--space-1);
+  gap: 2px;
   padding: var(--space-4);
-  min-width: 0;
+  /* Scrim under the labels: the sleeve is dark, but a real cover might be bright. */
+  background: linear-gradient(to top, rgba(10, 10, 14, 0.92), rgba(10, 10, 14, 0));
+}
+
+.tileTitle {
+  font-family: var(--font-display-stack);
+  font-size: clamp(1rem, 0.85rem + 0.5vw, 1.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tileIndex {
@@ -247,84 +164,93 @@
   color: var(--color-text-secondary);
 }
 
-.tileTitle {
-  font-family: var(--font-display-stack);
-  font-size: clamp(1rem, 0.85rem + 0.5vw, 1.125rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Hover: artwork scales 1.05 and a black/80% overlay names the action. Touch devices never see the
+   overlay (no hover), so the card is complete without it. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: rgba(10, 10, 14, 0.8);
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease);
 }
 
-/* ------------------------------------------------------------------------- CTA tile */
+.card:hover .overlay,
+.card:focus-within .overlay {
+  opacity: 1;
+}
 
-.cta {
-  grid-column: span 6;
-  aspect-ratio: 2 / 1;
+.card:hover .hitArea img,
+.card:focus-within .hitArea img {
+  transform: scale(1.05);
+}
+
+/* -------------------------------------------------------------------- more tile */
+
+.more {
+  grid-column: span 4;
   background: transparent;
   border-style: dashed;
 }
 
-.cta .hitArea {
+.moreLink {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-direction: row;
+  height: 100%;
+  min-height: 160px;
   padding: var(--space-6);
-}
-
-.ctaBody {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.ctaArrow {
-  font-size: 1.25rem;
+  text-decoration: none;
   color: var(--color-text-secondary);
-  transition:
-    transform var(--duration-base) var(--ease),
-    color var(--duration-base) var(--ease);
+  transition: color var(--duration-base) var(--ease);
 }
 
-.cta:hover .ctaArrow {
+.moreLabel {
+  font-family: var(--font-display-stack);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+}
+
+.moreArrow {
+  font-size: 1.25rem;
+}
+
+.more:hover .moreLink {
   color: var(--color-signal-icy);
-  transform: translateX(4px);
 }
 
 /* --------------------------------------------------------------------- breakpoints */
 
 @media (max-width: 1023px) {
-  .featured {
-    aspect-ratio: auto;
-  }
-
   .featured .hitArea {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
-  .featuredMedia {
-    flex: none;
-    aspect-ratio: 16 / 9;
+  .featuredCover {
     border-right: 0;
     border-bottom: 1px solid var(--color-border);
   }
-}
 
-@media (max-width: 899px) {
-  .tile {
+  .tile,
+  .more {
     grid-column: span 6;
-  }
-
-  .tileWide,
-  .cta {
-    grid-column: span 12;
   }
 }
 
 @media (max-width: 559px) {
-  .tile {
+  .tile,
+  .more {
     grid-column: span 12;
   }
 
