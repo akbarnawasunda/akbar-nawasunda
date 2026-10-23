@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { displayFont } from "@/lib/fonts";
+import { bodyFont, displayFont, monoFont } from "@/lib/fonts";
 import { siteConfig } from "@/config/site";
 import { defaultSocialImages } from "@/lib/metadata";
 import "@/styles/globals.css";
@@ -9,7 +9,7 @@ import "@/styles/globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: siteConfig.name,
+    default: `${siteConfig.name} — Produser, Remixer, DJ asal Bandung Barat`,
     template: `%s — ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={displayFont.variable}>
+    <html lang="id" className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`}>
       <body>{children}</body>
     </html>
   );

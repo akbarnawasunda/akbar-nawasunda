@@ -17,7 +17,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
   return (
     <div className="site-root" {...designAttributes(design)}>
       <a href="#main" className="skip-link">
-        Skip to content
+        Lompat ke konten
       </a>
       <SiteHeader />
       <main id="main" className="site-main">

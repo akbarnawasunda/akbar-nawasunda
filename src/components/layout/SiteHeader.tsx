@@ -4,13 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 
+import { anMark } from "@/assets/web";
 import { primaryNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
+import { listenUrl } from "@/config/socials";
 import styles from "./SiteHeader.module.css";
 
 /**
- * Site header with the primary navigation. Desktop shows inline links; below 720px the links
- * move into a disclosure panel that closes on Escape and after navigation.
+ * Site header: 64px sticky bar, AN mark at 32px, mono navigation and the primary listen action.
+ * Desktop shows inline links; below 720px the links move into a disclosure panel that closes on
+ * Escape, on navigation, and when the viewport grows.
  */
 export function SiteHeader() {
   const pathname = usePathname();
@@ -31,11 +34,20 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.bar}>
-        <Link href="/" className={styles.brand}>
-          {siteConfig.name}
+        <Link href="/" className={styles.brand} aria-label={`${siteConfig.name} — beranda`}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 13 KB static logo, no need to optimise */}
+          <img
+            src={anMark.src}
+            alt=""
+            width={anMark.width}
+            height={anMark.height}
+            className={styles.mark}
+            decoding="async"
+          />
+          <span className={styles.wordmark}>{siteConfig.name}</span>
         </Link>
 
-        <nav aria-label="Primary" className={styles.desktopNav}>
+        <nav aria-label="Navigasi utama" className={styles.desktopNav}>
           <ul>
             {primaryNav.map((item) => (
               <li key={item.href}>
@@ -47,18 +59,33 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <button
-          type="button"
-          className={styles.toggle}
-          aria-expanded={open}
-          aria-controls={menuId}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? "Close" : "Menu"}
-        </button>
+        <div className={styles.actions}>
+          <a
+            className={styles.listen}
+            href={listenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Dengar
+            <span aria-hidden="true">↗</span>
+          </a>
+
+          <button
+            type="button"
+            className={styles.toggle}
+            aria-expanded={open}
+            aria-controls={menuId}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
+            <span aria-hidden="true" className={styles.toggleGlyph}>
+              {open ? "✕" : "☰"}
+            </span>
+          </button>
+        </div>
       </div>
 
-      <nav id={menuId} aria-label="Mobile" className={styles.mobileNav} hidden={!open}>
+      <nav id={menuId} aria-label="Navigasi seluler" className={styles.mobileNav} hidden={!open}>
         <ul>
           {primaryNav.map((item) => (
             <li key={item.href}>

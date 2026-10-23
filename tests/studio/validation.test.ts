@@ -103,7 +103,7 @@ describe("page document validation", () => {
 
 describe("design validation", () => {
   it("accepts the closed options", () => {
-    const result = validateDesign({ accent: "cobalt", titleCase: "as-written" });
+    const result = validateDesign({ accent: "icy", titleCase: "as-written" });
     assert.equal(result.ok, true);
   });
 

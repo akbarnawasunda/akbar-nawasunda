@@ -1,6 +1,10 @@
 .header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: var(--z-chrome);
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+  backdrop-filter: blur(12px) saturate(120%);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .bar {
@@ -9,15 +13,33 @@
   justify-content: space-between;
   gap: var(--space-4);
   min-height: var(--header-height);
+  max-width: var(--container-max);
+  margin-inline: auto;
   padding-inline: var(--gutter);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 
 .brand {
-  color: var(--color-fg);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
   text-decoration: none;
+  color: var(--color-fg);
+  min-width: 0;
+}
+
+/* AN mark at 32px tall (COMPONENT_DESIGN.md). The file is 174x112, so 112/174 keeps the ratio. */
+.mark {
+  height: 32px;
+  width: auto;
+}
+
+.wordmark {
+  font-family: var(--font-display-stack);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .desktopNav ul {
@@ -29,9 +51,13 @@
 }
 
 .desktopNav a {
-  color: var(--color-muted);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   text-decoration: none;
-  transition: color var(--duration-fast) ease;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease);
 }
 
 .desktopNav a:hover,
@@ -39,22 +65,58 @@
   color: var(--color-fg);
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Primary action: blue pill, sentence case, never shouty. */
+.listen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-signal-blue);
+  color: #fff;
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease);
+}
+
+.listen:hover {
+  background: var(--color-signal-blue-hover);
+  transform: translateY(-1px);
+}
+
 .toggle {
-  min-height: 44px;
-  min-width: 44px;
-  padding: var(--space-2) var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
   background: none;
-  border: 1px solid rgba(236, 232, 223, 0.3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   color: var(--color-fg);
   font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
   cursor: pointer;
 }
 
+.toggleGlyph {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .mobileNav {
-  padding: var(--space-6) var(--gutter) var(--space-8);
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
+  padding: var(--space-4) var(--gutter) var(--space-8);
+  border-top: 1px solid var(--color-border);
   background: var(--color-bg);
 }
 
@@ -68,9 +130,10 @@
 
 .mobileNav a {
   display: inline-block;
-  font-size: clamp(2rem, 8vw, 3rem);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-display-stack);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
   text-decoration: none;
 }
@@ -88,6 +151,12 @@
 @media (min-width: 720px) {
   .toggle,
   .mobileNav {
+    display: none;
+  }
+}
+
+@media (max-width: 379px) {
+  .wordmark {
     display: none;
   }
 }

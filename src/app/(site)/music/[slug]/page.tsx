@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { PageIntro } from "@/components/content/PageIntro";
 import { ReleaseView } from "@/components/content/ReleaseView";
 import { Container } from "@/components/layout/Container";
-import { getReleaseBySlug, releaseTypeLabel } from "@/content/releases";
+import { getReleaseBySlug, releaseDisplayTitle, releaseEyebrow } from "@/content/releases";
 import { pageMetadata } from "@/lib/metadata";
 import { getPublishedRelease } from "@/studio/public";
 import styles from "./release.module.css";
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
   if (!release) return { title: "Release not found" };
   return pageMetadata({
     title: release.title,
-    description: release.description ?? `${releaseTypeLabel[release.type]} by Akbar Nawasunda, ${release.year}.`,
+    description: release.description ?? `${releaseDisplayTitle(release)} — a verified release by Akbar Nawasunda.`,
     path: `/music/${release.slug}`,
   });
 }
@@ -45,7 +45,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       <Container>
         <ReleaseView doc={managed} />
         <p className={styles.back}>
-          <Link href="/music">← All music</Link>
+          <Link href="/music">← Semua musik</Link>
         </p>
       </Container>
     );
@@ -57,8 +57,8 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
   return (
     <Container>
       <PageIntro
-        eyebrow={`${releaseTypeLabel[release.type]} · ${release.year}`}
-        title={release.title}
+        eyebrow={releaseEyebrow(release)}
+        title={releaseDisplayTitle(release)}
         lead={release.description}
       />
 
@@ -73,11 +73,11 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
           ))}
         </ul>
       ) : (
-        <p className={styles.empty}>Listening links for this release are not available yet.</p>
+        <p className={styles.empty}>Tautan mendengarkan untuk rilis ini belum tersedia.</p>
       )}
 
       <p className={styles.back}>
-        <Link href="/music">← All music</Link>
+        <Link href="/music">← Semua musik</Link>
       </p>
     </Container>
   );

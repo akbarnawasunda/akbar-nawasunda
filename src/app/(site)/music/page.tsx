@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ContentRequirement } from "@/components/content/ContentRequirement";
 import { PageIntro } from "@/components/content/PageIntro";
 import { Container } from "@/components/layout/Container";
-import { releaseTypeLabel, releases as staticReleases } from "@/content/releases";
+import { releaseDisplayTitle, releaseEyebrow, releases as staticReleases } from "@/content/releases";
 import { pageMetadata } from "@/lib/metadata";
 import { RELEASE_TYPE_LABELS, publicReleaseDate } from "@/studio/releases";
 import { getPublishedReleases } from "@/studio/public";
@@ -26,7 +26,7 @@ export default async function MusicPage() {
 
   return (
     <Container>
-      <PageIntro eyebrow="Catalogue" title="Music" />
+      <PageIntro eyebrow="Katalog" title="Music" />
 
       {published.length > 0 ? (
         <ul className={styles.list}>
@@ -50,22 +50,20 @@ export default async function MusicPage() {
           {staticReleases.map((release) => (
             <li key={release.slug}>
               <Link href={`/music/${release.slug}`} className={styles.item}>
-                <span className={styles.meta}>
-                  {releaseTypeLabel[release.type]} · {release.year}
-                </span>
-                <span className={styles.name}>{release.title}</span>
+                <span className={styles.meta}>{releaseEyebrow(release)}</span>
+                <span className={styles.name}>{releaseDisplayTitle(release)}</span>
               </Link>
             </li>
           ))}
         </ul>
       ) : (
         <ContentRequirement
-          title="Catalogue pending"
-          description="The official release list is not published yet. Releases appear here once their details are confirmed."
+          title="Katalog menyusul"
+          description="Daftar rilis resmi belum terbit. Rilis tampil di sini setelah detailnya dikonfirmasi."
           items={[
-            "Confirmed list of releases, with titles, types and release years",
-            "Official streaming or purchase link for each release",
-            "Artwork cleared for use on this website",
+            "Daftar rilis yang dikonfirmasi: judul, jenis, dan tahun",
+            "Tautan streaming atau pembelian resmi per rilis",
+            "Artwork yang izin pemakaiannya jelas",
           ]}
         />
       )}

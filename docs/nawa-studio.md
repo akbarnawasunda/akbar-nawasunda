@@ -133,7 +133,7 @@ external links, SEO, and artwork. Rules:
   state. Static fallback data is still used when the database is unavailable.
 - Preview at `/studio/preview/release/<slug>`.
 
-**Design (`/studio/design`).** Closed options only: accent (`signal`, `bone`, `cobalt`) and title case
+**Design (`/studio/design`).** Closed options only: accent (`signal`, `icy`, `bone`) and title case
 (`uppercase`, `as-written`). Values are validated on the server, and the public site receives them only as
 `data-accent` and `data-title-case` attributes on the layout wrapper. No CSS input exists. Accent affects hover,
 focus, and selection only.

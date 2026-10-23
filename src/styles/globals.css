@@ -10,6 +10,7 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -17,7 +18,7 @@ body {
   min-height: 100dvh;
   background: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-sans);
+  font-family: var(--font-body-stack);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   font-weight: 400;
@@ -25,9 +26,22 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Atmospheric texture: 2% noise, never a gradient wash (COLOR_SYSTEM.md). Fixed so it does not
+   scroll with content and cannot be mistaken for an image. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-chrome);
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 img,
 svg,
-canvas {
+canvas,
+picture {
   display: block;
   max-width: 100%;
 }
@@ -35,7 +49,8 @@ canvas {
 h1,
 h2,
 h3,
-p {
+p,
+figure {
   margin: 0;
 }
 
@@ -46,13 +61,14 @@ a {
 }
 
 ::selection {
-  background: var(--color-accent);
-  color: var(--color-ink-950);
+  background: var(--color-signal-blue);
+  color: #000;
 }
 
 :focus-visible {
   outline: 2px solid var(--color-focus);
-  outline-offset: 4px;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Utility: visually hidden but available to assistive technology. */
@@ -69,13 +85,16 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
@@ -84,10 +103,10 @@ a {
   position: absolute;
   left: var(--space-4);
   top: var(--space-2);
-  z-index: 100;
+  z-index: var(--z-overlay);
   padding: var(--space-2) var(--space-4);
   background: var(--color-fg);
-  color: var(--color-ink-950);
+  color: var(--color-bg);
   text-decoration: none;
   transform: translateY(-200%);
 }
@@ -97,14 +116,14 @@ a {
 }
 
 /* Design settings (NAWA STUDIO). Only these closed attribute values are ever emitted by the server. */
-.site-root[data-accent="bone"] {
-  --color-accent: #ece8df;
-  --color-focus: #ece8df;
+.site-root[data-accent="icy"] {
+  --color-accent: var(--color-signal-icy);
+  --color-focus: var(--color-signal-icy);
 }
 
-.site-root[data-accent="cobalt"] {
-  --color-accent: #4f8cff;
-  --color-focus: #4f8cff;
+.site-root[data-accent="bone"] {
+  --color-accent: var(--color-text-primary);
+  --color-focus: var(--color-signal-icy);
 }
 
 .site-root[data-title-case="as-written"] .page-title {

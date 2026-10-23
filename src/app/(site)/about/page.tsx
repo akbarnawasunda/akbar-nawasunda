@@ -14,7 +14,7 @@ import styles from "./about.module.css";
 // never caches the static fallback.
 export const dynamic = "force-dynamic";
 
-const defaultDescription = `About ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`;
+const defaultDescription = `Tentang ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`;
 
 export async function generateMetadata() {
   const published = await getPublicPage("about");
@@ -53,11 +53,11 @@ export default async function AboutPage() {
         <SectionsView sections={published.sections} />
       ) : (
         <ContentRequirement
-          title="Biography pending"
-          description="The biography and career history will be published once they have been written and approved by the artist."
+          title="Biografi menyusul"
+          description="Biografi dan riwayat karier akan terbit setelah ditulis dan disetujui oleh artis."
           items={[
-            "Approved biography in English",
-            "Career timeline with verified dates and projects",
+            "Biografi resmi yang sudah disetujui",
+            "Linimasa karier dengan tanggal dan proyek yang terverifikasi",
           ]}
         />
       )}

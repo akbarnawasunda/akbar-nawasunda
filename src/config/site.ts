@@ -1,20 +1,28 @@
 /**
  * Single source of truth for site-wide identity and metadata defaults.
- * Content copy that is artist-specific lives here; page content should import from this file
- * rather than hard-coding strings in components.
+ * Artist-specific copy lives here; pages import from this file instead of hard-coding strings.
+ *
+ * Copy follows docs/01-BRAND-IDENTITY/BRAND_VOICE.md: Indonesian, direct, no hyperbole, and only
+ * facts listed as VERIFIED in docs/01-BRAND-IDENTITY/FACTS_AND_VERIFICATION.md.
  */
 export const siteConfig = {
   name: "Akbar Nawasunda",
-  role: "Electronic music producer, remixer, and DJ",
+  /** One line, max 12 words (CONTENT_GUIDELINES.md). */
+  role: "Produser, remixer, dan DJ asal Bandung Barat",
+  origin: "Bandung Barat, Indonesia",
+  since: 2020,
   description:
-    "The official website of Akbar Nawasunda, electronic music producer, remixer, and DJ.",
-  /** Override with NEXT_PUBLIC_SITE_URL once the canonical URL is decided. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  locale: "en_US",
-  themeColor: "#050506",
+    "Situs resmi Akbar Nawasunda — produser, remixer, dan DJ asal Bandung Barat. Breakbeat dan Indo Bass sejak 2020.",
+  /** Canonical URL. Override with NEXT_PUBLIC_SITE_URL for preview deployments. */
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://akbarnawasunda.my.id",
+  locale: "id_ID",
+  themeColor: "#0A0A0E",
 } as const;
 
 /** The three roles the artist works in, in display order. Names only; no biography. */
-export const roles = ["Producer", "Remixer", "DJ"] as const;
+export const roles = ["Produser", "Remixer", "DJ"] as const;
+
+/** Genres listed as VERIFIED in FACTS_AND_VERIFICATION.md. */
+export const genres = ["Breakbeat", "Indo Bass", "Jedag Jedug", "Jungle Dutch"] as const;
 
 export type SiteConfig = typeof siteConfig;

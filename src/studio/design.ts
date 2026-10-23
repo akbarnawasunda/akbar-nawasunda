@@ -4,9 +4,9 @@
  */
 
 export const ACCENT_OPTIONS = {
-  signal: { label: "Signal orange (current)", value: "signal", hex: "#ff4f1f" },
-  bone: { label: "Bone white", value: "bone", hex: "#ece8df" },
-  cobalt: { label: "Cobalt blue", value: "cobalt", hex: "#4f8cff" },
+  signal: { label: "Signal blue (brand)", value: "signal", hex: "#0087ff" },
+  icy: { label: "Icy cyan", value: "icy", hex: "#8ae8ff" },
+  bone: { label: "Bone white", value: "bone", hex: "#ffffff" },
 } as const;
 
 export const TITLE_CASE_OPTIONS = {

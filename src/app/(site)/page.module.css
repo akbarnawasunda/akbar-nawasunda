@@ -1,99 +1,466 @@
-.hero {
-  position: relative;
-  isolation: isolate;
-  min-height: calc(100vh - var(--header-height));
-  min-height: calc(100dvh - var(--header-height));
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
+/* ---------------------------------------------------------------- shared typographic pieces */
 
-/* Secondary link to the visual study, placed in the negative space above the roles. */
-.study {
-  position: absolute;
-  top: var(--space-6);
-  right: var(--gutter);
-  z-index: var(--z-chrome);
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono-stack);
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-muted);
-  text-decoration: none;
+  color: var(--color-text-secondary);
 }
 
-.study:hover {
-  color: var(--color-accent);
+.eyebrowRule {
+  display: inline-block;
+  width: var(--space-8);
+  height: 1px;
+  background: var(--color-signal-blue);
 }
 
-.content {
+.paragraph {
+  max-width: 46ch;
+  color: var(--color-text-secondary);
+}
+
+.placeholder {
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------------- hero */
+
+.hero {
   position: relative;
-  z-index: var(--z-content);
-  align-self: end;
-  width: 100%;
+  overflow: clip;
+  padding-block: var(--space-12) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.heroInner {
+  display: grid;
+  gap: var(--space-8);
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
-  padding-bottom: var(--space-6);
-  display: grid;
-  gap: var(--space-8);
 }
 
-/* Roles: an indexed list with hairline rules. Three columns on wide screens, stacked on phones. */
-.roles {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.copy {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
-}
-
-.role {
-  display: grid;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
-  font-size: clamp(1.125rem, 0.9rem + 0.9vw, 1.75rem);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-}
-
-.index {
-  font-size: var(--text-label);
-  font-weight: 400;
-  letter-spacing: var(--tracking-label);
-  color: var(--color-muted);
+  gap: var(--space-6);
+  align-content: end;
+  /* Appear above the signal layer. */
+  position: relative;
+  z-index: var(--z-content);
 }
 
 .title {
-  font-size: var(--text-display);
-  font-weight: 500;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-display-stack);
+  font-size: var(--text-hero);
+  font-weight: 800;
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
-  margin-left: -0.04em;
+  /* Optical alignment: the display face carries a little side bearing. */
+  margin-left: -0.03em;
 }
 
 .title span {
   display: block;
 }
 
-@media (max-width: 640px) {
-  .roles {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
+.lede {
+  max-width: 40ch;
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.primary {
+  background: var(--color-signal-blue);
+  color: #fff;
+}
+
+.primary:hover {
+  background: var(--color-signal-blue-hover);
+  transform: translateY(-1px);
+}
+
+.secondary {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: transparent;
+}
+
+.secondary:hover {
+  border-color: var(--color-signal-blue);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+/* ---------------------------------------------------------------- portrait + signal layer */
+
+.portraitWrap {
+  position: relative;
+  margin: 0;
+  isolation: isolate;
+}
+
+/* Liquid Signal placeholder. Phase 7 swaps this element for the WebGL scene; the size, layer and
+   breathing motion are already the ones 3D_ART_DIRECTION.md specifies. */
+.signalCanvas {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: min(600px, 118%);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 64% 38%, rgba(0, 135, 255, 0.55) 0%, rgba(0, 135, 255, 0) 46%),
+    radial-gradient(circle at 38% 62%, rgba(120, 0, 255, 0.5) 0%, rgba(120, 0, 255, 0) 58%),
+    radial-gradient(circle at 50% 50%, rgba(138, 232, 255, 0.18) 0%, rgba(138, 232, 255, 0) 40%);
+  filter: blur(30px);
+  opacity: 0.75;
+  animation: breathe var(--duration-breath) var(--ease) infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+.portraitFrame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(58, 58, 74, 0.7);
+  background: var(--color-bg-surface);
+  box-shadow:
+    0 0 0 1px rgba(120, 0, 255, 0.25),
+    0 40px 120px -60px rgba(0, 135, 255, 0.65);
+}
+
+.portrait {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 960 / 1199;
+  object-fit: cover;
+}
+
+.portraitCaption {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.portraitCaption span {
+  width: var(--space-6);
+  height: 1px;
+  background: var(--color-border-strong);
+}
+
+/* ------------------------------------------------------------------------------- genres */
+
+.genreBar {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  max-width: var(--container-max);
+  margin: var(--space-8) auto 0;
+  padding: var(--space-4) var(--gutter);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.genreBar li + li::before {
+  content: "·";
+  margin-right: var(--space-4);
+  color: var(--color-border-strong);
+}
+
+/* ------------------------------------------------------------------------------ sections */
+
+.section {
+  padding-block: var(--section-padding) 0;
+  /* Anchor targets clear the sticky header. */
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-8);
+}
+
+.sectionTitle {
+  margin-top: var(--space-3);
+  font-family: var(--font-display-stack);
+  font-size: var(--text-title);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.sectionLink {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.sectionLink:hover {
+  color: var(--color-text-primary);
+}
+
+/* --------------------------------------------------------------------------------- cards */
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+  aspect-ratio: 1;
+  padding: var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(158deg, var(--color-bg-surface-2) 0%, var(--color-bg-surface) 62%);
+  text-decoration: none;
+  transition:
+    border-color var(--duration-base) var(--ease),
+    transform var(--duration-base) var(--ease);
+}
+
+/* A single blue signal edge grows on hover; no glow, no tilt. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--color-signal-blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease);
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
+}
+
+.card:hover::after {
+  transform: scaleX(1);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardIndex,
+.cardMeta {
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.cardArrow {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  transition: transform var(--duration-base) var(--ease), color var(--duration-base) var(--ease);
+}
+
+.card:hover .cardArrow {
+  color: var(--color-signal-icy);
+  transform: translate(2px, -2px);
+}
+
+.cardBody {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.cardTitle {
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.125rem, 0.9rem + 0.8vw, 1.375rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.cardIndexTile {
+  border-style: dashed;
+  background: transparent;
+}
+
+.footnote {
+  margin-top: var(--space-4);
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* ----------------------------------------------------------------------------- editorial */
+
+.editorial {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.stageFrame {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+}
+
+.stageFrame img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.02);
+}
+
+.frameLabel {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 1;
+  padding: var(--space-1) var(--space-2);
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.editorialCopy {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.editorialCopy .secondary {
+  margin-top: var(--space-2);
+}
+
+/* ------------------------------------------------------------------------------ breakpoints */
+
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .hero {
+    padding-block: var(--space-16) 0;
   }
 
-  .role {
-    grid-template-columns: auto 1fr;
-    align-items: baseline;
+  .heroInner {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: var(--space-16);
+    align-items: end;
+  }
+
+  .genreBar {
+    margin-top: var(--space-12);
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-4);
   }
 
+  .editorial {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: var(--space-16);
+  }
 }
 
-.below {
-  padding-block: var(--space-16);
+@media (max-width: 899px) {
+  /* Mobile: the portrait leads, cropped to keep the face and the shoulders in frame. */
+  .portraitWrap {
+    order: -1;
+  }
+
+  .portrait {
+    height: 58vh;
+    object-fit: cover;
+    object-position: 50% 16%;
+  }
 }

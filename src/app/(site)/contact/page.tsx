@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
   title: "Contact",
-  description: "Contact details for bookings, remix requests and licensing enquiries.",
+  description: "Kontak resmi untuk booking, permintaan remix, dan lisensi.",
   path: "/contact",
 });
 
@@ -13,17 +13,17 @@ export default function ContactPage() {
   return (
     <Container>
       <PageIntro
-        eyebrow="Enquiries"
+        eyebrow="Kontak"
         title="Contact"
-        lead="No contact form is available yet. It will be added once a destination for enquiries is confirmed."
+        lead="Formulir kontak belum tersedia. Akan ditambahkan setelah alamat tujuan pesan dikonfirmasi."
       />
       <ContentRequirement
-        title="Contact details pending"
-        description="Official contact details will be listed here once they are confirmed."
+        title="Detail kontak menyusul"
+        description="Kontak resmi akan dicantumkan di sini setelah dikonfirmasi."
         items={[
-          "Booking enquiry address or management contact",
-          "Remix and collaboration enquiry route",
-          "Music licensing contact, if licensing is offered",
+          "Alamat booking atau kontak manajemen",
+          "Jalur permintaan remix dan kolaborasi",
+          "Kontak lisensi musik, bila tersedia",
         ]}
       />
     </Container>
