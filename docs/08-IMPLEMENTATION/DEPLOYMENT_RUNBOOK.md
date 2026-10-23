@@ -71,6 +71,7 @@ Run from a clean checkout of the release commit:
 npm ci
 npm run check          # assets · typecheck · lint · 107 tests · 8 DB tests · build
 npm run a11y           # axe-core, 7 routes × 2 widths → must print 0 violations
+npm run smoke          # 24 post-deploy checks against the local build
 npm run covers:sleeves # only if a release was added without artwork
 ```
 
@@ -93,7 +94,9 @@ Lighthouse's `font-size` heuristic wants 12 px. That is a design decision (D-077
 
 ---
 
-## 4. Smoke test after deploy (5 minutes)
+## 4. Manual smoke walkthrough (5 minutes, by hand)
+
+`npm run smoke` (§8) automates the machine-checkable half; this is the part that needs eyes.
 
 1. `/` returns 200; the hero photo paints before any scrolling; nav is 64 px and pushes to `/music`,
    `/visuals`, `/artist`, `/epk`.
@@ -129,3 +132,86 @@ Lighthouse's `font-size` heuristic wants 12 px. That is a design decision (D-077
   project” warning for `src/content/covers.ts`. It is expected — artwork is resolved with
   `fs.existsSync` at render time so the owner can drop a file in without a rebuild — and it is why
   the deployment bundle includes `public/`.
+
+---
+
+## 7. Merging this branch into `main` (read this before `gh pr merge`)
+
+`gh pr merge 3 --squash` **does not work** on this repository, and the reason is not a content
+conflict:
+
+```
+$ gh pr merge 3 --squash
+X Pull request #3 is not mergeable: the merge commit cannot be cleanly created.
+$ git merge-base origin/main HEAD
+(empty)
+```
+
+The repository was re-uploaded to `main` through the GitHub web UI on 2026-10-23 (18:04 and 18:36),
+which created a **new root commit** (`5bb94f7`) with no shared ancestor with this branch (root
+`57fde14`). Two unrelated histories cannot be squashed, so GitHub shows `CONFLICTING` and the merge
+button stays disabled. Nothing is wrong with the branch: `git diff` between the two trees is just
+"branch has the last eight phases, main has the original upload".
+
+### Recommended: one synchronisation commit on `main`
+
+Run this from a clone with push access to `main` (the owner, or a session allowed to push to `main`).
+It keeps `main`'s history and makes its tree exactly this branch's tree, without a force-push:
+
+```bash
+git fetch origin
+git checkout main
+git reset --hard origin/main
+
+# make the index and working tree identical to the release branch
+git rm -rq .
+git checkout origin/arena/e02160ef-akbar-nawasunda -- .
+
+git status --short | head        # expect ~439 added files, nothing deleted that the branch keeps
+git commit -m "chore: bring main up to the Phase 0–8 branch (unrelated histories)"
+git push origin main
+```
+
+Then close PR #3 with a note (GitHub will mark it merged only if it can fast-forward, which it cannot
+for unrelated histories):
+
+```bash
+gh pr close 3 --comment "Superseded: main synced to the branch tree in <commit>; histories are unrelated."
+```
+
+### Alternative, if `main` must keep its own files
+
+The only files on `main` that this branch does not have are the original prompt documents, the dead
+code from before Phase 2 (`SignalField.example.tsx`, `MusicNotesField.example.tsx`,
+`src/experiments/lattice`, `src/effects/`, `src/app/(site)/about/`), three unused font files, and
+`.nvmrc` (already equal). The prompts and `ASSET_INVENTORY_REAL.md` have been copied into this branch
+(`docs/08-IMPLEMENTATION/prompts/archive/`, `docs/05-CONTENT-AND-ASSETS/`), so the sync above loses no
+document. The dead code is exactly what D-055 deleted.
+
+### After the sync
+
+```bash
+npm ci && npm run check            # 107 tests + 8 DB tests + build
+npm run smoke -- https://<deployed-url>
+```
+
+---
+
+## 8. Post-deploy smoke test
+
+`npm run smoke` (zero dependencies, pure fetch) checks, against any base URL:
+
+- six public routes 200, `/nope` is a real 404 with the brand copy, `/about` still 308s to `/artist`
+- CSP, nosniff, Referrer-Policy, HSTS, Permissions-Policy, COOP
+- sitemap has 12 URLs and lists no private route; robots disallows `/studio`; manifest parses
+- JSON-LD is a `MusicGroup` with four `sameAs`
+- the EPK zip downloads and is ~976 KB
+- `/music` references six distinct cover files and no card falls back to the in-browser sleeve
+- no `<canvas>` and no signal component in the HTML
+
+```bash
+npm run smoke                                  # local production build
+npm run smoke -- https://akbarnawasunda.my.id  # production
+```
+
+Exits non-zero on the first failed check, so it can be wired into a Vercel post-deploy hook.

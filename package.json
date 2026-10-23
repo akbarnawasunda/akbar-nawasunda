@@ -24,6 +24,7 @@
     "db:seed": "tsx drizzle/seed.ts",
     "test:db": "node --conditions=react-server --import tsx --test \"tests/database/*.test.ts\"",
     "a11y": "node scripts/a11y-audit.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
     "lighthouse": "npx --yes lighthouse@12 --preset=desktop --chrome-flags=\"--headless=new --no-sandbox\""
   },
   "dependencies": {

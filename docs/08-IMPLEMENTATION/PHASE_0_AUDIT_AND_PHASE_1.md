@@ -846,3 +846,65 @@ rusak 0, overflow horizontal 0.
   `arena/e02160ef-akbar-nawasunda`; langkahnya ada di `DEPLOYMENT_RUNBOOK.md` §2 dan §3.
 - URL Spotify per rilis (6) → artwork level 2.
 - Bio panjang dan linimasa 2021–2024 (`[NEEDS OWNER]`).
+
+---
+
+## 21. Serah terima merge & deploy (2026-10-23)
+
+Phase 8 selesai dan disetujui owner. Yang **tidak** bisa diselesaikan dari sesi ini, beserta alasannya:
+
+### 21.1 `main` punya riwayat yang tidak berhubungan
+
+| | |
+|---|---|
+| Root `origin/main` | `5bb94f7 Add files via upload` (18:04 WIB), lalu `9b36d16` (18:36) |
+| Root branch ini | `57fde14 Add files via upload` |
+| `git merge-base origin/main HEAD` | kosong |
+| `gh pr merge 3 --squash` | ditolak: *"the merge commit cannot be cleanly created"* |
+| Hasil uji `--allow-unrelated-histories` | **69 konflik add/add**, semuanya "ambil versi branch" |
+
+Penyebabnya: repo di-upload ulang ke `main` lewat web GitHub hari ini, sehingga terbentuk root baru.
+Men-squash dua riwayat tanpa leluhur bersama tidak mungkin. Perintah penyelesaian ada di
+`DEPLOYMENT_RUNBOOK.md` §7 (satu commit sinkronisasi di `main`, tanpa force-push, riwayat `main` tetap
+utuh). Sesi ini **tidak boleh** push ke `main`, jadi langkah itu menunggu owner.
+
+Tidak ada yang hilang: berkas yang hanya ada di `main` sudah diselamatkan —
+prompt V9–V11 + `cleanup-prompts.sh` ke `docs/08-IMPLEMENTATION/prompts/archive/`,
+`ASSET_INVENTORY_REAL.md` ke `docs/05-CONTENT-AND-ASSETS/`, `.nvmrc` sudah sama. Sisanya adalah kode
+mati yang memang dihapus D-055 (`SignalField.example.tsx`, `MusicNotesField.example.tsx`,
+`src/experiments/lattice`, `src/effects/`, `src/app/(site)/about/`) dan tiga font yang tidak dipakai.
+
+### 21.2 Brief V9–V11 diaudit ulang
+
+`PROMPT_FINAL_V11_CLEAN_REPO.md` akhirnya ditemukan di `main` dan dibandingkan baris per baris dengan
+build ini. **Tidak ada requirement yang terlewat.** Deviasi yang disengaja, semuanya sudah punya baris
+keputusan: Sora → Syne (D-059), pill genre → `RILIS 0X / 06` (D-066), `+5 tahun` → `+6` (D-070),
+`logo-an.png` → mark transparan (D-063), teks putih di pil biru → near-black (D-071).
+
+### 21.3 Deploy produksi tidak bisa dijalankan dari sandbox
+
+`vercel.com`, `api.vercel.com` dan `api.turso.tech` tidak dapat dijangkau dari sandbox ini (hanya
+GitHub, npm dan PyPI yang diizinkan), dan tidak ada kredensial Vercel/Turso di sini. Karena itu
+deploy tetap di tangan owner; seluruh langkahnya ada di `DEPLOYMENT_RUNBOOK.md` §1–§3.
+
+Sebagai gantinya, satu perintah verifikasi pasca-deploy ditambahkan:
+
+```bash
+npm run smoke -- https://akbarnawasunda.my.id
+```
+
+24 pemeriksaan (rute, 404, redirect `/about`, enam header keamanan, sitemap/robots/manifest, JSON-LD,
+unduhan EPK, enam sampul, tidak ada `<canvas>`). Sudah dijalankan terhadap build lokal:
+**24/24 lulus**. Skrip yang sama dipakai setelah deploy produksi.
+
+### 21.4 Status akhir
+
+| Item | Status |
+|---|---|
+| Branch `arena/e02160ef-akbar-nawasunda` | semua pekerjaan ter-push |
+| PR #3 | **OPEN**, tidak bisa di-merge sampai `main` disinkronkan (§21.1) |
+| Test | 107 + 8 DB, hijau |
+| axe / Lighthouse | 0 violation / 100·100·100·100 desktop, 99·100·96·100 mobile |
+| `npm run smoke` | 24/24 |
+| `/privacy` | tidak dibuat |
+| `main` | tidak disentuh dari sesi ini |
