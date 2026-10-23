@@ -10,7 +10,8 @@
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-muted);
+  /* #A1A1B5 (7.8:1), not --color-muted (3.8:1) — label text has to pass AA. */
+  color: var(--color-text-secondary);
 }
 
 .title {

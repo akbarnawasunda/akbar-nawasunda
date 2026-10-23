@@ -1,0 +1,170 @@
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.photoTile,
+.surfaceTile {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background: var(--color-bg-surface);
+}
+
+.photoTile {
+  aspect-ratio: 4 / 5;
+  /* grid (not block): the trigger inside sizes with height:100%, which needs a definite track. */
+  display: grid;
+}
+
+.surfaceTile {
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-items: center;
+}
+
+/* Stagger the second column so the block does not read as a symmetric 2x2 (reference 3). */
+.grid li:nth-child(2) {
+  margin-top: var(--space-8);
+}
+
+.grid li:nth-child(3) {
+  margin-top: calc(var(--space-8) * -1);
+}
+
+.trigger {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  color: inherit;
+}
+
+.trigger img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.surfaceTile .trigger img {
+  object-fit: contain;
+  padding: 18%;
+}
+
+.trigger:hover img {
+  transform: scale(1.03);
+}
+
+.caption {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.expand {
+  position: absolute;
+  right: var(--space-3);
+  top: var(--space-3);
+  z-index: 1;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease);
+}
+
+.trigger:hover .expand,
+.trigger:focus-visible .expand {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ lightbox */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(5, 5, 6, 0.92);
+  cursor: zoom-out;
+}
+
+.lightbox {
+  position: relative;
+  margin: 0;
+  max-width: min(92vw, 820px);
+  max-height: 82vh;
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+}
+
+.lightbox img {
+  max-height: 72vh;
+  width: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.lightboxCaption {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@media (max-width: 559px) {
+  .grid li:nth-child(2) {
+    margin-top: var(--space-4);
+  }
+
+  .grid li:nth-child(3) {
+    margin-top: calc(var(--space-4) * -1);
+  }
+}

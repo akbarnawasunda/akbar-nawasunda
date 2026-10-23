@@ -59,7 +59,7 @@
   --tracking-label: 0.16em;
 
   /* Sized so the longest word ("NAWASUNDA") always fits its column without clipping. */
-  --text-hero: clamp(2.5rem, 5.4vw, 5.75rem);
+  --text-hero: clamp(2.5rem, 7.2vw, 6rem);
   --text-title: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
   --text-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
   --text-small: 0.875rem;
@@ -83,6 +83,7 @@
   --header-height: 4rem; /* 64px, per COMPONENT_DESIGN.md */
   --section-padding: var(--space-16);
   --radius-sm: 8px;
+  --radius-2xl: 24px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;

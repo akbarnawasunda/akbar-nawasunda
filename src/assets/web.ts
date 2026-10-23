@@ -46,4 +46,6 @@ export const stageFrame = {
   height: 700,
   avif: "/media/stage-700.avif",
   webp: "/media/stage-700.webp",
+  /** Smaller copy for the archive tile; the lightbox uses the 700px pair above. */
+  thumb: { width: 480, height: 480, webp: "/media/stage-480.webp", avif: "/media/stage-480.avif" },
 } as const;

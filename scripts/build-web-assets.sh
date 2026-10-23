@@ -32,10 +32,12 @@ for w in 480 720 960; do
   convert "$SRC/akbar-nawasunda-official-portrait-1200.webp" -resize "${w}x" -quality 55 "$MEDIA/portrait-$w.avif"
 done
 
-# Visual-archive frame used below the fold on the homepage (lazy, decorative). Square artwork, so a
-# single 700px side is enough for the column it is displayed in.
-convert "$STAGE_SRC/akbar-night-frequency-stage-optimized.webp" -resize 700x700 -quality 70 "$MEDIA/stage-700.webp"
-convert "$STAGE_SRC/akbar-night-frequency-stage-optimized.webp" -resize 700x700 -quality 45 "$MEDIA/stage-700.avif"
+# Visual-archive frame used below the fold on the homepage. Two sizes: 480 for the archive tile,
+# 700 for the lightbox view.
+for w in 480 700; do
+  convert "$STAGE_SRC/akbar-night-frequency-stage-optimized.webp" -resize "${w}x${w}" -quality 70 "$MEDIA/stage-$w.webp"
+  convert "$STAGE_SRC/akbar-night-frequency-stage-optimized.webp" -resize "${w}x${w}" -quality 45 "$MEDIA/stage-$w.avif"
+done
 
 echo "Built:"
 ls -l "$BRAND" "$MEDIA"

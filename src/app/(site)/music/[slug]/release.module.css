@@ -1,44 +1,156 @@
+/* Single release: a record sheet, not a centred article. Title block on the left, square artwork
+   (or the AN watermark while none is uploaded) on the right, verified facts as a mono row below. */
+.record {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-12) var(--space-12);
+}
+
+.main {
+  min-width: 0;
+}
+
+.eyebrow {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  margin-top: var(--space-4);
+  font-family: var(--font-display-stack);
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lead {
+  margin-top: var(--space-4);
+  max-width: 56ch;
+  color: var(--color-text-secondary);
+}
+
 .links {
   list-style: none;
-  margin: 0;
+  margin: var(--space-8) 0 0;
   padding: 0;
   display: grid;
-  gap: var(--space-4);
-  padding-bottom: var(--space-8);
+  gap: var(--space-3);
 }
 
 .links a {
-  font-size: var(--text-title);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-fg);
 }
 
-.links a:hover {
-  color: var(--color-accent);
+/* The honest "no link yet" state, styled as a field note rather than a grey paragraph. */
+.note {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
 }
 
-.empty {
-  padding-bottom: var(--space-8);
-  color: var(--color-muted);
+.noteLabel {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.artwork {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background:
+    radial-gradient(120% 90% at 30% 15%, rgba(0, 135, 255, 0.12), transparent 62%),
+    var(--color-bg-surface);
+}
+
+.artwork img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* No cover yet: the brand mark at 16% with a mono caption in the corner. */
+.artworkEmpty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.artworkEmpty img {
+  width: 46%;
+  height: auto;
+  opacity: 0.16;
+}
+
+.artworkCaption {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 
 .back {
-  padding-bottom: var(--space-16);
+  padding-bottom: var(--space-8);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
 }
 
-.cover {
-  margin: 0 0 var(--space-8);
-  max-width: 480px;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+/* Verified facts: a bordered strip of mono pairs, full width under the record. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-6) 0 var(--space-12);
+  border-top: 1px solid var(--color-border);
 }
 
-.cover img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: cover;
+.fact {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fact dt {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+@media (min-width: 900px) {
+  .record {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+    gap: var(--space-16);
+    padding-block: var(--space-12) var(--space-8);
+  }
 }

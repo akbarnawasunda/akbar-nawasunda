@@ -1,5 +1,4 @@
 import { ContentRequirement } from "@/components/content/ContentRequirement";
-import { PageIntro } from "@/components/content/PageIntro";
 import { ReleaseGrid } from "@/components/content/ReleaseGrid";
 import { Container } from "@/components/layout/Container";
 import { resolveCover } from "@/content/covers";
@@ -7,6 +6,7 @@ import { fromReleaseDocument, fromStaticRelease, type ReleaseView } from "@/cont
 import { releases as staticReleases } from "@/content/releases";
 import { pageMetadata } from "@/lib/metadata";
 import { getPublishedReleases } from "@/studio/public";
+import styles from "./music.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -31,14 +31,25 @@ export default async function MusicPage() {
 
   return (
     <Container>
-      <PageIntro
-        eyebrow="Katalog"
-        title="Music"
-        lead="Rilis, remix, dan mix Akbar Nawasunda. Tahun dan tautan per rilis menyusul."
-      />
+      <header className={styles.head}>
+        <div>
+          <p className={styles.eyebrow}>01 — Katalog</p>
+          <h1 className={styles.title}>Music</h1>
+          <p className={styles.lead}>Rilis, remix, dan mix Akbar Nawasunda. Tahun dan tautan per rilis menyusul.</p>
+        </div>
+        {items.length > 0 ? (
+          <p className={styles.count}>{String(items.length).padStart(2, "0")} rilis terverifikasi</p>
+        ) : null}
+      </header>
 
       {items.length > 0 ? (
-        <ReleaseGrid items={items} />
+        <>
+          <ReleaseGrid items={items} />
+          <p className={styles.note}>
+            Tahun rilis, artwork, dan tautan platform per rilis belum dikonfirmasi pemilik katalog.{" "}
+            <span className={styles.placeholder}>[NEEDS OWNER]</span>
+          </p>
+        </>
       ) : (
         <ContentRequirement
           title="Katalog menyusul"

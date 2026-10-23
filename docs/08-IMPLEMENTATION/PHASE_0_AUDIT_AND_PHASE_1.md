@@ -320,3 +320,59 @@ palsu. Tanpa env, situs kembali ke daftar statis — perilaku fallback tetap utu
 
 `/studio/music` kini mengenal jenis rilis "Rilis (jenis belum diverifikasi)" dan draft baru default ke
 nilai itu, bukan "single" (D-026).
+
+## 14. Revisi Phase 2 — bahasa visual dari 4 referensi (2026-10-23)
+
+Pemicu: preview Phase 2 dinilai owner "terlihat AI generik" — semua di tengah, potret hanya foto
+berbingkai, dan glow blob tanpa makna. Revisi mengikuti `PROMPT_REDESIGN_FROM_REFERENCES.md` di
+`main` tanpa mengubah `main`.
+
+### Yang diganti
+
+| Sebelum | Sesudah |
+|---|---|
+| Hero centered, teks di atas, foto berbingkai di tengah | Hero 55/45: teks kiri, potret resmi 4:5 di kanan, H1 96px menyeberang −120px melewati batas kolom ke arah bidang titik |
+| Glow blob / sphere | `SignalField`: medan titik (1.5–3px) dengan gradasi #0087FF → #8AE8FF → #7800FF, dua stroke tepi; SVG inline, bukan WebGL |
+| 6 kartu identik di tengah | Bento asimetris: 1 kartu unggulan lebar + 4 tile 1:1 + 1 tile lebar + 1 CTA, radius 24px, border 1px `#2A2A38`, gap 16px, panel statistik bersarang |
+| Label kecil `#6B6B80` | `#A1A1B5` (7.8:1) untuk semua label mono |
+| Tanpa tekstur | Lapisan noise 2% (`feTurbulence`, baseFrequency 0.9) sebagai satu layer tetap, `pointer-events: none` |
+| `/music` memakai intro generik | Kepala halaman memakai bentuk yang sama dengan section homepage (indeks mono + judul display + garis rambut + jumlah rilis terverifikasi) |
+| `/music/[slug]` hanya 3 baris teks | Lembar rekaman: judul + catatan tautan, panel artwork 1:1 (watermark AN jika artwork belum diunggah), strip fakta mono dengan `[NEEDS OWNER]` |
+
+### Komponen baru / ditulis ulang
+
+- `src/components/effects/SignalField.tsx` + `.module.css` — dot-matrix, `idPrefix` wajib, animasi
+  1 → 1.03 / 6 s dan 0 → 3° / 20 s, dimatikan pada `prefers-reduced-motion`.
+- `src/components/effects/GrainOverlay.tsx` + `.module.css` — noise 2% lewat `feTurbulence`
+  (baseFrequency 0.9) sebagai satu layer tetap tanpa blend mode, supaya tidak memicu repaint seluruh
+  halaman tiap frame saat scroll di Android kelas bawah.
+- `src/components/layout/{PlatformRow,GenreTape,SiteFooter}` — baris logo platform mono 11px, pita
+  genre, footer tiga kolom + strip biru 5px.
+- `src/components/content/ReleaseBento.tsx` + `.module.css`, `src/components/media/VisualGrid.tsx`.
+- `src/app/(site)/page.tsx` ditulis ulang: hero, `PlatformRow`, `GenreTape`, `#music`, `#visuals`.
+- `src/content/stats.ts` — `+{tahun aktif}` dan `+{jumlah rilis}` dihitung dari data terverifikasi,
+  bukan angka karangan.
+
+### Verifikasi
+
+```
+npm run typecheck   ✓
+npm run lint        ✓
+npm run test        ✓ 78/78
+npm run build       ✓
+npm run check       ✓ (assets 3 warning lama, 78 test, build)
+```
+
+Tangkapan layar 390 / 768 / 1280 untuk `/`, `/music`, `/music/masih-mencintainya-papinka` ada di
+`docs/08-IMPLEMENTATION/screenshots/` (lihat README di folder itu untuk kondisi pengambilan).
+
+### Catatan yang masih terbuka
+
+- Artwork 6 rilis belum ada: kartu memakai watermark AN 9–16%, halaman detail menulis
+  "Artwork belum diunggah". Tidak ada cover palsu.
+- Tahun rilis hanya diketahui untuk `masih-mencintainya-papinka` (2025, terverifikasi); sisanya
+  `[NEEDS OWNER]`.
+- Hero menampilkan `+6 tahun aktif` dan `+6 rilis terverifikasi` karena keduanya diturunkan dari
+  data yang sama (2020 → 2026, 6 judul). Angka yang berbeda akan butuh data owner.
+- Phase 5 belum dijalankan (menunggu persetujuan revisi Phase 2): `/artist` kanonik, `/about` → 308,
+  `/visuals` sebagai route.

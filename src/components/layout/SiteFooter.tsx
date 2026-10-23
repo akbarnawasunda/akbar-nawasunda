@@ -1,40 +1,42 @@
 import Link from "next/link";
 
-import { lockup } from "@/assets/web";
-import { primaryNav } from "@/config/navigation";
+import { anMark } from "@/assets/web";
+import { footerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { socialLinks } from "@/config/socials";
 import styles from "./SiteFooter.module.css";
 
 /**
- * Site footer: the full lockup (footer/EPK use only, never the nav), navigation, the four verified
- * platforms and the identity line, closing with the 5px signal strip.
+ * Footer: identity, navigation, verified platforms, then the 5px signal strip.
  *
- * Instagram and Apple Music are deliberately absent: their URLs are not verified yet
- * (docs/01-BRAND-IDENTITY/SOCIAL_LINKS.md). A broken or guessed link is worse than a missing one.
+ * Instagram, Apple Music, YouTube Music and any booking address are absent on purpose: their URLs
+ * are not verified (SOCIAL_LINKS.md), and a guessed link is worse than a missing one.
  */
 export function SiteFooter() {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.identity}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- 33 KB static lockup */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- 13 KB static mark */}
           <img
-            src={lockup.src}
+            src={anMark.src}
             alt=""
-            width={lockup.width}
-            height={lockup.height}
-            className={styles.lockup}
+            width={anMark.width}
+            height={anMark.height}
+            className={styles.mark}
             loading="lazy"
             decoding="async"
           />
-          <p className={styles.role}>{siteConfig.role}</p>
+          <p className={styles.name}>{siteConfig.name}</p>
+          <p className={styles.mono}>
+            {siteConfig.origin} • Sejak {siteConfig.since}
+          </p>
         </div>
 
-        <nav aria-label="Footer" className={styles.column}>
+        <nav aria-label="Navigasi footer" className={styles.column}>
           <p className={styles.heading}>Jelajahi</p>
           <ul>
-            {primaryNav.map((item) => (
+            {footerNav.map((item) => (
               <li key={item.href}>
                 <Link href={item.href}>{item.label}</Link>
               </li>
@@ -52,6 +54,7 @@ export function SiteFooter() {
                   <span className={styles.external} aria-hidden="true">
                     ↗
                   </span>
+                  <span className="sr-only"> (membuka tab baru)</span>
                 </a>
               </li>
             ))}
@@ -60,11 +63,8 @@ export function SiteFooter() {
       </div>
 
       <div className={styles.meta}>
-        <p>© {new Date().getFullYear()} {siteConfig.name}</p>
-        <p>
-          {siteConfig.origin} · Sejak {siteConfig.since}
-        </p>
-        <p className={styles.domain}>akbarnawasunda.my.id</p>
+        <p className={styles.mono}>© {new Date().getFullYear()} {siteConfig.name}</p>
+        <p className={styles.mono}>akbarnawasunda.my.id</p>
       </div>
 
       <div className={styles.strip} aria-hidden="true" />

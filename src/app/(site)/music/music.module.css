@@ -1,0 +1,58 @@
+/* Catalog page head: same shape as the homepage section heads (mono index, display title,
+   hairline rule) so /music reads as the same publication rather than a generic inner page. */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding-block: var(--space-12) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-8);
+}
+
+.eyebrow {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  margin-top: var(--space-3);
+  font-family: var(--font-display-stack);
+  font-size: clamp(2.5rem, 1.4rem + 4vw, 4.5rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin-top: var(--space-4);
+  max-width: 46ch;
+  color: var(--color-text-secondary);
+}
+
+.count {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Same honest footnote as the homepage bento. */
+.note {
+  padding-block: var(--space-6) var(--space-16);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.placeholder {
+  color: var(--color-text-primary);
+}

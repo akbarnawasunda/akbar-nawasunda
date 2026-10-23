@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { GrainOverlay } from "@/components/effects/GrainOverlay";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { designAttributes } from "@/studio/design";
@@ -24,6 +25,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         {children}
       </main>
       <SiteFooter />
+      <GrainOverlay />
     </div>
   );
 }

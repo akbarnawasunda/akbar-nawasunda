@@ -1,0 +1,45 @@
+.tape {
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.track {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3) var(--gutter);
+  max-width: var(--container-max);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* #A1A1B5 (7.8:1) rather than the #6A6A80 in the reference (3.5:1): this is real text, so the
+     accessibility floor wins over the visual reference (D-030). */
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: none;
+}
+
+.item + .item::before {
+  content: "";
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-signal-blue);
+  opacity: 0.9;
+}

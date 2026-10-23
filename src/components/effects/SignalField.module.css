@@ -1,21 +1,25 @@
-/* Position, size and motion are the ones 3D_ART_DIRECTION.md specifies, so swapping in the WebGL
-   scene later does not move anything on the page. */
-.signal {
-  position: absolute;
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  width: min(600px, 118%);
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 64% 38%, rgba(0, 135, 255, 0.55) 0%, rgba(0, 135, 255, 0) 46%),
-    radial-gradient(circle at 38% 62%, rgba(120, 0, 255, 0.5) 0%, rgba(120, 0, 255, 0) 58%),
-    radial-gradient(circle at 50% 50%, rgba(138, 232, 255, 0.18) 0%, rgba(138, 232, 255, 0) 40%);
-  filter: blur(30px);
-  opacity: 0.6;
+.field {
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rotor,
+.breather {
+  /* fill-box makes transform-origin: center resolve against the drawn blob, not the viewport. */
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Slow breathing: 1 → 1.03 over 6s (3D_ART_DIRECTION.md, hero idle). */
+.breather {
   animation: breathe var(--duration-breath) var(--ease) infinite;
+}
+
+/* Barely-there rotation: 0 → 3deg over 20s. Never a fast auto-spin. */
+.rotor {
+  animation: rotate 20s linear infinite;
 }
 
 @keyframes breathe {
@@ -28,8 +32,20 @@
   }
 }
 
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(3deg);
+  }
+}
+
+/* Also disabled globally in globals.css; repeated here so the effect never depends on load order. */
 @media (prefers-reduced-motion: reduce) {
-  .signal {
+  .breather,
+  .rotor {
     animation: none;
+    transform: none;
   }
 }
