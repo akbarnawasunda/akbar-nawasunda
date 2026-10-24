@@ -71,6 +71,22 @@
   min-height: 100svh;
   overflow: clip;
   isolation: isolate;
+  /*
+    Containment, because the hero is the one band on the site that repaints continuously.
+
+    Every frame the plate turns, the sheet inside it is re-rastered; every frame the pointer moves,
+    the ink plate is re-drawn. Without containment each of those invalidations is *document* work:
+    the layer tree above the hero has to be re-composited and the browser is free to walk ancestors
+    when it decides what to repaint. `contain: layout paint` tells it that nothing inside this box
+    can affect anything outside it and that no pixel of it can escape its own edge — which is
+    already true here (`overflow: clip`, `isolation: isolate`), so the declaration only removes
+    work, it does not change what is drawn.
+
+    It does not use `contain: size`, which would treat the box as empty for intrinsic sizing and
+    flatten a phone hero whose content is taller than `100svh`. `layout` alone keeps the height
+    driven by the content, which is what the two lines above rely on.
+  */
+  contain: layout paint;
   background: var(--color-ink-black);
   color: var(--color-text-primary);
 }

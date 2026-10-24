@@ -20,6 +20,14 @@ import styles from "./Plate3D.module.css";
  *   laid out in the same 3D scene;
  * - the tilt is smoothed with a lerp in one rAF loop per plate, and the loop stops as soon as the
  *   values have settled — a resting plate costs nothing;
+ * - the element's box is read **at most once per frame**, never once per pointer event. A
+ *   high-polling-rate mouse fires 120–1000 moves a second; a rect read on each of those, in a page
+ *   where other components write styles every frame, forces a synchronous layout each time. The
+ *   cache is cleared at the top of each frame, so it stays correct while the page scrolls under an
+ *   already-hovered plate;
+ * - `will-change` is scoped to the gesture instead of the lifetime of the page (see the stylesheet):
+ *   the promotion is what makes the rotation cheap, and holding a full-viewport 3D layer promoted
+ *   while nothing moves is what makes a page feel heavy in a different way — memory;
  * - a touch pointer never drives it: the handler ignores anything that is not a mouse or a pen, so
  *   a phone renders the object flat — the honest resting state, not a broken animation. Gate on the
  *   *event*, not on `(hover: none)`: that media query is also false-negative in a headless browser,
@@ -64,6 +72,14 @@ export function Plate3D({
     const target = { x: 0, y: 0 };
     const current = { x: 0, y: 0 };
     let frame = 0;
+    /**
+     * The host's box, valid for the current frame only.
+     *
+     * Cleared at the top of every tick, so a burst of pointer events inside one frame shares one
+     * measurement and the next frame measures again. Without the clear a stale rect would survive a
+     * scroll mid-gesture; without the cache every event pays for a layout read.
+     */
+    let rect: DOMRect | null = null;
 
     const write = () => {
       host.style.setProperty("--plate-ry", `${(current.x * tiltY).toFixed(2)}deg`);
@@ -73,6 +89,7 @@ export function Plate3D({
     };
 
     const tick = () => {
+      rect = null;
       current.x += (target.x - current.x) * 0.08;
       current.y += (target.y - current.y) * 0.08;
       write();
@@ -83,13 +100,19 @@ export function Plate3D({
         current.y = target.y;
         write();
         frame = 0;
+        /* Nothing is moving any more, so the layer hint is no longer worth its memory. */
+        delete host.dataset.active;
         return;
       }
       frame = requestAnimationFrame(tick);
     };
 
     const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(tick);
+      if (!frame) {
+        /* Promote before the first frame that needs it, not on every frame. */
+        host.dataset.active = "true";
+        frame = requestAnimationFrame(tick);
+      }
     };
 
     /*
@@ -99,7 +122,7 @@ export function Plate3D({
      */
     const onMove = (event: PointerEvent) => {
       if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
-      const rect = host.getBoundingClientRect();
+      rect ??= host.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       target.x = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - 0.5) * 2));
       target.y = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - 0.5) * 2));
@@ -112,6 +135,12 @@ export function Plate3D({
       schedule();
     };
 
+    /*
+     * No `pointerenter` listener, deliberately. An earlier version switched the layer hint on enter
+     * to warm it, which promoted a full-screen texture for every mouse that merely passed over the
+     * hero and never moved — the exact cost the scoping exists to avoid. The hint goes on in
+     * `schedule()`, which only runs when there is an actual rotation to write.
+     */
     host.addEventListener("pointermove", onMove, { passive: true });
     host.addEventListener("pointerleave", onLeave);
 
@@ -119,6 +148,7 @@ export function Plate3D({
       if (frame) cancelAnimationFrame(frame);
       host.removeEventListener("pointermove", onMove);
       host.removeEventListener("pointerleave", onLeave);
+      delete host.dataset.active;
       host.style.removeProperty("--plate-ry");
       host.style.removeProperty("--plate-rx");
       host.style.removeProperty("--plate-x");

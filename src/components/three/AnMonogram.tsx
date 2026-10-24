@@ -16,7 +16,17 @@ import styles from "./AnMonogram.module.css";
  *   viewport, so the bundle, the shader compile and the env-map pass all land after LCP — and on a
  *   page nobody has scrolled yet, they never land at all;
  * - the loop stops when the canvas leaves the viewport or the tab is hidden;
- * - devicePixelRatio is capped at 1.5; the canvas is decorative, not a photo;
+ * - **the scene is painted at 30 fps, not 60** (R11). What moves here is a 5.2 s sine on one axis
+ *   with an amplitude of 0.22 rad — at 30 fps that is ~1.3° of motion per paint, which is below the
+ *   threshold where the eye reads stepping, while the frame cost halves. The freed frames are the
+ *   point: this canvas shares a main thread and a GPU queue with the hero's plate, the ink plate and
+ *   Lenis, and it is the only one of the four that is a full scene;
+ * - it only paints once a quarter of the band is on screen, because a scene that is 1% visible is
+ *   still a full render of a mesh, an env map and a wireframe;
+ * - `MeshStandardMaterial`, not `MeshPhysicalMaterial`: the clearcoat lobe this used to carry is a
+ *   second specular evaluation on every fragment for a difference nobody can see on a 300 px metal
+ *   mark. Metalness, roughness and the room env map — the parts that actually read as metal — stay;
+ * - devicePixelRatio is capped at 1.25; the canvas is decorative, not a photo;
  * - `prefers-reduced-motion: reduce` renders one frame and never starts the loop;
  * - WebGL failure is silent: the hero is designed to be complete without it.
  */
@@ -120,12 +130,15 @@ export function AnMonogram() {
       geometry.center();
       geometry.computeVertexNormals();
 
-      const metal = new THREE.MeshPhysicalMaterial({
+      /*
+       * Standard, not Physical. The clearcoat this used to carry costs a second specular lobe per
+       * fragment and reads as nothing at this size; metalness + roughness + the RoomEnvironment
+       * reflection is where all of the visible metal comes from.
+       */
+      const metal = new THREE.MeshStandardMaterial({
         color: 0xe8e6e1,
         metalness: 0.92,
         roughness: 0.16,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.25,
         emissive: new THREE.Color(0x0087ff),
         emissiveIntensity: 0.06,
         envMapIntensity: 1.15,
@@ -188,7 +201,18 @@ export function AnMonogram() {
       let visible = true;
       const base = baseScale;
 
+      /**
+       * One paint every other vsync. The rAF callback stays on 60 Hz — it is a scheduler, not a
+       * renderer — so the phase of the oscillation stays tied to wall-clock time and nothing drifts
+       * when the tab throttles.
+       */
+      const FRAME_MS = 1000 / 30;
+      let paintedAt = 0;
+
       const frame = (now: number) => {
+        raf = requestAnimationFrame(frame);
+        if (now - paintedAt < FRAME_MS - 1) return;
+        paintedAt = now;
         if (!reduceMotion.matches) {
           // Oscillation around a readable three-quarter view, not a continuous spin: a full
           // rotation puts the mark edge-on twice a minute, and an edge-on monogram is a white slab.
@@ -198,10 +222,12 @@ export function AnMonogram() {
         }
         const eased = 1 - Math.pow(1 - scrollProgress, 3);
         const target = base * (1 + eased * 0.55);
-        group.scale.setScalar(group.scale.x + (target - group.scale.x) * 0.08);
+        /* 0.15, not 0.08: the lerp runs at 30 fps now, and the time constant is what the eye sees.
+           0.08 at 60 fps and 0.1536 at 30 fps are the same curve; using 0.08 here would have made
+           the mark reach its scroll size twice as slowly as it used to. */
+        group.scale.setScalar(group.scale.x + (target - group.scale.x) * 0.15);
         group.rotation.z = 0.03 - eased * 0.06;
         renderer.render(scene, camera);
-        raf = requestAnimationFrame(frame);
       };
 
       const play = () => {
@@ -237,7 +263,8 @@ export function AnMonogram() {
           if (visible) play();
           else pause();
         },
-        { threshold: 0.01 },
+        /* A quarter of the band, not 1%: a barely-peeking canvas is still a full scene per paint. */
+        { threshold: 0.25 },
       );
       intersection.observe(stage);
 

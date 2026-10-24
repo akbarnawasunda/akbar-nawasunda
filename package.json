@@ -30,6 +30,7 @@
     "check:web:external": "node scripts/check-web.mjs --external",
     "covers:plan": "node scripts/fetch-release-artwork.mjs --dry-run",
     "qa:motion": "node scripts/qa-motion.mjs",
+    "perf:audit": "node scripts/perf-audit.mjs",
     "audit:tokens": "node scripts/token-audit.mjs",
     "review:shots": "node scripts/review/shots.mjs"
   },

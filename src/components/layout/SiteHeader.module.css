@@ -5,7 +5,24 @@
   /* The bar's current height, so the drawer below it can sit flush against it in both states. */
   --bar-h: var(--header-height);
   background: color-mix(in srgb, var(--color-bg) 80%, transparent);
-  backdrop-filter: blur(12px) saturate(120%);
+  /*
+    No `backdrop-filter`, and here is the bill it used to charge (R11).
+
+    A sticky bar with a backdrop blur asks the compositor to re-capture and re-blur everything
+    behind it **whenever that backdrop changes**, not once when it is laid out. This bar sits
+    directly on top of the hero — the one band on the site where something is always moving — so the
+    blur was being re-run for the full width of the viewport (1440 × 73 px, radius 12, plus a
+    saturate pass) on every frame of every pointer move over the hero, and again on every scroll
+    frame for the rest of the page. That is the most expensive thing on the screen during exactly
+    the interaction the owner described as heavy.
+
+    What it was buying: almost nothing. The bar is already 80% opaque over a hero whose top edge
+    carries an 82% ink scrim, so the blurred content behind it was within a few percent of the
+    unblurred content. A blur you cannot see is not a style decision, it is a per-frame cost.
+
+    If the owner wants the frosted look back, the honest version is a `backdrop-filter` on a bar
+    that is *not* over moving content, or a solid panel — not this line in this position.
+  */
   border-bottom: 1px solid var(--color-border);
   transition:
     height 320ms var(--ease),

@@ -58,12 +58,15 @@ dan kode yang berjalan.
 1. Semua warna/spasi/tipe/motion dari `tokens.css` → `npm run audit:tokens` lulus.
 2. `npm run typecheck` lulus · `npm run lint` lulus.
 3. `npm run a11y` lulus (**16 pemuatan**, termasuk menu ponsel dan sisi belakang dalam keadaan terbuka).
-4. `npm run qa:motion` lulus (**21 asersi**).
+4. `npm run qa:motion` lulus (**22 asersi**).
 5. Screenshot lewat `npm run review:shots` sebelum lapor selesai; bandingkan dengan referensi.
 6. Menyentuh 3D → pakai `Plate3D` atau `AnMonogram` yang ada. **Jangan** bikin canvas baru.
 7. Menyentuh animasi scroll → daftarkan ke `scroll-engine.ts`. **Jangan** bikin rAF sendiri.
 8. `prefers-reduced-motion: reduce` harus menghasilkan keadaan diam yang tetap terbaca lengkap.
 9. Semua konten tetap terbaca tanpa WebGL.
+10. Menyentuh gerak/3D/blur → jalankan `npm run perf:audit` sebelum dan sesudah, lampirkan angkanya.
+    Alat ini bukan gerbang (tidak menggagalkan build), tapi klaim "lebih ringan" tanpa angka tidak
+    dihitung.
 
 ---
 
@@ -78,20 +81,20 @@ dan kode yang berjalan.
 
 ---
 
-## 4. Status kepatuhan (utang yang diketahui, per R9)
+## 4. Status kepatuhan (utang yang diketahui, per R11)
 
-Jujur lebih berguna daripada bersih di atas kertas. Tiga pelanggaran kontrak ini sudah ada di
-`HEAD` dan **belum** diperbaiki:
+Jujur lebih berguna daripada bersih di atas kertas. Dua pelanggaran kontrak ini sudah ada di `HEAD`
+dan **belum** diperbaiki:
 
 | Aturan | Lokasi | Catatan |
 | --- | --- | --- |
 | 4 | `src/components/zine/Tilt3D.tsx:30` | `matchMedia("(hover: none)")` sebagai gerbang di mount — di Chromium headless nilainya `true`, jadi tilt mati saat diuji |
 | 4 | `src/components/zine/SmoothScroll.tsx:19` | idem; di sini maksudnya "jangan jalankan Lenis di perangkat sentuh" |
-| 4 | `src/components/zine/Plate3D.module.css:32` | `@media (hover: none)` untuk mematikan `will-change` |
 | 5 | `Plate3D`, `AnMonogram`, `CursorDot`, `InkPress`, `SmoothScroll`, `Tilt3D` | masing-masing punya loop rAF sendiri; hanya `Depth`, `VisualRail`, `ReleaseTicker` memakai `scroll-engine` |
 | 2 | 36 modul CSS | ~734 nilai `px/rem/ms` mentah. Guard `audit:tokens` saat ini **hanya** memeriksa hex, jadi angka ini belum ditegakkan otomatis |
 
-Aturan 1, 3, 6, 7, 8, 9, 10 sudah terpenuhi.
+Aturan 1, 3, 6, 7, 8, 9, 10 sudah terpenuhi. `Plate3D.module.css` sudah bersih dari `@media (hover: none)`
+sejak R11 — blok itu dihapus bersama `will-change` permanen yang menjadi alasan keberadaannya.
 
 ---
 
