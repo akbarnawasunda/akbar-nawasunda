@@ -203,9 +203,15 @@
   padding-inline: var(--gutter);
 }
 
-/* The contact bar is the only filled surface in the footer, and it is filled with the signal colour:
-   one place on the page where the accent is a background instead of a dot or an underline (D-108).
-   No skew, no clip-path — a rectangle that lines up with the columns above it. */
+/*
+  The contact bar is the last printed object on the page (D-119): a paper slip laid over the ink, the
+  email set in display type at the right edge. It used to be a solid #0087FF strip, which was the
+  one place on the site where the accent became furniture — a large blue block reads as a banner
+  ad, and it fought the hero's blue full stop for the same job.
+
+  Paper, not blue: the sheet is the loudest thing a printed page has, and it leaves the accent to
+  mean "link" everywhere else.
+*/
 .contactLink {
   display: flex;
   flex-wrap: wrap;
@@ -213,14 +219,19 @@
   justify-content: space-between;
   gap: var(--space-2) var(--space-6);
   padding: var(--space-4) var(--space-6);
-  background: var(--color-signal-blue);
-  color: var(--color-ink-black);
+  background: var(--color-paper);
+  color: var(--color-paper-ink);
   text-decoration: none;
-  transition: filter 240ms var(--ease);
+  transition:
+    background 240ms var(--ease),
+    translate 240ms var(--ease-out);
 }
 
-.contactLink:hover {
-  filter: brightness(1.08);
+.contactLink:hover,
+.contactLink:focus-visible {
+  background: var(--color-signal-blue);
+  color: var(--color-ink-black);
+  translate: 0 -2px;
 }
 
 .contactLabel {
@@ -232,8 +243,8 @@
 
 .contactValue {
   font-family: var(--font-display-stack);
-  font-size: clamp(1.125rem, 2.2vw, 1.5rem);
-  letter-spacing: -0.01em;
+  font-size: clamp(1.25rem, 2.6vw, 1.875rem);
+  letter-spacing: -0.015em;
 }
 
 @media (max-width: 720px) {

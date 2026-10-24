@@ -76,16 +76,19 @@
   --font-mono-stack: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* A high-contrast serif wants air between the lines, not the 0.92 a grotesque can carry.
-     1.02 at display size is what makes Instrument Serif read as typeset rather than squashed. */
-  --leading-hero: 0.9;
+     1.02 at display size is what makes Instrument Serif read as typeset rather than squashed.
+     The hero itself is the exception: at 13rem the counters already have air, and two lines have to
+     lock together as one block, so it sets at 0.82 (D-119). */
+  --leading-hero: 0.82;
   --leading-tight: 1.02;
   --leading-body: 1.6;
   --tracking-hero: -0.02em;
   --tracking-tight: -0.01em;
   --tracking-label: 0.16em;
 
-  /* Sized so the longest word ("Nawasunda") always fits its column without clipping. */
-  --text-hero: clamp(3.25rem, 9.2vw, 8rem);
+  /* The name is the page: it sizes off the viewport, not off a container, and the cap is set so
+     "Nawasunda" (4.6em wide in Instrument Serif) still clears both gutters at 1920. */
+  --text-hero: clamp(3.5rem, 14.2vw, 13rem);
   --text-title: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
   --text-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
   --text-small: 0.875rem;

@@ -118,11 +118,13 @@ try {
     await page.evaluate((y) => window.scrollTo(0, y), scrollY);
     await settleScroll(page);
     return page.evaluate(() => {
-      const pick = (selector) => {
-        const node = document.querySelector(selector);
+      /* `data-layer` is set by the component, not by the CSS Module hash, so this selector survives
+         a rename. See the note in Depth.tsx. */
+      const pick = (name) => {
+        const node = document.querySelector(`[data-layer="${name}"]`);
         return node ? node.style.transform : "";
       };
-      return { type: pick('[class*="heroType"]'), sticker: pick('[class*="stickerDepth"]') };
+      return { type: pick("hero-type"), sticker: pick("hero-photo") };
     });
   };
 
@@ -132,12 +134,12 @@ try {
 
   const stickerShift = [at0, at300, at600].map((state) => state.sticker);
   check(
-    "depth engine moves the hero portrait",
+    "depth engine moves the hero photograph",
     new Set(stickerShift).size === 3 && stickerShift.every((value) => value.includes("translate3d")),
     stickerShift.join(" → "),
   );
   check(
-    "the portrait travels further than the type (parallax, not a single slide)",
+    "the photograph travels further than the type (parallax, not a single slide)",
     (() => {
       const px = (value) => {
         const match = /translate3d\([^,]+,\s*(-?[\d.]+)px/.exec(value);
@@ -173,46 +175,55 @@ try {
   );
 
   /*
-   * Hover tilt. Two different rules exist — the catalogue cards tilt themselves, the homepage bento
-   * tilts its tile wrapper — so the check reads the element that actually owns the transform rather
-   * than assuming it is the link.
+   * Hover behaviour, in both of the shapes this page now has:
+   * - the index row inverts (paper ground → ink ground), which is a background-colour change;
+   * - the featured sleeve lifts, which is a translate.
+   * Both are read from the element that owns the property, not assumed.
    */
-  const hoverTarget = async (handle) =>
-    page.evaluate((el) => {
-      const owner = el.closest("article") ?? el;
-      return getComputedStyle(owner).transform;
-    }, handle);
-
-  /* Index 0 is the featured card, which owns its own hover; the rest are the bento tiles. */
-  const cards = await page.$$('a[href^="/music/"]');
-  const bentoCard = cards[1] ?? cards[0];
-  if (bentoCard) {
-    const before = await hoverTarget(bentoCard);
-    await bentoCard.hover();
+  const indexRow = await page.$('[data-index-row]');
+  if (indexRow) {
+    const before = await page.evaluate(
+      (el) => ({ bg: getComputedStyle(el).backgroundColor, color: getComputedStyle(el).color }),
+      indexRow,
+    );
+    await indexRow.hover();
     await sleep(500);
-    const after = await hoverTarget(bentoCard);
-    const tilted = before !== after || after !== "none";
-    check("homepage tiles tilt on hover", tilted && after !== "none", `${before} → ${after}`);
-    await shot(page, "qa-hover");
+    const after = await page.evaluate(
+      (el) => ({ bg: getComputedStyle(el).backgroundColor, color: getComputedStyle(el).color }),
+      indexRow,
+    );
+    check("index rows invert on hover", before.bg !== after.bg && before.color !== after.color, `${before.bg} → ${after.bg}`);
+    await shot(page, "qa-index-hover");
   } else {
-    check("homepage tiles tilt on hover", false, "no release card found");
+    check("index rows invert on hover", false, "no [data-index-row] found");
   }
 
-  const catalogue = await browser.newPage();
-  await catalogue.setViewport({ width: 1440, height: 900 });
-  await catalogue.goto(`${base}/music`, { waitUntil: "load", timeout: 60000 });
-  await sleep(500);
-  const catalogueCard = await catalogue.$('a[href^="/music/"]');
-  if (catalogueCard) {
-    const before = await catalogue.evaluate((el) => getComputedStyle(el).transform, catalogueCard);
-    await catalogueCard.hover();
+  const sleeve = await page.$('[data-sleeve]');
+  if (sleeve) {
+    await sleeve.hover();
     await sleep(500);
-    const after = await catalogue.evaluate((el) => getComputedStyle(el).transform, catalogueCard);
-    check("catalogue cards tilt on hover", before !== after && after !== "none", `${before} → ${after}`);
+    const translate = await page.evaluate((el) => getComputedStyle(el).translate, sleeve);
+    check("the featured sleeve lifts on hover", translate !== "none" && translate !== "", translate);
   } else {
-    check("catalogue cards tilt on hover", false, "no card on /music");
+    check("the featured sleeve lifts on hover", false, "no [data-sleeve] found");
   }
-  await catalogue.close();
+
+  /* The ticker: a scroll-scrubbed band has to actually be scrubbed. */
+  const tickerAt = async (y) => {
+    await page.evaluate((y) => window.scrollTo(0, y), y);
+    await settleScroll(page);
+    return page.evaluate(() => {
+      const node = document.querySelector("[data-ticker]");
+      return node ? node.style.getPropertyValue("--ticker") : "";
+    });
+  };
+  const tickerA = await tickerAt(200);
+  const tickerB = await tickerAt(1200);
+  check(
+    "the catalogue ticker is scrubbed by the scroll",
+    tickerA !== "" && tickerB !== "" && tickerA !== tickerB,
+    `${tickerA || "unset"} → ${tickerB || "unset"}`,
+  );
 
   // Header: compact after scrolling, hidden while going down, back on the way up.
   await page.evaluate(() => window.scrollTo(0, 0));

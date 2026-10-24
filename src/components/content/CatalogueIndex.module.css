@@ -1,0 +1,184 @@
+/*
+  The index, printed on stock (D-119).
+
+  This band is the second ground of the site: everything above it is a dark room, this is a page.
+  Alternating the ground is what stops a long page from reading as one scrolling black surface — it
+  is also how every record sleeve, press kit and liner note works.
+
+  Rows are hairlines and display type; the interaction is one inversion, from paper to ink, with the
+  row's ordinal and arrow along for the ride. Nothing lifts, nothing casts a shadow, nothing rounds.
+*/
+
+.wrap {
+  position: relative;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid color-mix(in srgb, var(--color-paper-ink) 28%, transparent);
+}
+
+.row {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-paper-ink) 16%, transparent);
+}
+
+.link {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-4) 0;
+  text-decoration: none;
+  color: var(--color-paper-ink);
+  transition:
+    background var(--duration-base) var(--ease),
+    color var(--duration-base) var(--ease),
+    padding var(--duration-base) var(--ease-out);
+}
+
+.ordinal {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  /* 62% of the ink on paper is the lightest grey that still clears 4.5:1 at 9 px. */
+  color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
+  transition: color var(--duration-base) var(--ease);
+}
+
+.link:hover .ordinal,
+.link:focus-visible .ordinal {
+  color: var(--color-signal-icy);
+}
+
+/*
+  The inversion. `padding-left` grows by 16 px at the same time, so the row cannot simply change
+  colour under a still cursor — the type steps aside as the paper slides in. Padding on hover is
+  normally a layout thrash; on a single row, once, it is a 100 ms relayout nobody can perceive, and
+  the alternative (transform on the text) would misalign every column.
+*/
+.link:hover,
+.link:focus-visible {
+  background: var(--color-paper-ink);
+  color: var(--color-paper);
+  padding-left: var(--space-4);
+  outline: none;
+}
+
+.link:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-signal-icy);
+}
+
+.title {
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.meta {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-paper-ink) 68%, transparent);
+  transition: color var(--duration-base) var(--ease);
+}
+
+.link:hover .meta,
+.link:focus-visible .meta {
+  color: color-mix(in srgb, var(--color-paper) 78%, transparent);
+}
+
+.arrow {
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--color-paper-ink) 50%, transparent);
+  transition:
+    color var(--duration-base) var(--ease),
+    translate var(--duration-base) var(--ease-out);
+}
+
+.link:hover .arrow,
+.link:focus-visible .arrow {
+  color: var(--color-paper);
+  translate: 2px -2px;
+}
+
+/* ------------------------------------------------------------------ preview */
+
+/*
+  Fixed, so the sleeve is never clipped by the list and never adds to its height. 260 px at 1440,
+  which is roughly a 7" single held at arm's length next to the row.
+*/
+.preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-overlay);
+  width: 260px;
+  height: 260px;
+  pointer-events: none;
+  opacity: 0;
+  translate: -50% -50%;
+  rotate: -3deg;
+  transition:
+    opacity var(--duration-base) var(--ease),
+    scale var(--duration-base) var(--ease-out);
+  scale: 0.96;
+  will-change: transform;
+}
+
+.preview[data-visible="true"] {
+  opacity: 1;
+  scale: 1;
+}
+
+.preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 1px solid var(--color-paper-ink);
+  /* A hard offset shadow, not a soft one: on paper, an object's shadow is a printing convention. */
+  box-shadow: 10px 12px 0 rgb(10 10 14 / 22%);
+}
+
+@media (max-width: 720px) {
+  /* No pointer to follow on a phone, and a fixed 260 px plaque over the list is in the way. */
+  .preview {
+    display: none;
+  }
+
+  .link {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+  }
+
+  .meta {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .arrow {
+    grid-row: 1;
+    grid-column: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .link:hover,
+  .link:focus-visible,
+  .preview,
+  .arrow {
+    transition: none;
+  }
+
+  .preview {
+    rotate: none;
+  }
+}

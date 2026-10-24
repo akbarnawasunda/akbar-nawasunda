@@ -50,6 +50,8 @@ interface Entry extends Required<Omit<DepthOptions, "perspective">> {
 interface PinEntry {
   node: HTMLElement;
   property: string;
+  /** "pin": progress across the element's pinned travel. "travel": progress across its pass. */
+  mode: "pin" | "travel";
 }
 
 const entries = new Set<Entry>();
@@ -109,9 +111,18 @@ function tick() {
   const measuredPins: { entry: PinEntry; progress: number }[] = [];
   for (const entry of pins) {
     const rect = entry.node.getBoundingClientRect();
-    const span = rect.height - vh;
-    const progress = span > 0 ? clamp(-rect.top / span, 0, 1) : rect.top < 0 ? 1 : 0;
-    measuredPins.push({ entry, progress });
+    if (entry.mode === "pin") {
+      const span = rect.height - vh;
+      measuredPins.push({ entry, progress: span > 0 ? clamp(-rect.top / span, 0, 1) : rect.top < 0 ? 1 : 0 });
+    } else {
+      /**
+       * "travel": 0 when the element's top edge is at the bottom of the viewport, 1 when its bottom
+       * edge has passed the top. That is the number a horizontal scrub wants — a 120 px ticker band
+       * has no pinned range at all, but it still travels through the screen.
+       */
+      const progress = clamp((vh - rect.top) / (vh + rect.height), 0, 1);
+      measuredPins.push({ entry, progress });
+    }
   }
 
   // Write pass.
@@ -215,11 +226,18 @@ export function registerDepth(node: HTMLElement, options: DepthOptions = {}): ()
  * nothing registers under reduced motion, and the resting state — no property, no offset — is the
  * readable one.
  */
-export function registerPin(node: HTMLElement, options: { property?: string } = {}): () => void {
+export function registerPin(
+  node: HTMLElement,
+  options: { property?: string; mode?: "pin" | "travel" } = {},
+): () => void {
   if (typeof window === "undefined") return () => {};
   if (reduced()) return () => {};
 
-  const entry: PinEntry = { node, property: options.property ?? "--pin" };
+  const entry: PinEntry = {
+    node,
+    property: options.property ?? "--pin",
+    mode: options.mode ?? "pin",
+  };
   pins.add(entry);
   start();
   schedule();

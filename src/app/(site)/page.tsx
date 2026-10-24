@@ -1,27 +1,22 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import {
-  portraitAlt,
-  portraitSize,
-  portraitSources,
-  stickerPortraitAlt,
-  stickerPortraitSize,
-  stickerPortraitSources,
-} from "@/assets/web";
+import { editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
+import { CatalogueIndex } from "@/components/content/CatalogueIndex";
 import { PaperAbout } from "@/components/content/PaperAbout";
-import { ReleaseBento } from "@/components/content/ReleaseBento";
+import { ReleaseCover } from "@/components/content/ReleaseCover";
+import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
-import { Depth } from "@/components/zine/Depth";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
 import { AnMonogram } from "@/components/three/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Depth } from "@/components/zine/Depth";
 import { Magnetic } from "@/components/zine/Magnetic";
 import { Reveal } from "@/components/zine/Reveal";
-import { Tilt3D } from "@/components/zine/Tilt3D";
 import { coverArtwork } from "@/content/covers";
 import { fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
@@ -33,29 +28,35 @@ import { contactEmail, contactHref, listenLinks, listenUrl, socialLinks } from "
 import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage } from "@/studio/public";
+
 import styles from "./page.module.css";
 
 /**
- * Homepage — the editorial pass (2026-10-24, D-108).
+ * Homepage — "frekuensi" (round 7, D-119).
  *
- * The zine pass that preceded this one leaned on physical props: masking tape on the portrait, a torn
- * paper edge, a blue spray slab behind the A, a ruled grid over the hero. Read back to us, that was
- * the single worst thing on the page — "dekorasi terasa acak" — because none of those devices meant
- * anything: they were texture applied on top of a layout that would have worked without them.
+ * The three passes before this one were all corrections of the same object: a zine, then an
+ * editorial page, then the same editorial page with the radius turned down. Every one of them was
+ * built out of *cards* — a border, a radius, some padding, a mono label — and a page made of cards
+ * is a page that looks like a dashboard no matter how good the typography inside the cards is.
+ * martingarrix.com and alanwalker.com are not built out of cards. They are built out of **one big
+ * image, one enormous name, and a handful of things you can actually do.**
  *
- * So they are gone rather than toned down, and three things carry the page instead:
- * - type. Instrument Serif, one weight, sentence case, italic where a word needs emphasis. A serif
- *   at 400 holds a page by itself in a way a bold grotesque cannot;
- * - composition. The cut-out portrait still breaks out of its column and overlaps the H1 — that
- *   overlap is the idea, and it needs no tape to hold it;
- * - one accent. The signal blue appears as a full stop after the name, the active nav mark, the
- *   chronology dots and the two link underlines. Nowhere else.
+ * So this page is composed as five full-width bands, and each band is one idea:
  *
- * There is still no canvas, no shader, no particle field and no purple glow (D-055 stands).
+ *   1. the hero — a real photograph of an empty stage, the name at 15vw, and the facts;
+ *   2. the running head — the catalogue printed as one line of display type that scrubs with scroll;
+ *   3. the transmission — the newest release as a spread: sleeve at half the screen, type large;
+ *   4. the index — all ten releases as rows, inverting to paper under the cursor;
+ *   5. the bands — the street frame, the about sheet, the archive, the monogram, the deck, the press.
+ *
+ * What is deliberately missing: three "stat cards" (a number is not a card), any pill-shaped CTA,
+ * any rounded panel, and any decoration that does not carry information. The accent rule is
+ * unchanged from D-108: the signal blue is a full stop, an active rule, a drawn timeline and a link
+ * underline. Nothing else.
  *
  * Copy rules are unchanged and non-negotiable: counts are derived (src/content/stats.ts), every
- * platform link comes from the owner's own files (14 of them, D-090), and anything the owner has not
- * confirmed is either absent or literally printed as [NEEDS OWNER]. No stream totals, no awards.
+ * platform link comes from the owner's own files (D-090), and anything unconfirmed is absent or
+ * printed as [NEEDS OWNER]. No stream totals, no awards, no tour dates — there are none to show.
  */
 export const metadata: Metadata = {
   title: {
@@ -63,7 +64,6 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   alternates: { canonical: "/" },
-  // 1200×630 branded card, generated by src/app/og/route.tsx.
   openGraph: {
     type: "website",
     locale: siteConfig.locale,
@@ -88,16 +88,30 @@ const catalogue = releases.map((release) => ({
 }));
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
-/** How much of the catalogue is still missing a year or a listening link, counted not guessed. */
 const missingYear = releases.filter((release) => !release.year).length;
 const missingLink = releases.filter((release) => release.links.length === 0).length;
 const officialLinkCount = listenLinks.length + socialLinks.length;
+
+/** One sleeve path per release, for the index preview. `release.cover` first, then the waterfall. */
+const indexRows = catalogue.map((item, index) => ({
+  slug: item.slug,
+  ordinal: String(index + 1).padStart(2, "0"),
+  href: item.href,
+  title: item.title,
+  meta: item.meta,
+  sleeve: item.artwork.kind === "generated" ? null : item.artwork.src,
+}));
+
+const tickerItems = catalogue.map((item) => ({
+  slug: item.slug,
+  title: item.title,
+  meta: item.meta,
+}));
 
 export default async function HomePage() {
   if (!featured) return null;
   const home = await getPublicPage("home");
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
-  const rest = catalogue.slice(1, 6);
   const facts = artistFacts.slice(0, 4);
   const timeline = artistTimeline;
 
@@ -110,40 +124,70 @@ export default async function HomePage() {
         }}
       />
 
+      {/* The hero image is the LCP element: preloaded, fetched at high priority, never lazy. */}
       <link
         rel="preload"
         as="image"
         type="image/avif"
-        imageSrcSet={stickerPortraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-        imageSizes="(min-width: 1024px) 46vw, 58vw"
+        href={editorialFrame.webp}
         fetchPriority="high"
       />
 
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
+        {/*
+          The photograph: the owner's own frame of an empty stage under one warm lamp. It is the
+          only landscape image in the archive, and it does something no graphic could — it puts the
+          artist in a room. Depth gives it a slow counter-move so the type and the room separate.
+        */}
+        <Depth className={styles.heroMedia} y={-70} scale={0.05} perspective={1400} data-layer="hero-photo">
+          {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed art direction, exact crop */}
+          <img
+            className={styles.heroImage}
+            src={editorialFrame.webp}
+            alt=""
+            width={editorialFrame.width}
+            height={editorialFrame.height}
+            fetchPriority="high"
+            decoding="async"
+          />
+        </Depth>
+        <div className={styles.heroScrim} aria-hidden="true" />
+
         <div className={styles.heroInner}>
-          <div className={styles.heroCopy}>
-            <Depth className={styles.heroType} y={-58} fade={0.12}>
-            <p className={styles.eyebrow}>
-              {siteConfig.origin.replace(", Indonesia", "")} · Sejak {siteConfig.since} ·{" "}
-              {stats.releaseCount} rilis
-            </p>
+        {/*
+          The masthead: two mono lines at the top corners, the way a magazine runs its issue
+          information. It costs 20 px of height and it stops the top third of the hero from being
+          empty dark — a full-bleed photograph needs something set on it at the edges or the eye has
+          nowhere to start.
+        */}
+        <div className={styles.masthead}>
+          <p className={styles.kicker}>
+            <span className={styles.live} aria-hidden="true" />
+            {siteConfig.origin.replace(", Indonesia", "")} · sejak {siteConfig.since}
+          </p>
+          <p className={styles.kicker}>Produser · Remixer · DJ</p>
+        </div>
 
-            <h1 id="hero-title" className={styles.title}>
-              <span className={styles.titleLine}>Akbar</span>
-              <span className={`${styles.titleLine} ${styles.titleAccent}`}>
-                Nawasunda
-                <span className={styles.titleDot} aria-hidden="true">.</span>
-              </span>
-            </h1>
-            </Depth>
+        {/* The type layer. It drifts against the photograph, so the room and the name read as two
+            depths rather than one picture sliding. */}
+        <Depth className={styles.heroText} y={-26} data-layer="hero-type">
+        <div className={styles.heroBody}>
 
-            <p className={styles.sub}>
+          <h1 id="hero-title" className={styles.name}>
+            <span className={styles.nameLine}>Akbar</span>
+            <span className={`${styles.nameLine} ${styles.nameItalic}`}>
+              Nawasunda<span className={styles.stop} aria-hidden="true">.</span>
+            </span>
+          </h1>
+
+          <div className={styles.heroFoot}>
+            <p className={styles.heroSub}>
               Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — tiga
               bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.
             </p>
 
-            <div className={styles.actions}>
+            <div className={styles.heroActions}>
               <Magnetic>
                 <ButtonLink href={listenUrl} variant="primary" external>
                   Dengar Sekarang
@@ -155,111 +199,97 @@ export default async function HomePage() {
                 </ButtonLink>
               </Magnetic>
             </div>
+          </div>
+        </div>
 
-            {/* Every number is derived: years from siteConfig.since, releases from the verified
-                catalogue, platforms from the four confirmed links. Nothing is typed by hand. */}
-            <Depth y={26} scale={0.015}>
-            <dl className={styles.stats}>
-              <div className={styles.stat}>
-                <dt>Rilis</dt>
-                <dd>
-                  <span className={styles.statValue}>+{stats.releaseCount}</span>
-                  <span className={styles.statNote}>terverifikasi</span>
-                </dd>
-              </div>
-              <div className={styles.stat}>
-                <dt>Tahun aktif</dt>
-                <dd>
-                  <span className={styles.statValue}>+{stats.yearsActive}</span>
-                  <span className={styles.statNote}>sejak {siteConfig.since}</span>
-                </dd>
-              </div>
-              <div className={styles.stat}>
-                <dt>Platform</dt>
-                <dd>
-                  <span className={styles.statValue}>{officialLinkCount}</span>
-                  <span className={styles.statNote}>tautan resmi</span>
-                </dd>
-              </div>
-            </dl>
-            </Depth>
+        </Depth>
+
+        {/* The facts, as one ruled line: a figure, a label, a figure — not three cards. */}
+        <div className={styles.factsBar}>
+        <dl className={styles.facts}>
+          <div className={styles.fact}>
+            <dt>Rilis</dt>
+            <dd>{stats.releaseCount}</dd>
+          </div>
+          <div className={styles.fact}>
+            <dt>Tahun aktif</dt>
+            <dd>{stats.yearsActive}</dd>
+          </div>
+          <div className={styles.fact}>
+            <dt>Tautan resmi</dt>
+            <dd>{officialLinkCount}</dd>
+          </div>
+        </dl>
+        <p className={styles.factNote}>
+          Semua angka dihitung dari katalog dan berkas pemilik. Tidak ada statistik platform.
+        </p>
+        </div>
+
+        <p className={styles.cue} aria-hidden="true">
+          <span>Gulir</span>
+          <span className={styles.cueLine} />
+        </p>
+        </div>
+      </section>
+
+      {/* ----------------------------------------------------------- running head */}
+      <ReleaseTicker items={tickerItems} />
+
+      {/* ------------------------------------------------------------- transmission */}
+      <section className={styles.transmission} id="music" aria-labelledby="music-title">
+        <Container>
+          <div className={styles.transmissionHead}>
+            <p className={styles.sectionNumber}>01 — Rilis terbaru</p>
+            <Link className={styles.sectionLink} href="/music">
+              Semua rilis <span aria-hidden="true">→</span>
+            </Link>
           </div>
 
-          <Tilt3D className={styles.stickerTilt}>
-          <Depth className={styles.stickerDepth} y={-140} z={90} scale={0.06} perspective={1500}>
-          <figure className={styles.sticker}>
-            <picture>
-              <source
-                type="image/avif"
-                srcSet={stickerPortraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-                sizes="(min-width: 1024px) 46vw, 58vw"
-              />
-              <source
-                type="image/webp"
-                srcSet={stickerPortraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-                sizes="(min-width: 1024px) 46vw, 58vw"
-              />
-              <img
-                className={styles.stickerImg}
-                src={stickerPortraitSources[1].webp}
-                alt={stickerPortraitAlt}
-                width={stickerPortraitSize.width}
-                height={stickerPortraitSize.height}
-                fetchPriority="high"
-                decoding="async"
-              />
-            </picture>
-            <figcaption className={styles.stickerCaption}>
-              Potret resmi — dipotong dari latar studio, file asli pemilik
-            </figcaption>
-          </figure>
-          </Depth>
-          </Tilt3D>
-        </div>
+          <div className={styles.transmissionBody}>
+            <div className={styles.transmissionCopy}>
+              <h2 id="music-title" className={styles.transmissionTitle}>
+                {featured.title}
+              </h2>
+              <p className={styles.transmissionMeta}>{featured.meta}</p>
+              <p className={styles.transmissionText}>
+                Rilis terbaru di katalog. Sampul, tahun, dan tautan dengar diambil dari berkas
+                pemilik — bukan dari basis data platform.
+              </p>
+              <div className={styles.transmissionActions}>
+                <Magnetic>
+                  <ButtonLink href={featured.href} variant="primary">
+                    Buka rilis
+                  </ButtonLink>
+                </Magnetic>
+                <span className={styles.transmissionCount}>
+                  {String(stats.releaseCount).padStart(2, "0")} rilis terverifikasi
+                </span>
+              </div>
+            </div>
 
-        <p className={styles.scrollCue} aria-hidden="true">
-          <span>Gulir</span>
-          <span className={styles.scrollLine} />
-        </p>
+            <Reveal className={styles.transmissionArt}>
+              <Link href={featured.href} className={styles.sleeveLink} data-sleeve aria-label={`Buka rilis ${featured.title}`}>
+                <ReleaseCover artwork={featured.artwork} title={featured.title} shape="square" showTitle={false} />
+              </Link>
+              <p className={styles.sleeveCaption}>
+                {featured.artwork.kind === "image" ? "Artwork asli" : "Sampul edisi situs"}
+              </p>
+            </Reveal>
+          </div>
+        </Container>
       </section>
 
-      {/* -------------------------------------------------------------- monogram */}
-      <section className={styles.signature} aria-labelledby="signature-title">
-        {/* The only canvas on the site: the owner's own mark, extruded (D-095, D-096). */}
-        <AnMonogram />
-        <div className={styles.signatureInner}>
-          <p className={styles.signatureLabel}>02 — Monogram</p>
-          <h2 id="signature-title" className={styles.signatureTitle}>
-            Tanda <span className={styles.signatureAccent}>AN</span>
-          </h2>
-          <p className={styles.signatureNote}>
-            Bentuk tiga dimensi dari penanda milik pemilik sendiri: satu huruf A dan satu huruf N
-            yang bertumpuk jadi satu garis. Dirender di peramban, bukan gambar tempelan.
-          </p>
-          <p className={styles.signatureMeta}>Bandung Barat, Jawa Barat · sejak {siteConfig.since}</p>
-        </div>
-      </section>
-
-      <PlatformRow />
-
-      <PaperAbout />
-
-      <GenreTape />
-
-      {/* ----------------------------------------------------------------- music */}
-      <section className={styles.section} id="music" aria-labelledby="music-title">
+      {/* ------------------------------------------------------------------ index */}
+      <section className={styles.indexBand} aria-labelledby="catalogue-title">
         <Container>
-          <Depth y={30} fade={0.08}>
-            <SectionHeader
-              eyebrow="01 — Katalog"
-              title="Rilisan terbaru"
-              id="music-title"
-              action={{ href: "/music", label: "Semua rilis" }}
-            />
-          </Depth>
-          <Reveal>
-            <ReleaseBento featured={featured} rest={rest} total={stats.releaseCount} />
-          </Reveal>
+          <div className={styles.transmissionHead}>
+            <p className={styles.sectionNumber}>02 — Katalog</p>
+            <p className={styles.sectionNote}>Sepuluh rilis · urut berkas pemilik</p>
+          </div>
+          <h2 id="catalogue-title" className={styles.indexTitle}>
+            Indeks
+          </h2>
+          <CatalogueIndex rows={indexRows} />
           {missingYear > 0 || missingLink > 0 ? (
             <p className={styles.footnote}>
               {missingYear > 0 ? `${missingYear} rilis belum punya tahun` : null}
@@ -272,12 +302,43 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* --------------------------------------------------------------- visuals */}
-      <section className={styles.section} id="visuals" aria-labelledby="visuals-title">
+      {/* ------------------------------------------------------------------- night */}
+      {/*
+        A full-bleed band on the owner's own night-street frame. The quote is the artist's sentence
+        from the biography, verbatim — the three genres are what he says he plays, not a claim the
+        site made up. This is the one place on the page with no interface on it at all: a reader
+        scrolls past a photograph and a sentence, which is what an artist site should feel like.
+      */}
+      <section className={styles.night} aria-label="Malam">
+        <Depth className={styles.nightMedia} y={-90} perspective={1200}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame */}
+          <img
+            src="/media/stage-700.webp"
+            alt=""
+            width={700}
+            height={700}
+            loading="lazy"
+            decoding="async"
+            className={styles.nightImage}
+          />
+        </Depth>
+        <p className={styles.nightQuote}>
+          “Tiga bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.”
+        </p>
+        <p className={styles.nightCaption}>Bandung Barat · rekaman studio rumah</p>
+      </section>
+
+      <PlatformRow />
+      <GenreTape />
+
+      <PaperAbout />
+
+      {/* ---------------------------------------------------------------- archive */}
+      <section className={styles.archive} id="visuals" aria-labelledby="visuals-title">
         <Container>
           <Depth y={26} fade={0.08}>
             <SectionHeader
-              eyebrow="02 — Arsip"
+              eyebrow="03 — Arsip"
               title="Enam aset, tanpa stok"
               id="visuals-title"
               align="end"
@@ -288,13 +349,28 @@ export default async function HomePage() {
         <VisualRail items={visualItems} />
       </section>
 
-      {/* ------------------------------------------------------------- press kit */}
-      <section className={styles.section} id="press" aria-labelledby="press-title">
+      {/* --------------------------------------------------------------- monogram */}
+      <section className={styles.signature} aria-labelledby="signature-title">
+        <AnMonogram />
+        <div className={styles.signatureInner}>
+          <p className={styles.sectionNumber}>04 — Monogram</p>
+          <h2 id="signature-title" className={styles.signatureTitle}>
+            Tanda <span className={styles.signatureAccent}>AN</span>
+          </h2>
+          <p className={styles.signatureNote}>
+            Bentuk tiga dimensi dari penanda milik pemilik sendiri: satu huruf A dan satu huruf N
+            yang bertumpuk jadi satu garis. Dirender di peramban, bukan gambar tempelan.
+          </p>
+          <p className={styles.signatureMeta}>Bandung Barat, Jawa Barat · sejak {siteConfig.since}</p>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------ press */}
+      <section className={styles.pressBand} id="press" aria-labelledby="press-title">
         <Container>
-          <Depth y={40} fade={0.08}>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
-              <p className={styles.pressEyebrow}>03 — Press kit</p>
+              <p className={styles.pressEyebrow}>05 — Press kit</p>
               <h2 id="press-title" className={styles.pressTitle}>
                 Akbar Nawasunda
               </h2>
@@ -318,7 +394,7 @@ export default async function HomePage() {
                 ))}
               </ol>
 
-              <dl className={styles.facts}>
+              <dl className={styles.factSheet}>
                 {facts.map((fact) => (
                   <div key={fact.label}>
                     <dt>{fact.label}</dt>
@@ -354,16 +430,15 @@ export default async function HomePage() {
               </figcaption>
             </figure>
           </div>
-          </Depth>
         </Container>
       </section>
 
-      {/* ------------------------------------------------------------------- epk */}
-      <section className={styles.section} aria-labelledby="epk-title">
+      {/* -------------------------------------------------------------------- epk */}
+      <section className={styles.epkBand} aria-labelledby="epk-title">
         <Container>
           <div className={styles.epk}>
             <div>
-              <p className={styles.epkEyebrow}>04 — Booking &amp; pers</p>
+              <p className={styles.sectionNumber}>06 — Booking &amp; pers</p>
               <h2 id="epk-title" className={styles.epkTitle}>
                 Press kit siap unduh
               </h2>
@@ -399,9 +474,9 @@ export default async function HomePage() {
       </section>
 
       {homeSections.length > 0 ? (
-        <section className={styles.section} aria-labelledby="catatan-title">
+        <section className={styles.notesBand} aria-labelledby="catatan-title">
           <Container>
-            <SectionHeader eyebrow="05 — Catatan" title="Dari Studio" id="catatan-title" />
+            <SectionHeader eyebrow="07 — Catatan" title="Dari Studio" id="catatan-title" />
             <SectionsView sections={homeSections} />
           </Container>
         </section>

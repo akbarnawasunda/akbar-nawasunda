@@ -37,6 +37,12 @@ batched read pass and one batched write pass per frame, for the whole page. Elem
 - **Paper timeline**: the SVG line draws itself over 1.4 s the first time it is seen
   (`DrawOnView`, an IntersectionObserver setting `data-drawn`). Previously a view timeline, i.e.
   invisible on most browsers.
+- **Catalogue ticker** (round 7): `registerPin(node, { mode: "travel" })` writes `--ticker` 0 → 1 as
+  the band crosses the screen, and the CSS turns it into `translate: calc(var(--ticker) * -50%)`.
+  Scrubbed by the reader, never by a timer — there is still no endless animation on the site.
+- **Index preview** (round 7): a fixed sleeve that follows the pointer via `translate3d` written
+  from a ref (no React re-render), and anchors to the row on keyboard focus. No motion under
+  reduced motion; the rows still invert, because a colour change is not motion.
 
 ## Why JavaScript owns the scroll and not CSS
 

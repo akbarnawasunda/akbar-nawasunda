@@ -27,7 +27,7 @@ function definedProperties(): Set<string> {
  * - `--rail-pin` is written by the scroll engine (`registerPin`), which is exactly the point: the
  *   property name belongs to the component, not to the token file.
  */
-const EXTERNAL = new Set(["--text-display", "--rail-pin"]);
+const EXTERNAL = new Set(["--text-display", "--rail-pin", "--ticker"]);
 
 describe("css custom properties", () => {
   /**

@@ -37,7 +37,7 @@ const argValue = (flag, fallback) => {
 };
 
 const base = argValue("--base", process.env.REVIEW_BASE ?? "http://127.0.0.1:3000").replace(/\/$/, "");
-const round = argValue("--round", "round6");
+const round = argValue("--round", "round7");
 const out = argValue("--out", join("docs", "08-IMPLEMENTATION", "design-review", round));
 const work = mkdtempSync(join(tmpdir(), "an-review-"));
 mkdirSync(out, { recursive: true });
@@ -46,20 +46,21 @@ mkdirSync(out, { recursive: true });
 const SHOTS = [
   { name: "01-home-hero-1280", route: "/", width: 1280, height: 900 },
   { name: "02-home-hero-390", route: "/", width: 390, height: 844 },
-  { name: "03-home-hero-scrolled-1280", route: "/", width: 1280, height: 900, scroll: 420 },
-  { name: "04-home-monogram-1280", route: "/", width: 1280, height: 900, selector: "#signature, [class*='signature']" },
-  { name: "05-home-about-1280", route: "/", width: 1280, height: 900, selector: "#about" },
-  { name: "06-home-catalogue-1280", route: "/", width: 1280, height: 900, selector: "#music" },
-  { name: "07-home-visuals-1280", route: "/", width: 1280, height: 900, selector: "#visuals", offset: 500 },
-  { name: "08-home-press-1280", route: "/", width: 1280, height: 900, selector: "#press" },
-  { name: "09-home-footer-1280", route: "/", width: 1280, height: 900, bottom: true },
-  { name: "10-music-index-1280", route: "/music", width: 1280, height: 900 },
-  { name: "11-music-index-390", route: "/music", width: 390, height: 844 },
-  { name: "12-artist-1280", route: "/artist", width: 1280, height: 900 },
-  { name: "13-epk-1280", route: "/epk", width: 1280, height: 900 },
-  { name: "14-release-1280", route: "/music/lali-dalane", width: 1280, height: 900 },
-  { name: "15-contact-1280", route: "/contact", width: 1280, height: 900 },
-  { name: "16-home-hero-1920", route: "/", width: 1920, height: 1080 },
+  { name: "03-home-hero-scrolled-1280", route: "/", width: 1280, height: 900, scroll: 620 },
+  { name: "04-home-ticker-1280", route: "/", width: 1280, height: 900, selector: "[data-ticker]" },
+  { name: "05-home-release-1280", route: "/", width: 1280, height: 900, selector: "#music" },
+  { name: "06-home-index-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']" },
+  { name: "07-home-index-390", route: "/", width: 390, height: 844, selector: "[class*='indexBand']" },
+  { name: "08-home-night-1280", route: "/", width: 1280, height: 900, selector: "[class*='night']" },
+  { name: "09-home-about-1280", route: "/", width: 1280, height: 900, selector: "#about" },
+  { name: "10-home-archive-1280", route: "/", width: 1280, height: 900, selector: "#visuals", offset: 520 },
+  { name: "11-home-monogram-1280", route: "/", width: 1280, height: 900, selector: "[class*='signature']" },
+  { name: "12-home-press-1280", route: "/", width: 1280, height: 900, selector: "#press" },
+  { name: "13-home-footer-1280", route: "/", width: 1280, height: 900, bottom: true },
+  { name: "14-music-index-1280", route: "/music", width: 1280, height: 900 },
+  { name: "15-artist-1280", route: "/artist", width: 1280, height: 900 },
+  { name: "16-release-1280", route: "/music/lali-dalane", width: 1280, height: 900 },
+  { name: "17-home-hero-1920", route: "/", width: 1920, height: 1080 },
 ];
 
 const script = `

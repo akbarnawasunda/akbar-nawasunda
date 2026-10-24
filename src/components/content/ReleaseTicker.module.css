@@ -1,0 +1,129 @@
+/*
+  The running head. One band, full bleed, between the hero and the first release.
+
+  The only movement is `translate` on one element, written by the scroll loop as `--ticker` (0 → 1
+  across the band's pass through the viewport). Because the track holds two identical runs, moving
+  it by -50% lands exactly one run over — that is why the second copy exists at all.
+*/
+
+.band {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  padding-block: var(--space-4);
+  border-block: 1px solid var(--color-border);
+  background: var(--color-ink-black);
+  overflow: hidden;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline: var(--gutter);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  /* Secondary, not muted: 10px mono at 4.5:1 is the floor and muted grey sits under it on ink. */
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* The record light. Amber, 5 px, the only warm pixel in the chrome — it reads as "this is running". */
+.dot {
+  width: 5px;
+  height: 5px;
+  background: var(--color-poster-yellow);
+  border-radius: 50%;
+  flex: none;
+}
+
+.viewport {
+  overflow: hidden;
+  /* Edge fade so titles enter and leave the band instead of being guillotined at the border. */
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  /* Two runs, so -50% is exactly one run. */
+  translate: calc(var(--ticker, 0) * -50%);
+  will-change: transform;
+}
+
+.run {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0 var(--space-6) 0 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  white-space: nowrap;
+}
+
+.link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text-primary);
+}
+
+.title {
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  font-size: clamp(1.25rem, 1.9vw, 1.75rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.meta {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.link:hover .title,
+.link:focus-visible .title {
+  color: var(--color-signal-icy);
+}
+
+/* A 3 px square, not a bullet: typewriter, not list. */
+.sep {
+  width: 3px;
+  height: 3px;
+  background: var(--color-border-strong);
+  translate: 0 -0.25em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    translate: none;
+  }
+}
+
+/* Phones: the band gets out of the way — one line of small type is a better use of 44 px than a
+   crawl nobody can read at 390 px. */
+@media (max-width: 720px) {
+  .band {
+    padding-block: var(--space-3);
+  }
+
+  .title {
+    font-size: 1.0625rem;
+  }
+}

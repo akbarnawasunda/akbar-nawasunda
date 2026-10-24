@@ -31,7 +31,19 @@ export function Depth({
   fade = 0,
   perspective = 1200,
   style,
-}: DepthOptions & { children: ReactNode; className?: string; style?: CSSProperties }) {
+  "data-layer": dataLayer,
+}: DepthOptions & {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+  /**
+   * A stable hook for the review harness (`scripts/qa-motion.mjs`) and for tests. CSS Module class
+   * names are hashed and change whenever a file does, so anything that asserts on motion has to
+   * target a name the source controls. It is also the honest answer to "how do I know the type and
+   * the photograph move at different speeds?" — you can select them.
+   */
+  "data-layer"?: string;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -44,6 +56,7 @@ export function Depth({
     <div
       ref={ref}
       className={className ? `${styles.depth} ${className}` : styles.depth}
+      data-layer={dataLayer}
       style={{ perspective: perspective ? `${perspective}px` : undefined, ...style }}
     >
       {children}

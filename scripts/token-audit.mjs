@@ -41,6 +41,10 @@ const ALLOWED_UNUSED = new Set([
   "--color-signal-purple",
   "--color-poster-yellow",
   "--color-signal-blue-hover",
+  // Legacy aliases from the v2 ramp. They are defined once and inherited by the Studio; the public
+  // pages now reference the semantic names directly.
+  "--color-bg-surface-2",
+  "--color-bone-100",
 ]);
 
 const ALLOWED_RAW = new Set([
@@ -112,10 +116,10 @@ for (const file of walkTs(join(root, "src"))) {
 /**
  * Names that legitimately exist without a `tokens.css` definition:
  * - `--font-display` / `--font-body` / `--font-mono` are set by `next/font` on `<html>`;
- * - `--rail-pin` is written by the scroll loop, and the whole point of `registerPin` is that the
- *   property name is decided by the component, not by the token file.
+ * - `--rail-pin` / `--ticker` are written by the scroll loop, and the whole point of `registerPin`
+ *   is that the property name is decided by the component, not by the token file.
  */
-const EXTERNAL = /^--font-|^--rail-pin$/;
+const EXTERNAL = /^--font-|^--rail-pin$|^--ticker$/;
 
 /* A reference to a token that does not exist is worse than a raw value: the declaration silently
    becomes invalid and the browser drops the whole rule. `--space-10` was used for a while and never
