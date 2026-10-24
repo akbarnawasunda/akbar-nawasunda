@@ -19,7 +19,11 @@
  *   5. the header shrinks and hides on scroll-down, returns on scroll-up;
  *   6. the mobile drawer opens, traps focus, closes on Escape and returns focus;
  *   7. exactly one canvas exists, and it is loaded lazily rather than at first paint;
- *   8. no horizontal overflow at six widths, and no console errors anywhere.
+ *   8. no horizontal overflow at six widths, and no console errors anywhere;
+ *   9. (R8) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move writes a
+ *      rotation and a different displacement per layer, which is the difference between parallax
+ *      and depth that the owner kept asking for;
+ *  10. (R8) the title sequence runs once, counts, and removes itself.
  *
  * Exits 1 on any failure so it can gate a release the same way `a11y` does.
  */
@@ -198,6 +202,43 @@ try {
     check("index rows invert on hover", false, "no [data-index-row] found");
   }
 
+  /*
+   * R8 — the three-dimensional part.
+   *
+   * A pointer move has to do two things, and both are asserted separately because either one alone
+   * is easy to fake: (a) the stage writes a rotation to `--plate-ry` / `--plate-rx`, and (b) the
+   * layers inside it are displaced by *different* amounts, so the name and the masthead rule are at
+   * different distances rather than glued together.
+   */
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await settleScroll(page);
+  await page.mouse.move(320, 260);
+  await sleep(120);
+  await page.mouse.move(980, 700, { steps: 10 });
+  await sleep(600);
+  const plate = await page.evaluate(() => {
+    const host = document.querySelector('[data-plate="hero-stage"]');
+    const name = document.querySelector("h1");
+    const masthead = document.querySelector('[class*="masthead"]');
+    return {
+      ry: host?.style.getPropertyValue("--plate-ry") ?? "",
+      rx: host?.style.getPropertyValue("--plate-rx") ?? "",
+      name: name?.style.transform || getComputedStyle(name).transform,
+      masthead: masthead?.style.transform || getComputedStyle(masthead).transform,
+    };
+  });
+  const rotated = Math.abs(parseFloat(plate.ry)) > 0.2 || Math.abs(parseFloat(plate.rx)) > 0.2;
+  check(
+    "the hero stage rotates towards the pointer",
+    rotated,
+    `rx ${plate.rx || "unset"} / ry ${plate.ry || "unset"}`,
+  );
+  check(
+    "the hero's layers sit at different depths",
+    Boolean(plate.name && plate.masthead) && plate.name !== plate.masthead && plate.name !== "none",
+    `name ${plate.name} vs masthead ${plate.masthead}`,
+  );
+
   const sleeve = await page.$('[data-sleeve]');
   if (sleeve) {
     await sleeve.hover();
@@ -311,7 +352,7 @@ try {
 
   // ---------------------------------------------------------------- overflow sweep
   const widths = [320, 390, 768, 1024, 1280, 1920];
-  const routes = ["/", "/music", "/artist", "/epk", "/music/lali-dalane"];
+  const routes = ["/", "/music", "/visuals", "/artist", "/epk", "/contact", "/music/lali-dalane"];
   const sweeper = await browser.newPage();
   const overflows = [];
   for (const width of widths) {
@@ -344,6 +385,67 @@ try {
     );
   }
   await shot(page, "qa-canvas");
+
+  /*
+   * R8 — the catalogue wall and the title sequence.
+   *
+   * The wall is a separate page, so it gets its own tab: the pointer has to be over the *list* for
+   * the falloff to compute, and the sleeve under the cursor is the only one that should come
+   * forward. The loader is a third tab, because it is skipped when `an-curtain` is already in
+   * sessionStorage — which is exactly what `settle()` does to the main page.
+   */
+  const wall = await browser.newPage();
+  await wall.setViewport({ width: 1440, height: 900 });
+  await wall.goto(`${base}/music`, { waitUntil: "load", timeout: 60000 });
+  await sleep(600);
+  await wall.evaluate(() => {
+    document.querySelector("[data-wall-card]")?.scrollIntoView({ block: "center" });
+  });
+  await sleep(400);
+  const card = await wall.$("[data-wall-card]");
+  if (card) {
+    const box = await card.boundingBox();
+    await wall.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 });
+    await sleep(450);
+    const state = await wall.evaluate(() => {
+      const first = document.querySelector("[data-wall-card]");
+      const all = [...document.querySelectorAll("[data-wall-card]")];
+      const z = (node) => Math.abs(parseFloat(node.style.getPropertyValue("--wall-z") || "0"));
+      return { pointed: z(first), furthest: Math.max(...all.map(z)) };
+    });
+    check(
+      "the catalogue wall lifts the sleeve under the pointer",
+      state.pointed > 20 && state.furthest <= 44.5,
+      `${state.pointed}px lift, max ${state.furthest}px`,
+    );
+  } else {
+    check("the catalogue wall lifts the sleeve under the pointer", false, "no [data-wall-card]");
+  }
+  await wall.close();
+
+  const fresh = await browser.newPage();
+  await fresh.setViewport({ width: 1440, height: 900 });
+  await fresh.goto(`${base}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  // The sheet is switched on by an effect, one frame after hydration.
+  await sleep(200);
+  const opening = await fresh.evaluate(() => {
+    const count = document.querySelector("[data-count]");
+    return {
+      present: Boolean(count),
+      digits: count?.textContent?.trim().length ?? 0,
+      state: count?.closest("[data-state]")?.getAttribute("data-state") ?? "",
+    };
+  });
+  await sleep(3000);
+  const cleared = await fresh.evaluate(
+    () => !document.documentElement.dataset.curtain && document.querySelector("[data-count]") === null,
+  );
+  check(
+    "the title sequence counts, then gets out of the way",
+    opening.present && opening.digits === 3 && opening.state === "playing" && cleared,
+    JSON.stringify({ ...opening, cleared }),
+  );
+  await fresh.close();
 
   // three.js reports an unavailable context itself when the machine has no GPU; that is the
   // environment, not the page. Everything else is a real error.

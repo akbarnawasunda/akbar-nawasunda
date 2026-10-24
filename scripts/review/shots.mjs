@@ -37,30 +37,30 @@ const argValue = (flag, fallback) => {
 };
 
 const base = argValue("--base", process.env.REVIEW_BASE ?? "http://127.0.0.1:3000").replace(/\/$/, "");
-const round = argValue("--round", "round7");
+const round = argValue("--round", "round8");
 const out = argValue("--out", join("docs", "08-IMPLEMENTATION", "design-review", round));
 const work = mkdtempSync(join(tmpdir(), "an-review-"));
 mkdirSync(out, { recursive: true });
 
 /** Named reviews: one page state each, all of them claims the design makes. */
 const SHOTS = [
-  { name: "01-home-hero-1280", route: "/", width: 1280, height: 900 },
-  { name: "02-home-hero-390", route: "/", width: 390, height: 844 },
-  { name: "03-home-hero-scrolled-1280", route: "/", width: 1280, height: 900, scroll: 620 },
+  /* R8: the title sequence, on a tab that has never seen it. */
+  { name: "01-home-loader-1280", route: "/", width: 1280, height: 900, curtain: true, wait: 700 },
+  { name: "02-home-hero-1280", route: "/", width: 1280, height: 900 },
+  { name: "03-home-hero-3d-1280", route: "/", width: 1280, height: 900, pointer: [1080, 760] },
   { name: "04-home-ticker-1280", route: "/", width: 1280, height: 900, selector: "[data-ticker]" },
   { name: "05-home-release-1280", route: "/", width: 1280, height: 900, selector: "#music" },
-  { name: "06-home-index-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']" },
-  { name: "07-home-index-390", route: "/", width: 390, height: 844, selector: "[class*='indexBand']" },
-  { name: "08-home-night-1280", route: "/", width: 1280, height: 900, selector: "[class*='night']" },
-  { name: "09-home-about-1280", route: "/", width: 1280, height: 900, selector: "#about" },
-  { name: "10-home-archive-1280", route: "/", width: 1280, height: 900, selector: "#visuals", offset: 520 },
-  { name: "11-home-monogram-1280", route: "/", width: 1280, height: 900, selector: "[class*='signature']" },
-  { name: "12-home-press-1280", route: "/", width: 1280, height: 900, selector: "#press" },
-  { name: "13-home-footer-1280", route: "/", width: 1280, height: 900, bottom: true },
-  { name: "14-music-index-1280", route: "/music", width: 1280, height: 900 },
-  { name: "15-artist-1280", route: "/artist", width: 1280, height: 900 },
-  { name: "16-release-1280", route: "/music/lali-dalane", width: 1280, height: 900 },
-  { name: "17-home-hero-1920", route: "/", width: 1920, height: 1080 },
+  { name: "06-home-index-hover-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']", hover: "[data-index-row]" },
+  { name: "07-home-night-1280", route: "/", width: 1280, height: 900, selector: "[class*='night']" },
+  { name: "08-music-1280", route: "/music", width: 1280, height: 900 },
+  { name: "09-music-wall-hover-1280", route: "/music", width: 1280, height: 900, scroll: 320, hover: "[data-wall-card]" },
+  { name: "10-visuals-1280", route: "/visuals", width: 1280, height: 900 },
+  { name: "11-artist-1280", route: "/artist", width: 1280, height: 1000 },
+  { name: "12-contact-1280", route: "/contact", width: 1280, height: 900 },
+  { name: "13-epk-1280", route: "/epk", width: 1280, height: 900 },
+  { name: "14-home-390", route: "/", width: 390, height: 844 },
+  { name: "15-music-390", route: "/music", width: 390, height: 844 },
+  { name: "16-home-footer-1280", route: "/", width: 1280, height: 900, bottom: true },
 ];
 
 const script = `
@@ -82,11 +82,28 @@ async page => {
   const written = [];
   for (const shot of shots) {
     await page.setViewportSize({ width: shot.width, height: shot.height });
+    if (shot.curtain) {
+      // A tab that has never seen the sequence: no sessionStorage flag, no reload, no settling —
+      // the point of this shot is the sequence itself.
+      await page.goto('${base}' + shot.route, { waitUntil: 'load', timeout: 60000 });
+      await page.waitForTimeout(shot.wait ?? 600);
+      const loadingPath = ${JSON.stringify(work)} + '/' + shot.name + '.png';
+      await page.screenshot({ path: loadingPath });
+      written.push(loadingPath);
+      continue;
+    }
+
     await page.goto('${base}' + shot.route, { waitUntil: 'load', timeout: 60000 });
     await page.evaluate(() => sessionStorage.setItem('an-curtain', '1'));
     await page.reload({ waitUntil: 'load' });
     await page.waitForTimeout(500);
     await page.mouse.move(1, 1);
+
+    if (shot.pointer) {
+      // Park the pointer in a corner of the object so the plate is visibly turned.
+      await page.mouse.move(shot.pointer[0], shot.pointer[1], { steps: 10 });
+      await page.waitForTimeout(400);
+    }
 
     if (shot.selector) {
       await page.evaluate((selector) => {
@@ -106,6 +123,15 @@ async page => {
     }
 
     await settle();
+
+    if (shot.hover) {
+      const target = await page.$(shot.hover);
+      if (target) {
+        await target.hover();
+        await page.waitForTimeout(500);
+      }
+    }
+
     const path = ${JSON.stringify(work)} + '/' + shot.name + '.png';
     await page.screenshot({ path });
     written.push(path);

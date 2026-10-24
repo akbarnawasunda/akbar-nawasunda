@@ -16,6 +16,7 @@ import { AnMonogram } from "@/components/three/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Depth } from "@/components/zine/Depth";
 import { Magnetic } from "@/components/zine/Magnetic";
+import { Plate3D } from "@/components/zine/Plate3D";
 import { Reveal } from "@/components/zine/Reveal";
 import { coverArtwork } from "@/content/covers";
 import { fromStaticRelease } from "@/content/release-view";
@@ -154,6 +155,21 @@ export default async function HomePage() {
         </Depth>
         <div className={styles.heroScrim} aria-hidden="true" />
 
+        {/* 
+          The hero is a scene, not a picture. The stage gives it a vanishing point and a small
+          pointer-driven rotation; inside it, five layers carry different multipliers of the same
+          movement, so the masthead rule, the name, the paragraph, the facts and the cue all sit at
+          different distances from the reader. That is the difference between parallax (layers
+          sliding) and depth (an object in a room), and it is the thing the owner kept asking for.
+        */}
+        <Plate3D
+          className={styles.heroStage}
+          data-plate="hero-stage"
+          tiltY={3.4}
+          tiltX={2.2}
+          shift={40}
+          perspective={1500}
+        >
         <div className={styles.heroInner}>
         {/*
           The masthead: two mono lines at the top corners, the way a magazine runs its issue
@@ -229,7 +245,9 @@ export default async function HomePage() {
           <span>Gulir</span>
           <span className={styles.cueLine} />
         </p>
+
         </div>
+        </Plate3D>
       </section>
 
       {/* ----------------------------------------------------------- running head */}
@@ -268,9 +286,14 @@ export default async function HomePage() {
             </div>
 
             <Reveal className={styles.transmissionArt}>
-              <Link href={featured.href} className={styles.sleeveLink} data-sleeve aria-label={`Buka rilis ${featured.title}`}>
-                <ReleaseCover artwork={featured.artwork} title={featured.title} shape="square" showTitle={false} />
-              </Link>
+              <Plate3D className={styles.sleeveStage} data-plate="featured-sleeve" tiltY={11} tiltX={7} shift={12} perspective={1000}>
+                <Link href={featured.href} className={styles.sleeveLink} data-sleeve aria-label={`Buka rilis ${featured.title}`}>
+                  <span className={styles.sleeveEdge} aria-hidden="true" />
+                  <span className={styles.sleeveFace}>
+                    <ReleaseCover artwork={featured.artwork} title={featured.title} shape="square" showTitle={false} />
+                  </span>
+                </Link>
+              </Plate3D>
               <p className={styles.sleeveCaption}>
                 {featured.artwork.kind === "image" ? "Artwork asli" : "Sampul edisi situs"}
               </p>
@@ -322,6 +345,10 @@ export default async function HomePage() {
             className={styles.nightImage}
           />
         </Depth>
+        {/* One flat sheet of the identity blue over a desaturated frame: the photograph becomes a
+            print of the room rather than a stock night shot. No blend mode — a plain opacity step,
+            because a blend mode on a full-bleed photo forces a repaint of the whole band. */}
+        <span className={styles.nightTint} aria-hidden="true" />
         <p className={styles.nightQuote}>
           “Tiga bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.”
         </p>

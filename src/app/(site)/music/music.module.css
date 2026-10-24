@@ -1,51 +1,20 @@
-/* Catalog page head: same shape as the homepage section heads (mono index, display title,
-   hairline rule) so /music reads as the same publication rather than a generic inner page. */
-.head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-6);
-  padding-block: var(--space-12) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-8);
+/*
+  /music — "sleeve" (R8).
+
+  The page is two things: the blue sleeve at the top (PageMasthead) and the wall of releases below
+  it (CatalogueWall). Nothing else. The previous version was a head, a three-column card grid and a
+  footnote, which is the layout of a blog index — ten releases deserve a shop wall, not a list.
+
+  This file now only owns the space between the two and the honest footnote under the wall.
+*/
+
+.body {
+  padding-block: var(--space-12);
 }
 
-.eyebrow {
-  font-family: var(--font-mono-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.title {
-  margin-top: var(--space-3);
-  font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2.75rem, 1.4rem + 4.4vw, 5rem);
-  line-height: 0.95;
-  letter-spacing: -0.015em;
-}
-
-.lead {
-  margin-top: var(--space-4);
-  max-width: 46ch;
-  color: var(--color-text-secondary);
-}
-
-.count {
-  font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-/* Same honest footnote as the homepage bento. */
+/* Same honest footnote as the homepage index. */
 .note {
-  padding-block: var(--space-6) var(--space-16);
+  padding-block: var(--space-8) var(--space-12);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.12em;

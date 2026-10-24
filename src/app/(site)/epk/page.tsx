@@ -40,12 +40,25 @@ export default function EpkPage() {
   return (
     <Container>
       <header className={styles.head}>
-        <p className={styles.eyebrow}>04 — Press kit</p>
-        <h1 className={styles.title}>Electronic press kit</h1>
-        <p className={styles.lead}>
-          Semua yang dibutuhkan untuk menulis tentang Akbar Nawasunda: potret resmi, logo transparan,
-          fakta terverifikasi, dan tautan platform. Satu unduhan, tanpa akun.
+        <div className={styles.headCopy}>
+          <p className={styles.eyebrow}>04 — Press kit</p>
+          <h1 className={styles.title}>Electronic press kit</h1>
+          <p className={styles.lead}>
+            Semua yang dibutuhkan untuk menulis tentang Akbar Nawasunda: potret resmi, logo transparan,
+            fakta terverifikasi, dan tautan platform. Satu unduhan, tanpa akun.
+          </p>
+        </div>
+
+        {/* The one place the red from the owner's own poster series is used (D-121): a rubber stamp,
+            because a press kit is a document you stamp. It is decorative — the same facts are set
+            at full size directly underneath. */}
+        <p className={styles.stamp} aria-hidden="true">
+          <span className={styles.stampTop}>Press</span>
+          <span className={styles.stampLine}>Bandung Barat</span>
+          <span className={styles.stampLine}>Untuk kutipan</span>
+          <span className={styles.stampBottom}>AN</span>
         </p>
+
         <div className={styles.actions}>
           <ButtonLink href={PACK_URL} variant="primary" external>
             Unduh press kit (.zip, {PACK_SIZE})

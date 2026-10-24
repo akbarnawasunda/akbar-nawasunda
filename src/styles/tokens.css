@@ -21,15 +21,35 @@
   --color-signal-purple: #7800ff;
   --color-signal-icy: #8ae8ff;
 
+  /*
+   * The identity colour, promoted to a field (D-121).
+   *
+   * The blue is not a new decision: it is the colour of the owner's own AN mark — the vector edge
+   * on the logo, the letter on the mascot's jacket, the gradient in the RMX lockup. For six rounds
+   * it survived only as a full stop, a hairline and a link underline, and the owner's note was
+   * exact: "gak ada warna punya gua". A colour that only appears at 12 px is not a brand, it is a
+   * hyperlink.
+   *
+   * So the same blue now also fills things: the running-head band, the catalogue's hover bar, the
+   * two page heads that are posters, the loader sheet. `--color-on-brand` is the ink those fields
+   * carry, because white on #0087FF is 3.36:1 — a blue field only works as a *printed* blue field,
+   * with black type on it, and black on this blue measures 5.7:1.
+   */
+  --color-brand: #0087ff;
+  --color-brand-deep: #0b3fd6; /* the step for a blue that has white type on it, or sits under a photo */
+  --color-on-brand: #050507;
+  /* The red from the owner's own "future" poster. Used once, as a rubber stamp — never as UI. */
+  --color-poster-red: #ff2d20;
+
   --color-border: #2a2a38;
   --color-border-strong: #3a3a48;
 
   /*
-   * Material layer (D-083, trimmed in D-108). Three of the five original materials survived the
-   * editorial pass: paper (the press sheet is printed stock), the stamp red (used for the
-   * [NEEDS OWNER] marker, which must be unmissable) and the waveform lime (a music signal, not
-   * ornament). Masking tape is gone — it was the loudest arbitrary device on the page. Every value
-   * here is a flat colour; none is a gradient.
+   * Material layer (D-083, trimmed in D-108, trimmed again in D-121). What survived: paper (the
+   * press sheet is printed stock), the stamp red (the [NEEDS OWNER] marker, which must be
+   * unmissable) and the poster red (one rubber stamp on the press kit). The waveform lime went with
+   * the bento grid — nothing referenced it any more, and a token with no consumer is a colour
+   * waiting to be used badly. Every value here is a flat colour; none is a gradient.
    */
   --color-ink-black: #050507; /* deeper than the page, used only behind the hero and the footer */
   --color-band-monogram: #0d1320; /* the cold step behind the 3D mark; it has to sit behind a metal object */
@@ -39,7 +59,6 @@
   /* Same ink, darker mix: 2.84:1 on paper is unreadable, 4.98:1 clears AA at label sizes. */
   --color-stamp-ink: #c01810;
   --color-poster-yellow: #ffd60a;
-  --color-wave-lime: #c2ff00;
 
   /*
    * Studio status colours (D-114). Three states have to be readable at a glance in a dense admin

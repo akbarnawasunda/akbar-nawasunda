@@ -43,6 +43,25 @@ batched read pass and one batched write pass per frame, for the whole page. Elem
 - **Index preview** (round 7): a fixed sleeve that follows the pointer via `translate3d` written
   from a ref (no React re-render), and anchors to the row on keyboard focus. No motion under
   reduced motion; the rows still invert, because a colour change is not motion.
+- **Plates** (round 8). `Plate3D` is the site's one 3D stage: the host sets `perspective` and
+  `transform-style: preserve-3d`, and one rAF loop writes `--plate-rx`, `--plate-ry`, `--plate-x`
+  and `--plate-y`, lerped towards the pointer at 0,08 per frame. Because the scene is preserved,
+  children can sit at their own `translateZ` — which is how the homepage's blue plate stays behind
+  the sleeve while the sleeve comes forward. The loop **stops when the values settle**, so a plate
+  at rest costs zero frames.
+  Layers inside the hero read the same two shift properties with different multipliers (masthead
+  −0,35, name 0,65, paragraph 0,35, facts 0,18), so one pointer move separates five distances. That
+  is depth; two layers moving at two speeds is only parallax.
+- **Catalogue wall** (`/music`, round 8): the list owns a vanishing point and one `pointermove`
+  handler writes `--wall-rx/--wall-ry/--wall-z` on every sleeve, with a falloff of 1 at the centre
+  of a card and 0 one card-width away. The sleeve under the pointer rises 44 px; its neighbours stay
+  flat. Rects are read in one batch, before any write.
+- **Title sequence** (round 8): the opening sheet. Two masked name lines rise 110 % into place at
+  120/240 ms, the counter runs 000 → 100 in a rAF (1250 ms, ease-out, `textContent` on an
+  `aria-hidden` node) and the progress rule fills over the same 1250 ms, then the ink sheet lifts at
+  1500 ms and the blue one 80 ms later (640 ms each, `cubic-bezier(0.76, 0, 0.24, 1)`). Once per
+  session; gone entirely under reduced motion. The labels never fade from opacity 0 — a nine-pixel
+  label at 0 % is a contrast violation for as long as the fade lasts, which the axe run caught.
 
 ## Why JavaScript owns the scroll and not CSS
 

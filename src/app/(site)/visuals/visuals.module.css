@@ -1,19 +1,24 @@
-/* Archive page: masonry wall on the left, a narrow note column on the right.
-   The note is deliberately small and sticky on wide screens — it is a colophon, not a hero. */
+/*
+  /visuals — the archive as a wall of prints (R8).
+
+  The note column used to be a bordered, rounded card with a surface fill — the one object on the
+  page that looked like a dashboard widget next to six photographs. It is a printed slip now: the
+  identity blue, ink type, no radius, no border. It is the only colour block on the page, which is
+  what makes it read as an annotation rather than another panel.
+*/
 .body {
   display: grid;
   gap: var(--space-8);
-  padding-bottom: var(--space-16);
+  padding-block: var(--space-12) var(--space-16);
 }
 
-.note {
+.aside {
   display: grid;
   gap: var(--space-2);
   align-content: start;
   padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
-  background: var(--color-bg-surface);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
 }
 
 .noteLabel {
@@ -21,30 +26,49 @@
   font-size: 0.5625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-on-brand);
 }
 
 .noteLabel:not(:first-child) {
-  margin-top: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.uses {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.uses li {
+  display: grid;
+  gap: 1px;
+}
+
+.uses span {
+  font-family: var(--font-display-stack);
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
 }
 
 .noteText {
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 .noteText code {
   font-family: var(--font-mono-stack);
-  font-size: 0.8125rem;
-  color: var(--color-text-primary);
+  font-size: 0.75rem;
 }
 
 .needs {
   font-family: var(--font-mono-stack);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
-  color: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-on-brand);
 }
 
 @media (min-width: 1024px) {
@@ -54,7 +78,7 @@
     align-items: start;
   }
 
-  .note {
+  .aside {
     position: sticky;
     top: calc(var(--header-height) + var(--space-6));
   }

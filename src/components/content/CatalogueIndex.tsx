@@ -109,10 +109,12 @@ export function CatalogueIndex({ rows }: { rows: readonly IndexRow[] }) {
         data-visible={current ? "true" : "false"}
         aria-hidden="true"
       >
-        {current?.sleeve ? (
-          /* eslint-disable-next-line @next/next/no-img-element -- 7 KB sleeve, exact bytes, no resize needed */
-          <img src={current.sleeve} alt="" width={260} height={260} decoding="async" />
-        ) : null}
+        <span className={styles.previewStage}>
+          {current?.sleeve ? (
+            /* eslint-disable-next-line @next/next/no-img-element -- 7 KB sleeve, exact bytes, no resize needed */
+            <img src={current.sleeve} alt="" width={260} height={260} decoding="async" />
+          ) : null}
+        </span>
       </span>
     </div>
   );

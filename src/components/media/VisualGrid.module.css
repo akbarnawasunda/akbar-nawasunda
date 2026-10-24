@@ -172,12 +172,39 @@
   display: block;
   columns: 1;
   column-gap: var(--space-4);
+  /*
+    The wall has a vanishing point (R8). Each print is a flat object on it, and the one you point at
+    comes forward and takes a blue plate behind it — the same misregistered-print device as the
+    homepage sleeve, scaled down to a printed photograph.
+  */
+  perspective: 1500px;
 }
 
 .masonry li {
   display: block;
   break-inside: avoid;
   margin: 0 0 var(--space-4);
+  /* Deterministic "laid by hand": alternating prints sit a couple of degrees off the wall. It never
+     changes between builds, so it cannot reshuffle on a re-render. */
+  transform: rotate(-0.6deg);
+}
+
+.masonry li:nth-child(even) {
+  transform: rotate(0.7deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .masonry li:hover {
+    z-index: 1;
+  }
+
+  .masonry li:hover .photoTile,
+  .masonry li:focus-within .photoTile,
+  .masonry li:hover .surfaceTile,
+  .masonry li:focus-within .surfaceTile {
+    transform: translateZ(46px) rotateY(-2.5deg) rotateX(1.5deg);
+    box-shadow: 16px 18px 0 var(--color-brand);
+  }
 }
 
 .masonry .photoTile,
@@ -185,6 +212,13 @@
   aspect-ratio: auto;
   display: block;
   height: 100%;
+  /* A print has no radius and no frame: the photograph is the edge. */
+  border: 0;
+  border-radius: 0;
+  transform-style: preserve-3d;
+  transition:
+    transform 380ms var(--ease-out),
+    box-shadow 380ms var(--ease-out);
 }
 
 .masonry li:nth-child(1) {

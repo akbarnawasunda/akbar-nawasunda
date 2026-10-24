@@ -117,9 +117,12 @@ for (const file of walkTs(join(root, "src"))) {
  * Names that legitimately exist without a `tokens.css` definition:
  * - `--font-display` / `--font-body` / `--font-mono` are set by `next/font` on `<html>`;
  * - `--rail-pin` / `--ticker` are written by the scroll loop, and the whole point of `registerPin`
- *   is that the property name is decided by the component, not by the token file.
+ *   is that the property name is decided by the component, not by the token file;
+ * - `--plate-*` and `--wall-*` are written per element by the two pointer components (Plate3D and
+ *   CatalogueWall) on every frame. Same argument, one dimension further: these are not theme
+ *   values, they are the current position of an object in a 3D scene.
  */
-const EXTERNAL = /^--font-|^--rail-pin$|^--ticker$/;
+const EXTERNAL = /^--font-|^--rail-pin$|^--ticker$|^--plate-|^--wall-/;
 
 /* A reference to a token that does not exist is worse than a raw value: the declaration silently
    becomes invalid and the browser drops the whole rule. `--space-10` was used for a while and never

@@ -1,9 +1,62 @@
 /* Press kit: a document, not a landing page. Left-aligned head, file manifest, fact sheet. */
 
 .head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-6) var(--space-12);
   padding-block: var(--space-12) var(--space-8);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: var(--space-8);
+}
+
+.headCopy {
+  min-width: 0;
+}
+
+/*
+  The stamp. Red, rotated, hollow box with the label run twice — the way a press office stamps a
+  document. It is the only red on the site outside the [NEEDS OWNER] marker, and it is deliberately
+  the only rotated object in the page head: a stamp that sits square is a badge.
+*/
+.stamp {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: var(--space-4) var(--space-6);
+  border: 3px solid var(--color-poster-red);
+  color: var(--color-poster-red);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  rotate: -7deg;
+  transform-origin: top right;
+}
+
+.stampTop,
+.stampBottom {
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.stampBottom {
+  font-style: normal;
+  letter-spacing: 0.2em;
+}
+
+@media (max-width: 760px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stamp {
+    display: none;
+  }
 }
 
 .eyebrow {
@@ -30,6 +83,7 @@
 }
 
 .actions {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);

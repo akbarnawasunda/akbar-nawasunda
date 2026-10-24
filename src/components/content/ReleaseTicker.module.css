@@ -1,6 +1,12 @@
 /*
   The running head. One band, full bleed, between the hero and the first release.
 
+  Since R8 it is also the identity colour at full strength (D-121): a solid sheet of the brand blue
+  with ink type on it. That is the one large colour field on the homepage, and it is deliberately a
+  *printed* field — black on #0087FF measures 5.7:1, white on it measures 3.4:1 and would fail. The
+  band is the page's spine: every release in the catalogue runs along it, and it is the first thing
+  after the photograph.
+
   The only movement is `translate` on one element, written by the scroll loop as `--ticker` (0 → 1
   across the band's pass through the viewport). Because the track holds two identical runs, moving
   it by -50% lands exactly one run over — that is why the second copy exists at all.
@@ -13,8 +19,9 @@
   align-items: center;
   gap: var(--space-6);
   padding-block: var(--space-4);
-  border-block: 1px solid var(--color-border);
-  background: var(--color-ink-black);
+  border-block: 1px solid var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   overflow: hidden;
 }
 
@@ -28,16 +35,17 @@
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  /* Secondary, not muted: 10px mono at 4.5:1 is the floor and muted grey sits under it on ink. */
-  color: var(--color-text-secondary);
+  /* Ink on the blue field: 5.7:1, and the only tone that survives at 9 px on this ground. */
+  color: var(--color-on-brand);
   white-space: nowrap;
 }
 
-/* The record light. Amber, 5 px, the only warm pixel in the chrome — it reads as "this is running". */
+/* The record light, in ink now that the band is blue: a warm dot on a blue field reads as a
+   printing error, and there is no amber left anywhere in the chrome. */
 .dot {
   width: 5px;
   height: 5px;
-  background: var(--color-poster-yellow);
+  background: var(--color-on-brand);
   border-radius: 50%;
   flex: none;
 }
@@ -77,7 +85,7 @@
   align-items: baseline;
   gap: var(--space-2);
   text-decoration: none;
-  color: var(--color-text-primary);
+  color: var(--color-on-brand);
 }
 
 .title {
@@ -94,19 +102,23 @@
   font-size: 0.5625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-on-brand);
 }
 
+/* Hover is a print rule, not a colour change: on a blue field the only legible emphasis left is
+   ink, which the type already is. */
 .link:hover .title,
 .link:focus-visible .title {
-  color: var(--color-signal-icy);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.14em;
 }
 
 /* A 3 px square, not a bullet: typewriter, not list. */
 .sep {
   width: 3px;
   height: 3px;
-  background: var(--color-border-strong);
+  background: color-mix(in srgb, var(--color-on-brand) 55%, transparent);
   translate: 0 -0.25em;
 }
 

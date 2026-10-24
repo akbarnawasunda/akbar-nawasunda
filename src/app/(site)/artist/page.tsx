@@ -6,6 +6,7 @@ import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionsView } from "@/components/content/SectionsView";
+import { Plate3D } from "@/components/zine/Plate3D";
 import {
   artistBioGaps,
   artistFacts,
@@ -58,7 +59,8 @@ export default async function ArtistPage() {
         <div className={styles.copy}>
           <p className={styles.eyebrow}>03 — Artist</p>
           <h1 id="artist-title" className={styles.title}>
-            Akbar Nawasunda
+            Akbar <em className={styles.titleItalic}>Nawasunda</em>
+            <span className={styles.stop} aria-hidden="true">.</span>
           </h1>
           <p className={styles.lead}>{published?.lead.trim() || artistLine}</p>
 
@@ -81,8 +83,16 @@ export default async function ArtistPage() {
           </dl>
         </div>
 
+        {/*
+          The portrait, held in front of the page: a plate on a real vanishing point, with a sheet of
+          the identity blue behind it. The studio photograph is the one asset shot for exactly this
+          job, and a cardboard-thin frame around it was the least interesting thing the page could do
+          with it.
+        */}
         <figure className={styles.visual}>
+          <Plate3D className={styles.portraitStage} data-plate="artist-portrait" tiltY={9} tiltX={6} shift={12}>
           <div className={styles.portraitFrame}>
+            <span className={styles.portraitPlate} aria-hidden="true" />
             <picture>
               <source
                 type="image/avif"
@@ -104,6 +114,7 @@ export default async function ArtistPage() {
               />
             </picture>
           </div>
+          </Plate3D>
           <figcaption className={styles.caption}>
             <span aria-hidden="true" />
             Potret resmi

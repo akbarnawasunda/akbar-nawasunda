@@ -5,8 +5,15 @@
   Alternating the ground is what stops a long page from reading as one scrolling black surface — it
   is also how every record sleeve, press kit and liner note works.
 
-  Rows are hairlines and display type; the interaction is one inversion, from paper to ink, with the
-  row's ordinal and arrow along for the ride. Nothing lifts, nothing casts a shadow, nothing rounds.
+  Rows are hairlines and display type; the interaction is one inversion, paper to brand blue, with
+  the row's ordinal and arrow along for the ride. Nothing lifts, nothing rounds.
+
+  The inversion used to go to ink. It goes to the identity colour now (D-121), because a blue bar
+  sliding under a row of serif display type is the oldest move in record-shop print and the site did
+  not have a single large colour moment on paper. Ink type on #0087FF is 5.7:1, so the row stays
+  readable while it changes ground — the reason this works is that the field is a printed blue, not
+  a light one. The sleeve preview sits on the same paper and takes a blue cast shadow, so the two
+  blue moments in this band belong to each other.
 */
 
 .wrap {
@@ -49,7 +56,7 @@
 
 .link:hover .ordinal,
 .link:focus-visible .ordinal {
-  color: var(--color-signal-icy);
+  color: var(--color-on-brand);
 }
 
 /*
@@ -60,14 +67,14 @@
 */
 .link:hover,
 .link:focus-visible {
-  background: var(--color-paper-ink);
-  color: var(--color-paper);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   padding-left: var(--space-4);
   outline: none;
 }
 
 .link:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--color-signal-icy);
+  box-shadow: inset 0 0 0 2px var(--color-on-brand);
 }
 
 .title {
@@ -90,7 +97,7 @@
 
 .link:hover .meta,
 .link:focus-visible .meta {
-  color: color-mix(in srgb, var(--color-paper) 78%, transparent);
+  color: var(--color-on-brand);
 }
 
 .arrow {
@@ -103,7 +110,7 @@
 
 .link:hover .arrow,
 .link:focus-visible .arrow {
-  color: var(--color-paper);
+  color: var(--color-on-brand);
   translate: 2px -2px;
 }
 
@@ -123,11 +130,10 @@
   pointer-events: none;
   opacity: 0;
   translate: -50% -50%;
-  rotate: -3deg;
   transition:
     opacity var(--duration-base) var(--ease),
     scale var(--duration-base) var(--ease-out);
-  scale: 0.96;
+  scale: 0.94;
   will-change: transform;
 }
 
@@ -136,14 +142,37 @@
   scale: 1;
 }
 
-.preview img {
+/*
+  The sleeve is a real object, not a plaque: it hangs turned away from the reader and squares up
+  when the row is hovered. `perspective` lives here, on the inner stage, and not on `.preview` or
+  `.wrap` — a perspective on an ancestor makes it the containing block for `position: fixed`
+  descendants, which would have anchored this plaque to the list instead of to the pointer.
+*/
+.previewStage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  perspective: 900px;
+}
+
+.previewStage img {
+  rotate: 0 1 0 -14deg;
+  transition: rotate 420ms var(--ease-out);
+}
+
+.preview[data-visible="true"] .previewStage img {
+  rotate: 0 1 0 0deg;
+}
+
+.previewStage img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border: 1px solid var(--color-paper-ink);
-  /* A hard offset shadow, not a soft one: on paper, an object's shadow is a printing convention. */
-  box-shadow: 10px 12px 0 rgb(10 10 14 / 22%);
+  /* A hard offset shadow in the identity colour: the sleeve is pressed against the page, and the
+     plate behind it is the same blue as the row that just inverted. */
+  box-shadow: 12px 14px 0 var(--color-brand);
 }
 
 @media (max-width: 720px) {
@@ -178,7 +207,9 @@
     transition: none;
   }
 
-  .preview {
-    rotate: none;
+  .previewStage img,
+  .preview[data-visible="true"] .previewStage img {
+    rotate: 0 1 0 0deg;
+    transition: none;
   }
 }

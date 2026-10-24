@@ -1,0 +1,81 @@
+/*
+  A page head that is a printed sleeve: the identity colour edge to edge, ink type, one figure.
+
+  The head sits under the fixed header, so the top padding is the header height plus a step — the
+  same trick every other page uses, kept in one place now that four pages share it.
+*/
+.head {
+  position: relative;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  border-bottom: 2px solid var(--color-on-brand);
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: end;
+  gap: var(--space-3) var(--space-8);
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: calc(var(--header-height) + var(--space-12)) var(--gutter) var(--space-8);
+}
+
+.eyebrow,
+.note {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-on-brand);
+}
+
+.title {
+  grid-column: 1;
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  font-size: clamp(3.25rem, 10.5vw, 8.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  margin-left: -0.03em;
+  text-wrap: balance;
+}
+
+.figure {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: end;
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  font-size: clamp(3.5rem, 8.5vw, 7rem);
+  line-height: 0.78;
+  letter-spacing: -0.04em;
+  font-variant-numeric: lining-nums;
+  color: var(--color-on-brand);
+}
+
+.lead {
+  grid-column: 1 / -1;
+  max-width: 48ch;
+  margin: var(--space-3) 0 0;
+  font-size: 0.9375rem;
+  line-height: var(--leading-body);
+}
+
+.note {
+  grid-column: 1 / -1;
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 720px) {
+  .inner {
+    padding-top: calc(var(--header-height) + var(--space-8));
+  }
+
+  .figure {
+    display: none;
+  }
+}

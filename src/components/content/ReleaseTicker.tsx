@@ -20,9 +20,9 @@ export interface TickerItem {
  * horizontally as the reader scrolls — a news crawl tied to the page rather than to a timer. Three
  * decisions make it behave:
  *
- * 1. **It is scrubbed by the scroll, not animated on a loop.** There is no `animation: infinite`
- *    anywhere on this page (tests/fixtures/anti-ai.ts forbids endless decoration, and it is right:
- *    a marquee that never stops is the cheapest way to look busy). The band translates with the
+ * 1. **It is scrubbed by the scroll, not animated on a loop.** Nothing on this page repeats forever
+ *    (tests/fixtures/anti-ai.ts forbids endless decoration, and it is right: a crawl that never
+ *    stops is the cheapest way to look busy). The band translates with the
  *    reader, so it is always in the same place when they look back.
  * 2. **It is navigation.** Every entry links to its release page; the duplicate copy that makes the
  *    crawl seamless is `aria-hidden` and untabbable, so the tab order has ten items, not twenty.
