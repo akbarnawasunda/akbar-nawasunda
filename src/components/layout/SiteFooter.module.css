@@ -252,3 +252,11 @@
     padding: var(--space-4);
   }
 }
+
+/* The build stamp: same mono as the colophon. Secondary ink, because it is 9 px type and muted grey
+   is 3.8:1 on ink — a stamp nobody can read answers no questions. */
+.build {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}

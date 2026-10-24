@@ -4,6 +4,7 @@ import { anMark } from "@/assets/web";
 import { footerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { contactEmail, contactHref, socialLinks } from "@/config/socials";
+import { buildLabel } from "@/config/build";
 import { releases, releaseDisplayTitle } from "@/content/releases";
 import styles from "./SiteFooter.module.css";
 
@@ -132,6 +133,15 @@ export function SiteFooter() {
       <div className={styles.meta}>
         <p className={styles.mono}>
           © {new Date().getFullYear()} {siteConfig.name} • {siteConfig.origin} • Sejak {siteConfig.since}
+        </p>
+        {/*
+          The build stamp. A commit hash in the colophon is what a printed issue number is: it says
+          which edition you are holding. It exists because three rounds in a row the owner was told
+          "the new page is live" while looking at a stale preview — now that question has an answer
+          on the page itself.
+        */}
+        <p className={`${styles.mono} ${styles.build}`} data-build={buildLabel}>
+          {buildLabel}
         </p>
         <p className={styles.mono}>akbarnawasunda.my.id</p>
       </div>

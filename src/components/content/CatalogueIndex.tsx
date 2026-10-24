@@ -32,6 +32,9 @@ export interface IndexRow {
  *   never enters the accessibility tree twice;
  * - rows are links, so middle-click, open-in-new-tab and the status bar all work.
  */
+/** Where the sleeve sits relative to the pointer: above and to the right, never over the row. */
+const PREVIEW_OFFSET = { x: 40, y: -170 };
+
 export function CatalogueIndex({ rows }: { rows: readonly IndexRow[] }) {
   const [active, setActive] = useState<string | null>(null);
   const previewRef = useRef<HTMLSpanElement | null>(null);
@@ -45,9 +48,14 @@ export function CatalogueIndex({ rows }: { rows: readonly IndexRow[] }) {
     node.style.transform = `translate3d(${point.current.x}px, ${point.current.y}px, 0)`;
   }, []);
 
+  /**
+   * The preview sits **above and to the right** of the pointer, not under it. Centred on the cursor
+   * it covered the title of the row being read, which turns a nice interaction into an obstacle: you
+   * hover a release and the release name disappears behind its own cover.
+   */
   const onPointerMove = useCallback(
     (event: React.PointerEvent<HTMLUListElement>) => {
-      point.current = { x: event.clientX, y: event.clientY };
+      point.current = { x: event.clientX + PREVIEW_OFFSET.x, y: event.clientY + PREVIEW_OFFSET.y };
       if (frame.current) return;
       frame.current = requestAnimationFrame(place);
     },
@@ -56,6 +64,7 @@ export function CatalogueIndex({ rows }: { rows: readonly IndexRow[] }) {
 
   const onFocus = useCallback((slug: string, event: React.FocusEvent<HTMLAnchorElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
+    // Keyboard: anchor to the end of the focused row instead of a pointer that is not moving.
     point.current = { x: rect.right - 300, y: rect.top - 120 };
     setActive(slug);
     requestAnimationFrame(place);
