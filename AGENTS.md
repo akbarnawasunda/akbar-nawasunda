@@ -1,61 +1,101 @@
-# AGENTS.md — Entry Point for All Coding Agents
+# AGENTS.md — Kontrak Kerja
 
-**Project:** Akbar Nawasunda Official Website
-**Owner:** Idel Akbar Ramadan (Akbar Nawasunda) — Bandung Barat, ID
-**Domain:** akbarnawasunda.my.id
-**Last Updated:** 2026-10-22
+**Berlaku untuk:** setiap agen yang menulis kode di repo ini.
+**Didahulukan atas:** semua dokumen di `docs/` bila terjadi pertentangan. Bila ada konflik, catat —
+jangan pilih diam-diam. **`docs/08-IMPLEMENTATION/DECISION_LOG.md` tidak boleh disentuh tanpa izin
+pemilik.**
+**Baca juga:** `CONTEXT.md` (peta repo lengkap).
 
-## 1. Your Mandate
-You are building the digital home for a real independent music artist. Not a template. Every decision MUST be traceable to verified facts or to an explicit assumption in `ASSUMPTIONS_AND_OPEN_QUESTIONS.md`.
+Dokumen ini menggantikan versi sebelumnya. Aturan lama yang sudah tidak berlaku — **Syne**,
+**purple `#7800FF`**, dan **budget JS 180 KB** — dihapus karena bertentangan dengan keputusan pemilik
+dan kode yang berjalan.
 
-## 2. Reading Order (MUST)
-1. This file `AGENTS.md`
-2. `docs/00-PROJECT-FOUNDATION/PROJECT_CHARTER.md`
-3. `docs/00-PROJECT-FOUNDATION/PRD.md`
-4. `docs/01-BRAND-IDENTITY/BRAND_IDENTITY.md` + `FACTS_AND_VERIFICATION.md`
-5. `docs/02-DESIGN-SYSTEM/DESIGN.md` + `3D_ART_DIRECTION.md`
-6. `docs/03-USER-EXPERIENCE/SITEMAP.md` + `PAGE_SPECIFICATIONS.md`
-7. `docs/04-TECHNICAL-ARCHITECTURE/TECHNICAL_SPEC.md` + `ARCHITECTURE.md`
-8. `docs/08-IMPLEMENTATION/DECISION_LOG.md` + `IMPLEMENTATION_ROADMAP.md`
-9. `docs/07-QUALITY-AND-TESTING/ACCEPTANCE_CRITERIA.md`
+---
 
-## 3. Identity Rules (MUST)
-- Primary: **AKBAR NAWASUNDA**
-- Historical alias: **DJ AKBAR REMIX** — MUST be presented as evolution, not separate person. Format: "Akbar Nawasunda (formerly DJ Akbar Remix, since 2020)"
-- Do NOT invent releases, awards, stats, press, booking info.
-- Verified facts: Lahir 1 Nov 2005 Bandung Barat, active since 2020, genres: Breakbeat / Indo Bass / Jedag Jedug / Jungle Dutch, releases verified: "Masih Mencintainya - Papinka (2025)", "Cinta Terbuang", "Masih Dihatiku", "Bayang Tanpa Kata", "Pada Imut Aisyah Tak Belagu". Source: Medium bio + sndo.ffm.to + akbarnawasunda.my.id
-- All other releases = PLACEHOLDER — label as `UNVERIFIED`.
+## 0. Fakta proyek
 
-## 4. Design Authority
-- Design source of truth: `DESIGN.md` + `DESIGN_TOKENS.md`. If conflict, `DESIGN_TOKENS.md` wins for values, `DESIGN.md` wins for intent.
-- 3D source of truth: `3D_ART_DIRECTION.md`. Do NOT add random particles/spheres.
-- Palette: Near-black #0A0A0E / #101012, charcoal #1A1A22, midnight-blue #0E1A2E, icy-cyan #8AE8FF, signal-blue #0087FF, purple #7800FF. No neon green, no glassmorphism everywhere.
-- Typography: Headlines editorial bold (e.g., Sora / Syne / General Sans), body: Inter / Satoshi. Tight tracking, never unreadable futuristic fonts.
+| Hal | Nilai |
+| --- | --- |
+| Stack | Next **16.4** App Router · React **19** · TypeScript `strict` + `noUncheckedIndexedAccess` |
+| Styling | **CSS Modules** per komponen + `src/styles/tokens.css` sebagai satu-satunya sumber nilai. **Tanpa Tailwind, tanpa PostCSS, tanpa utility class.** |
+| Tipografi | Instrument Serif (display) · Instrument Sans (body) · JetBrains Mono (label) — di-host sendiri lewat `next/font/local` |
+| Palet | Tinta `#050507`/`#0A0A0E` · kertas `#E8E6E1` · biru AN `#0087FF` · merah poster `#FF2D20` |
+| Data | Statis di `src/content/*` (fallback) + CMS Turso/libSQL di `src/studio`. Publik **hanya** membaca data *published*. |
+| Budget | **JS awal ≤ 250 KB gzip** · **CSS ≤ 40 KB gzip** · LCP < 2,5 s di Android menengah · axe 0 pelanggaran |
+| Domain | `akbarnawasunda.my.id` · branch kerja `arena/e02160ef-akbar-nawasunda` · `main` = produksi |
 
-## 5. Technical Constraints (MUST)
-- Inspect repo first. Do NOT assume Next.js / Supabase / etc. Read package.json, file structure.
-- Performance budget: JS initial <180kb gzipped, LCP <2.5s on mid Android, 3D MUST have fallback. If WebGL fails, content remains readable.
-- Mobile-first: Test on real Android. 3D disabled by default on low-power.
-- Do NOT push to production branch, do NOT expose secrets, do NOT store admin password plaintext.
+---
 
-## 6. Content Rules
-- All artist copy MUST cite `FACTS_AND_VERIFICATION.md`.
-- Placeholder pattern: `[NEEDS OWNER: ...]` — never silently assert.
-- Social links only from `SOCIAL_LINKS.md` verified list.
+## 1. DILARANG (hard fail)
 
-## 7. Studio/CMS
-- Owner-controlled CMS, not mandatory external SaaS. Auth required. Draft vs Published separation MUST.
-- Public site MUST NOT expose draft data.
+1. **Jangan** tambah Tailwind, PostCSS, atau utility class. Styling hanya CSS Modules + `tokens.css`.
+2. **Jangan** tulis nilai mentah di CSS Module untuk **warna, spasi, ukuran huruf, dan motion** —
+   wajib `var(--token)` dari `src/styles/tokens.css`. Nilai **struktural** tetap boleh literal:
+   `0`, `1px` (hairline/border), `100%`, `50%`, `auto`, `env(safe-area-inset-*)`, serta angka di dalam
+   `translate`/`scale`/`rotate`/`calc()` untuk offset dan transform.
+3. **Jangan** bikin `src/hooks/`. Hook kustom hidup di dalam komponen pemiliknya (`scroll-engine.ts`,
+   `Plate3D`, `CatalogueIndex`).
+4. **Jangan** pakai `@media (hover: none)` atau `matchMedia("(hover: none)")`. Pakai
+   `event.pointerType` (`"mouse"` / `"pen"`). Untuk menyembunyikan fitur di perangkat sentuh, uji
+   `max-width` atau `pointer: coarse` di CSS, bukan `hover: none`.
+5. **Jangan** bikin `requestAnimationFrame` loop baru. Loop scroll untuk seluruh situs ada di
+   `scroll-engine.ts` (`registerDepth`, `registerPin`). Loop milik satu komponen yang **sudah ada**
+   boleh diperluas, tidak boleh diduplikasi.
+6. **Jangan** bikin komponen 3D baru dari nol. Yang tersedia: `Plate3D` (CSS 3D), `Tilt3D`, `Depth`,
+   `AnMonogram` (`<canvas>` three.js satu-satunya di situs).
+7. **Jangan** taruh komponen publik di `src/app/studio/`. Layout `(site)` dan `studio` terpisah.
+8. **Jangan** karang data rilis, penghargaan, angka pendengar, atau kutipan pers. `[NEEDS OWNER: ...]`
+   adalah pernyataan jujur, bukan placeholder.
+9. **Jangan** pakai `position: fixed` di dalam ancestor ber-`perspective`, `filter`, `backdrop-filter`,
+   `transform`, atau `will-change` — ancestor seperti itu menjadi *containing block*. Pakai portal ke
+   `<body>`.
+10. **Jangan** sentuh `docs/08-IMPLEMENTATION/DECISION_LOG.md` tanpa izin.
 
-## 8. Conflict Resolution
-If two docs conflict, do NOT choose randomly. Log in `DECISION_LOG.md` with Issue ID, severity, docs involved, and ask owner if Critical/High affecting brand, security, cost, architecture. Safe reversible decisions MAY be made with documented assumption.
+---
 
-## 9. Definition of Done
-A task is done only if: code exists + acceptance criteria from `ACCEPTANCE_CRITERIA.md` met + screenshot evidence mobile/desktop + no console errors + performance budget not exceeded.
+## 2. WAJIB (harus ada sebelum lapor selesai)
 
-## 10. Prohibited
-- Generic DJ template clone
-- Fake testimonials, fake listener counts
-- Paid service without approval
-- Adding newsletter/tracking without privacy doc
-- Rewriting Git history
+1. Semua warna/spasi/tipe/motion dari `tokens.css` → `npm run audit:tokens` lulus.
+2. `npm run typecheck` lulus · `npm run lint` lulus.
+3. `npm run a11y` lulus (**16 pemuatan**, termasuk menu ponsel dan sisi belakang dalam keadaan terbuka).
+4. `npm run qa:motion` lulus (**21 asersi**).
+5. Screenshot lewat `npm run review:shots` sebelum lapor selesai; bandingkan dengan referensi.
+6. Menyentuh 3D → pakai `Plate3D` atau `AnMonogram` yang ada. **Jangan** bikin canvas baru.
+7. Menyentuh animasi scroll → daftarkan ke `scroll-engine.ts`. **Jangan** bikin rAF sendiri.
+8. `prefers-reduced-motion: reduce` harus menghasilkan keadaan diam yang tetap terbaca lengkap.
+9. Semua konten tetap terbaca tanpa WebGL.
+
+---
+
+## 3. Alur kerja wajib
+
+1. Baca `AGENTS.md` + `CONTEXT.md` + **komponen target** sebelum menulis apa pun.
+2. Tulis **PLAN** (file yang diubah, alasannya, komponen yang dipakai ulang) → tunggu persetujuan.
+3. Implementasi satu file per langkah.
+4. Setelah setiap file: `typecheck` + `lint` + `audit:tokens`.
+5. `review:shots` → bandingkan → revisi.
+6. Baru buka PR. Tanpa persetujuan eksplisit: jangan merge ke `main`, jangan deploy produksi.
+
+---
+
+## 4. Status kepatuhan (utang yang diketahui, per R9)
+
+Jujur lebih berguna daripada bersih di atas kertas. Tiga pelanggaran kontrak ini sudah ada di
+`HEAD` dan **belum** diperbaiki:
+
+| Aturan | Lokasi | Catatan |
+| --- | --- | --- |
+| 4 | `src/components/zine/Tilt3D.tsx:30` | `matchMedia("(hover: none)")` sebagai gerbang di mount — di Chromium headless nilainya `true`, jadi tilt mati saat diuji |
+| 4 | `src/components/zine/SmoothScroll.tsx:19` | idem; di sini maksudnya "jangan jalankan Lenis di perangkat sentuh" |
+| 4 | `src/components/zine/Plate3D.module.css:32` | `@media (hover: none)` untuk mematikan `will-change` |
+| 5 | `Plate3D`, `AnMonogram`, `CursorDot`, `InkPress`, `SmoothScroll`, `Tilt3D` | masing-masing punya loop rAF sendiri; hanya `Depth`, `VisualRail`, `ReleaseTicker` memakai `scroll-engine` |
+| 2 | 36 modul CSS | ~734 nilai `px/rem/ms` mentah. Guard `audit:tokens` saat ini **hanya** memeriksa hex, jadi angka ini belum ditegakkan otomatis |
+
+Aturan 1, 3, 6, 7, 8, 9, 10 sudah terpenuhi.
+
+---
+
+## 5. Definisi selesai
+
+Kode ada + seluruh poin §2 lulus + screenshot desktop & mobile + tanpa error konsol + budget tidak
+terlampaui + tidak menambah utang baru ke tabel §4.
