@@ -58,23 +58,31 @@ export async function GET(request: Request) {
   const slug = new URL(request.url).searchParams.get("slug");
   const release = slug ? releases.find((candidate) => candidate.slug === slug) : undefined;
 
-  const fontBytes = await readAsset("fonts/syne-og-800.ttf");
+  const [fontBytes, italicBytes] = await Promise.all([
+    readAsset("fonts/instrument-serif-og.ttf"),
+    readAsset("fonts/instrument-serif-og-italic.ttf"),
+  ]);
   if (!fontBytes) return new Response("OG font missing", { status: 500 });
   const font = new Uint8Array(fontBytes).buffer;
+  const italic = italicBytes ? new Uint8Array(italicBytes).buffer : null;
 
   const title = release ? releaseDisplayTitle(release) : "Akbar Nawasunda";
   const meta = release
     ? [release.type, release.year].filter(Boolean).join(" · ")
     : "Produser · Remixer · DJ";
 
-  // A long title has to shrink, or "Masih Mencintainya — Papinka" wraps into the sleeve.
-  const titleSize = title.length > 26 ? 68 : title.length > 16 ? 84 : 100;
+  /**
+   * The card now uses the site's serif. Two consequences: the title is no longer uppercase
+   * (Instrument Serif in caps at 100px reads like a wedding invitation), and the type can be larger
+   * because a serif at 400 carries far less weight than a grotesque at 800.
+   */
+  const titleSize = title.length > 26 ? 76 : title.length > 16 ? 96 : 112;
 
   const artwork = release ? coverArtwork(release.slug) : null;
   // A data URI, not a URL: satori accepts both, but only one survives the SSRF guard and a cold CDN.
   /**
    * Only *real* artwork is shown. A generated sleeve (kind "sleeve") already prints the release title
-   * in Syne — putting it beside the card's own headline printed the same words twice, four centimetres
+   * in the display face — putting it beside the card's own headline printed the same words twice, four centimetres
    * apart. The sleeve is typography this card can reproduce itself, so a sleeve release gets the
    * large title and the AN mark instead.
    */
@@ -100,7 +108,7 @@ export async function GET(request: Request) {
           display: "flex",
           background: INK,
           color: PAPER,
-          fontFamily: "Syne",
+          fontFamily: "Instrument Serif",
           position: "relative",
         }}
       >
@@ -119,27 +127,15 @@ export async function GET(request: Request) {
           </div>
 
           {/*
-            The slab is a child of the text block, not of the card: anchored to the card it drifted
-            away from a one-line title and only looked right on two-line titles.
+            No slab behind the title any more (D-108): on the card it read as a stray rectangle that
+            only lined up on two-line titles, and the site it links to no longer uses it either.
           */}
           <div style={{ display: "flex", flexDirection: "column", gap: 18, position: "relative" }}>
             <div
               style={{
-                position: "absolute",
-                left: -56,
-                top: 24,
-                width: 640,
-                height: "74%",
-                background: BLUE,
-                opacity: 0.16,
-                transform: "rotate(-2deg)",
-              }}
-            />
-            <div
-              style={{
                 fontSize: titleSize,
                 lineHeight: 0.98,
-                letterSpacing: -3,
+                letterSpacing: -1.5,
                 maxWidth: 660,
                 display: "flex",
                 position: "relative",
@@ -196,7 +192,10 @@ export async function GET(request: Request) {
     {
       width: WIDTH,
       height: HEIGHT,
-      fonts: [{ name: "Syne", data: font, weight: 800, style: "normal" }],
+      fonts: [
+        { name: "Instrument Serif", data: font, weight: 400, style: "normal" },
+        ...(italic ? [{ name: "Instrument Serif", data: italic, weight: 400 as const, style: "italic" as const }] : []),
+      ],
       headers: {
         // Cards change only when the catalogue does; let the CDN hold them for a day.
         "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800",

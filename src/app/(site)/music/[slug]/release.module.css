@@ -21,10 +21,10 @@
 .title {
   margin-top: var(--space-4);
   font-family: var(--font-display-stack);
-  font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  font-weight: 400;
+  font-size: clamp(2.25rem, 1.2rem + 3.2vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 

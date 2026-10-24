@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site";
 import styles from "./PaperAbout.module.css";
 
 /**
- * About, printed on stock: off-white paper laid over the dark site, torn at both edges, with the
+ * About, printed on stock: an off-white sheet laid over the dark site, with the
  * timeline as a drawn line rather than a set of boxes.
  *
  * The line is one SVG path whose `stroke-dashoffset` is animated by a CSS scroll timeline, so it is
@@ -19,8 +19,6 @@ import styles from "./PaperAbout.module.css";
 export function PaperAbout() {
   return (
     <section className={styles.paper} aria-labelledby="about-title" id="about">
-      <span className={styles.tornTop} aria-hidden="true" />
-      <span className={styles.tornBottom} aria-hidden="true" />
 
       <div className={styles.inner}>
         <p className={styles.kicker}>01 — Tentang</p>

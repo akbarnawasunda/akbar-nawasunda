@@ -14,12 +14,14 @@
   color: var(--color-text-secondary);
 }
 
+/* Inner-page H1: the display serif, sentence case. It used to be a 500-weight uppercase grotesque,
+   which is why every page below the homepage read like a different, older site. */
 .title {
-  font-size: var(--text-title);
-  font-weight: 500;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.015em;
 }
 
 .lead {

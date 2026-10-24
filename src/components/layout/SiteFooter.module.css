@@ -41,10 +41,10 @@
 
 .name {
   font-family: var(--font-display-stack);
-  font-weight: 800;
-  font-size: 1.125rem;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 1.375rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
 .mono {
@@ -93,13 +93,13 @@
   color: var(--color-text-primary);
 }
 
+/* Column headings are labels, not headlines: mono, so the serif stays reserved for real headings. */
 .heading {
-  font-family: var(--font-display-stack);
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
 }
 
 .address {
@@ -194,8 +194,8 @@
   }
 }
 
-/* Tape bar: the one contact action, printed like a label stuck across the bottom of the box. */
-.tape {
+/* Wrapper for the contact bar, aligned to the same column grid as the footer body. */
+.contactBar {
   position: relative;
   z-index: 1;
   max-width: var(--container-max);
@@ -203,41 +203,41 @@
   padding-inline: var(--gutter);
 }
 
-.tapeLink {
+/* The contact bar is the only filled surface in the footer, and it is filled with the signal colour:
+   one place on the page where the accent is a background instead of a dot or an underline (D-108).
+   No skew, no clip-path — a rectangle that lines up with the columns above it. */
+.contactLink {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2) var(--space-6);
   padding: var(--space-4) var(--space-6);
-  background: var(--color-tape);
+  background: var(--color-signal-blue);
   color: var(--color-ink-black);
   text-decoration: none;
-  clip-path: polygon(0 6%, 100% 0, 99.6% 94%, 0.4% 100%);
-  transition: clip-path 320ms var(--ease), filter 320ms var(--ease);
+  transition: filter 240ms var(--ease);
 }
 
-.tapeLink:hover {
-  clip-path: polygon(0 0, 99.4% 6%, 100% 100%, 0 93%);
-  filter: brightness(1.05);
+.contactLink:hover {
+  filter: brightness(1.08);
 }
 
-.tapeLabel {
+.contactLabel {
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
-.tapeValue {
+.contactValue {
   font-family: var(--font-display-stack);
-  font-size: clamp(0.9375rem, 2vw, 1.375rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.125rem, 2.2vw, 1.5rem);
+  letter-spacing: -0.01em;
 }
 
 @media (max-width: 720px) {
-  .tapeLink {
-    padding: var(--space-3) var(--space-4);
+  .contactLink {
+    padding: var(--space-4);
   }
 }

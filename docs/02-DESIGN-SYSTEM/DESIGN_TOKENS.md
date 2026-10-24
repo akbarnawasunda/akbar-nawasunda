@@ -10,7 +10,7 @@
     "focus": "#8AE8FF"
   },
   "font": {
-    "display": "Syne, Sora, sans-serif",
+    "display": "Instrument Serif, ui-serif, Georgia, serif",
     "body": "Inter, Satoshi, sans-serif",
     "mono": "JetBrains Mono, monospace"
   },

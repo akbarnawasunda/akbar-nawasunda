@@ -9,7 +9,7 @@ Referensi yang dikasih owner: tall editorial composition, dramatic cinematic ima
 - Background: #0A0A0E (near-black) base, #101012 matte PVC untuk cards, #1A1A22 charcoal surface
 - Signal: Blue #0087FF untuk primary action + line, Purple #7800FF untuk accent Potret Neon, Icy #8AE8FF untuk highlight text
 - Typography:
-  - Display: Syne / Sora / General Sans, 700-800, tight -0.02em, uppercase occasional
+  - Display: Instrument Serif 400 (+ italic for emphasis), sentence case, tracking -0.015em (D-108)
   - Body: Inter 400-500, line-height 1.6
   - Fluid: clamp(16px, 1.2vw, 18px) body, clamp(32px, 6vw, 96px) hero
 - Spacing: 4px base, scale 8,16,24,32,48,64,96,128,192

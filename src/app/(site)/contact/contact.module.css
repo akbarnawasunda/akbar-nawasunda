@@ -17,10 +17,10 @@
 
 .address {
   font-family: var(--font-display-stack);
-  font-size: clamp(1.375rem, 1rem + 2.4vw, 2.75rem);
-  font-weight: 700;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 1rem + 2.6vw, 3rem);
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
@@ -45,10 +45,10 @@
 }
 
 .title {
-  font-family: var(--font-display-stack);
-  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-body-stack);
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  font-weight: 600;
+  letter-spacing: -0.005em;
 }
 
 .services {

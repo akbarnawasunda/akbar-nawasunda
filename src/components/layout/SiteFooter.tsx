@@ -8,8 +8,8 @@ import { releases, releaseDisplayTitle } from "@/content/releases";
 import styles from "./SiteFooter.module.css";
 
 /**
- * Footer as the back page of the zine: a giant monogram watermark, four columns, a rubber stamp and
- * one line of small print.
+ * Footer as a colophon: a giant monogram watermark, four columns of plain links, the roles as a mono
+ * label, and one line of small print.
  *
  * Two things are deliberately *not* here:
  * - every streaming service: the ten of them live in the "Dengarkan di" row on the homepage and the
@@ -121,11 +121,11 @@ export function SiteFooter() {
         </div>
       </div>
 
-      {/* Tape bar: the one contact action the page actually wants, printed like a label on the box. */}
-      <div className={styles.tape}>
-        <a className={styles.tapeLink} href={contactHref}>
-          <span className={styles.tapeLabel}>Bookings · Remix · Kolaborasi</span>
-          <span className={styles.tapeValue}>{contactEmail}</span>
+      {/* The one contact action the page actually wants, set as a solid bar. */}
+      <div className={styles.contactBar}>
+        <a className={styles.contactLink} href={contactHref}>
+          <span className={styles.contactLabel}>Bookings · Remix · Kolaborasi</span>
+          <span className={styles.contactValue}>{contactEmail}</span>
         </a>
       </div>
 

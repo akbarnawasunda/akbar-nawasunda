@@ -73,14 +73,13 @@
 
 .wordmark {
   font-family: var(--font-display-stack);
-  font-size: 0.875rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
-/* The RMX tag is a piece of tape, not a second logo. */
+/* RMX tag: a solid chip, not a second logo. */
 .rmx {
   padding: 1px 5px;
   background: var(--color-signal-blue);
@@ -153,12 +152,12 @@
   border-color: var(--color-border-strong);
 }
 
-/* Current page gets the tape treatment: the only warm colour in the chrome. */
+/* Current page is filled with the signal colour — the same accent the hero's full stop uses, so the
+   chrome and the page agree on what "active" looks like. No rotation, no tape. */
 .desktopNav a[aria-current="page"] {
-  color: var(--color-tape-ink);
-  background: var(--color-tape);
-  border-color: var(--color-tape);
-  transform: rotate(-1.5deg);
+  color: var(--color-ink-black);
+  background: var(--color-signal-blue);
+  border-color: var(--color-signal-blue);
 }
 
 .actions {
@@ -234,10 +233,10 @@
 .drawerList a {
   display: inline-block;
   font-family: var(--font-display-stack);
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
   text-decoration: none;
 }
 

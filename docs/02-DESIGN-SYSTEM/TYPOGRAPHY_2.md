@@ -1,7 +1,7 @@
 # TYPOGRAPHY — Detailed
 
 ## Families
-- Display: Syne Bold 700 or Sora Bold. Fallback: Inter Bold. Use for H1, section titles. Tracking -0.02em.
+- Display: Instrument Serif 400 (roman + italic). Fallback: ui-serif / Georgia. Use for H1, section titles, sentence case, tracking -0.015em (D-108 — supersedes the Syne/Sora plan).
 - Body: Inter Regular 400 / Medium 500. Fallback system sans.
 - Mono: JetBrains Mono 400 for metadata: BANDUNG BARAT • SINCE 2020, IDs, year.
 

@@ -19,10 +19,14 @@
  * year when they are known, the AN monogram, and the brand palette. No stock photo, no invented
  * artwork, no genre label per release (genres are verified for the artist, not for each song).
  *
- * Typography: renders with Syne (display) and JetBrains Mono (labels), the two families the site
- * ships. Both must be installed locally for the rasteriser to find them — `fontconfig` sees
- * ~/.fonts. Without them the text falls back to a system sans and the file will look wrong, so
- * check the result; the committed sleeves were rendered with Syne 800 / JetBrains Mono 500.
+ * Typography: renders with Instrument Serif 400 (display) and JetBrains Mono 500 (labels), the two
+ * families the site ships. Both must be installed locally for the rasteriser to find them —
+ * `fontconfig` sees ~/.fonts. Without them the text falls back to a system sans and the file will
+ * look wrong, so check the result; the committed sleeves were rendered with Instrument Serif 400.
+ *
+ * The display face changed on 2026-10-24 (D-108). The sleeves are the loudest type on the site —
+ * ten of them, one per release — so leaving them in the old 800-weight grotesque would have kept the
+ * exact lettering the redesign replaced.
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -38,7 +42,9 @@ const markPath = join(root, "public", "brand", "an-mark.webp");
 const SIZE = 1000;
 const PAD = 72;
 const COLUMN = 660; // text column; the ghost sits to the right of it
-const TITLE_SIZES = [60, 52, 46, 40];
+/* A 400-weight serif needs to be much larger than an 800-weight grotesque to hold the same square:
+   the sleeve titles now start at 128 and step down until they fit three lines. */
+const TITLE_SIZES = [150, 132, 116, 100, 88, 76, 64];
 
 /** XML-safe text for the SVG. Titles contain em dashes and commas. */
 function xml(value) {
@@ -50,11 +56,12 @@ function xml(value) {
 }
 
 /**
- * Syne ExtraBold advance widths, in 1000ths of the em (unitsPerEm = 1000), read out of the font
- * file once. Syne is unusually wide — an "M" is 1.58 em — so guessing at 0.55 em per character
- * overflows the sleeve badly. Missing glyphs fall back to 0.6 em.
+ * Instrument Serif Regular advance widths, in 1000ths of the em (unitsPerEm = 1000), read out of the
+ * font file once (fontTools / hmtx). Measuring beats guessing: a serif "m" is 0.70 em and an "i" is
+ * 0.22 em, so a flat per-character estimate wraps titles in the wrong place. Missing glyphs (the
+ * em dash, most punctuation outside this set) fall back to 0.45 em.
  */
-const SYNE_800 = {
+const DISPLAY_WIDTHS = {
   A: 1160, B: 1140, C: 1316, D: 1302, E: 1140, F: 1128, G: 1340, H: 1280, I: 420, J: 1004, K: 1215,
   L: 943, M: 1580, N: 1300, O: 1330, P: 1177, Q: 1330, R: 1232, S: 1056, T: 1100, U: 1289, V: 1160,
   W: 1882, X: 1140, Y: 1070, Z: 1200,
@@ -69,8 +76,8 @@ const SYNE_800 = {
 /** Advance width of one line, including the -0.02em letter-spacing the SVG applies. */
 function measure(text, size) {
   const glyphs = [...text];
-  const sum = glyphs.reduce((total, char) => total + (SYNE_800[char] ?? 600) / 1000, 0);
-  return (sum - glyphs.length * 0.02) * size;
+  const sum = glyphs.reduce((total, char) => total + (DISPLAY_WIDTHS[char] ?? 450) / 1000, 0);
+  return (sum - glyphs.length * 0.01) * size;
 }
 
 /** Greedy word wrap at a fixed column width. */
@@ -108,39 +115,32 @@ function eyebrow(release) {
   return parts.join(" · ");
 }
 
-function sleeveSvg(release, index, total) {
+function sleeveSvg(release) {
   const { size, lines } = fitTitle(release.title);
-  const lineHeight = Math.round(size * 1.04);
-  const firstBaseline = 420;
-  const pillTop = Math.max(firstBaseline + (lines.length - 1) * lineHeight + 56, 608);
-  const pillLabel = `RILIS ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
-  const pillWidth = Math.round(measure(pillLabel, 18) + 44);
+  const lineHeight = Math.round(size * 1.02);
+  /* Bottom-anchored block: the title rests on the bottom margin and the eyebrow sits above it. A
+     top-anchored block left two thirds of the square empty on short titles, which is what made the
+     old sleeves look like an unstyled template rather than a record cover. There is no "RILIS 01/10"
+     pill any more: the grid already prints an index, and two indices in one tile read as a mistake. */
+  const lastBaseline = SIZE - PAD - 56;
+  const firstBaseline = lastBaseline - (lines.length - 1) * lineHeight;
+  const eyebrowY = firstBaseline - Math.round(size * 1.08);
 
   const title = lines
     .map(
       (line, lineIndex) =>
-        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Syne" font-weight="800" font-size="${size}" letter-spacing="${(size * -0.02).toFixed(2)}" fill="#FFFFFF">${xml(line)}</text>`,
+        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Instrument Serif" font-weight="400" font-size="${size}" letter-spacing="${(size * -0.01).toFixed(2)}" fill="#FFFFFF">${xml(line)}</text>`,
     )
     .join("");
 
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <defs>
-    <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#0087FF"/>
-      <stop offset="1" stop-color="#7800FF"/>
-    </linearGradient>
-  </defs>
-
   <rect width="${SIZE}" height="${SIZE}" fill="#101014"/>
 
-  <text x="${PAD}" y="352" font-family="JetBrains Mono" font-weight="500" font-size="21" letter-spacing="3.4" fill="#A1A1B5">${xml(eyebrow(release))}</text>
+  <text x="${PAD}" y="${eyebrowY}" font-family="JetBrains Mono" font-weight="500" font-size="21" letter-spacing="3.4" fill="#A1A1B5">${xml(eyebrow(release))}</text>
 
   ${title}
 
-  <rect x="${PAD}" y="${pillTop}" width="${pillWidth}" height="46" rx="23" fill="#1A1A22" stroke="#2A2A38" stroke-width="1"/>
-  <text x="${PAD + 22}" y="${pillTop + 30}" font-family="JetBrains Mono" font-weight="500" font-size="18" letter-spacing="2.2" fill="#A1A1B5">${xml(pillLabel)}</text>
-
-  <rect x="0" y="${SIZE - 4}" width="${SIZE}" height="4" fill="url(#rule)"/>
+  <rect x="0" y="${SIZE - 4}" width="${SIZE}" height="4" fill="#0087FF"/>
 </svg>`);
 }
 
@@ -158,12 +158,12 @@ async function ghostMark(width) {
     .toBuffer();
 }
 
-async function render(release, index, total) {
-  const svg = sleeveSvg(release, index, total);
+async function render(release) {
+  const svg = sleeveSvg(release);
   const ghost = await ghostMark(360);
 
   const composed = await sharp(svg)
-    .composite([{ input: ghost, left: 586, top: 540 }])
+    .composite([{ input: ghost, left: 586, top: 168 }])
     .webp({ quality: 84 })
     .toBuffer();
 
@@ -177,7 +177,7 @@ async function main() {
   let written = 0;
   const skipped = [];
 
-  for (const [index, release] of releases.entries()) {
+  for (const release of releases) {
     const realArtwork = ["webp", "avif", "jpg", "jpeg", "png"].some((ext) =>
       existsSync(join(outDir, `${release.slug}.${ext}`)),
     );
@@ -192,7 +192,7 @@ async function main() {
       continue;
     }
 
-    const bytes = await render(release, index, releases.length);
+    const bytes = await render(release);
     writeFileSync(target, bytes);
     written += 1;
     console.log(`sleeve ${release.slug}@sleeve.webp (${Math.round(bytes.byteLength / 1024)} KB)`);

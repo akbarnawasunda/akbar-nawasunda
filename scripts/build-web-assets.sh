@@ -45,11 +45,15 @@ done
 # is not shipped a second time: one photograph, one tile.
 
 # Sticker portrait: owner-supplied PNG cut out of its background, with the hand-drawn white and
-# black outline baked in. Transparency is preserved (WebP and AVIF both carry alpha).
+# black outline baked in. Transparency must survive in *both* formats.
+#
+# The AVIFs are not made here: ImageMagick's AVIF delegate flattens alpha onto black, so the hero
+# rendered a black rectangle around the cut-out (D-109). scripts/build-sticker-avif.mjs does those
+# four files with sharp and fails loudly if a channel is lost.
 for w in 480 720 960 1200; do
   convert "$STAGE_SRC/akbar-nawasunda-sticker-portrait.png" -resize "${w}x" -quality 82 "$MEDIA/sticker-$w.webp"
-  convert "$STAGE_SRC/akbar-nawasunda-sticker-portrait.png" -resize "${w}x" -quality 58 "$MEDIA/sticker-$w.avif"
 done
+node "$ROOT/scripts/build-sticker-avif.mjs"
 
 # Editorial stage backdrop: 1600x900 landscape.
 for w in 720 1400; do

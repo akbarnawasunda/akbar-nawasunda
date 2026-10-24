@@ -65,10 +65,10 @@
 .title {
   margin-top: var(--space-4);
   font-family: var(--font-display-stack);
+  font-weight: 400;
   font-size: clamp(3rem, 1.5rem + 7vw, 7rem);
-  font-weight: 700;
-  line-height: 0.9;
-  letter-spacing: -0.03em;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
 }
 
 .faded {

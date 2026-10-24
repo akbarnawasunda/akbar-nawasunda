@@ -35,18 +35,22 @@ import { getPublicPage } from "@/studio/public";
 import styles from "./page.module.css";
 
 /**
- * Homepage — the "zine" pass (2026-10-23).
+ * Homepage — the editorial pass (2026-10-24, D-108).
  *
- * What this page is: a printed object that happens to scroll. Tape, paper, a rubber stamp, a blue
- * spray slab behind the first letter, a sticker portrait cut out of its studio background and dropped
- * on top of the type. Every one of those is a flat colour, a 1px edge or a torn clip-path — there is
- * still no canvas, no shader, no particle field and no purple glow anywhere (D-055 stands).
+ * The zine pass that preceded this one leaned on physical props: masking tape on the portrait, a torn
+ * paper edge, a blue spray slab behind the A, a ruled grid over the hero. Read back to us, that was
+ * the single worst thing on the page — "dekorasi terasa acak" — because none of those devices meant
+ * anything: they were texture applied on top of a layout that would have worked without them.
  *
- * What carries it instead of effects:
- * - a real cut-out portrait at three widths, deliberately overflowing its column so the H1 and the
- *   artist overlap, which is the one compositional idea the references all share;
- * - the owner's own materials: tawny tape, off-white stock, a red stamp;
- * - type set tight (-0.03em) at a size that only fits because the layout is asymmetric.
+ * So they are gone rather than toned down, and three things carry the page instead:
+ * - type. Instrument Serif, one weight, sentence case, italic where a word needs emphasis. A serif
+ *   at 400 holds a page by itself in a way a bold grotesque cannot;
+ * - composition. The cut-out portrait still breaks out of its column and overlaps the H1 — that
+ *   overlap is the idea, and it needs no tape to hold it;
+ * - one accent. The signal blue appears as a full stop after the name, the active nav mark, the
+ *   chronology dots and the two link underlines. Nowhere else.
+ *
+ * There is still no canvas, no shader, no particle field and no purple glow (D-055 stands).
  *
  * Copy rules are unchanged and non-negotiable: counts are derived (src/content/stats.ts), every
  * platform link comes from the owner's own files (14 of them, D-090), and anything the owner has not
@@ -116,28 +120,24 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
-        <span className={styles.heroGrid} aria-hidden="true" />
-        <span className={styles.heroSpray} aria-hidden="true" />
-
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
-            <p className={`tape ${styles.eyebrow}`}>
-              {siteConfig.origin.replace(", Indonesia", "")} • Sejak {siteConfig.since} • +{stats.releaseCount} rilis
+            <p className={styles.eyebrow}>
+              {siteConfig.origin.replace(", Indonesia", "")} · Sejak {siteConfig.since} ·{" "}
+              {stats.releaseCount} rilis
             </p>
 
             <h1 id="hero-title" className={styles.title}>
-              <span className={styles.titleLine}>
-                <span className={styles.blueSlab} aria-hidden="true" />
-                <span className={styles.titleWord}>Akbar</span>
-              </span>
-              <span className={styles.titleLine}>
-                <span className={styles.titleWord}>Nawasunda</span>
+              <span className={styles.titleLine}>Akbar</span>
+              <span className={`${styles.titleLine} ${styles.titleAccent}`}>
+                Nawasunda
+                <span className={styles.titleDot} aria-hidden="true">.</span>
               </span>
             </h1>
 
             <p className={styles.sub}>
-              Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — musik
-              yang dibuat dengan tangan, bukan template.
+              Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — tiga
+              bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.
             </p>
 
             <div className={styles.actions}>
@@ -182,7 +182,6 @@ export default async function HomePage() {
 
           <Tilt3D className={styles.stickerTilt}>
           <figure className={styles.sticker}>
-            <span className={styles.stickerTape} aria-hidden="true" />
             <picture>
               <source
                 type="image/avif"
@@ -221,11 +220,10 @@ export default async function HomePage() {
       <section className={styles.signature} aria-labelledby="signature-title">
         {/* The only canvas on the site: the owner's own mark, extruded (D-095, D-096). */}
         <AnMonogram />
-        <span className={styles.signatureRule} aria-hidden="true" />
         <div className={styles.signatureInner}>
           <p className={styles.signatureLabel}>02 — Monogram</p>
           <h2 id="signature-title" className={styles.signatureTitle}>
-            Tanda <span className={styles.signatureThin}>AN</span>
+            Tanda <span className={styles.signatureAccent}>AN</span>
           </h2>
           <p className={styles.signatureNote}>
             Bentuk tiga dimensi dari penanda milik pemilik sendiri: satu huruf A dan satu huruf N
@@ -283,7 +281,6 @@ export default async function HomePage() {
         <Container>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
-              <span className={styles.pressTape} aria-hidden="true" />
               <p className={styles.pressEyebrow}>03 — Press kit</p>
               <h2 id="press-title" className={styles.pressTitle}>
                 Akbar Nawasunda

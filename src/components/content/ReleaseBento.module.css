@@ -81,8 +81,8 @@
 
 .featuredTitle {
   font-family: var(--font-display-stack);
-  font-size: clamp(1.5rem, 1rem + 1.6vw, 2.25rem);
-  font-weight: 700;
+  font-weight: 400;
+  font-size: clamp(1.75rem, 1rem + 1.8vw, 2.5rem);
   line-height: 1.05;
   letter-spacing: var(--tracking-hero);
   text-wrap: balance;
@@ -117,20 +117,6 @@
   width: 3px;
   background: var(--color-wave-lime);
   opacity: 0.75;
-}
-
-/* Masking tape across the top-right corner of a tile: the "pinned to the wall" detail. */
-.tileTape {
-  position: absolute;
-  z-index: 2;
-  top: 10px;
-  right: -18px;
-  width: 96px;
-  height: 26px;
-  background: color-mix(in srgb, var(--color-tape) 78%, transparent);
-  transform: rotate(28deg);
-  clip-path: polygon(0 18%, 6% 0, 94% 5%, 100% 22%, 96% 88%, 88% 100%, 8% 94%, 2% 78%);
-  pointer-events: none;
 }
 
 .openRow {
@@ -174,11 +160,11 @@
 }
 
 .tileTitle {
-  font-family: var(--font-display-stack);
-  font-size: clamp(1rem, 0.85rem + 0.5vw, 1.125rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  font-family: var(--font-body-stack);
+  font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1.0625rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
   color: var(--color-text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -244,10 +230,10 @@
 }
 
 .moreLabel {
-  font-family: var(--font-display-stack);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
+  font-family: var(--font-body-stack);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   color: var(--color-text-primary);
 }
 

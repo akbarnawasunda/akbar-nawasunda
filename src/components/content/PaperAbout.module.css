@@ -5,38 +5,9 @@
   padding-block: clamp(4rem, 9vw, 8rem);
   background: var(--color-paper);
   color: var(--color-paper-ink);
-  /* A torn edge, not a straight seam: the band is a sheet laid over the site. */
-  clip-path: polygon(
-    0 1.1%, 4% 0.4%, 9% 1.3%, 15% 0.5%, 22% 1.2%, 30% 0.3%, 38% 1.1%, 47% 0.4%, 56% 1.3%,
-    65% 0.5%, 74% 1.2%, 83% 0.4%, 91% 1.1%, 97% 0.4%, 100% 1%,
-    100% 99%, 94% 99.7%, 86% 98.9%, 77% 99.6%, 68% 98.8%, 58% 99.6%, 49% 98.9%, 39% 99.7%,
-    29% 98.9%, 20% 99.6%, 12% 98.9%, 5% 99.6%, 0 99%
-  );
-}
-
-.tornTop,
-.tornBottom {
-  position: absolute;
-  z-index: 0;
-  left: 0;
-  width: 100%;
-  height: 24px;
-  background:
-    radial-gradient(circle at 20% 0, rgb(0 0 0 / 18%) 0 6px, transparent 7px) 0 0 / 48px 24px
-      repeat-x,
-    radial-gradient(circle at 70% 100%, rgb(0 0 0 / 14%) 0 5px, transparent 6px) 12px 0 / 56px
-      24px repeat-x;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.tornTop {
-  top: 0;
-}
-
-.tornBottom {
-  bottom: 0;
-  rotate: 180deg;
+  /* A straight edge. The torn top and bottom were the most conspicuous piece of applied texture on
+     the page — a sheet is already readable as a sheet from its colour and its straight seam (D-108). */
+  border-block: 1px solid color-mix(in srgb, var(--color-paper-ink) 12%, transparent);
 }
 
 .inner {
@@ -65,9 +36,10 @@
 
 .heading {
   font-family: var(--font-display-stack);
-  font-size: clamp(2rem, 4.6vw, 3.75rem);
-  line-height: 0.98;
-  letter-spacing: -0.035em;
+  font-weight: 400;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
@@ -179,11 +151,11 @@
 }
 
 .title {
-  font-family: var(--font-display-stack);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  font-family: var(--font-body-stack);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
 }
 
 .detail {

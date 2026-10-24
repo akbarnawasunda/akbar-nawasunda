@@ -16,12 +16,17 @@ interface ReleaseCardProps {
  * 1:1 release tile.
  *
  * Artwork-first, like the homepage bento: a real cover when one exists, otherwise the designed
- * Level-3 sleeve (title + AN mark + 4px signal rule). The title under the tile is only printed for
- * real artwork; a generated sleeve already carries it inside the image.
+ * Level-3 sleeve (title + AN mark + 4px signal rule).
+ *
+ * A generated sleeve already prints the title, the original artist and the year inside the image, so
+ * the tile adds nothing but its index and, for real artwork only, a title + meta block underneath.
+ * Printing the same three facts twice in one tile was the clearest example of the layering problem
+ * the editorial pass removed (D-108).
  */
 export function ReleaseCard({ release, index }: ReleaseCardProps) {
+  const hasArtwork = Boolean(release.coverUrl);
   return (
-    <Link href={release.href} className={styles.card}>
+    <Link href={release.href} className={`${styles.card} ${hasArtwork ? "" : styles.sleeve}`}>
       <span className={styles.top}>
         {index ? (
           <span className={styles.index}>{String(index).padStart(2, "0")}</span>
@@ -43,10 +48,12 @@ export function ReleaseCard({ release, index }: ReleaseCardProps) {
         />
       </span>
 
-      <span className={styles.body}>
-        {release.coverUrl ? <span className={styles.title}>{release.title}</span> : null}
-        <span className={styles.meta}>{release.meta}</span>
-      </span>
+      {hasArtwork ? (
+        <span className={styles.body}>
+          <span className={styles.title}>{release.title}</span>
+          <span className={styles.meta}>{release.meta}</span>
+        </span>
+      ) : null}
     </Link>
   );
 }

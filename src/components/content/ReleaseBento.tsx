@@ -73,7 +73,6 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
         <article key={item.slug} className={`${styles.card} ${styles.tile}`}>
           <Link href={item.href} className={styles.hitArea}>
             <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
-            <span className={styles.tileTape} aria-hidden="true" />
             <span className={styles.tileBody}>
               <span className={styles.tileIndex}>{String(index + 2).padStart(2, "0")}</span>
               {/* The generated sleeve prints the title inside the artwork, so the scrim only

@@ -1,10 +1,10 @@
 /*
-  Homepage — zine pass.
+  Homepage — editorial pass (D-108).
 
-  Materials, not effects: a spray slab cut with a torn clip-path, masking tape, paper stock, a rubber
-  stamp, a sticker portrait that overlaps the type. Every surface is a flat colour; the only gradient
-  on the page is the 40% vignette at the bottom of the hero, and it exists to stop the photograph from
-  ending on a hard line.
+  Type and composition do the work; materials are used where they mean something (the press sheet is
+  printed on paper because it *is* a press sheet). Everything that was decorative for decoration's
+  sake — the ruled grid, the blue spray field, the slab behind the A, the tape on the portrait — has
+  been removed, not shrunk.
 
   There is no canvas, no shader, no blur filter and no radial gradient in this file — the anti-AI guard
   test (tests/studio/anti-ai.test.ts) fails the build if one comes back.
@@ -19,41 +19,6 @@
   background: var(--color-ink-black);
   border-bottom: 1px solid var(--color-border);
   padding-block: var(--space-16) var(--space-24);
-}
-
-/* Faint vertical rules: the only structure behind the composition. */
-.heroGrid {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--color-border) 55%, transparent) 1px,
-    transparent 1px
-  );
-  background-size: calc(100% / 6) 100%;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* The blue slab: an off-register rectangle of spray, clipped so its edges are ragged. It sits behind
-   the first word rather than around it, which is what makes the tag read as printed rather than boxed. */
-.heroSpray {
-  position: absolute;
-  z-index: 0;
-  top: 22%;
-  left: 0;
-  width: min(58vw, 720px);
-  height: min(30vw, 380px);
-  background: var(--color-signal-blue);
-  opacity: 0.16;
-  transform: rotate(-1.4deg);
-  clip-path: polygon(
-    0 12%, 6% 4%, 18% 9%, 27% 2%, 39% 7%, 52% 1%, 63% 6%, 74% 2%, 86% 8%, 96% 3%, 100% 14%,
-    98% 38%, 100% 64%, 97% 84%, 88% 96%, 74% 91%, 61% 99%, 48% 93%, 35% 98%, 22% 92%, 10% 97%,
-    2% 88%, 4% 62%, 0 38%
-  );
-  pointer-events: none;
 }
 
 .heroInner {
@@ -78,23 +43,27 @@
 
 .eyebrow {
   margin-bottom: var(--space-6);
+  font-family: var(--font-mono-stack);
   font-size: 0.625rem;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 
 .title {
   position: relative;
   margin: 0;
   font-family: var(--font-display-stack);
-  font-weight: 800;
-  /* 8.2vw is the largest size at which the nine letters of NAWASUNDA still fit the gutter-to-gutter
-     width; the 48px floor overflowed the H1 on every phone (measured: 529px of word in 358px). */
-  font-size: clamp(1.625rem, 8.2vw, 6.5rem);
-  line-height: 0.85;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
+  font-weight: 400;
+  /* Instrument Serif is a narrow face: "Nawasunda" measures ~4.6em, so the headline can be much
+     larger than Syne's 8.2vw ceiling and still clear the portrait column at 1280px. */
+  font-size: clamp(3.25rem, 9.2vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: -0.015em;
   color: var(--color-text-primary);
+  /* Optical alignment: a serif's left sidebearing pushes the A in by ~2%, which reads as an indent
+     next to a flush-cut eyebrow. */
+  margin-left: -0.02em;
 }
 
 .titleLine {
@@ -102,23 +71,15 @@
   display: block;
 }
 
-.titleWord {
-  position: relative;
-  z-index: 1;
+/* The surname is the italic cut — the one typographic gesture on the page. */
+.titleAccent {
+  font-style: italic;
+  color: var(--color-bone-100);
 }
 
-/* The blue block sits *behind* the first word and extends past it on the left, like a sprayed
-   highlight that missed the paper edge — the N.JEY reference, without the robot. */
-.blueSlab {
-  position: absolute;
-  z-index: 0;
-  top: 0.06em;
-  left: -0.08em;
-  width: 0.92em;
-  height: 0.78em;
-  background: var(--color-signal-blue);
-  transform: rotate(-1.6deg);
-  clip-path: polygon(2% 8%, 100% 0, 97% 22%, 100% 58%, 95% 100%, 6% 96%, 0 64%, 3% 34%);
+.titleDot {
+  font-style: normal;
+  color: var(--color-signal-blue);
 }
 
 .sub {
@@ -170,8 +131,8 @@
 
 .statValue {
   font-family: var(--font-display-stack);
-  font-weight: 800;
-  font-size: 1.75rem;
+  font-weight: 400;
+  font-size: 2rem;
   line-height: 1;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
@@ -210,19 +171,6 @@
     scale(var(--tilt-scale));
   transform-style: preserve-3d;
   will-change: transform;
-}
-
-.stickerTape {
-  position: absolute;
-  z-index: 3;
-  top: 6%;
-  right: 18%;
-  width: 42%;
-  height: 34px;
-  background: color-mix(in srgb, var(--color-tape) 82%, transparent);
-  transform: rotate(-7deg);
-  clip-path: polygon(0 12%, 4% 0, 96% 4%, 100% 18%, 98% 82%, 94% 100%, 6% 96%, 2% 84%);
-  pointer-events: none;
 }
 
 .stickerImg {
@@ -266,7 +214,7 @@
   display: block;
   width: 72px;
   height: 1px;
-  background: linear-gradient(to right, var(--color-signal-blue), var(--color-border));
+  background: var(--color-signal-blue);
 }
 
 /* -------------------------------------------------------------- monogram */
@@ -284,14 +232,6 @@
      rejected "glowing orb" look creeps back in (tests/fixtures/anti-ai.ts). */
   background: linear-gradient(180deg, #0d1320 0%, var(--color-ink-black) 62%, #050507 100%);
   isolation: isolate;
-}
-
-.signatureRule {
-  position: absolute;
-  inset: var(--space-6);
-  z-index: 1;
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 10%, transparent);
-  pointer-events: none;
 }
 
 /* Copy sits on the floor of the band, over a scrim, so it is never read through the metal. */
@@ -319,17 +259,18 @@
 
 .signatureTitle {
   font-family: var(--font-display-stack);
-  font-size: clamp(2.6rem, 8vw, 6rem);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 7.5vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.015em;
   color: var(--color-text-primary);
 }
 
-.signatureThin {
-  font-weight: 300;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--color-text-primary);
+/* "AN" set in the italic, in the signal blue: the same two-word gesture as the hero, so the page has
+   one accent and it repeats on purpose. */
+.signatureAccent {
+  font-style: italic;
+  color: var(--color-signal-blue);
 }
 
 .signatureNote {
@@ -356,9 +297,6 @@
     padding: var(--space-12) var(--space-6) var(--space-8);
   }
 
-  .signatureRule {
-    inset: var(--space-3);
-  }
 }
 
 /* --------------------------------------------------------------- sections */
@@ -401,19 +339,6 @@
 .press {
   position: relative;
   padding: var(--space-12) var(--space-8) var(--space-16);
-  transform: rotate(-0.8deg);
-  border-radius: 2px;
-}
-
-.pressTape {
-  position: absolute;
-  top: -14px;
-  left: 12%;
-  width: 34%;
-  height: 30px;
-  background: color-mix(in srgb, var(--color-tape) 88%, transparent);
-  transform: rotate(-3deg);
-  clip-path: polygon(0 14%, 3% 0, 97% 3%, 100% 20%, 98% 86%, 95% 100%, 4% 97%, 1% 82%);
 }
 
 .pressEyebrow,
@@ -436,13 +361,10 @@
 .pressTitle {
   margin-top: var(--space-2);
   font-family: var(--font-display-stack);
-  font-weight: 800;
-  /* Syne is wide: "NAWASUNDA" measures ~11em, so the floor has to be small enough for a 320px
-     screen (the sheet's content box is 100vw - 80px there). */
-  font-size: clamp(1.25rem, 4.2vw, 2.5rem);
-  line-height: 0.92;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-size: clamp(1.75rem, 4.4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 .pressLead {
@@ -499,10 +421,10 @@
 }
 
 .timelineTitle {
-  font-family: var(--font-display-stack);
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: -0.01em;
+  font-family: var(--font-body-stack);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.005em;
 }
 
 .timelineDetail {
@@ -580,11 +502,10 @@
 .epkTitle {
   margin-top: var(--space-2);
   font-family: var(--font-display-stack);
-  font-weight: 800;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 .epkText {
@@ -643,26 +564,16 @@
     gap: var(--space-8);
   }
 
-  /* On a phone the slab belongs *under the type*, not beside the portrait: at 92vw it read as two
-     stray blue blocks either side of the photo. */
-  .heroSpray {
-    top: auto;
-    bottom: 34%;
-    width: 96vw;
-    height: 40vw;
-    opacity: 0.14;
-  }
-
+  /* Phone order is the reading order: eyebrow, headline, copy, portrait. The portrait used to be
+     pulled above the H1, which meant the first thing on a phone was a photo and the name was a
+     scroll away — the one thing the brief is explicit about (H1 visible immediately). */
   .stickerTilt {
     justify-self: center;
     translate: 0;
-    order: -1;
   }
 
   .sticker {
-    /* Smaller than the copy column on purpose: the portrait should not fill the first screen, so the
-       H1 is already peeking above the fold. */
-    width: min(58vw, 300px);
+    width: min(64vw, 320px);
   }
 
   .pressWrap,

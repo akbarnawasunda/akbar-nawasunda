@@ -60,7 +60,8 @@
   border-radius: 0;
 }
 
-/* Bottom scrim so the index and meta stay legible over any artwork. */
+/* Bottom scrim so the index and meta stay legible over any artwork. A sleeve needs none: nothing is
+   printed over it, and dimming the title baked into the image was making it look grey. */
 .cover::after {
   content: "";
   position: absolute;
@@ -68,6 +69,14 @@
   height: 58%;
   background: linear-gradient(to top, rgba(10, 10, 14, 0.94), rgba(10, 10, 14, 0));
   pointer-events: none;
+}
+
+.sleeve .cover::after {
+  display: none;
+}
+
+.sleeve .top {
+  color: var(--color-text-primary);
 }
 
 .top,
@@ -111,9 +120,9 @@
 
 .title {
   font-family: var(--font-display-stack);
-  font-size: clamp(1.0625rem, 0.85rem + 0.8vw, 1.375rem);
-  font-weight: 700;
-  line-height: 1.15;
+  font-weight: 400;
+  font-size: clamp(1.25rem, 0.85rem + 0.9vw, 1.625rem);
+  line-height: 1.2;
   letter-spacing: var(--tracking-tight);
   text-wrap: balance;
 }
