@@ -18,6 +18,29 @@ Phase 8 QA status: **green** — see `PHASE_0_AUDIT_AND_PHASE_1.md` §20 for the
 | Press kit | `/public/epk/akbar-nawasunda-epk.zip` | 999,465 B, served as a static file |
 | Artwork | `/public/assets/covers/*` | resolved at render time by `src/content/covers.ts` |
 
+### Commit authorship is a deploy gate (learned the hard way)
+
+Vercel only builds a commit whose author GitHub can resolve to an account in the team. A commit
+authored as `agent@arena.ai` is rejected **before the build starts** with:
+
+> GitHub couldn't verify an account for the commit → *Deployment was blocked*
+
+The GitHub check turns red even though CI passed, which reads like a broken preview. Commits on this
+repository therefore have to carry the owner's verified identity:
+
+```bash
+git config user.name  "akbarnawasunda"
+git config user.email "256219392+akbarnawasunda@users.noreply.github.com"
+```
+
+If a commit was already pushed with the wrong author, re-author it and force-push the branch (never
+`main`):
+
+```bash
+git rebase <base> --exec 'git commit --amend --no-edit --reset-author'
+git push --force-with-lease origin <branch>
+```
+
 ---
 
 ## 1. Environment variables (Vercel → Project → Settings → Environment Variables)
