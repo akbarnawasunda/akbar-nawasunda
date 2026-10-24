@@ -17,6 +17,17 @@
   color: var(--color-text-secondary);
 }
 
+/* Mirror: the label and the "see all" link swap sides, the text still reads left to right. */
+.end {
+  flex-direction: row-reverse;
+}
+
+.end > div {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
 .title {
   margin-top: var(--space-3);
   font-family: var(--font-display-stack);

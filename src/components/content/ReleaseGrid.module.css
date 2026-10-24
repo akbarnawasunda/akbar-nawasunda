@@ -17,5 +17,19 @@
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-4);
+    /* Room for the hanging column: the offsets below push the middle and right columns down, so the
+       grid needs the space back at the bottom or the last row looks clipped. */
+    padding-bottom: 56px;
+  }
+
+  /* A gallery wall, not a spreadsheet: the middle column hangs 44 px low and the third 18 px. Two
+     fixed offsets down the whole list read as a decision; the same thing on every card would read
+     as a bug. */
+  .grid > li:nth-child(3n + 2) {
+    translate: 0 44px;
+  }
+
+  .grid > li:nth-child(3n) {
+    translate: 0 18px;
   }
 }

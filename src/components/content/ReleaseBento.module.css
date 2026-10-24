@@ -19,6 +19,22 @@
   border-color: var(--color-border-strong);
 }
 
+/* The sleeve lifts a few pixels and turns towards the reader. On a grid this wide the hover is the
+   only moment the cards are allowed to leave their cell, and that is what stops them reading as a
+   flat contact sheet. */
+.tile {
+  transition:
+    border-color var(--duration-base) var(--ease),
+    translate var(--duration-base) var(--ease),
+    transform var(--duration-base) var(--ease);
+}
+
+.tile:hover,
+.tile:focus-within {
+  translate: 0 -6px;
+  transform: perspective(1000px) rotateX(1.5deg) rotateY(-2deg);
+}
+
 .hitArea {
   position: relative;
   display: block;
@@ -131,7 +147,13 @@
   color: var(--color-text-primary);
 }
 
-/* ------------------------------------------------------------------ 1:1 tiles */
+/* --------------------------------------------------------------- tiles (asymmetric)
+   Five sleeves on a 12-column bed, none of them the same shape and none of them on the same
+   baseline. A perfectly even grid of five identical squares is the layout a generator produces;
+   an editorial spread hangs them at different heights on purpose. Every offset here is a fixed
+   number, not randomness — the point is that it reads as a decision (D-111).
+
+   Rows add up to 12: 5 + 4 + 3, then 4 + 5 + 3 (the "more" card). */
 
 .tile {
   grid-column: span 4;
@@ -139,6 +161,47 @@
 
 .tile .hitArea {
   aspect-ratio: 1 / 1;
+}
+
+.bento > .tile:nth-child(2) {
+  grid-column: span 5;
+}
+
+.bento > .tile:nth-child(2) .hitArea {
+  aspect-ratio: 5 / 6;
+}
+
+.bento > .tile:nth-child(3) {
+  grid-column: span 4;
+  margin-block-start: 44px;
+}
+
+.bento > .tile:nth-child(4) {
+  grid-column: span 3;
+  margin-block-start: 92px;
+}
+
+.bento > .tile:nth-child(4) .hitArea {
+  aspect-ratio: 3 / 4;
+}
+
+.bento > .tile:nth-child(5) {
+  grid-column: span 4;
+  margin-block-start: 12px;
+}
+
+.bento > .tile:nth-child(6) {
+  grid-column: span 5;
+  margin-block-start: 60px;
+}
+
+.bento > .tile:nth-child(6) .hitArea {
+  aspect-ratio: 6 / 5;
+}
+
+.bento > .more {
+  grid-column: span 3;
+  margin-block-start: 20px;
 }
 
 .tile .hitArea > span:first-child {
@@ -248,6 +311,21 @@
 /* --------------------------------------------------------------------- breakpoints */
 
 @media (max-width: 1023px) {
+  /* Below the 12-column breakpoint every offset above is undone: a hanging tile on a 390 px phone is
+     just a broken grid, not an editorial decision. */
+  .bento > .tile:nth-child(n) {
+    margin-block-start: 0;
+  }
+
+  .bento > .tile:nth-child(2),
+  .bento > .tile:nth-child(6) {
+    grid-column: span 6;
+  }
+
+  .bento > .tile:nth-child(4) {
+    grid-column: span 6;
+  }
+
   .featured .hitArea {
     grid-template-columns: 1fr;
   }
@@ -265,8 +343,10 @@
 
 @media (max-width: 559px) {
   .tile,
-  .more {
+  .more,
+  .bento > .tile:nth-child(n) {
     grid-column: span 12;
+    margin-block-start: 0;
   }
 
   .featuredBody {

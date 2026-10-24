@@ -12,7 +12,11 @@ interface RevealProps {
 }
 
 /**
- * Fade-and-rise on first entry, once, via IntersectionObserver.
+ * Rise-and-tilt on first entry, once, via IntersectionObserver.
+ *
+ * The motion is three-dimensional on purpose: the block starts 34 px low, 40 px behind the page and
+ * tilted 7° away, then settles. That is the cheapest honest way to make a scroll feel like it has
+ * depth on every engine — the CSS scroll-timeline pass that preceded this only ran in Chromium.
  *
  * The element is visible by default in CSS and only *starts* hidden after the observer attaches, so
  * a browser without JS (or with the observer missing) still shows the content — the failure mode of

@@ -41,6 +41,17 @@
   min-width: 0;
 }
 
+/* Scroll-depth layers. The engine writes the transform; these wrappers only have to not fight it. */
+.heroType {
+  position: relative;
+  z-index: 2;
+}
+
+.stickerDepth {
+  position: relative;
+  width: 100%;
+}
+
 .eyebrow {
   margin-bottom: var(--space-6);
   font-family: var(--font-mono-stack);
@@ -53,6 +64,8 @@
 .title {
   position: relative;
   margin: 0;
+  /* The line entrance rotates on X; without a vanishing point here that reads as a squash. */
+  perspective: 900px;
   font-family: var(--font-display-stack);
   font-weight: 400;
   /* Instrument Serif is a narrow face: "Nawasunda" measures ~4.6em, so the headline can be much
@@ -71,6 +84,50 @@
   display: block;
 }
 
+/* Entrance: the two name lines rise out of their own baseline, staggered. CSS-only and once, so it
+   costs nothing after the first second, and it is switched off with the rest of the motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .titleLine {
+    animation: name-in 900ms var(--ease-out) both;
+  }
+
+  .titleLine:nth-of-type(2) {
+    animation-delay: 110ms;
+  }
+
+  .eyebrow,
+  .sub,
+  .actions {
+    animation: fade-up 700ms var(--ease-out) both;
+  }
+
+  .eyebrow {
+    animation-delay: 60ms;
+  }
+
+  .sub {
+    animation-delay: 260ms;
+  }
+
+  .actions {
+    animation-delay: 340ms;
+  }
+}
+
+@keyframes name-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 40px, 0) rotateX(12deg);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+}
+
 /* The surname is the italic cut — the one typographic gesture on the page. */
 .titleAccent {
   font-style: italic;
@@ -84,7 +141,9 @@
 
 .sub {
   max-width: 46ch;
-  margin-top: var(--space-6);
+  /* The italic descender of the surname reaches into the gap, so the copy starts lower than the
+     optical rhythm of a roman headline would need. */
+  margin-top: var(--space-8);
   color: var(--color-text-secondary);
   font-size: 1.0625rem;
   line-height: 1.6;
@@ -100,11 +159,21 @@
 /* Stats as three small printed cards, not a dashboard. */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Unequal columns and a hanging second card: three identical boxes in a row is the single most
+     recognisable "generated layout" tell. Same information, a rhythm instead of a row. */
+  grid-template-columns: 1.08fr 0.94fr 1.02fr;
   gap: var(--space-3);
   max-width: 34rem;
   margin: var(--space-8) 0 0;
   padding: 0;
+}
+
+.stat:nth-child(2) {
+  translate: 0 14px;
+}
+
+.stat:nth-child(3) {
+  translate: 0 -6px;
 }
 
 .stat {
@@ -165,7 +234,11 @@
 .sticker {
   position: relative;
   z-index: 1;
-  width: min(46vw, 560px);
+  /* Deliberately larger than its column and pulled left so it overlaps the headline's last line:
+     the overlap is the composition, and a portrait that politely sits in its grid cell is what made
+     the page read as a template. */
+  width: min(52vw, 640px);
+  margin-left: -8%;
   margin: 0;
   transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(var(--tilt-z))
     scale(var(--tilt-scale));
@@ -286,6 +359,15 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+}
+
+@media (max-width: 720px) {
+  /* No hanging cards on a phone: at 390 px a 14 px offset is not an editorial rhythm, it is a row
+     that failed to line up. */
+  .stat:nth-child(2),
+  .stat:nth-child(3) {
+    translate: 0;
+  }
 }
 
 @media (max-width: 640px) {
@@ -574,6 +656,7 @@
 
   .sticker {
     width: min(64vw, 320px);
+    margin-left: 0;
   }
 
   .pressWrap,
@@ -611,76 +694,5 @@
   }
 }
 
-/* --------------------------------------------------- hero parallax (D-096)
-   Six layers leave the frame at six speeds. Written as CSS scroll timelines, not as a scroll
-   listener: the browser runs them on the compositor, so the effect costs no main-thread time and
-   degrades to a static hero in any browser without `animation-timeline`. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .eyebrow {
-      animation: parallax-tape linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 70%;
-    }
-
-    .titleLine {
-      animation: parallax-title linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 60%;
-    }
-
-    .sub,
-    .actions {
-      animation: parallax-copy linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 55%;
-    }
-
-    .stats {
-      animation: parallax-stats linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 45%;
-    }
-
-    .scrollCue {
-      animation: cue-out linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 140px;
-    }
-  }
-}
-
-@keyframes parallax-tape {
-  to {
-    transform: translateY(-34px);
-    opacity: 0.2;
-  }
-}
-
-@keyframes parallax-title {
-  to {
-    transform: translateY(-96px) scale(0.94);
-    opacity: 0.12;
-  }
-}
-
-@keyframes parallax-copy {
-  to {
-    transform: translateY(-150px);
-    opacity: 0;
-  }
-}
-
-@keyframes parallax-stats {
-  to {
-    transform: translateY(-210px);
-    opacity: 0;
-  }
-}
-
-@keyframes cue-out {
-  to {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-}
+/* Hero depth is driven by src/components/zine/scroll-engine.ts (D-111): the CSS scroll-timeline
+   version that lived here only ran in Chromium, so every iPhone saw a static hero. */

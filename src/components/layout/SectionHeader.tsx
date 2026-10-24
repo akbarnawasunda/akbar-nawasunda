@@ -14,15 +14,27 @@ interface SectionHeaderProps {
    * "h1" so the document still has exactly one top-level heading (/visuals).
    */
   as?: "h1" | "h2";
+  /**
+   * Which side the title hangs from. Alternating it down a long page is how an editorial spread stops
+   * being a stack of identical left-aligned blocks (D-111).
+   */
+  align?: "start" | "end";
 }
 
 /**
  * Section head: mono index label, display title, hairline rule, optional "see all" link.
  * One shape for every section so the page reads as one publication (anti-generic rule, DESIGN.md).
  */
-export function SectionHeader({ eyebrow, title, id, action, as: Heading = "h2" }: SectionHeaderProps) {
+export function SectionHeader({
+  eyebrow,
+  title,
+  id,
+  action,
+  as: Heading = "h2",
+  align = "start",
+}: SectionHeaderProps) {
   return (
-    <div className={styles.head}>
+    <div className={align === "end" ? `${styles.head} ${styles.end}` : styles.head}>
       <div>
         <p className={styles.eyebrow}>{eyebrow}</p>
         <Heading id={id} className={styles.title}>

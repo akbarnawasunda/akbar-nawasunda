@@ -12,6 +12,7 @@ import { PaperAbout } from "@/components/content/PaperAbout";
 import { ReleaseBento } from "@/components/content/ReleaseBento";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
+import { Depth } from "@/components/zine/Depth";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -122,6 +123,7 @@ export default async function HomePage() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
+            <Depth className={styles.heroType} y={-58} fade={0.25}>
             <p className={styles.eyebrow}>
               {siteConfig.origin.replace(", Indonesia", "")} · Sejak {siteConfig.since} ·{" "}
               {stats.releaseCount} rilis
@@ -134,6 +136,7 @@ export default async function HomePage() {
                 <span className={styles.titleDot} aria-hidden="true">.</span>
               </span>
             </h1>
+            </Depth>
 
             <p className={styles.sub}>
               Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — tiga
@@ -155,6 +158,7 @@ export default async function HomePage() {
 
             {/* Every number is derived: years from siteConfig.since, releases from the verified
                 catalogue, platforms from the four confirmed links. Nothing is typed by hand. */}
+            <Depth y={26} scale={0.015}>
             <dl className={styles.stats}>
               <div className={styles.stat}>
                 <dt>Rilis</dt>
@@ -178,9 +182,11 @@ export default async function HomePage() {
                 </dd>
               </div>
             </dl>
+            </Depth>
           </div>
 
           <Tilt3D className={styles.stickerTilt}>
+          <Depth className={styles.stickerDepth} y={-140} z={90} scale={0.06} perspective={1500}>
           <figure className={styles.sticker}>
             <picture>
               <source
@@ -207,6 +213,7 @@ export default async function HomePage() {
               Potret resmi — dipotong dari latar studio, file asli pemilik
             </figcaption>
           </figure>
+          </Depth>
           </Tilt3D>
         </div>
 
@@ -242,12 +249,14 @@ export default async function HomePage() {
       {/* ----------------------------------------------------------------- music */}
       <section className={styles.section} id="music" aria-labelledby="music-title">
         <Container>
-          <SectionHeader
-            eyebrow="01 — Katalog"
-            title="Rilisan terbaru"
-            id="music-title"
-            action={{ href: "/music", label: "Semua rilis" }}
-          />
+          <Depth y={30} fade={0.15}>
+            <SectionHeader
+              eyebrow="01 — Katalog"
+              title="Rilisan terbaru"
+              id="music-title"
+              action={{ href: "/music", label: "Semua rilis" }}
+            />
+          </Depth>
           <Reveal>
             <ReleaseBento featured={featured} rest={rest} total={stats.releaseCount} />
           </Reveal>
@@ -266,12 +275,15 @@ export default async function HomePage() {
       {/* --------------------------------------------------------------- visuals */}
       <section className={styles.section} id="visuals" aria-labelledby="visuals-title">
         <Container>
-          <SectionHeader
-            eyebrow="02 — Arsip"
-            title="Enam aset, tanpa stok"
-            id="visuals-title"
-            action={youtube ? { href: youtube.href, label: "YouTube" } : undefined}
-          />
+          <Depth y={26} fade={0.15}>
+            <SectionHeader
+              eyebrow="02 — Arsip"
+              title="Enam aset, tanpa stok"
+              id="visuals-title"
+              align="end"
+              action={youtube ? { href: youtube.href, label: "YouTube" } : undefined}
+            />
+          </Depth>
         </Container>
         <VisualRail items={visualItems} />
       </section>
@@ -279,6 +291,7 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------- press kit */}
       <section className={styles.section} id="press" aria-labelledby="press-title">
         <Container>
+          <Depth y={40} fade={0.12}>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
               <p className={styles.pressEyebrow}>03 — Press kit</p>
@@ -341,6 +354,7 @@ export default async function HomePage() {
               </figcaption>
             </figure>
           </div>
+          </Depth>
         </Container>
       </section>
 

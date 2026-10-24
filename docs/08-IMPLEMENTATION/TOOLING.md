@@ -192,3 +192,28 @@ crawl traps, duplicate titles and orphan pages.
 pointless — until one force-push erases a week. Required status checks = the CI job above; no force
 push; no direct commits to `main`. Five minutes, and it is the difference between a hobby repo and a
 professional one.
+
+## 3. Artwork pipeline (D-113)
+
+The catalogue stores the links the owner published; those links are also the source of the artwork.
+
+| Platform | Endpoint | Note |
+| --- | --- | --- |
+| Apple Music | `itunes.apple.com/lookup?id=<id>&entity=song&country=id` | id parsed out of `/album/…/<id>` or `/song/…/<id>`; `artworkUrl100` is rewritten to 1400 px |
+| SoundCloud | `soundcloud.com/oembed?format=json&url=…` | `thumbnail_url` |
+| Spotify | `open.spotify.com/oembed?url=…` | `thumbnail_url` |
+| YouTube | `youtube.com/oembed?url=…&format=json` | fallback only |
+
+Commands:
+
+```bash
+npm run covers:plan    # print which link resolves to which endpoint; no network
+npm run covers:fetch   # download + write public/assets/covers/<slug>.webp (needs network)
+npm run covers:sleeves # re-render the designed sleeves that remain
+```
+
+`.github/workflows/covers.yml` runs the fetch on a runner (which has network), and opens a PR with
+the files. Nothing in the app ever calls those endpoints: the page reads the local file, so a slow
+platform can never become a slow page.
+
+If a release has no supported link, it keeps its designed sleeve — a card is never empty.

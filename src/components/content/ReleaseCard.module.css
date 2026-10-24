@@ -13,6 +13,7 @@
   text-decoration: none;
   transition:
     border-color var(--duration-base) var(--ease),
+    translate var(--duration-base) var(--ease),
     transform var(--duration-base) var(--ease);
 }
 
@@ -28,9 +29,13 @@
   transition: transform var(--duration-base) var(--ease);
 }
 
-.card:hover {
+/* Hover: the tile turns a couple of degrees towards the pointer. `translate` is used for the lift so
+   it never fights `transform`, which is free for the tilt. */
+.card:hover,
+.card:focus-visible {
   border-color: var(--color-border-strong);
-  transform: translateY(-2px);
+  translate: 0 -4px;
+  transform: perspective(900px) rotateX(1.6deg) rotateY(-1.8deg);
 }
 
 .card:hover::after {
