@@ -328,10 +328,20 @@ try {
     const opened = await mobile.evaluate(() => {
       const panel = document.querySelector('[id][role="dialog"], [class*="drawer"]');
       const toggle = document.querySelector('button[aria-expanded="true"]');
+      const box = panel?.getBoundingClientRect();
       return {
-        hasPanel: Boolean(panel && panel.offsetParent !== null),
+        // `offsetParent` is null for a fixed element, so presence is read from its box, not its parent.
+        hasPanel: Boolean(panel && panel.getBoundingClientRect().height > 0),
         expanded: Boolean(toggle),
         focusInside: Boolean(panel && panel.contains(document.activeElement)),
+        // The drawer is a screen, not a sliver: it must reach the bottom of the viewport. This is the
+        // assertion that would have caught the four-round bug where it rendered 81 px tall.
+        covers:
+          Boolean(box) &&
+          box.height >= window.innerHeight * 0.75 &&
+          Math.abs(box.bottom - window.innerHeight) <= 2 &&
+          box.width >= window.innerWidth - 1,
+        pageLocked: document.documentElement.dataset.menu === "open",
       };
     });
     await shot(mobile, "qa-drawer-open");
@@ -341,10 +351,19 @@ try {
     const closed = await mobile.evaluate(() => ({
       expanded: document.querySelector("button[aria-expanded]")?.getAttribute("aria-expanded"),
       focusOnToggle: document.activeElement?.matches("button[aria-expanded]") ?? false,
+      pageFree: document.documentElement.dataset.menu === undefined,
     }));
 
-    check("mobile drawer opens and takes focus", opened.hasPanel && opened.expanded && opened.focusInside, JSON.stringify(opened));
-    check("Escape closes the drawer and returns focus", closed.expanded === "false" && closed.focusOnToggle, JSON.stringify(closed));
+    check(
+      "mobile drawer opens, fills the screen, locks the page and takes focus",
+      opened.hasPanel && opened.expanded && opened.focusInside && opened.covers && opened.pageLocked,
+      JSON.stringify(opened),
+    );
+    check(
+      "Escape closes the drawer, unlocks the page and returns focus",
+      closed.expanded === "false" && closed.focusOnToggle && closed.pageFree,
+      JSON.stringify(closed),
+    );
   } else {
     check("mobile drawer opens and takes focus", false, "no toggle button found");
   }

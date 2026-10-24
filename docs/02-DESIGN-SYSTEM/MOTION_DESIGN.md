@@ -62,6 +62,11 @@ batched read pass and one batched write pass per frame, for the whole page. Elem
   1500 ms and the blue one 80 ms later (640 ms each, `cubic-bezier(0.76, 0, 0.24, 1)`). Once per
   session; gone entirely under reduced motion. The labels never fade from opacity 0 — a nine-pixel
   label at 0 % is a contrast violation for as long as the fade lasts, which the axe run caught.
+- **Phone menu.** The drawer is a surface, not a list: each line rises out of its own hairline
+  (`translateY(16px)` → 0, opacity 0 → 1, 460 ms, 55 ms apart), and the panel itself fades in over
+  260 ms. It is portalled to `<body>` and locks the page (`html[data-menu="open"]`) — a fixed overlay
+  inside the filtered header is laid out against the bar, which is how it spent four rounds as an
+  81 px sliver. The newest sleeve takes the same blue plate as every other sleeve on press.
 
 ## Why JavaScript owns the scroll and not CSS
 

@@ -27,6 +27,7 @@ same gap: the page was well-composed but not *designed by a label*.
 | 12–13 | `12-contact-1280.webp`, `13-epk-1280.webp` | The address at 5vw on blue; the press kit's red stamp |
 | 14–16 | `14-home-390.webp`, `15-music-390.webp`, `16-home-footer-1280.webp` | Phones and the colophon |
 | 17–18 | `17-release-1280.webp`, `18-release-390.webp` | A release page as a sleeve: blue field, print on a plate, listening rows inside the field (round 8.2) |
+| 19 | `19-phone-menu-390.webp` | The phone menu, open: numbered index, newest sleeve, page locked behind it (round 8.3) |
 
 ## The four notes, answered
 
@@ -64,13 +65,33 @@ shared link sees a record, not a wiki entry. The order number is a *position* in
 ("Katalog 03 / 10"), never an invented catalogue number. `release.module.css` and the last
 `radial-gradient` on a public route went with the old layout, and `--radius-md` had no consumer left.
 
+## Round 8.3 — the phone menu
+
+The drawer had been broken for four rounds and nobody could see it in the source: the header carried
+`will-change: transform` and `backdrop-filter`, either of which makes it the containing block for its
+fixed-position children, so the menu laid itself out against a 72 px bar and rendered as an 81 px
+sliver the page scrolled over. Tapping the hamburger looked like nothing happened — on every phone.
+
+Two changes, one fix and one design:
+
+- **Fixed** by portalling the drawer to `<body>`, pinning its top to the bar's measured height, and
+  locking the page behind it (`html[data-menu="open"]`). `qa:motion` now measures the box (it must
+  reach the bottom of the viewport) instead of trusting `aria-expanded`, and `a11y` audits the drawer
+  **open** as its own state — 15 page loads, still 0 violations.
+- **Designed** as a surface rather than a list: mono indices 01–05, display type at 11vw, hairlines
+  that rise 55 ms apart, the newest release with its sleeve (real catalogue data, generated sleeve,
+  blue plate on press), the CTA, and the colophon at the foot. Kontak joined the drawer through
+  `drawerNav` — on a phone it is the second most useful destination after the music.
+
 ## Measured
 
 - `npm test` — 121/121. `npm run typecheck`, `npm run lint` — clean.
-- `npm run a11y` — **0 violations / 14 loads** (390 and 1280 for seven routes).
-- `npm run qa:motion` — **18/18**, including four new assertions for this round: the hero stage
-  rotates, the hero's layers sit at different depths, the wall lifts the pointed sleeve, the title
-  sequence counts and removes itself.
+- `npm run a11y` — **0 violations / 15 loads** (390 and 1280 for seven routes, plus the phone menu
+  measured open).
+- `npm run qa:motion` — **18/18**, including four new assertions for round 8: the hero stage rotates,
+  the hero's layers sit at different depths, the wall lifts the pointed sleeve, the title sequence
+  counts and removes itself; and the drawer assertion from 8.3 now checks height, page lock and
+  release of the lock.
 - `npm run check:web` — JS **189 KB gz / 11 chunks** (budget 250), CSS **15,6 KB gz / 3 files**
   (budget 40), 16 routes, 22 internal targets, 47 media files, no dead links.
 - `npm run audit:tokens` — 82 tokens, no raw hex in CSS modules, no orphaned tokens.

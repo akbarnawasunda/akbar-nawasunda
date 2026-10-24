@@ -102,6 +102,46 @@ for (const width of widths) {
     }
   }
 
+  /*
+   * The phone menu is a whole surface of its own — five display-size links, a sleeve and a CTA in a
+   * modal — so it is audited open as well as closed. A drawer that is only ever checked in the
+   * source is a drawer nobody has looked at.
+   */
+  if (width === 390) {
+    await page.goto(`${base}/`, { waitUntil: "load", timeout: 60000 });
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+    const toggle = await page.$('button[aria-expanded="false"]');
+    if (toggle) {
+      await toggle.click();
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      await page.evaluate(axeSource);
+      const drawer = await page.evaluate(async () =>
+        await axe.run(document, {
+          runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"] },
+        }),
+      );
+      const label = "phone menu (open) @390";
+      summary.push({
+        label,
+        violations: drawer.violations.length,
+        incomplete: drawer.incomplete.length,
+        passes: drawer.passes.length,
+      });
+      if (drawer.violations.length > 0) {
+        violations += drawer.violations.length;
+        console.log(`\nFAIL ${label}`);
+        for (const violation of drawer.violations) {
+          console.log(`  [${violation.impact}] ${violation.id}: ${violation.help}`);
+          for (const node of violation.nodes.slice(0, 3)) console.log(`    ${node.target.join(" ")}`);
+        }
+      } else {
+        console.log(`ok   ${label} — ${drawer.passes.length} checks passed, ${drawer.incomplete.length} incomplete`);
+      }
+    }
+  }
+
   await page.close();
 }
 

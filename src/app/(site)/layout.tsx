@@ -6,7 +6,9 @@ import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { ScrollProgress } from "@/components/zine/ScrollProgress";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteHeader, type DrawerLatest } from "@/components/layout/SiteHeader";
+import { resolveCover, resolveSleeve } from "@/content/covers";
+import { releaseEyebrow, releases } from "@/content/releases";
 import { designAttributes } from "@/studio/design";
 import { getPublicDesign } from "@/studio/public";
 
@@ -19,6 +21,22 @@ export const dynamic = "force-dynamic";
  */
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const design = await getPublicDesign();
+
+  /*
+   * The phone drawer shows the newest release rather than only linking to the catalogue. It is the
+   * owner's own first entry, not a computed "latest" by date: the list order is theirs, and half the
+   * catalogue has no confirmed date to sort by.
+   */
+  const newest = releases[0];
+  const latest: DrawerLatest | null = newest
+    ? {
+        title: newest.title,
+        href: `/music/${newest.slug}`,
+        meta: releaseEyebrow(newest),
+        // Real artwork first, then the generated sleeve — the same waterfall the catalogue uses.
+        cover: newest.cover ?? resolveCover(newest.slug) ?? resolveSleeve(newest.slug),
+      }
+    : null;
   return (
     <div className="site-root" {...designAttributes(design)}>
       <LoadingCurtain />
@@ -27,7 +45,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <a href="#main" className="skip-link">
         Lompat ke konten
       </a>
-      <SiteHeader />
+      <SiteHeader latest={latest} />
       <main id="main" className="site-main">
         {children}
       </main>

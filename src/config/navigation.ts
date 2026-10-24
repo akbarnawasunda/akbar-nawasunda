@@ -16,6 +16,15 @@ export const primaryNav: readonly NavItem[] = [
   { href: "/epk", label: "EPK" },
 ];
 
+/**
+ * The phone menu: the four primary routes plus Kontak.
+ *
+ * A drawer has room for one more line than a 72 px bar does, and on a phone the contact page is the
+ * second most useful destination after the music — leaving it only in the footer means scrolling to
+ * the bottom of a nine-release catalogue to find the one address that books the artist.
+ */
+export const drawerNav: readonly NavItem[] = [...primaryNav, { href: "/contact", label: "Kontak" }];
+
 /** Secondary links, shown in the footer. */
 export const footerNav: readonly NavItem[] = [
   { href: "/music", label: "Music" },

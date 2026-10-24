@@ -104,6 +104,16 @@ a {
   border-radius: 2px;
 }
 
+/*
+ * The phone menu owns the screen while it is open. Set on the root element rather than the body so
+ * it also stops the document from rubber-banding behind the drawer on iOS; removed on close, so the
+ * reader's scroll position is never lost.
+ */
+html[data-menu="open"],
+html[data-menu="open"] body {
+  overflow: hidden;
+}
+
 /* Utility: visually hidden but available to assistive technology. */
 .sr-only {
   position: absolute;

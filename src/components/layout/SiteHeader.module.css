@@ -2,6 +2,8 @@
   position: sticky;
   top: 0;
   z-index: var(--z-chrome);
+  /* The bar's current height, so the drawer below it can sit flush against it in both states. */
+  --bar-h: var(--header-height);
   background: color-mix(in srgb, var(--color-bg) 80%, transparent);
   backdrop-filter: blur(12px) saturate(120%);
   border-bottom: 1px solid var(--color-border);
@@ -9,13 +11,23 @@
     height 320ms var(--ease),
     translate 420ms var(--ease),
     background-color 320ms var(--ease);
-  will-change: transform;
 }
 
 /* Compact once the page has moved; off-canvas while the reader is going down, back on the way up. */
 .header[data-state="compact"] {
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  --bar-h: var(--header-height-compact);
 }
+
+/*
+ * No `will-change` here, and that is load-bearing rather than a preference.
+ *
+ * `will-change: transform` makes the header a containing block for its fixed-position children, so
+ * the mobile drawer — `position: fixed; inset: 72px 0 0 0` — was being laid out against a 72 px
+ * tall header instead of the viewport. It rendered as a 81 px sliver that the page scrolled over:
+ * tapping the hamburger looked like nothing happened at all, on every phone, for four rounds. The
+ * `translate` transition below is composited on its own; the hint bought nothing and cost the menu.
+ */
 
 .header[data-hidden="true"] {
   translate: 0 -100%;
@@ -195,17 +207,38 @@
 
 /* ------------------------------------------------------------- mobile drawer */
 
+/*
+ * The phone menu is not a list of links — on a phone it is the only navigation there is, so it is
+ * set like the cover of the zine: numbered mono indices, display type at 11vw, and a hairline that
+ * walks down the list. It covers the screen edge to edge, the page behind it cannot scroll
+ * (html[data-menu="open"] in globals.css), and it is rendered in a portal rather than inside the
+ * header — see the note in SiteHeader.tsx.
+ */
 .drawer {
+  /* Default for the inline value the header writes when it opens; declared so the token audit can
+     see it, and so a drawer rendered without JS still sits in the right place. */
+  --drawer-top: var(--header-height);
   position: fixed;
-  inset: var(--header-height) 0 0 0;
+  top: var(--drawer-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: var(--z-chrome);
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
-  padding: var(--space-8) var(--gutter) var(--space-12);
+  gap: var(--space-6);
+  padding: var(--space-8) var(--gutter) var(--space-8);
   background: var(--color-bg);
   border-top: 1px solid var(--color-border);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: drawerIn 260ms var(--ease-out) both;
+}
+
+@keyframes drawerIn {
+  from {
+    opacity: 0;
+  }
 }
 
 .drawerList {
@@ -213,25 +246,128 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Each line rises out of its own hairline, 55 ms after the one above it. `--i` is the index written
+   inline by the header; 0 is the fallback a list without it would need. */
+.drawerList li {
+  --i: 0;
+  border-bottom: 1px solid var(--color-border);
+  animation: drawerLine 460ms var(--ease-out) both;
+  animation-delay: calc(40ms + var(--i) * 55ms);
+}
+
+@keyframes drawerLine {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
 }
 
 .drawerList a {
-  display: inline-block;
-  font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: 2.25rem;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
   text-decoration: none;
+  color: var(--color-fg);
 }
 
-.drawerList a[aria-current="page"] {
+.drawerIndex {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  color: var(--color-text-secondary);
+}
+
+.drawerLabel {
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  font-size: clamp(2rem, 11vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  transition: color 200ms var(--ease);
+}
+
+/* The current page keeps the identity colour — 5.6:1 on the ink ground. */
+.drawerList a[aria-current="page"] .drawerLabel,
+.drawerList a[aria-current="page"] .drawerIndex {
   color: var(--color-accent);
+}
+
+.drawerList a:active .drawerLabel {
+  color: var(--color-accent);
+}
+
+.drawerLatest {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.drawerLatestLabel {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.drawerLatestLink {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  text-decoration: none;
+  color: var(--color-fg);
+}
+
+/* A sleeve, not a card: square, unrounded, with the blue plate on press. */
+.drawerLatestCover {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  background: var(--color-bg-surface);
+  transition:
+    translate 260ms var(--ease-out),
+    box-shadow 260ms var(--ease-out);
+}
+
+.drawerLatestLink:hover .drawerLatestCover,
+.drawerLatestLink:focus-visible .drawerLatestCover {
+  translate: -3px -3px;
+  box-shadow: 6px 6px 0 var(--color-brand);
+}
+
+.drawerLatestText {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 2px;
+}
+
+.drawerLatestTitle {
+  font-family: var(--font-display-stack);
+  font-size: 1.375rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.drawerLatestMeta {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 
 .drawerCta {
   align-self: start;
+  justify-self: start;
   padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-sm);
   background: var(--color-paper);
@@ -244,12 +380,24 @@
 }
 
 .drawerMeta {
-  margin-top: auto;
+  /* Pinned to the bottom: the list is the menu, the colophon is the edge of the page. */
+  margin: auto 0 0;
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .drawerList li {
+    animation: none;
+  }
+
+  .drawerLatestCover {
+    transition: none;
+  }
 }
 
 @media (max-width: 719px) {

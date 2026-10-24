@@ -63,6 +63,7 @@ const SHOTS = [
   { name: "16-home-footer-1280", route: "/", width: 1280, height: 900, bottom: true },
   { name: "17-release-1280", route: "/music/masih-mencintainya-papinka", width: 1280, height: 900, pointer: [1040, 520] },
   { name: "18-release-390", route: "/music/masih-mencintainya-papinka", width: 390, height: 844 },
+  { name: "19-phone-menu-390", route: "/", width: 390, height: 844, menu: true },
 ];
 
 const script = `
@@ -125,6 +126,15 @@ async page => {
     }
 
     await settle();
+
+    if (shot.menu) {
+      // The phone drawer is a state, not a route: open it the way a thumb would.
+      const toggle = await page.$('button[aria-expanded="false"]');
+      if (toggle) {
+        await toggle.click();
+        await page.waitForTimeout(700);
+      }
+    }
 
     if (shot.hover) {
       const target = await page.$(shot.hover);

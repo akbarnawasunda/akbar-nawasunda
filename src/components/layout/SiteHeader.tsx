@@ -2,23 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 
 import { anMark } from "@/assets/web";
-import { primaryNav } from "@/config/navigation";
+import { drawerNav, primaryNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { listenUrl } from "@/config/socials";
 import styles from "./SiteHeader.module.css";
+
+/** The newest release, so the phone menu can show the catalogue rather than only link to it. */
+export interface DrawerLatest {
+  title: string;
+  href: string;
+  meta: string;
+  cover: string | null;
+}
 
 /**
  * Site header: 64px sticky bar, AN mark at 32px with 8px clear space, mono navigation, Listen pill.
  *
  * Below 720px the links move into a full-screen drawer that traps Tab inside it, closes on Escape,
- * closes after navigation, and returns focus to the toggle.
+ * closes after navigation, returns focus to the toggle, and locks the page behind it.
  */
-export function SiteHeader() {
+export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  /** Height of the bar at the moment the drawer opens — the drawer hangs directly below it. */
+  const [barHeight, setBarHeight] = useState<number | null>(null);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -62,6 +73,20 @@ export function SiteHeader() {
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
+
+  /**
+   * While the drawer is open it owns the screen: the page behind must not scroll, or a thumb drag
+   * moves the artwork underneath the menu and the menu stops feeling like a surface.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const root = document.documentElement;
+    root.dataset.menu = "open";
+    setBarHeight(headerRef.current?.getBoundingClientRect().height ?? null);
+    return () => {
+      delete root.dataset.menu;
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -138,7 +163,7 @@ export function SiteHeader() {
             Listen
             <span className="sr-only"> di Spotify (membuka tab baru)</span>
             <span aria-hidden="true" className={styles.listenArrow}>
-              ↗
+              {"\u2197"}
             </span>
           </a>
 
@@ -162,35 +187,86 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {open ? (
-        <div id={menuId} ref={panelRef} className={styles.drawer} role="dialog" aria-modal="true" aria-label="Menu">
-          <ul className={styles.drawerList}>
-            {primaryNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <a
-            className={styles.drawerCta}
-            href={listenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setOpen(false)}
-          >
-            Listen di Spotify <span aria-hidden="true">↗</span>
-          </a>
-          <p className={styles.drawerMeta}>
-            {siteConfig.origin} • Sejak {siteConfig.since}
-          </p>
-        </div>
-      ) : null}
+      {/*
+        The drawer is portalled to <body>: the bar above it has `backdrop-filter`, and any filter
+        makes an element a containing block for its fixed-position children. Inside the header the
+        drawer was laid out against a 72 px tall bar and rendered as an 81 px sliver the page
+        scrolled over — tapping the hamburger looked like nothing happened, on every phone.
+      */}
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              id={menuId}
+              ref={panelRef}
+              className={styles.drawer}
+              style={{ "--drawer-top": barHeight ? `${barHeight}px` : "var(--header-height)" } as CSSProperties}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu"
+            >
+              <nav aria-label="Menu utama">
+                <ul className={styles.drawerList}>
+                  {drawerNav.map((item, index) => (
+                    <li key={item.href} style={{ "--i": index } as CSSProperties}>
+                      <Link
+                        href={item.href}
+                        aria-current={isActive(item.href) ? "page" : undefined}
+                        onClick={() => setOpen(false)}
+                      >
+                        <span className={styles.drawerIndex} aria-hidden="true">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span className={styles.drawerLabel}>{item.label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              {latest ? (
+                <div className={styles.drawerLatest}>
+                  <p className={styles.drawerLatestLabel}>Rilis terbaru</p>
+                  <Link
+                    className={styles.drawerLatestLink}
+                    href={latest.href}
+                    onClick={() => setOpen(false)}
+                  >
+                    {latest.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- 96px thumbnail, already a file on disk
+                      <img
+                        src={latest.cover}
+                        alt=""
+                        width={96}
+                        height={96}
+                        className={styles.drawerLatestCover}
+                        decoding="async"
+                      />
+                    ) : null}
+                    <span className={styles.drawerLatestText}>
+                      <span className={styles.drawerLatestTitle}>{latest.title}</span>
+                      <span className={styles.drawerLatestMeta}>{latest.meta}</span>
+                    </span>
+                  </Link>
+                </div>
+              ) : null}
+
+              <a
+                className={styles.drawerCta}
+                href={listenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+              >
+                Listen di Spotify <span aria-hidden="true">{"\u2197"}</span>
+              </a>
+
+              <p className={styles.drawerMeta}>
+                {siteConfig.origin} {"\u2022"} Sejak {siteConfig.since}
+              </p>
+            </div>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }
