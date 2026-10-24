@@ -1,3 +1,4 @@
+import { DrawOnView } from "@/components/zine/DrawOnView";
 import { artistLongBio, artistTimeline } from "@/content/artist";
 import { siteConfig } from "@/config/site";
 
@@ -7,10 +8,10 @@ import styles from "./PaperAbout.module.css";
  * About, printed on stock: an off-white sheet laid over the dark site, with the
  * timeline as a drawn line rather than a set of boxes.
  *
- * The line is one SVG path whose `stroke-dashoffset` is animated by a CSS scroll timeline, so it is
- * drawn by the compositor as the band comes up and costs nothing on the main thread. Without scroll
- * timelines the path is simply already drawn (see the `@supports` guard in the CSS), which is the
- * only correct fallback: an invisible timeline is worse than no animation.
+ * The line is one SVG path that draws itself the first time the band is seen. The trigger is an
+ * IntersectionObserver (`DrawOnView`), not a CSS scroll timeline: view timelines are Chromium-only,
+ * which meant the one animated moment on this sheet did not exist on Safari or Firefox. The path is
+ * already drawn when the observer never fires, so the fallback is the finished state.
  *
  * Copy is the owner's own biography, verbatim, plus the verified timeline. The 2021–2023 row stays
  * dashed and says it is not documented — a gap printed honestly reads as confidence; an invented
@@ -36,7 +37,7 @@ export function PaperAbout() {
           </div>
         </div>
 
-        <ol className={styles.timeline}>
+        <DrawOnView as="ol" className={styles.timeline}>
           <svg
             className={styles.rail}
             viewBox="0 0 1000 12"
@@ -63,7 +64,7 @@ export function PaperAbout() {
               {entry.pending ? <span className={styles.flag}>[NEEDS OWNER]</span> : null}
             </li>
           ))}
-        </ol>
+        </DrawOnView>
       </div>
     </section>
   );

@@ -97,70 +97,50 @@
 }
 
 /* --------------------------------------------------------------- pinned rail
-   1024px and up: the band is three screens tall, the stage sticks, and the track is translated by
-   the scroll timeline. `100vw - 100%` is exact for any number of panels, so adding an image cannot
-   break the end of the rail. */
-@media (min-width: 1024px) {
-  @supports (animation-timeline: view()) {
-    .wrap {
-      height: 300vh;
-      view-timeline-name: --visuals;
-      view-timeline-axis: block;
-    }
+   1024px and up, motion allowed, and the scroll loop is running: the band is three screens tall,
+   the stage sticks, and `--rail-pin` (written by the loop, 0 → 1) translates the track. `100vw -
+   100%` is exact for any number of panels, so adding an image cannot break the end of the rail.
 
-    .stage {
-      position: sticky;
-      top: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: var(--space-4);
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .rail {
-      overflow: visible;
-      scroll-snap-type: none;
-      padding-inline: var(--gutter);
-      will-change: transform;
-      /* Critical: `100%` in the keyframe must mean the track, not the viewport. A flex item with
-         `width: auto` stretches to the stage width, and the rail then translates by zero. */
-      width: max-content;
-      flex: none;
-    }
-
-    /* Height-driven in the pinned band, so a panel is always fully visible on a laptop screen. */
-    .panel {
-      width: auto;
-      height: min(58vh, 520px);
-      aspect-ratio: 4 / 5;
-    }
-
-    .media {
-      height: 100%;
-    }
-
-  }
-}
-
-/* The animation is declared in its own block: nesting a prefers-reduced-motion query two levels
-   deep gets collapsed by the CSS minifier and the rail then silently never moves. */
+   The trigger for all of it is `[data-pinned]`, set by the component only when it has actually
+   registered with the loop. No JS or reduced motion → no tall band, no sticky stage, and the rail
+   below keeps scrolling horizontally by hand. That is the difference between a fallback and a
+   broken layout. */
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .rail {
-      /* `contain` is the wrong range here: a 300vh subject can never be fully contained by the
-         scrollport, so the range collapses and the rail never moves. `cover` maps to the actual
-         pin, and 25%–75% is exactly the window in which the stage is stuck. */
-      animation: rail-shift linear both;
-      animation-timeline: --visuals;
-      animation-range: cover 25% cover 75%;
-    }
+  .wrap[data-pinned="true"] {
+    height: 300vh;
   }
-}
 
-@keyframes rail-shift {
-  to {
-    translate: calc(100vw - 100%) 0;
+  .wrap[data-pinned="true"] .stage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-4);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .wrap[data-pinned="true"] .rail {
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-inline: var(--gutter);
+    will-change: transform;
+    /* `100%` in the calc must mean the track, not the viewport. A flex item with `width: auto`
+       stretches to the stage width, and the rail then translates by zero. */
+    width: max-content;
+    flex: none;
+    translate: calc(var(--rail-pin, 0) * (100vw - 100%));
+  }
+
+  /* Height-driven in the pinned band, so a panel is always fully visible on a laptop screen. */
+  .wrap[data-pinned="true"] .panel {
+    width: auto;
+    height: min(58vh, 520px);
+    aspect-ratio: 4 / 5;
+  }
+
+  .wrap[data-pinned="true"] .media {
+    height: 100%;
   }
 }

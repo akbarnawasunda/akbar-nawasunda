@@ -36,6 +36,8 @@ import sharp from "sharp";
 import { releases } from "../src/content/releases.ts";
 
 const force = process.argv.includes("--force");
+/** Only regenerate one release: `node scripts/generate-placeholder-covers.mjs --force --only=lali-dalane`. */
+const only = (process.argv.find((arg) => arg.startsWith("--only=")) ?? "").slice("--only=".length) || null;
 const root = process.cwd();
 const outDir = join(root, "public", "assets", "covers");
 const markPath = join(root, "public", "brand", "an-mark.webp");
@@ -45,6 +47,34 @@ const COLUMN = 660; // text column; the ghost sits to the right of it
 /* A 400-weight serif needs to be much larger than an 800-weight grotesque to hold the same square:
    the sleeve titles now start at 128 and step down until they fit three lines. */
 const TITLE_SIZES = [150, 132, 116, 100, 88, 76, 64];
+
+/**
+ * Two sleeve series (D-117).
+ *
+ * Ten sleeves with one layout is the same "nine identical boxes" problem the bento grid was built
+ * to avoid — and it is exactly what makes a set of generated covers read as generated. A real label
+ * prints a series: same mark, same grid, one thing inverted. So half the catalogue is ink-on-paper
+ * and half is paper-on-ink, picked by a hash of the slug — deterministic (the sleeve for a given
+ * release never changes between builds, so the grid cannot reshuffle) but not alternating in a way
+ * the eye can count.
+ *
+ * This is still not artwork. Artwork is the owner's file or the platform's, fetched by
+ * `npm run covers:fetch` / the Covers Action. This is the designed floor under that.
+ */
+const SERIES = {
+  ink: { paper: false, ground: "#101014", title: "#FFFFFF", label: "#A1A1B5", ghost: "#FFFFFF", ghostOpacity: 0.1, rule: "bottom" },
+  paper: { paper: true, ground: "#E8E6E1", title: "#12120F", label: "#5C5A54", ghost: "#12120F", ghostOpacity: 0.09, rule: "top" },
+};
+
+function hash(text) {
+  let value = 0;
+  for (const char of text) value = (value * 31 + char.charCodeAt(0)) >>> 0;
+  return value;
+}
+
+function seriesFor(slug) {
+  return SERIES[hash(slug) % 2 === 0 ? "ink" : "paper"];
+}
 
 /** XML-safe text for the SVG. Titles contain em dashes and commas. */
 function xml(value) {
@@ -116,6 +146,7 @@ function eyebrow(release) {
 }
 
 function sleeveSvg(release) {
+  const series = seriesFor(release.slug);
   const { size, lines } = fitTitle(release.title);
   const lineHeight = Math.round(size * 1.02);
   /* Bottom-anchored block: the title rests on the bottom margin and the eyebrow sits above it. A
@@ -129,41 +160,62 @@ function sleeveSvg(release) {
   const title = lines
     .map(
       (line, lineIndex) =>
-        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Instrument Serif" font-weight="400" font-size="${size}" letter-spacing="${(size * -0.01).toFixed(2)}" fill="#FFFFFF">${xml(line)}</text>`,
+        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Instrument Serif" font-weight="400" font-size="${size}" letter-spacing="${(size * -0.01).toFixed(2)}" fill="${series.title}">${xml(line)}</text>`,
     )
     .join("");
 
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <rect width="${SIZE}" height="${SIZE}" fill="#101014"/>
+  <rect width="${SIZE}" height="${SIZE}" fill="${series.ground}"/>
 
-  <text x="${PAD}" y="${eyebrowY}" font-family="JetBrains Mono" font-weight="500" font-size="21" letter-spacing="3.4" fill="#A1A1B5">${xml(eyebrow(release))}</text>
+  <text x="${PAD}" y="${eyebrowY}" font-family="JetBrains Mono" font-weight="500" font-size="21" letter-spacing="3.4" fill="${series.label}">${xml(eyebrow(release))}</text>
 
   ${title}
 
-  <rect x="0" y="${SIZE - 4}" width="${SIZE}" height="4" fill="#0087FF"/>
+  <rect x="0" y="${series.rule === "bottom" ? SIZE - 4 : 0}" width="${SIZE}" height="4" fill="#0087FF"/>
 </svg>`);
 }
 
-/** The AN mark at 10%: alpha is multiplied down so it reads as a watermark, not as a logo. */
-async function ghostMark(width) {
-  const base = await sharp(markPath).resize({ width, fit: "inside" }).png().toBuffer();
+/**
+ * The AN mark as a watermark: a flat silhouette in one ink, not the coloured logo at low opacity.
+ *
+ * The first version simply faded the original file, which kept its blue — at 10% that reads as a
+ * smudge, and on paper it disappeared entirely. Silhouetting it from the alpha channel means the
+ * mark prints the same way on both grounds, and its colour can be the series ink.
+ */
+async function ghostMark(width, colour) {
+  const base = await sharp(markPath).resize({ width, fit: "inside" }).ensureAlpha().png().toBuffer();
   const { width: w, height: h } = await sharp(base).metadata();
-  const veil = Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#FFFFFF" fill-opacity="0.1"/></svg>`,
-  );
-  return sharp(base)
-    .ensureAlpha()
-    .composite([{ input: veil, blend: "dest-in" }])
+  const alpha = await sharp(base).extractChannel("alpha").raw().toBuffer();
+  const solid = await sharp({ create: { width: w, height: h, channels: 3, background: colour } })
+    .png()
+    .toBuffer();
+
+  return sharp(solid)
+    .joinChannel(alpha, { raw: { width: w, height: h, channels: 1 } })
     .png()
     .toBuffer();
 }
 
+/** Opacity comes from one flat veil over the silhouette — the file stays tiny. */
+async function faded(input, opacity) {
+  const { width: w, height: h } = await sharp(input).metadata();
+  const veil = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#FFFFFF" fill-opacity="${opacity}"/></svg>`,
+  );
+  return sharp(input).composite([{ input: veil, blend: "dest-in" }]).png().toBuffer();
+}
+
 async function render(release) {
+  const series = seriesFor(release.slug);
   const svg = sleeveSvg(release);
-  const ghost = await ghostMark(360);
+  /* The paper series prints a larger, lower mark: white space at the top of a pale sleeve reads as
+     an empty file, while the same area on ink reads as a sleeve. */
+  const ghost = await faded(await ghostMark(series.paper ? 460 : 360, series.ghost), series.ghostOpacity);
+  const left = series.paper ? 500 : 586;
+  const top = series.paper ? 300 : 168;
 
   const composed = await sharp(svg)
-    .composite([{ input: ghost, left: 586, top: 168 }])
+    .composite([{ input: ghost, left, top }])
     .webp({ quality: 84 })
     .toBuffer();
 
@@ -178,6 +230,7 @@ async function main() {
   const skipped = [];
 
   for (const release of releases) {
+    if (only && release.slug !== only) continue;
     const realArtwork = ["webp", "avif", "jpg", "jpeg", "png"].some((ext) =>
       existsSync(join(outDir, `${release.slug}.${ext}`)),
     );

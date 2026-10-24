@@ -18,6 +18,11 @@
   overflow: hidden;
   background: var(--color-ink-black);
   border-bottom: 1px solid var(--color-border);
+  /* A full screen of the composition, not a band that happens to be tall (D-115). `svh` rather than
+     `vh` so mobile Safari's collapsing toolbar does not push the scroll cue off the fold. */
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
   padding-block: var(--space-16) var(--space-24);
 }
 
@@ -70,8 +75,8 @@
   font-weight: 400;
   /* Instrument Serif is a narrow face: "Nawasunda" measures ~4.6em, so the headline can be much
      larger than Syne's 8.2vw ceiling and still clear the portrait column at 1280px. */
-  font-size: clamp(3.25rem, 9.2vw, 8rem);
-  line-height: 0.9;
+  font-size: var(--text-hero);
+  line-height: var(--leading-hero);
   letter-spacing: -0.015em;
   color: var(--color-text-primary);
   /* Optical alignment: a serif's left sidebearing pushes the A in by ~2%, which reads as an indent
@@ -162,25 +167,27 @@
   /* Unequal columns and a hanging second card: three identical boxes in a row is the single most
      recognisable "generated layout" tell. Same information, a rhythm instead of a row. */
   grid-template-columns: 1.08fr 0.94fr 1.02fr;
-  gap: var(--space-3);
-  max-width: 34rem;
+  gap: var(--space-4);
+  max-width: 32rem;
   margin: var(--space-8) 0 0;
   padding: 0;
 }
 
 .stat:nth-child(2) {
-  translate: 0 14px;
+  translate: 0 12px;
 }
 
 .stat:nth-child(3) {
-  translate: 0 -6px;
+  translate: 0 -4px;
 }
 
+/* A ruled figure, not a card (D-115). Three filled, rounded panels under a serif headline is the
+   shape every generated landing page has; a hairline above a numeral is how a printed programme
+   states a fact, and it keeps the hero's dark field uninterrupted. */
 .stat {
-  padding: var(--space-3) var(--space-4);
-  background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border-strong);
+  background: none;
 }
 
 .stat dt {
@@ -192,25 +199,27 @@
 }
 
 .stat dd {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin: var(--space-1) 0 0;
+  display: grid;
+  /* Numeral over note. Side by side on one baseline read as "+10TERVERIFIKASI" — the note was
+     small enough that it attached itself to the number instead of describing it. */
+  gap: 2px;
+  margin: var(--space-2) 0 0;
 }
 
 .statValue {
   font-family: var(--font-display-stack);
   font-weight: 400;
-  font-size: 2rem;
-  line-height: 1;
+  font-size: 2.5rem;
+  line-height: 0.9;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
+  font-variant-numeric: lining-nums;
 }
 
 .statNote {
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
@@ -268,19 +277,56 @@
 }
 
 .scrollCue {
-  position: relative;
+  /* Pinned to the floor of the hero: a scroll cue that sits below the fold is a scroll cue nobody
+     reads, and on a 100svh hero the composition needs one line of small type at the bottom edge to
+     tell the reader there is more (D-115). */
+  position: absolute;
+  inset: auto 0 var(--space-6);
   z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-3);
   max-width: var(--container-max);
-  margin: var(--space-12) auto 0;
+  margin-inline: auto;
   padding-inline: var(--gutter);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
+}
+
+/* Below the tablet breakpoint the hero is taller than the content, so the cue goes back into the
+   flow instead of sitting on top of the stats. */
+@media (max-width: 900px) {
+  .hero {
+    min-height: 0;
+  }
+
+  /* Two figures side by side, the third on its own rule underneath: at 390 px three columns give
+     every label under 90 px, which is where "TERVERIFIKASI" starts to break mid-word. */
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .stat:nth-child(2),
+  .stat:nth-child(3) {
+    translate: none;
+  }
+
+  .stats {
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .scrollCue {
+    position: relative;
+    inset: auto;
+    margin: var(--space-12) auto 0;
+  }
 }
 
 .scrollLine {
@@ -303,7 +349,12 @@
   border-block: 1px solid var(--color-border);
   /* Flat steps, not a radial glow: the band is a printed plate, and a radial highlight is how the
      rejected "glowing orb" look creeps back in (tests/fixtures/anti-ai.ts). */
-  background: linear-gradient(180deg, #0d1320 0%, var(--color-ink-black) 62%, #050507 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-band-monogram) 0%,
+    var(--color-ink-black) 62%,
+    var(--color-ink-black) 100%
+  );
   isolation: isolate;
 }
 
@@ -319,7 +370,12 @@
   padding: var(--space-16) var(--space-8) var(--space-8);
   text-align: left;
   pointer-events: none;
-  background: linear-gradient(to top, #050507 55%, rgb(5 5 7 / 70%) 78%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    var(--color-ink-black) 55%,
+    color-mix(in srgb, var(--color-ink-black) 70%, transparent) 78%,
+    transparent 100%
+  );
 }
 
 .signatureLabel {
@@ -384,7 +440,10 @@
 /* --------------------------------------------------------------- sections */
 
 .section {
-  padding-block: var(--space-16);
+  /* The responsive token the design system already defined and nothing was using: 4rem → 6rem → 8rem
+     across breakpoints. Sections were hard-coded to space-16 at every width, which is why the page
+     read as evenly spaced wallpaper (D-114). */
+  padding-block: var(--section-padding);
 }
 
 .footnote {

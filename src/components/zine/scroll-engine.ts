@@ -47,12 +47,38 @@ interface Entry extends Required<Omit<DepthOptions, "perspective">> {
   active: boolean;
 }
 
+interface PinEntry {
+  node: HTMLElement;
+  property: string;
+}
+
 const entries = new Set<Entry>();
+/**
+ * Pinned bands are a different measurement, so they get their own registry.
+ *
+ * A pin does not want "how far through the viewport is this element"; it wants "how far through the
+ * pinned range am I", which is 0 when the section's top hits the top of the screen and 1 when its
+ * bottom leaves. That number goes out as a custom property and the CSS does the rest with
+ * `calc()`, so the track is translated by the browser and the loop never touches layout.
+ */
+const pins = new Set<PinEntry>();
 let frame = 0;
 let listening = false;
 let lastKey = "";
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+/**
+ * A fade is a compositing effect on text, and text has a contrast floor.
+ *
+ * `fade: 0.25` on the hero wrapper means the eyebrow is drawn at 62% at the extremes of its travel;
+ * #A1A1B5 at 62% over #050507 measures 3.65:1, which fails AA for 10 px type. Nothing looked wrong
+ * in review — the page was mid-scroll, which is exactly when nobody looks at contrast — and axe only
+ * caught it once scrolling started working properly (D-118). The engine now refuses to write an
+ * opacity below 0.85 for anything, which keeps every fading wrapper above 5.5:1 with the site's
+ * secondary text colour. The depth still reads; the words stay legible.
+ */
+const MIN_FADE_OPACITY = 0.85;
 
 function reduced() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -66,11 +92,26 @@ function tick() {
   const measured: { entry: Entry; progress: number }[] = [];
   for (const entry of entries) {
     const rect = entry.node.getBoundingClientRect();
-    // -1 when the element sits just below the viewport, 0 at centre, +1 once it has left the top.
-    const span = (vh + rect.height) / 2;
+    /**
+     * Progress is normalised by the **viewport**, not by the element.
+     *
+     * The first version divided by the element's own height, which is physically defensible and
+     * editorially wrong: a 750 px portrait and a 200 px heading then travel at different speeds even
+     * when they are configured identically, so the hero's "three layers at three speeds" collapsed
+     * into whatever their boxes happened to be. Normalising by `vh` means `y: 140` is 140 px per
+     * viewport of scroll for every element on the page.
+     */
     const centre = rect.top + rect.height / 2;
-    const progress = clamp((centre - vh / 2) / span, -1, 1);
+    const progress = clamp((centre - vh / 2) / vh, -1.5, 1.5);
     measured.push({ entry, progress });
+  }
+
+  const measuredPins: { entry: PinEntry; progress: number }[] = [];
+  for (const entry of pins) {
+    const rect = entry.node.getBoundingClientRect();
+    const span = rect.height - vh;
+    const progress = span > 0 ? clamp(-rect.top / span, 0, 1) : rect.top < 0 ? 1 : 0;
+    measuredPins.push({ entry, progress });
   }
 
   // Write pass.
@@ -94,7 +135,13 @@ function tick() {
     if (entry.rotateY) parts.push(`rotateY(${(progress * entry.rotateY).toFixed(2)}deg)`);
 
     node.style.transform = parts.length ? parts.join(" ") : "";
-    if (entry.fade) node.style.opacity = String(clamp(1 - Math.abs(progress) * entry.fade, 0, 1).toFixed(3));
+    if (entry.fade) {
+      node.style.opacity = String(clamp(1 - Math.abs(progress) * entry.fade, MIN_FADE_OPACITY, 1).toFixed(3));
+    }
+  }
+
+  for (const { entry, progress } of measuredPins) {
+    entry.node.style.setProperty(entry.property, progress.toFixed(4));
   }
 }
 
@@ -158,7 +205,29 @@ export function registerDepth(node: HTMLElement, options: DepthOptions = {}): ()
     entries.delete(entry);
     node.style.transform = "";
     node.style.opacity = "";
-    if (entries.size === 0) stop();
+    if (entries.size === 0 && pins.size === 0) stop();
+  };
+}
+
+/**
+ * Register a pinned band. `property` is set to 0 → 1 across the element's pinned travel; the CSS
+ * turns that number into `translate`, `scale` or anything else it likes. Same loop, same rules:
+ * nothing registers under reduced motion, and the resting state — no property, no offset — is the
+ * readable one.
+ */
+export function registerPin(node: HTMLElement, options: { property?: string } = {}): () => void {
+  if (typeof window === "undefined") return () => {};
+  if (reduced()) return () => {};
+
+  const entry: PinEntry = { node, property: options.property ?? "--pin" };
+  pins.add(entry);
+  start();
+  schedule();
+
+  return () => {
+    pins.delete(entry);
+    node.style.removeProperty(entry.property);
+    if (entries.size === 0 && pins.size === 0) stop();
   };
 }
 

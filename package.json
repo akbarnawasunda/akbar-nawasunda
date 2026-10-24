@@ -28,7 +28,10 @@
     "lighthouse": "npx --yes lighthouse@12 --preset=desktop --chrome-flags=\"--headless=new --no-sandbox\"",
     "check:web": "node scripts/check-web.mjs",
     "check:web:external": "node scripts/check-web.mjs --external",
-    "covers:plan": "node scripts/fetch-release-artwork.mjs --dry-run"
+    "covers:plan": "node scripts/fetch-release-artwork.mjs --dry-run",
+    "qa:motion": "node scripts/qa-motion.mjs",
+    "audit:tokens": "node scripts/token-audit.mjs",
+    "review:shots": "node scripts/review/shots.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

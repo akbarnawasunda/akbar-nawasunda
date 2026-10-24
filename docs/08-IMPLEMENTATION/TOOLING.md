@@ -1,8 +1,21 @@
 # Tooling: what is in use, what is not, and why
 
-Written after the owner handed over five tools on 2026-10-24. The short version: **one is adopted as
-the QA harness, one was used once as an audit, and three cannot run in this environment.** Everything
-below was actually attempted; nothing here is a guess about what a tool does.
+Written after the owner handed over five tools on 2026-10-24, and rewritten the same day when the
+owner asked, fairly, why they could not see any of them in the repository.
+
+**The short version, as evidence rather than a claim:**
+
+| Tool | Verdict | Where it lives |
+| --- | --- | --- |
+| Playwright CLI | **In use, every round** — visual review and the interaction suite | `scripts/review/shots.mjs` (`npm run review:shots`), `scripts/qa-motion.mjs` (`npm run qa:motion`), `.playwright/cli.config.json`, `scripts/setup-playwright-cli.sh` |
+| skillui | **Used, findings acted on, tool not wired into the build** | `docs/02-DESIGN-SYSTEM/audits/skillui-2026-10-24.md`; the durable half became `scripts/token-audit.mjs` (`npm run audit:tokens`) |
+| Supabase plugins | Not applicable — different database stack | §3 |
+| Strix | Cannot run here — needs Docker + a provider key | §4 |
+| Context7 | Cannot run here — needs an MCP host and `context7.com` | §5 |
+
+The gap the owner spotted was real: the Playwright scripts lived in `/tmp`, the dependency was global,
+and `package.json` had no entry for any of it. A tool whose only trace is a screenshot in a chat
+message is indistinguishable from a tool that was never run.
 
 ---
 
@@ -48,6 +61,20 @@ the layout — a grey rectangle under the monogram heading for anyone on a machi
 acceleration. The canvas is now attached only after the context exists, so a failed mount leaves
 nothing behind (D-101).
 
+### 1.3 Committed in the repository (since round 6)
+
+| Command | What it does | Uses |
+| --- | --- | --- |
+| `npm run review:shots` | 16 page states at 390/1280/1440/1920, each waited for fonts, the intro curtain and the smooth-scroll layer → `docs/08-IMPLEMENTATION/design-review/round6/*.png` | Playwright (via `playwright-cli run-code`) |
+| `npm run qa:motion` | 14 assertions, not screenshots: depth writes three different transforms, the portrait travels further than the type, reveals actually reveal, hover tilts, the header shrinks and hides, the drawer traps focus and returns it, reduced motion leaves zero inline transforms, no horizontal overflow on 5 routes × 6 widths, at most one canvas | puppeteer-core (same Chrome as the axe run) |
+| `npm run a11y` | axe-core across 14 page loads | puppeteer-core |
+
+`qa:motion` runs in CI after the build; `review:shots` does not, because it produces artefacts a
+human looks at, not a pass/fail.
+
+Both were written because of what the previous rounds got wrong: a screenshot proves a page
+*renders*, not that it *works*, and every defect this project has shipped was in the second category.
+
 ### 1.2 What the QA pass verified (2026-10-24, desktop 1280 and mobile 390)
 
 | Check | Result |
@@ -65,18 +92,31 @@ nothing behind (D-101).
 
 ---
 
-## 2. skillui — **used once, not committed**
+## 2. skillui — **used, and now committed as an audit, not as a design system**
 
-`npx skillui@1.3.4 --dir . --out /tmp/skillout --no-skill` reverse-engineers a design system by pure
-static analysis and writes a 503-line `DESIGN.md`. It ran in 1.6 s and its inventory mostly matched:
-20 colours, 4 px baseline grid, CSS Modules + Next detected.
+```bash
+npx -y skillui@1.3.4 --dir . --out /tmp/skillui --name akbar-nawasunda --format design-md
+```
 
-It is **not** committed, and it is not a build step, because it is confidently wrong in ways that
-would poison a future agent's context: it reports **1 font family** (the site is set in Syne + Inter +
-JetBrains Mono, all loaded through `next/font`, which it does not follow), and it describes the motion
-as "spring physics, layout animations" — this site has no spring library and no layout animation.
+It reverse-engineers a design system by pure static analysis: 505 lines in 1.6 s, 20 colours,
+4 px baseline grid, CSS Modules + Next detected. The output is committed at
+`docs/02-DESIGN-SYSTEM/audits/skillui-2026-10-24.md` **with a header that lists its errors**, because
+the owner asked to see the tools actually used and because a generated file floating in `/tmp` is
+not evidence of anything.
 
-What it *did* earn its keep on: it listed **`--color-signal-purple: #7800ff`** as a live token. That
+It is still **not** a build step, because it is confidently wrong in ways that would poison a future
+agent's context: it reports **1 font family** (the site is set in Instrument Serif + Instrument Sans +
+JetBrains Mono, all loaded through `next/font/local`, which it does not follow), and it describes the
+motion as "spring physics, layout animations" — this site has no spring library and no layout
+animation. The accent it names (`#1a93ff`) is the hover token, not the accent.
+
+What it *did* earn its keep on in round 6: three raw hex values in `src/studio/ui/studio.module.css`
+and a `#050507` literal in the homepage gradient, none of which belonged in a component. All four are
+tokens now, and the check it performed by hand became `npm run audit:tokens` — which also looks the
+other way (a `var(--x)` whose token was never defined) and immediately caught `--space-5`, a
+spacing step that does not exist and whose margins had been silently dropped by the browser.
+
+In round 5 it also listed **`--color-signal-purple: #7800ff`** as a live token. That
 colour is banned from the site since round 1. It survives in `tokens.css` and is used by exactly one
 rule — the blue→purple 4 px rule on the *generated sleeve fallback*
 (`ReleaseCover.module.css`), the documented specification from D-065. The shipped sleeves are real

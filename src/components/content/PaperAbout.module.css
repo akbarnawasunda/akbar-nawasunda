@@ -102,18 +102,21 @@
   stroke-dashoffset: 0;
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .railInk {
-      stroke-dashoffset: 1;
-      animation: rail-draw linear both;
-      animation-timeline: view();
-      animation-range: entry 25% cover 45%;
-    }
-  }
+/*
+ * Drawn on first sight, once. `DrawOnView` sets `data-drawn` when the timeline scrolls into view;
+ * the path then animates from fully dashed to fully drawn in 1.4 s. Without the attribute — no JS,
+ * or reduced motion — the path simply sits at its finished value, which is the readable state and
+ * therefore the only correct fallback.
+ */
+.timeline[data-drawn="true"] .railInk {
+  animation: rail-draw 1400ms var(--ease-out) both;
 }
 
 @keyframes rail-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
   to {
     stroke-dashoffset: 0;
   }

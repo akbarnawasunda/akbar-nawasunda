@@ -11,7 +11,6 @@
   --color-bg-base: #0a0a0e;
   --color-bg-surface: #101014;
   --color-bg-surface-2: #1a1a22;
-  --color-bg-surface-3: #242432;
 
   --color-text-primary: #ffffff;
   --color-text-secondary: #a1a1b5;
@@ -33,6 +32,7 @@
    * here is a flat colour; none is a gradient.
    */
   --color-ink-black: #050507; /* deeper than the page, used only behind the hero and the footer */
+  --color-band-monogram: #0d1320; /* the cold step behind the 3D mark; it has to sit behind a metal object */
   --color-paper: #e8e6e1;
   --color-paper-ink: #0a0a0e;
   --color-stamp: #ff3b30;
@@ -40,6 +40,17 @@
   --color-stamp-ink: #c01810;
   --color-poster-yellow: #ffd60a;
   --color-wave-lime: #c2ff00;
+
+  /*
+   * Studio status colours (D-114). Three states have to be readable at a glance in a dense admin
+   * table, and `dotBad` was using the brand blue — the one colour on the site that means "this is a
+   * link". Anything that ships a public page needed a token, not a literal in a module.
+   */
+  --color-status-ok: #7bd389;
+  --color-status-warn: #f2b84b;
+  --color-status-bad: var(--color-stamp);
+  /* Preview mode gets its own warm ink so an unpublished page can never be mistaken for the live one. */
+  --color-preview-ink: #3a1d12;
 
   /* Semantic aliases used by components. */
   --color-bg: var(--color-bg-base);
@@ -54,7 +65,6 @@
    */
   --color-ink-950: var(--color-bg-base);
   --color-ink-900: var(--color-bg-surface);
-  --color-ink-800: var(--color-bg-surface-2);
   --color-bone-100: var(--color-text-primary);
   --color-bone-300: var(--color-text-secondary);
   --color-bone-500: var(--color-text-muted);
@@ -65,11 +75,9 @@
   --font-body-stack: var(--font-body), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono-stack: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --font-sans: var(--font-body-stack);
-
   /* A high-contrast serif wants air between the lines, not the 0.92 a grotesque can carry.
      1.02 at display size is what makes Instrument Serif read as typeset rather than squashed. */
-  --leading-hero: 0.92;
+  --leading-hero: 0.9;
   --leading-tight: 1.02;
   --leading-body: 1.6;
   --tracking-hero: -0.02em;
@@ -77,7 +85,7 @@
   --tracking-label: 0.16em;
 
   /* Sized so the longest word ("Nawasunda") always fits its column without clipping. */
-  --text-hero: clamp(2.75rem, 7.6vw, 6.5rem);
+  --text-hero: clamp(3.25rem, 9.2vw, 8rem);
   --text-title: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
   --text-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
   --text-small: 0.875rem;
@@ -101,11 +109,17 @@
   --header-height: 4.5rem; /* 72px at rest, 56px once the page is scrolled (D-096) */
   --header-height-compact: 3.5rem;
   --section-padding: var(--space-16);
-  --radius-sm: 8px;
-  --radius-2xl: 24px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  /*
+   * Corners, D-115. The zine pass put 16–24 px radii on every card, and a 24 px radius on a 1:1
+   * sleeve is the most reliable "product UI" tell there is: no printed sleeve, press sheet, ticket
+   * or record has it. Print is square, with a hairline edge. The scale now tops out at 4 px, and only
+   * the smallest chrome marks (the RMX tag) keep a pill.
+   */
+  --radius-sm: 2px;
+  --radius-2xl: 4px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
   --radius-pill: 9999px;
 
   /* --- Motion ----------------------------------------------------------------------- */

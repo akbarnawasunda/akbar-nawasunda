@@ -79,45 +79,26 @@
   white-space: nowrap;
 }
 
-/* RMX tag: a solid chip, not a second logo. */
+/* RMX tag: a printed stamp, not a second logo, and not a blue chip (D-115). */
 .rmx {
   padding: 1px 5px;
-  background: var(--color-signal-blue);
-  color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-secondary);
   font-family: var(--font-mono-stack);
   font-size: 0.5rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.18em;
 }
 
-/* Scroll-driven: the bar loses 8px once the page is moving, so the chrome gets out of the way without
-   a scroll listener. Browsers without scroll timelines simply keep 64px (D-086). */
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .bar {
-      animation: bar-shrink linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 220px;
-    }
-
-    .mark {
-      animation: mark-shrink linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 220px;
-    }
-  }
-}
-
-@keyframes bar-shrink {
-  to {
-    height: 56px;
-  }
-}
-
-@keyframes mark-shrink {
-  to {
-    height: 26px;
-  }
+/*
+ * The bar's compact state is driven by `data-state` from the header's own scroll effect, in every
+ * engine. It used to *also* have an `animation-timeline: scroll()` rule shrinking the bar and the
+ * mark; that rule only applied in Chromium and, where it did apply, overrode the height the JS had
+ * just set — two sources of truth for one number (D-116). Removed, along with its keyframes.
+ */
+.header[data-state="compact"] .mark {
+  height: 26px;
 }
 
 .desktopNav ul {
@@ -131,9 +112,9 @@
 .desktopNav a {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border: 1px solid transparent;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.2em;
@@ -152,12 +133,15 @@
   border-color: var(--color-border-strong);
 }
 
-/* Current page is filled with the signal colour — the same accent the hero's full stop uses, so the
-   chrome and the page agree on what "active" looks like. No rotation, no tape. */
+/*
+ * Current page is marked with a rule under the word, not a filled chip (D-115). A blue block in the
+ * nav competed with the paper primary button at the other end of the same bar; an underline is how a
+ * printed index says "you are here", and it leaves the blue to mean "action".
+ */
 .desktopNav a[aria-current="page"] {
-  color: var(--color-ink-black);
-  background: var(--color-signal-blue);
-  border-color: var(--color-signal-blue);
+  color: var(--color-text-primary);
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--color-signal-blue);
 }
 
 .actions {
@@ -166,17 +150,18 @@
   gap: var(--space-3);
 }
 
-/* Listen pill: the only filled blue element in the chrome. */
+/* The one filled element in the chrome, and it is paper — see ButtonLink's `.primary` (D-115). */
 .listen {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: 40px;
-  padding: 10px 20px;
-  border-radius: var(--radius-pill);
-  background: var(--color-signal-blue);
-  /* Near-black text: white on #0087FF is 3.55:1, this is 5.56:1 (D-071). */
-  color: var(--color-bg);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  /* Near-black ink on paper is 15.6:1; the same pairing as the hero's primary action. */
+  color: var(--color-paper-ink);
+  font-weight: 600;
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
@@ -186,7 +171,8 @@
 }
 
 .listen:hover {
-  background: var(--color-signal-blue-hover);
+  background: var(--color-signal-blue);
+  color: var(--color-ink-black);
 }
 
 .listenArrow {
@@ -247,9 +233,9 @@
 .drawerCta {
   align-self: start;
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-pill);
-  background: var(--color-signal-blue);
-  color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  color: var(--color-paper-ink);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
@@ -282,5 +268,29 @@
 @media (max-width: 419px) {
   .wordmark {
     display: none;
+  }
+}
+
+/*
+ * At 390 px the bar has three things to fit: mark + wordmark + tag, the listen button, and the menu
+ * toggle. The wordmark used to be clipped by the button rather than truncated, which looked like a
+ * rendering bug. The mark is the logo; the wordmark goes first, and the bar breathes.
+ */
+@media (max-width: 430px) {
+  /*
+   * Visually hidden, not removed. `display: none` took the artist's name out of the accessibility
+   * tree entirely — the mark is `alt=""`, so the home link had no name at all below 430 px, which is
+   * what axe's link-name rule reported as the only issue on seven routes. Clipping keeps it
+   * announced and still gives the bar room for the menu and the listen button.
+   */
+  .wordmarkWrap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }

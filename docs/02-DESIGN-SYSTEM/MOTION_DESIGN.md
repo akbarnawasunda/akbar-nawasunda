@@ -27,18 +27,32 @@ batched read pass and one batched write pass per frame, for the whole page. Elem
   falloff, so a section arrives rather than appears.
 - **Blocks on first entry** (`Reveal`): 34 px up, 40 px back, 7° of rotateX, once, then static.
 - **Cards**: 1.5–2° of tilt and a 4–6 px lift on hover only. Touch devices never see it.
-- **Header**: 72 → 56 px via `animation-timeline: scroll()` where supported, static elsewhere.
+- **Header**: 72 → 56 px, and off-canvas while the reader scrolls down. Driven by `data-state` /
+  `data-hidden` from the header's own effect — the same in every engine (D-116).
 - **Genre strip**: the only infinite animation on the site (46 s), paused on hover/focus.
-- **Visual rail**: sticky pin driven by a view timeline, with the native horizontal scroll as the
-  fallback for engines without one.
+- **Visual rail**: a real pin. `registerPin(node)` writes `--rail-pin` 0 → 1 across the band's pinned
+  travel and the CSS turns it into `translate: calc(var(--rail-pin) * (100vw - 100%))`. The 300 vh
+  band and the sticky stage only exist while `[data-pinned]` is set, so no JS (or reduced motion)
+  means an ordinary horizontal scroller, not three empty screens.
+- **Paper timeline**: the SVG line draws itself over 1.4 s the first time it is seen
+  (`DrawOnView`, an IntersectionObserver setting `data-drawn`). Previously a view timeline, i.e.
+  invisible on most browsers.
 
 ## Why JavaScript owns the scroll and not CSS
 
 The previous pass used `animation-timeline: view()` for everything, on the theory that the compositor
 is free. It is — but scroll timelines only shipped in Safari 26, so **every iPhone before that saw a
-completely static page**, which was reported back as "ga ada animasi". CSS scroll timelines remain in
-place where they are pure enhancement (the header shrink), but anything the reader is meant to notice
-is driven by the rAF loop, which works in every engine that runs JavaScript.
+completely static page**, which was reported back as "ga ada animasi".
+
+By round 6 there were three survivors of that pass — the header shrink, the visual rail and the paper
+timeline. All three are gone, and the rule is now absolute: **no effect exists in only one engine.**
+The engine (or, for one-shot entrances, an IntersectionObserver) owns every move the reader is meant
+to notice; CSS owns the timing curves, not the triggers.
+
+There is one more trap in the same family: native `scroll-behavior: smooth` and Lenis both ease the
+scroll position, and when both are running a programmatic jump lands wherever the two animations
+collide. `html.lenis { scroll-behavior: auto }` turns the native one off while Lenis is mounted
+(D-118); reduced-motion and touch never load Lenis and keep the native behaviour.
 
 ## Guardrails
 

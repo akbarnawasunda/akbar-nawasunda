@@ -41,6 +41,11 @@ jobs:
       - name: Unit tests
         run: npm run test
 
+      # Static, no browser: every hex outside tokens.css, every token referenced but never defined,
+      # every token defined but unused. Cheap enough to run before the build.
+      - name: Design tokens
+        run: npm run audit:tokens
+
       # PREVIEW_FRAMING keeps the CSP wide enough for the sandbox iframe, which is also what the
       # header assertions in the suite expect.
       - name: Build
@@ -74,6 +79,14 @@ jobs:
 
       - name: Smoke
         run: npm run smoke
+
+      # Behaviour, not pixels: the scroll depth writes different transforms, reveals actually reveal,
+      # the header shrinks and hides, the drawer traps focus, reduced motion is still, and no page
+      # overflows horizontally at 320–1920. Needs a Chrome with no extra system libraries.
+      - name: Motion and interaction
+        run: npm run qa:motion
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
 
       - name: Server log on failure
         if: failure()

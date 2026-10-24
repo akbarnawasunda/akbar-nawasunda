@@ -47,7 +47,13 @@ export function ReleaseBento({ featured, rest, total }: ReleaseBentoProps) {
               <span className={styles.kickerDot} aria-hidden="true" />
               Rilis terbaru
             </span>
-            <span className={styles.featuredTitle}>{featured.title}</span>
+            {/* A designed sleeve already prints its own title, and printing it twice in one tile —
+                once inside the artwork, once beside it — is the kind of unintended repetition that
+                makes a layout look assembled rather than set. Real artwork has no type on it, so the
+                card prints the title only in that case. */}
+            {featured.artwork.kind === "image" ? (
+              <span className={styles.featuredTitle}>{featured.title}</span>
+            ) : null}
             {/* Decorative waveform: bars, no numbers, so it cannot be read as stream data. */}
             <span className={styles.wave} aria-hidden="true">
               {Array.from({ length: 28 }, (_, index) => (

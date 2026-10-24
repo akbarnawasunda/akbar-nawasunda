@@ -10,7 +10,26 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
+  /* Smooth for anchor jumps on machines where nothing else is animating the scroll. */
   scroll-behavior: smooth;
+}
+
+/*
+ * Two easing systems cannot own the same scroll (D-118).
+ *
+ * Lenis writes `window.scrollTo` on every frame of its own easing. Native `scroll-behavior:
+ * smooth` is also easing, over the same property. Put them together and a programmatic jump — an
+ * in-page anchor, `scrollIntoView`, a "skip to content" link, or a test harness — stops dead where
+ * the native animation had got to when Lenis wrote its next frame. That is exactly what happened on
+ * a 2800 px jump here: the page settled 1000 px short of the section it was asked for, and the
+ * catalogue below it never entered the viewport, so its reveal never fired.
+ *
+ * Lenis puts `lenis` on <html> when it starts, so the override only exists while it is running;
+ * reduced-motion and touch never load Lenis and keep the native behaviour above.
+ */
+html.lenis,
+html.lenis body {
+  scroll-behavior: auto;
 }
 
 body {

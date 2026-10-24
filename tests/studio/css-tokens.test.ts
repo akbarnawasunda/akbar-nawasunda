@@ -21,7 +21,13 @@ function definedProperties(): Set<string> {
   return names;
 }
 
-const FILE_SCOPED = new Set(["--text-display"]);
+/**
+ * Properties that are legitimate without a stylesheet definition:
+ * - `--text-display` is set inline on a single component;
+ * - `--rail-pin` is written by the scroll engine (`registerPin`), which is exactly the point: the
+ *   property name belongs to the component, not to the token file.
+ */
+const EXTERNAL = new Set(["--text-display", "--rail-pin"]);
 
 describe("css custom properties", () => {
   /**
@@ -37,7 +43,7 @@ describe("css custom properties", () => {
       const css = readFileSync(join(root, file), "utf8");
       for (const match of css.matchAll(/var\(\s*(--[a-z0-9-]+)/gi)) {
         const name = match[1] ?? "";
-        if (FILE_SCOPED.has(name)) continue;
+        if (EXTERNAL.has(name)) continue;
         if (name.startsWith("--font") || name.startsWith("--next")) continue;
         if (!defined.has(name)) missing.push(`${file}: ${name}`);
       }

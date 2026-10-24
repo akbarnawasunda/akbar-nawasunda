@@ -4,7 +4,7 @@
   gap: var(--space-2);
   min-height: 48px;
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font-size: var(--text-small);
   font-weight: 500;
@@ -20,15 +20,23 @@
   transform: translateY(-1px);
 }
 
-/* The brand blue stays exactly #0087FF; the text is near-black instead of white.
-   White on #0087FF is 3.55:1 and fails AA for 11–14px labels, #0A0A0E on it is 5.56:1. */
+/*
+ * The primary action is printed, not lit (D-115): a paper block with near-black ink, the same
+ * relationship the press sheet has to its page. A filled #0087FF pill was the single most corporate
+ * object on the page — it read as a SaaS CTA sitting inside an editorial layout — so the blue is
+ * demoted to the hover state, where it can be a signal instead of furniture.
+ *
+ * Contrast: #0A0A0E on paper is 15.6:1; on the hover blue it is 5.56:1. Both clear AA.
+ */
 .primary {
-  background: var(--color-signal-blue);
-  color: var(--color-bg);
+  background: var(--color-paper);
+  color: var(--color-paper-ink);
+  font-weight: 600;
 }
 
 .primary:hover {
-  background: var(--color-signal-blue-hover);
+  background: var(--color-signal-blue);
+  color: var(--color-ink-black);
 }
 
 .secondary {

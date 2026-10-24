@@ -18,7 +18,7 @@
     "text": {"xs": "12px", "sm": "14px", "base": "16px", "lg": "18px", "xl": "20px", "2xl": "24px", "3xl": "32px", "4xl": "48px", "hero": "clamp(40px,8vw,96px)"},
     "spacing": {"0": "0", "1": "4px", "2": "8px", "3": "12px", "4": "16px", "6": "24px", "8": "32px", "12": "48px", "16": "64px", "24": "96px"}
   },
-  "radius": {"sm": "8px", "md": "12px", "lg": "16px", "xl": "20px", "pill": "9999px"},
+  "radius": {"sm": "2px", "md": "3px", "lg": "4px", "xl": "4px", "2xl": "4px", "pill": "9999px (small chrome marks only)"},
   "motion": {"fast": "150ms", "base": "250ms", "slow": "400ms", "ease": "cubic-bezier(0.4,0,0.2,1)", "easeOut": "cubic-bezier(0.16,1,0.08,1)"},
   "z": {"base": "0", "nav": "50", "overlay": "100", "modal": "200", "3d": "-1"}
 }

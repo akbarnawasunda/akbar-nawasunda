@@ -123,7 +123,7 @@ export default async function HomePage() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
-            <Depth className={styles.heroType} y={-58} fade={0.25}>
+            <Depth className={styles.heroType} y={-58} fade={0.12}>
             <p className={styles.eyebrow}>
               {siteConfig.origin.replace(", Indonesia", "")} · Sejak {siteConfig.since} ·{" "}
               {stats.releaseCount} rilis
@@ -249,7 +249,7 @@ export default async function HomePage() {
       {/* ----------------------------------------------------------------- music */}
       <section className={styles.section} id="music" aria-labelledby="music-title">
         <Container>
-          <Depth y={30} fade={0.15}>
+          <Depth y={30} fade={0.08}>
             <SectionHeader
               eyebrow="01 — Katalog"
               title="Rilisan terbaru"
@@ -275,7 +275,7 @@ export default async function HomePage() {
       {/* --------------------------------------------------------------- visuals */}
       <section className={styles.section} id="visuals" aria-labelledby="visuals-title">
         <Container>
-          <Depth y={26} fade={0.15}>
+          <Depth y={26} fade={0.08}>
             <SectionHeader
               eyebrow="02 — Arsip"
               title="Enam aset, tanpa stok"
@@ -291,7 +291,7 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------- press kit */}
       <section className={styles.section} id="press" aria-labelledby="press-title">
         <Container>
-          <Depth y={40} fade={0.12}>
+          <Depth y={40} fade={0.08}>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
               <p className={styles.pressEyebrow}>03 — Press kit</p>
