@@ -7,6 +7,7 @@ import { siteConfig } from "../../src/config/site";
 import { allLinks } from "../../src/config/socials";
 import { releases } from "../../src/content/releases";
 import { artistJsonLd, serializeJsonLd } from "../../src/lib/structured-data";
+import { brandCard, releaseCard } from "../../src/lib/social-card";
 
 /**
  * Phase 8 SEO: sitemap, robots and structured data. Everything is generated from the same content
@@ -59,5 +60,39 @@ describe("seo", () => {
     assert.ok(!payload.includes("</script"));
     assert.ok(!payload.includes("<"));
     assert.deepEqual(JSON.parse(payload), { name: "</script><script>alert(1)</script>" });
+  });
+});
+
+/**
+ * Social cards. Before this, all sixteen pages shipped one square image with `summary`, so a link to
+ * any of the ten releases looked exactly like a link to the homepage.
+ *
+ * Tested through `src/lib/social-card.ts` rather than `src/lib/metadata.ts`, because the latter
+ * imports the static image manifest and cannot be loaded by the node test runner. The wiring itself
+ * is checked against the built HTML by `scripts/check-web.mjs` and `npm run smoke`.
+ */
+describe("social cards", () => {
+  it("gives a release its own card at the size the crawlers crop to", () => {
+    const card = releaseCard("lali-dalane", "Lali Dalane", "Akbar Nawasunda");
+    assert.equal(card.url, "/og?slug=lali-dalane");
+    assert.equal(card.width, 1200);
+    assert.equal(card.height, 630);
+    assert.equal(card.alt, "Lali Dalane, Akbar Nawasunda");
+  });
+
+  it("escapes the slug instead of pasting it into the query string", () => {
+    assert.equal(releaseCard("a&b=c", "x", "y").url, "/og?slug=a%26b%3Dc");
+    assert.equal(releaseCard("a b", "x", "y").url, "/og?slug=a%20b");
+  });
+
+  it("points the home and section cards at the brand route", () => {
+    const card = brandCard("Akbar Nawasunda", "produser, remixer, DJ");
+    assert.equal(card.url, "/og");
+    assert.equal(card.width, 1200);
+  });
+
+  it("keeps the card route out of the sitemap", () => {
+    const urls = sitemapRoutes().map((entry) => entry.url);
+    assert.ok(!urls.some((url) => url.includes("/og")), "the card route must not be indexed");
   });
 });

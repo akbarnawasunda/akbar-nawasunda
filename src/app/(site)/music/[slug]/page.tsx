@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
   const managed = await getPublishedRelease(slug);
   if (managed) {
     return pageMetadata({
+      ogSlug: slug,
       title: managed.seoTitle || managed.title,
       description: managed.seoDescription || managed.description || undefined,
       path: `/music/${slug}`,
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
   // No such release: the page calls notFound(), so keep the title neutral and out of the index.
   if (!release) return { title: "Rilis tidak ditemukan", robots: { index: false, follow: true } };
   return pageMetadata({
-    title: release.title,
+    ogSlug: release.slug,
+    title: releaseDisplayTitle(release),
     description:
       release.description ??
       `${releaseDisplayTitle(release)} — rilis terverifikasi Akbar Nawasunda.`,

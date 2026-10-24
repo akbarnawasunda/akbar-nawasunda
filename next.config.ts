@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
    */
   poweredByHeader: false,
   /**
+   * The social card route reads the OG font and the release sleeves off disk at request time
+   * (src/app/og/route.tsx). Files under public/ are not part of a route's traced graph by default,
+   * so without this the card works locally and 500s on the first cold request in production.
+   */
+  outputFileTracingIncludes: {
+    "/og": ["./public/fonts/**", "./public/assets/covers/**"],
+  },
+  /**
    * D-024: /artist is canonical. /about was the Phase 2 holding route; a permanent (308) redirect
    * keeps any existing link or search result working instead of serving the old page forever.
    */

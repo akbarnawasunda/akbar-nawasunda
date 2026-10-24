@@ -133,3 +133,62 @@ config, not in the repo:
 ```json
 { "mcpServers": { "context7": { "command": "npx", "args": ["-y", "@upstash/context7-mcp"] } } }
 ```
+
+---
+
+## 2. What to add next, ranked — and one thing that is already done
+
+Written after the owner asked which other tools are worth adopting. Ordered by what actually moves a
+site from "good" to "professional", not by novelty. The first entry is no longer a proposal: it was
+built in the same session (D-105…D-107).
+
+### 1. GitHub Actions as the quality gate — **done**
+`.github/workflows/ci.yml` runs typecheck, lint, 113 tests, a production build, `check:web` (real
+gzipped byte budgets, dead internal links, dead `#anchors`), axe-core across 14 page loads, and the
+smoke suite. `.github/dependabot.yml` groups dependency updates weekly and pins `three` to the shape
+the monogram was traced against.
+
+Why this was the first thing: every number in `PERFORMANCE_BUDGET.md` was measured once, by hand, and
+never re-checked. A budget nobody re-measures is a wish.
+
+### 2. Vercel's own preview deployments — highest value per minute
+The repo is already Vercel-shaped. Once the project is connected, **every PR gets its own URL**, so a
+review is "open the link on your phone", not "trust the screenshot I pasted". Turn on:
+- **Speed Insights** (real-user Core Web Vitals, not lab) — the only way to know what a Moto G in
+  Bandung actually experiences;
+- **Web Analytics** (privacy-friendly, no cookie banner, ~1 KB) — which releases get clicked;
+- **Vercel Blob or S3** later, only if the owner starts uploading masters.
+
+Cost: free tier covers this traffic. Nothing to install in the repo.
+
+### 3. Sentry (free tier) — errors you would otherwise never see
+A static-ish site still has a client bundle, a 3D scene, and a Studio. Right now an exception in the
+AnMonogram loop on one person's GPU is invisible. `@sentry/nextjs` with `tracesSampleRate: 0.1`
+catches it. It adds ~20 KB gz to the client — which is why it belongs *after* the 3D gate, loaded the
+same lazy way `three` is.
+
+### 4. Screaming Frog / Lighthouse CI — the parts CI cannot see
+`lighthouse-ci` (open source) can enforce *score floors*, not just budgets: fail the PR if desktop
+perf drops below 95 or mobile below 85. That is the difference between "we respect the budget" and
+"we respect the experience". Screaming Frog's free 500-URL crawl is worth one run before launch for
+crawl traps, duplicate titles and orphan pages.
+
+### 5. Uptime + DNS + email auth — the unglamorous half
+- **Better Stack / UptimeRobot**: 60-second checks on `/` and `/api/public/*`, alert to WhatsApp.
+- **Cloudflare in front of Vercel** (free): the domain is `.my.id`, and Cloudflare gives you caching,
+  bot filtering, and analytics for free. Optional — Vercel's edge is already good.
+- **SPF, DKIM, DMARC** on `akbarnawasunda.my.id`. The contact email is printed on the site; without
+  DMARC, anyone can spoof it. This is a DNS task, not a repo task, and it matters more than any
+  library on this list.
+
+### 6. Things that sound impressive and are not worth it here
+- **Storybook** — three components are shared; the site itself is the story.
+- **Chromatic / visual regression cloud** — Playwright screenshots in CI cover it for free.
+- **Supabase / Firebase** — the data layer is Turso + Drizzle and it works (D-104).
+- **Any "AI website builder"** — the point of this repo is that a human made these decisions.
+
+### The one GitHub feature nobody uses and everyone should
+**`CODEOWNERS` + branch protection on `main`.** The repo has a single maintainer, so protection feels
+pointless — until one force-push erases a week. Required status checks = the CI job above; no force
+push; no direct commits to `main`. Five minutes, and it is the difference between a hobby repo and a
+professional one.

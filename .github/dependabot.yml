@@ -1,0 +1,29 @@
+# Dependency updates, grouped so a week of patches is one reviewable PR instead of nine.
+#
+# The site is deployed from `main` only; Dependabot targets the branch it runs on and never merges
+# anything by itself. Major bumps of Next/React are deliberately *not* auto-grouped: they change
+# rendering behaviour and need the budget + a11y check to be read, not just be green.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 4
+    groups:
+      patches:
+        applies-to: version-updates
+        update-types: [patch]
+      dev-minor:
+        applies-to: version-updates
+        dependency-type: development
+        update-types: [minor]
+    ignore:
+      # three is pinned to the shape the monogram was traced and tuned against (D-095).
+      - dependency-name: three
+        update-types: [version-update:semver-minor, version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

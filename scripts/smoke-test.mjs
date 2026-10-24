@@ -122,6 +122,36 @@ await check("release artwork", async () => {
   record(!empty, "no card falls back to the in-browser sleeve", empty ? "found data-cover=\"generated\"" : "all ten resolved to files");
 });
 
+await check("social cards", async () => {
+  const home = await (await fetch(`${base}/`)).text();
+  record(
+    /property="og:image" content="[^"]+\/og"/.test(home),
+    "homepage uses the 1200x630 brand card",
+    /property="og:image" content="([^"]+)"/.exec(home)?.[1] ?? "no og:image",
+  );
+
+  // A release must carry its own card, not the shared square image.
+  const slug = "lali-dalane";
+  const page = await (await fetch(`${base}/music/${slug}`)).text();
+  record(
+    page.includes(`/og?slug=${slug}`),
+    "release page carries its own card",
+    page.includes(`/og?slug=${slug}`) ? slug : "fell back to the shared image",
+  );
+  record(
+    page.includes('name="twitter:card" content="summary_large_image"'),
+    "release page asks for the large card",
+    "summary_large_image",
+  );
+
+  const card = await fetch(`${base}/og?slug=${slug}`);
+  record(
+    card.status === 200 && (card.headers.get("content-type") ?? "").startsWith("image/"),
+    "card route renders an image",
+    `${card.status} ${card.headers.get("content-type")}`,
+  );
+});
+
 await check("no renderer", async () => {
   const html = await (await fetch(`${base}/`)).text();
   record(!html.includes("<canvas"), "no <canvas> on /", html.includes("<canvas") ? "FOUND a canvas" : "0");

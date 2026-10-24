@@ -1,0 +1,206 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
+import { ImageResponse } from "next/og";
+import sharp from "sharp";
+
+import { coverArtwork } from "@/content/covers";
+import { releaseDisplayTitle, releases } from "@/content/releases";
+
+/**
+ * Social card, generated at request time.
+ *
+ * Why this exists: before it, all sixteen pages — including all ten release pages — shipped the
+ * same 1000×1000 image with `twitter:card=summary`. Ten tracks shared one preview, so a link to
+ * "Lali Dalane" and a link to "Kamu Nanyeak" looked identical in WhatsApp, X and Facebook. For an
+ * artist whose entire distribution is shared links, that is the most expensive square metre of the
+ * site.
+ *
+ * Two deliberate constraints:
+ *
+ * 1. **No free-form text in the query string.** The only input is `slug`, which is looked up in the
+ *    catalogue; anything else falls back to the brand card. An endpoint that renders arbitrary
+ *    strings into an image is an invitation to abuse and a CPU bill.
+ * 2. **Nothing is invented.** The card prints the release title, its year and its type — the same
+ *    fields the page prints, from the same module. A release with no year prints no year.
+ */
+export const runtime = "nodejs";
+
+/** 1200×630 is the size WhatsApp/X/Facebook crop to; `summary_large_image` expects this ratio. */
+const WIDTH = 1200;
+const HEIGHT = 630;
+
+const BLUE = "#0087FF";
+const INK = "#0A0A0E";
+const PAPER = "#E8E6E1";
+const SECONDARY = "#A1A1B5";
+
+const PUBLIC = join(process.cwd(), "public");
+
+/**
+ * Everything is read off disk and handed to satori as bytes.
+ *
+ * The obvious alternative — `fetch(new URL(path, origin))` — fails twice over: Next's ImageResponse
+ * refuses to load images from a loopback address ("blocked address (SSRF protection)"), so the card
+ * 500s in local development, and a self-fetch would also mean the card cannot be generated while the
+ * deployment is cold. `outputFileTracingIncludes` in next.config.ts is what keeps these files inside
+ * the serverless bundle.
+ */
+async function readAsset(path: string): Promise<Buffer | null> {
+  try {
+    return await readFile(join(PUBLIC, path));
+  } catch {
+    return null;
+  }
+}
+
+export async function GET(request: Request) {
+  const slug = new URL(request.url).searchParams.get("slug");
+  const release = slug ? releases.find((candidate) => candidate.slug === slug) : undefined;
+
+  const fontBytes = await readAsset("fonts/syne-og-800.ttf");
+  if (!fontBytes) return new Response("OG font missing", { status: 500 });
+  const font = new Uint8Array(fontBytes).buffer;
+
+  const title = release ? releaseDisplayTitle(release) : "Akbar Nawasunda";
+  const meta = release
+    ? [release.type, release.year].filter(Boolean).join(" · ")
+    : "Produser · Remixer · DJ";
+
+  // A long title has to shrink, or "Masih Mencintainya — Papinka" wraps into the sleeve.
+  const titleSize = title.length > 26 ? 68 : title.length > 16 ? 84 : 100;
+
+  const artwork = release ? coverArtwork(release.slug) : null;
+  // A data URI, not a URL: satori accepts both, but only one survives the SSRF guard and a cold CDN.
+  /**
+   * Only *real* artwork is shown. A generated sleeve (kind "sleeve") already prints the release title
+   * in Syne — putting it beside the card's own headline printed the same words twice, four centimetres
+   * apart. The sleeve is typography this card can reproduce itself, so a sleeve release gets the
+   * large title and the AN mark instead.
+   */
+  const rawCover = artwork?.kind === "image" ? await readAsset(artwork.src) : null;
+  /**
+   * Satori (the renderer behind ImageResponse) only decodes PNG and JPEG. Our sleeves and the
+   * owner's artwork are WebP, which satori accepts without error and then draws as an empty box —
+   * the first render of this card had a black rectangle where the sleeve should be. sharp converts
+   * to PNG at 470px, which is the size the card actually paints.
+   */
+  const coverUrl = rawCover
+    ? `data:image/png;base64,${(
+        await sharp(rawCover).resize(470, 470, { fit: "cover" }).png().toBuffer()
+      ).toString("base64")}`
+    : null;
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          background: INK,
+          color: PAPER,
+          fontFamily: "Syne",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            flex: 1,
+            padding: "64px 56px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <div style={{ width: 14, height: 14, background: BLUE }} />
+            <div style={{ fontSize: 24, letterSpacing: 8, color: SECONDARY }}>AKBAR NAWASUNDA</div>
+          </div>
+
+          {/*
+            The slab is a child of the text block, not of the card: anchored to the card it drifted
+            away from a one-line title and only looked right on two-line titles.
+          */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 18, position: "relative" }}>
+            <div
+              style={{
+                position: "absolute",
+                left: -56,
+                top: 24,
+                width: 640,
+                height: "74%",
+                background: BLUE,
+                opacity: 0.16,
+                transform: "rotate(-2deg)",
+              }}
+            />
+            <div
+              style={{
+                fontSize: titleSize,
+                lineHeight: 0.98,
+                letterSpacing: -3,
+                maxWidth: 660,
+                display: "flex",
+                position: "relative",
+              }}
+            >
+              {title}
+            </div>
+            {meta ? (
+              <div style={{ fontSize: 26, letterSpacing: 4, color: SECONDARY }}>{meta.toUpperCase()}</div>
+            ) : null}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <div style={{ width: 120, height: 4, background: BLUE }} />
+            <div style={{ fontSize: 22, letterSpacing: 4, color: SECONDARY }}>AKBARNAWASUNDA.MY.ID</div>
+          </div>
+        </div>
+
+        {coverUrl ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 630,
+              paddingRight: 64,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- satori renders this, not a browser */}
+            <img
+              src={coverUrl}
+              alt=""
+              width={470}
+              height={470}
+              style={{ objectFit: "cover", border: "1px solid #2A2A38" }}
+            />
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 560,
+              paddingRight: 80,
+            }}
+          >
+            {/* The mark as type, not as a raster: the card must stay sharp at any size. */}
+            <div style={{ fontSize: 300, letterSpacing: -24, color: "#16161C", lineHeight: 1 }}>AN</div>
+          </div>
+        )}
+      </div>
+    ),
+    {
+      width: WIDTH,
+      height: HEIGHT,
+      fonts: [{ name: "Syne", data: font, weight: 800, style: "normal" }],
+      headers: {
+        // Cards change only when the catalogue does; let the CDN hold them for a day.
+        "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    },
+  );
+}
