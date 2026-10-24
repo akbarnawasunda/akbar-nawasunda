@@ -20,9 +20,9 @@
  *   6. the mobile drawer opens, traps focus, closes on Escape and returns focus;
  *   7. exactly one canvas exists, and it is loaded lazily rather than at first paint;
  *   8. no horizontal overflow at six widths, and no console errors anywhere;
- *   9. (R8) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move writes a
- *      rotation and a different displacement per layer, which is the difference between parallax
- *      and depth that the owner kept asking for;
+ *   9. (R8, revised R10) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move
+ *      writes a rotation, the hero's type block sits at a real negative Z behind the glass, and that
+ *      block is one rigid surface rather than a stack of layers pretending to be depth;
  *  10. (R8) the title sequence runs once, counts, and removes itself;
  *  11. (R9) the display type is printed twice — the second plate moves with the pointer — and the
  *      back of the sheet opens as a full screen that locks the page and gives focus back on Escape.
@@ -220,13 +220,29 @@ try {
   await sleep(600);
   const plate = await page.evaluate(() => {
     const host = document.querySelector('[data-plate="hero-stage"]');
-    const name = document.querySelector("h1");
-    const masthead = document.querySelector('[class*="masthead"]');
+    const masthead = document.querySelector('[data-depth="hero-masthead"]');
+    const sheet = masthead?.parentElement ?? null;
+    /* m43 of a matrix3d is the element's own translateZ. Reading it is the only way to tell real
+       depth from a shadow: a layer that only looks deep still has m43 = 0. */
+    const zOf = (node) => {
+      if (!node) return null;
+      const m = getComputedStyle(node).transform;
+      if (!m || m === "none") return 0;
+      const n = m.match(/matrix3d\(([^)]+)\)/);
+      return n ? Number(n[1].split(",")[14]) : 0;
+    };
+    const own = (sel) => {
+      const node = document.querySelector(sel);
+      return { z: zOf(node), transform: node ? getComputedStyle(node).transform : null };
+    };
     return {
       ry: host?.style.getPropertyValue("--plate-ry") ?? "",
       rx: host?.style.getPropertyValue("--plate-rx") ?? "",
-      name: name?.style.transform || getComputedStyle(name).transform,
-      masthead: masthead?.style.transform || getComputedStyle(masthead).transform,
+      perspective: host ? getComputedStyle(host).perspective : "",
+      sheetZ: zOf(sheet),
+      name: own('[data-depth="hero-name"]'),
+      masthead: own('[data-depth="hero-masthead"]'),
+      facts: own('[data-depth="hero-facts"]'),
     };
   });
   const rotated = Math.abs(parseFloat(plate.ry)) > 0.2 || Math.abs(parseFloat(plate.rx)) > 0.2;
@@ -235,10 +251,23 @@ try {
     rotated,
     `rx ${plate.rx || "unset"} / ry ${plate.ry || "unset"}`,
   );
+  /*
+   * R10 — the hero used to give every layer its own Z, which sounds like depth and measured like a
+   * broken layout: at −110 px the masthead rule stopped 48 px inside both gutters and the facts bar
+   * dropped 25 px below the paragraph it aligns to. The sheet is one surface now, and these two
+   * checks are what "one surface" means: the block itself carries the Z, and none of the type
+   * inside it does.
+   */
   check(
-    "the hero's layers sit at different depths",
-    Boolean(plate.name && plate.masthead) && plate.name !== plate.masthead && plate.name !== "none",
-    `name ${plate.name} vs masthead ${plate.masthead}`,
+    "the hero's type sits behind the glass instead of on it",
+    plate.perspective !== "none" && typeof plate.sheetZ === "number" && plate.sheetZ <= -10,
+    `perspective ${plate.perspective}, sheet translateZ ${plate.sheetZ}px`,
+  );
+  const inner = [plate.name, plate.masthead, plate.facts];
+  check(
+    "the hero's sheet is one rigid surface, not a stack of layers",
+    inner.every((n) => n.transform === "none" || n.z === 0),
+    inner.map((n) => `${n.z}px`).join(" / "),
   );
 
   const sleeve = await page.$('[data-sleeve]');

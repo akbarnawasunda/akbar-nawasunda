@@ -158,20 +158,43 @@ export default async function HomePage() {
         </Depth>
         <div className={styles.heroScrim} aria-hidden="true" />
 
-        {/* 
-          The hero is a scene, not a picture. The stage gives it a vanishing point and a small
-          pointer-driven rotation; inside it, five layers carry different multipliers of the same
-          movement, so the masthead rule, the name, the paragraph, the facts and the cue all sit at
-          different distances from the reader. That is the difference between parallax (layers
-          sliding) and depth (an object in a room), and it is the thing the owner kept asking for.
+        {/*
+          The hero is a room with a printed sheet held in it.
+
+          Flatness here had one cause: every layer of the type block sat at `translateZ(0)` and slid
+          by a different multiple of the pointer. Five flat pictures at five speeds is parallax — it
+          is honest about the pointer, but it says nothing about space, and that is what the owner
+          saw.
+
+          The obvious repair — a Z per layer — was built, measured and rejected. A layer at −110 px
+          lost 48 px at each end of the masthead rule and dropped the facts bar 25 px inside the
+          paragraph above it; a layer at +55 px pushed the name's box outside the frame on a 320 px
+          screen. Both are layout failures, and both are written up in `page.module.css` under
+          `--depth-sheet` along with the numbers.
+
+          So the depth is carried by the object instead of by the layers: the whole type block is
+          one rigid sheet 40 px behind the glass, and the plate turns that sheet while the
+          photograph behind it holds still. That is the cue that reads — one surface leaning towards
+          you, foreshortened, inside a room that does not lean. Nothing on the sheet can move
+          relative to anything else on it, so the rule, the name and the facts stay in register at
+          every angle, and the sheet's own turn is the only thing that moves.
+
+          6.2° of yaw, and only 0.8° of pitch. The split is the point: a yaw keeps every horizontal
+          line horizontal, so the masthead rule and the baselines never look crooked — the block
+          converges towards its far edge and slides, which the eye reads as a surface turning. Pitch
+          tips those lines, and past about a degree a registration rule simply looks badly set. The
+          yaw is also the number clearance was measured against: its near edge is magnified outwards
+          and its far edge contracts inwards, so the larger it gets the closer the name's ink comes
+          to the left edge of the frame. At 6.2° that is still 13 px at the pointer's far corner, at
+          every width from 320 to 1920, and the cue keeps 17 px at the bottom.
         */}
         <Plate3D
           className={styles.heroStage}
           data-plate="hero-stage"
-          tiltY={3.4}
-          tiltX={2.2}
-          shift={40}
-          perspective={1500}
+          tiltY={6.2}
+          tiltX={0.8}
+          shift={10}
+          perspective={1300}
         >
         <div className={styles.heroInner}>
         {/*
@@ -180,7 +203,7 @@ export default async function HomePage() {
           empty dark — a full-bleed photograph needs something set on it at the edges or the eye has
           nowhere to start.
         */}
-        <div className={styles.masthead}>
+        <div className={styles.masthead} data-depth="hero-masthead">
           <p className={styles.kicker}>
             <span className={styles.live} aria-hidden="true" />
             {siteConfig.origin.replace(", Indonesia", "")} · sejak {siteConfig.since}
@@ -193,14 +216,14 @@ export default async function HomePage() {
         <Depth className={styles.heroText} y={-26} data-layer="hero-type">
         <div className={styles.heroBody}>
 
-          <h1 id="hero-title" className={`${styles.name} ink`}>
+          <h1 id="hero-title" className={`${styles.name} ink`} data-depth="hero-name">
             <span className={styles.nameLine}>Akbar</span>
             <span className={`${styles.nameLine} ${styles.nameItalic}`}>
               Nawasunda<span className={styles.stop} aria-hidden="true">.</span>
             </span>
           </h1>
 
-          <div className={styles.heroFoot}>
+          <div className={styles.heroFoot} data-depth="hero-foot">
             <p className={styles.heroSub}>
               Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — tiga
               bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.
@@ -224,7 +247,7 @@ export default async function HomePage() {
         </Depth>
 
         {/* The facts, as one ruled line: a figure, a label, a figure — not three cards. */}
-        <div className={styles.factsBar}>
+        <div className={styles.factsBar} data-depth="hero-facts">
         <dl className={styles.facts}>
           <div className={styles.fact}>
             <dt>Rilis</dt>
@@ -244,7 +267,7 @@ export default async function HomePage() {
         </p>
         </div>
 
-        <p className={styles.cue} aria-hidden="true">
+        <p className={styles.cue} aria-hidden="true" data-depth="hero-cue">
           <span>Gulir</span>
           <span className={styles.cueLine} />
         </p>

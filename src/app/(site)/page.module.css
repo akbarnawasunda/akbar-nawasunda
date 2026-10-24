@@ -19,9 +19,53 @@
 /* ==================================================================== hero */
 
 .hero {
-  /* The name is the biggest ink on the site, so its plate is pulled the furthest: 9 px at the
+  /* The name is the biggest ink on the site, so its plate is pulled the furthest: 7 px at the
      pointer's edge, which is what makes the hero read as two passes rather than a drop shadow. */
   --ink-shift: 7px;
+
+  /*
+    How far the printed sheet sits behind the glass (D-128).
+
+    The hero is a room with one sheet of paper held in it. The photograph is the room and holds
+    still under the pointer; the type is printed on the sheet and turns as a single rigid object.
+    Everything on the sheet therefore stays in register with everything else on it — masthead rule,
+    name, paragraph, facts, cue — which is the part the last build got wrong.
+
+    The last build gave every layer its own `translateZ` (name +55 px, masthead −110 px, foot
+    +15 px, facts −55 px) inside a 1500 px lens. It is the textbook parallax stack and it was
+    measured against the real hero before being thrown out:
+
+    - **A layer at negative Z is pulled towards the vanishing point.** At −110 px the masthead rule
+      ended 48 px inside both gutters instead of on them, and the facts bar sat 25 px inside the
+      paragraph above it. Both read as a broken layout, not as depth, because a stack of
+      left-aligned text is supposed to share one vertical edge.
+    - **A layer at positive Z is magnified.** At +55 px the name's own box reached 8.4 px outside a
+      320 px viewport and 7.4 px outside a 390 px one; `overflow: clip` is what would have eaten the
+      `ink` offset on the last glyph. The glyphs happened to survive inside the block's sidebearing,
+      so this is not a visible bug at every width — but the frame stopped holding the sheet, and
+      that is not something to leave to luck on the narrowest device.
+    - Forward magnification is only 1300/(1300−55) ≈ 3.8% anyway, which nobody can see, while both
+      of the failures above are structural. So the name does not come towards the reader at all.
+
+    What is left is the honest version: the whole block is ONE surface, 40 px behind the glass, so
+    it projects at 1300/1340 = 0.970 — three per cent its own size, with air on every side, which is
+    what lets the paper read as an object in a room rather than a crop of one. Turning that surface
+    then does the work: its near edge is magnified outwards and its far edge contracts inwards, so
+    the block slides towards the near side and every line on it foreshortens together.
+
+    The photo behind it does not turn at all. That is deliberate: a static room is the reference
+    that makes the sheet's movement legible as *the paper moved*, not as *the page moved*. The two
+    planes also separate on scroll, where `Depth` drifts the photograph 70 px against the type — but
+    on pointer there is nothing for the type to slide against, which is exactly why it reads as one
+    object rather than as several.
+
+    Clearance was measured for that turn at 320 / 390 / 768 / 1024 / 1280 / 1440 / 1920, pointer in
+    both bottom corners: the name's ink stays at least 13 px from the nearest edge of the viewport,
+    and the cue keeps 17 px from the bottom of the hero. Values here are transform offsets, not
+    spacing, so they are structural literals (AGENTS.md §1.2).
+  */
+  --depth-sheet: -40px;
+
   position: relative;
   display: grid;
   min-height: 100svh;
@@ -80,10 +124,20 @@
   display: grid;
   align-content: space-between;
   gap: var(--space-8);
+  /*
+    The sheet itself. One `translateZ` for the whole type block: masthead, name, paragraph, facts and
+    cue all live on this surface and inherit its depth, so they cannot drift apart. `preserve-3d`
+    keeps the box in the plate's scene rather than flattening it on top of the room.
+  */
+  transform: translateZ(var(--depth-sheet));
+  transform-style: preserve-3d;
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-6);
+  /* Bottom padding is one step wider than the top margin needs to be: when the sheet tips, the cue
+     at its lower edge travels downwards, and the hero clips at its own bottom. Eight px of extra
+     room keeps 16 px of clearance at the worst corner instead of 2 px. */
+  padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-8);
 }
 
 .masthead {
@@ -94,8 +148,9 @@
   padding-bottom: var(--space-4);
   /* The rule above the name is the identity colour: a printed registration line, 2 px, full width. */
   border-bottom: 2px solid var(--color-brand);
-  /* Furthest layer of the scene: it travels against the pointer. */
-  transform: translate3d(calc(var(--plate-x, 0px) * -0.35), calc(var(--plate-y, 0px) * -0.35), 0);
+  /* No transform of its own: the rule is printed on the sheet and turns with it. The old build slid
+     this line against the name by −0.35 of the pointer, which is the parallax the owner read as
+     "flat pictures at different speeds" — two things on one piece of paper cannot do that. */
 }
 
 .kicker {
@@ -126,8 +181,8 @@
 */
 .name {
   margin: 0;
-  /* Nearest type layer: 0.65× the pointer movement, on top of the stage rotation. */
-  transform: translate3d(calc(var(--plate-x, 0px) * 0.65), calc(var(--plate-y, 0px) * 0.65), 0);
+  /* On the sheet, not in front of it. Its depth arrives from `.heroInner`; adding its own would put
+     the name out of register with the rule above it and, at any forward Z, wide enough to clip. */
   font-family: var(--font-display-stack);
   font-weight: 400;
   font-size: var(--text-hero);
@@ -155,8 +210,8 @@
   position: relative;
 }
 
+
 .heroFoot {
-  transform: translate3d(calc(var(--plate-x, 0px) * 0.35), calc(var(--plate-y, 0px) * 0.35), 0);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
@@ -185,7 +240,6 @@
 /* ------------------------------------------------------------------- facts */
 
 .factsBar {
-  transform: translate3d(calc(var(--plate-x, 0px) * 0.18), calc(var(--plate-y, 0px) * 0.18), 0);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
