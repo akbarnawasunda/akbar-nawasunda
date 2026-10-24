@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import robots from "../../src/app/robots";
 import sitemap, { sitemapRoutes } from "../../src/app/sitemap";
 import { siteConfig } from "../../src/config/site";
-import { socialLinks } from "../../src/config/socials";
+import { allLinks } from "../../src/config/socials";
 import { releases } from "../../src/content/releases";
 import { artistJsonLd, serializeJsonLd } from "../../src/lib/structured-data";
 
@@ -48,8 +48,9 @@ describe("seo", () => {
     assert.equal(data.name, "Akbar Nawasunda");
     assert.equal(data.alternateName, "DJ Akbar Remix");
     assert.equal(data.foundingDate, "2020");
-    assert.deepEqual([...data.sameAs], socialLinks.map((link) => link.href));
-    assert.equal(data.sameAs.length, 4, "only the four confirmed platforms");
+    assert.deepEqual([...data.sameAs], allLinks.map((link) => link.href));
+    assert.equal(data.sameAs.length, 14, "every platform the owner supplied, and nothing else");
+    assert.equal(new Set(data.sameAs).size, 14, "no duplicate profile");
     assert.ok(!("award" in data) && !("recordLabel" in data));
   });
 

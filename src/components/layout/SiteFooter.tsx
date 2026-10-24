@@ -3,7 +3,7 @@ import Link from "next/link";
 import { anMark } from "@/assets/web";
 import { footerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
-import { socialLinks } from "@/config/socials";
+import { contactEmail, contactHref, socialLinks } from "@/config/socials";
 import { releases, releaseDisplayTitle } from "@/content/releases";
 import styles from "./SiteFooter.module.css";
 
@@ -12,10 +12,13 @@ import styles from "./SiteFooter.module.css";
  * one line of small print.
  *
  * Two things are deliberately *not* here:
- * - Instagram, Apple Music, YouTube Music and any booking address — their URLs are unverified, and a
- *   guessed link is worse than a missing one (SOCIAL_LINKS.md);
+ * - every streaming service: the ten of them live in the "Dengarkan di" row on the homepage and the
+ *   artist page, and a footer that repeats all fourteen links is a link farm, not a colophon;
  * - a "Privacy" link — /privacy does not exist yet and its text belongs to the owner, so the column
  *   says so out loud instead of shipping a dead link.
+ *
+ * The release column shows the six newest entries plus a link to the catalogue: with ten releases it
+ * would otherwise be twice as tall as every other column.
  */
 export function SiteFooter() {
   return (
@@ -60,12 +63,17 @@ export function SiteFooter() {
         <div className={styles.column}>
           <p className={styles.heading}>Rilisan</p>
           <ul>
-            {releases.map((release) => (
+            {releases.slice(0, 6).map((release) => (
               <li key={release.slug}>
                 <Link href={`/music/${release.slug}`}>{releaseDisplayTitle(release)}</Link>
                 <span className={styles.year}>{release.year ?? "[NEEDS OWNER]"}</span>
               </li>
             ))}
+            <li>
+              <Link href="/music">
+                Semua {releases.length} rilis<span aria-hidden="true"> →</span>
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -83,7 +91,16 @@ export function SiteFooter() {
                 </a>
               </li>
             ))}
+            <li>
+              <a href={contactHref}>
+                Email
+                <span className={styles.external} aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            </li>
           </ul>
+          <p className={styles.address}>{contactEmail}</p>
         </div>
 
         <div className={styles.column}>

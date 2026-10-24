@@ -79,7 +79,8 @@ await check("sitemap", async () => {
   const response = await fetch(`${base}/sitemap.xml`);
   const xml = await response.text();
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-  record(response.status === 200 && urls.length >= 12, "sitemap.xml", `HTTP ${response.status}, ${urls.length} URLs`);
+  // 6 pages + one entry per release: 16 with the 10-release catalogue, and it grows with the catalogue.
+  record(response.status === 200 && urls.length >= 16, "sitemap.xml", `HTTP ${response.status}, ${urls.length} URLs`);
   const leaked = urls.filter((url) => /\/(studio|api|privacy|about)(\/|$)/.test(new URL(url).pathname));
   record(leaked.length === 0, "sitemap excludes private routes", leaked.join(", ") || "none listed");
 });
@@ -101,7 +102,7 @@ await check("structured data", async () => {
   const match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
   if (!match) return record(false, "JSON-LD", "no ld+json block on /");
   const data = JSON.parse(match[1]);
-  const ok = data["@type"] === "MusicGroup" && data.name === "Akbar Nawasunda" && data.sameAs?.length === 4;
+  const ok = data["@type"] === "MusicGroup" && data.name === "Akbar Nawasunda" && data.sameAs?.length === 14;
   record(ok, "JSON-LD MusicGroup", `${data["@type"]} · ${data.sameAs?.length ?? 0} sameAs`);
 });
 
@@ -116,9 +117,9 @@ await check("release artwork", async () => {
   const html = await (await fetch(`${base}/music`)).text();
   const sleeves = [...html.matchAll(/\/assets\/covers\/([a-z0-9-]+)(@sleeve)?\.webp/g)].map((match) => match[1]);
   const unique = [...new Set(sleeves)];
-  record(unique.length >= 6, "artwork on /music", `${unique.length} distinct covers in the HTML`);
+  record(unique.length >= 10, "artwork on /music", `${unique.length} distinct covers in the HTML`);
   const empty = html.includes('data-cover="generated"');
-  record(!empty, "no card falls back to the in-browser sleeve", empty ? "found data-cover=\"generated\"" : "all six resolved to files");
+  record(!empty, "no card falls back to the in-browser sleeve", empty ? "found data-cover=\"generated\"" : "all ten resolved to files");
 });
 
 await check("no renderer", async () => {

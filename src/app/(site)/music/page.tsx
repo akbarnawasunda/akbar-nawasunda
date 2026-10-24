@@ -23,6 +23,9 @@ export const metadata = pageMetadata({
  */
 export default async function MusicPage() {
   const published = await getPublishedReleases();
+  // Counted, not asserted: the catalogue is partly filled, and the page says how much.
+  const missingYear = staticReleases.filter((release) => !release.year).length;
+  const missingLink = staticReleases.filter((release) => release.links.length === 0).length;
 
   const items: ReleaseView[] =
     published.length > 0
@@ -35,7 +38,10 @@ export default async function MusicPage() {
         <div>
           <p className={styles.eyebrow}>01 — Katalog</p>
           <h1 className={styles.title}>Music</h1>
-          <p className={styles.lead}>Rilis, remix, dan mix Akbar Nawasunda. Tahun dan tautan per rilis menyusul.</p>
+          <p className={styles.lead}>
+            Rilis, remix, dan mix Akbar Nawasunda. Tahun dan tautan per rilis terisi bila pemilik
+            katalog sudah mengonfirmasinya.
+          </p>
         </div>
         {items.length > 0 ? (
           <p className={styles.count}>{String(items.length).padStart(2, "0")} rilis terverifikasi</p>
@@ -46,7 +52,12 @@ export default async function MusicPage() {
         <>
           <ReleaseGrid items={items} />
           <p className={styles.note}>
-            Tahun rilis, artwork, dan tautan platform per rilis belum dikonfirmasi pemilik katalog.{" "}
+            {missingYear > 0 ? `${missingYear} rilis belum bertahun` : "Semua rilis bertahun"}
+            {" · "}
+            {missingLink > 0
+              ? `${missingLink} rilis belum punya tautan dengar`
+              : "Semua rilis punya tautan dengar"}
+            {" — sisanya menunggu pemilik katalog. "}
             <span className={styles.placeholder}>[NEEDS OWNER]</span>
           </p>
         </>

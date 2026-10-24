@@ -545,6 +545,13 @@
   color: var(--color-text-primary);
 }
 
+.epkNoteValue a {
+  color: var(--color-text-primary);
+  text-decoration-color: var(--color-signal-blue);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
 /* ---------------------------------------------------------------- mobile */
 
 @media (max-width: 1023px) {

@@ -31,6 +31,14 @@
   display: none;
 }
 
+@media (min-width: 1024px) {
+  .list {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    row-gap: var(--space-4);
+  }
+}
+
 .item {
   /* Containing block for the visually-hidden "(membuka tab baru)" label: without it the label is
      positioned against the page and pushes the document 62px wide on a 320px screen. */

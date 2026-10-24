@@ -98,6 +98,15 @@
   color: var(--color-text-primary);
 }
 
+.address {
+  margin-top: var(--space-3);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
 .year {
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;

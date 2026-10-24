@@ -47,7 +47,8 @@ describe("release view mapping", () => {
     const view = fromStaticRelease(release, "/assets/covers/masih-mencintainya-papinka.webp");
     assert.equal(view.coverUrl, "/assets/covers/masih-mencintainya-papinka.webp");
     assert.equal(view.title, "Masih Mencintainya — Papinka");
-    assert.equal(view.meta, "2025");
+    // Owner data (2026-10-24): the release is a remix of the Papinka song, published 2025.
+    assert.equal(view.meta, "Remix · 2025");
   });
 
   it("marks the era of a DJ Akbar Remix release without inventing a year", () => {
@@ -55,6 +56,22 @@ describe("release view mapping", () => {
     assert.ok(release);
     assert.equal(releaseEyebrow(release), "Era DJ Akbar Remix");
     assert.equal(release.year, undefined);
+  });
+
+  it("keeps a year but no type where the owner's two sources disagree", () => {
+    const release = releases.find((item) => item.slug === "dj-rantau-den-panjauah");
+    assert.ok(release);
+    assert.equal(release.year, 2024);
+    assert.equal(release.type, undefined, "one file calls it a remix, the other an original");
+    assert.equal(releaseEyebrow(release), "2024");
+  });
+
+  it("never invents a listening link", () => {
+    for (const release of releases) {
+      for (const link of release.links) {
+        assert.match(link.href, /^https:\/\//, `${release.slug}: ${link.href}`);
+      }
+    }
   });
 
   it("shows a Studio record's verified date only when it is verified", () => {

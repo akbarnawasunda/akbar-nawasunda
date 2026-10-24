@@ -1,12 +1,21 @@
 /**
  * Music catalogue data model.
  *
- * Only releases listed as VERIFIED in AGENTS.md appear here. `type`, `year` and `links` stay
- * optional on purpose: the owner confirmed the titles but not the years or per-release streaming
- * URLs, and the site must not guess. Use releaseEyebrow() to render whatever is actually known.
+ * Source of truth: the owner's own content files, handed over 2026-10-24
+ * (`releases.json` + `artistPlatform.ts → releases` + `content.json → featured`). Titles, years,
+ * formats and URLs are copied from that data — nothing here is composed by the site.
  *
- * Phase 4 seeds the same verified entries into Turso through drizzle/seed.ts; this static list stays
- * as the fallback shown when no database is configured (preview, local dev).
+ * Where the owner's two files disagree, the field is left empty rather than picked:
+ * `dj-rantau-den-panjauah` is listed as "Remix" in one file and under "originals" in the other, so it
+ * carries a year and a link but no `type`. Where a year is absent it stays absent, and every page
+ * prints `[NEEDS OWNER]` instead of guessing.
+ *
+ * Order is the owner's list order, not chronological: the first six are the entries the site has
+ * shipped since Phase 4, the four newer ones are appended. That is also the order the generated
+ * sleeves are numbered in (`RILIS 01 / 10` …), so re-ordering renumbers the artwork.
+ *
+ * Phase 4 seeds the same entries into Turso through drizzle/seed.ts; this static list stays as the
+ * fallback shown when no database is configured (preview, local dev).
  */
 
 export type ReleaseType = "single" | "ep" | "album" | "remix" | "mix";
@@ -41,18 +50,81 @@ export const releases: readonly Release[] = [
     slug: "masih-mencintainya-papinka",
     title: "Masih Mencintainya",
     source: "Papinka",
+    type: "remix",
     year: 2025,
-    links: [],
+    links: [
+      {
+        label: "SoundCloud",
+        href: "https://soundcloud.com/akbarnawasunda/masih-mencintainya-papinka-2025-akbar-nawasunda",
+      },
+    ],
   },
   { slug: "cinta-terbuang", title: "Cinta Terbuang", links: [] },
-  { slug: "masih-dihatiku", title: "Masih Dihatiku", links: [] },
+  {
+    slug: "masih-dihatiku",
+    title: "Masih Dihatiku",
+    links: [{ label: "Apple Music", href: "https://music.apple.com/id/album/masih-dihatiku-single/1816312737" }],
+  },
   { slug: "bayang-tanpa-kata", title: "Bayang Tanpa Kata", links: [] },
-  { slug: "pada-imut-aisyah-tak-belagu", title: "Pada Imut Aisyah Tak Belagu", links: [] },
+  {
+    slug: "pada-imut-aisyah-tak-belagu",
+    title: "Pada Imut Aisyah Tak Belagu",
+    type: "single",
+    year: 2025,
+    links: [
+      {
+        label: "Apple Music",
+        href: "https://music.apple.com/id/song/pada-imut-aisyah-tak-belagu/1868511241?l=id",
+      },
+    ],
+  },
   {
     slug: "hitungan-cinta-breakbeat-super-exc",
     title: "Hitungan Cinta Breakbeat Super Exc",
     era: "DJ Akbar Remix",
     links: [],
+  },
+  {
+    slug: "lali-dalane",
+    title: "Lali Dalane",
+    type: "single",
+    year: 2024,
+    links: [
+      {
+        label: "Spotify",
+        href: "https://open.spotify.com/intl-id/album/3r5GTZnjOFsSfHx5YeANIS?si=9MJhKIkeRkmOBYMbtKP5wg",
+      },
+    ],
+  },
+  {
+    slug: "dj-rantau-den-panjauah",
+    title: "DJ Rantau Den Panjauah",
+    year: 2024,
+    links: [
+      {
+        label: "Spotify",
+        href: "https://open.spotify.com/intl-id/track/32xyWKqnleBI5U56jvnGUa?si=b22bacdf3ab24e2e",
+      },
+    ],
+  },
+  {
+    slug: "kamu-nanyeak",
+    title: "Kamu Nanyeak",
+    type: "single",
+    year: 2025,
+    links: [{ label: "Apple Music", href: "https://music.apple.com/id/song/kamu-nanyeak/1821914972?l=id" }],
+  },
+  {
+    slug: "ngertenono-ati-medium-hall",
+    title: "Ngertenono Ati Medium Hall",
+    type: "remix",
+    year: 2025,
+    links: [
+      {
+        label: "SoundCloud",
+        href: "https://soundcloud.com/akbarnawasunda/ngertenono_ati_medium_hall_mbfrecords",
+      },
+    ],
   },
 ];
 
@@ -69,7 +141,7 @@ export const releaseTypeLabel: Record<ReleaseType, string> = {
 };
 
 /**
- * What is actually known about a release, e.g. "2025", "Remix · 2025" or "Era DJ Akbar Remix".
+ * What is actually known about a release, e.g. "Remix · 2025", "Single · 2024" or "Era DJ Akbar Remix".
  * Returns "Rilis" when neither a type, year nor era is known — never an invented value.
  */
 export function releaseEyebrow(release: Release): string {

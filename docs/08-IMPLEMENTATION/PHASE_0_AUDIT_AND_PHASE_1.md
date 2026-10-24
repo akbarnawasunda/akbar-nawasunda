@@ -967,3 +967,44 @@ ponsel, dan judul press sheet meluber. Semuanya diperbaiki di D-087.
 Sama seperti §21: teks `/privacy`, merge `main`, deploy Vercel/Turso, tahun rilis + URL Spotify per
 rilis, bio panjang + timeline 2021–2024, alamat booking, dan angka stream resmi. Semua tempatnya
 sudah ada di halaman dan ditandai `[NEEDS OWNER]` — tidak ada yang dikarang untuk mengisi ruang.
+
+## 23. Data pemilik masuk — katalog 10, 14 tautan, kontak nyata (2026-10-24)
+
+Owner menyerahkan dump 189 berkas dari repo sebelumnya ("sebagian data gua") dan memilih empat
+keputusan lewat pertanyaan klarifikasi: katalog jadi **10 rilis**, **semua** platform ditampilkan,
+email **ditayangkan**, angka tetap **dihitung**. Semua baris di bawah berasal dari berkas itu.
+
+### 23.1 Yang ditambahkan
+
+| Lapis | Sebelum | Sesudah | Sumber |
+|---|---|---|---|
+| Rilis | 6 | **10** (`Lali Dalane`, `DJ Rantau Den Panjauah`, `Kamu Nanyeak`, `Ngertenono Ati Medium Hall`) | `releases.json`, `artistPlatform.ts` |
+| Tahun | 1 dari 6 | **6 dari 10** | idem |
+| Tautan dengar per rilis | 0 | **5 dari 10** | idem |
+| Bio | satu baris | bio panjang pemilik + format kerja + catatan lisensi | `artistPlatform.ts → verifiedArtistProfile` |
+| Genre | 4 | **5** (`Kendang Chops`) | idem |
+| Tautan resmi | 4 | **14** (10 dengar + 4 sosial) | `content.json → socials/platforms` |
+| Email | — | `akbarnawasunda@gmail.com` di `/contact`, `/epk`, beranda, footer | idem |
+| Sampul | 6 sleeve | **10 sleeve** (`RILIS 01 / 10` …) | `npm run covers:sleeves --force` |
+| Sitemap | 12 URL | **16 URL** | turunan otomatis |
+
+### 23.2 Yang sengaja tidak dipakai
+
+- **`23+ platform`, `90+ track`, `5,73K subs`** — angka bergerak yang tidak bisa diverifikasi; hero
+  tetap menghitung dari katalog (`+10 rilis`, `+6 tahun`, `14 tautan`).
+- **`PrivacyPolicy.tsx`** — dokumen itu menjelaskan newsletter "Fan Signal", form inquiry, dan
+  analitik galeri. Tidak satu pun ada di situs ini, jadi menempelkannya berarti menerbitkan
+  pernyataan palsu soal data. `/privacy` tetap milik owner.
+- **Rilis yang bertentangan tipenya** — `DJ Rantau Den Panjauah` disebut "Remix" di satu berkas dan
+  "original" di berkas lain, jadi barisnya hanya `2024` (D-091).
+
+### 23.3 Verifikasi ulang
+
+| Item | Hasil |
+|---|---|
+| `npm run typecheck` / `lint` | bersih |
+| `npm run test` / `test:db` | **109 / 109** (2 test baru) dan **8 / 8** |
+| `npm run a11y` | **0 violation** / 14 pemuatan |
+| `npm run smoke` | **24/24**, sitemap 16 URL, JSON-LD 14 `sameAs`, 10 sampul |
+| Luapan horizontal | 0 px di 320–1440 (diukur ulang pada 1280 dan 390) |
+| `npm run db:seed -- --dry` | 10 dokumen, `type` + `links` ikut; belum dijalankan ke Turso |

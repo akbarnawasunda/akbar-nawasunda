@@ -1,0 +1,93 @@
+/* Contact page: an address set as the one piece of type worth reading, then the channels. */
+
+.mail {
+  display: grid;
+  gap: var(--space-3);
+  padding-block: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.label {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.address {
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.375rem, 1rem + 2.4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.address a {
+  text-decoration-color: var(--color-signal-blue);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+.note {
+  max-width: 56ch;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.block {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.title {
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.services {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-secondary);
+}
+
+.services li {
+  padding-block: var(--space-2);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-8);
+}
+
+.links {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links a {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.links a:hover,
+.links a:focus-visible {
+  color: var(--color-text-primary);
+}

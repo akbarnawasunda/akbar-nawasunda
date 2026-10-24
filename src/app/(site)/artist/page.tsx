@@ -7,10 +7,13 @@ import { PlatformRow } from "@/components/layout/PlatformRow";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionsView } from "@/components/content/SectionsView";
 import {
-  artistBioNeeded,
+  artistBioGaps,
   artistFacts,
   artistLine,
+  artistLongBio,
+  artistServices,
   artistTimeline,
+  licensingNote,
 } from "@/content/artist";
 import { siteConfig } from "@/config/site";
 import { listenUrl } from "@/config/socials";
@@ -32,10 +35,17 @@ export const metadata: Metadata = pageMetadata({
  * Artist page — D-024: /artist is canonical and /about redirects here with a 308.
  *
  * Layout follows the same editorial rules as the rest of the site: an asymmetric split (portrait
- * right, facts left), a hairline timeline whose year column is mono, and no invented biography. The
- * long bio has not been written by the owner yet, so the page carries a short verified line and a
- * clearly marked gap instead of prose.
+ * right, facts left) and a hairline timeline whose year column is mono. The biography is the owner's
+ * own text (D-090); the two things they have not supplied — 2021–2023 and the story behind the name —
+ * are listed as gaps rather than written into the prose.
  */
+/** "Permintaan remix, aransemen khusus, kolaborasi, dan lisensi musik" — no hard-coded last item. */
+function formatServices(): string {
+  const items = [...artistServices];
+  const last = items.pop();
+  return `${items.join(", ")}, dan ${(last ?? "").toLowerCase()}`;
+}
+
 export default async function ArtistPage() {
   // Stored under the `about` key (see content-model.ts): the owner writes the bio in Studio and it
   // appears here, with no code change and no migration.
@@ -107,23 +117,25 @@ export default async function ArtistPage() {
       <section className={styles.bioSection} aria-labelledby="bio-title">
         <p className={styles.eyebrow}>Bio</p>
         <h2 id="bio-title" className={styles.sectionTitle}>
-          {hasBio ? "Biografi" : "Yang belum ditulis"}
+          Biografi
         </h2>
         {published && hasBio ? (
           <SectionsView sections={published.sections} />
         ) : (
           <>
+            <p className={styles.paragraph}>{artistLongBio}</p>
             <p className={styles.paragraph}>
-              Bio panjang belum ada di sumber resmi mana pun. Halaman ini tidak mengarang cerita
-              karier; bagian berikut menunggu bahan dari pemilik.
+              Format kerja: {formatServices()}. {licensingNote}
             </p>
-            <ul className={styles.needsList}>
-              {artistBioNeeded.map((item) => (
-                <li key={item}>
-                  <span className={styles.needs}>[NEEDS OWNER]</span> {item}
-                </li>
-              ))}
-            </ul>
+            {artistBioGaps.length > 0 ? (
+              <ul className={styles.needsList}>
+                {artistBioGaps.map((item) => (
+                  <li key={item}>
+                    <span className={styles.needs}>[NEEDS OWNER]</span> {item}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </>
         )}
       </section>

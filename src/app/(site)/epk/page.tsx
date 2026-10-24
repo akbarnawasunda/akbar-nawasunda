@@ -4,9 +4,9 @@ import Link from "next/link";
 import { anMark, portraitAlt, portraitSources } from "@/assets/web";
 import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { artistFacts, artistLine } from "@/content/artist";
+import { artistFacts, artistLine, artistLongBio, artistServices, licensingNote } from "@/content/artist";
 import { siteConfig } from "@/config/site";
-import { listenUrl, socialLinks } from "@/config/socials";
+import { contactEmail, contactHref, listenLinks, listenUrl, socialLinks } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
 import styles from "./epk.module.css";
 
@@ -32,8 +32,9 @@ const PACK_SIZE = "1,0 MB";
  * /epk — press kit page.
  *
  * The zip is a real, versioned file built by scripts/build-epk.sh from the owner's originals, so a
- * journalist gets one download instead of right-clicking images. Nothing in it claims anything that
- * is not in FACTS_AND_VERIFICATION_2.md; the bio is one verified line, not an invented paragraph.
+ * journalist gets one download instead of right-clicking images. Nothing in it claims anything the
+ * owner has not supplied: the bio is their own text (D-090), the contact is their published address,
+ * and the services list is theirs.
  */
 export default function EpkPage() {
   return (
@@ -107,6 +108,7 @@ export default function EpkPage() {
             Fakta terverifikasi
           </h2>
           <p className={styles.sheetNote}>Dipakai apa adanya di siaran pers. Tanpa tambahan.</p>
+          <p className={styles.bio}>{artistLongBio}</p>
         </div>
 
         <dl className={styles.facts}>
@@ -128,10 +130,22 @@ export default function EpkPage() {
           Kontak pers
         </h2>
         <p className={styles.sheetNote}>
-          Alamat email booking atau pers belum dikonfirmasi, jadi tidak dicantumkan di sini. Untuk
-          sekarang, jalur resmi adalah kanal di bawah.
+          Satu alamat untuk booking, pers, remix, dan lisensi. Dijawab langsung oleh Akbar; tidak
+          ada formulir perantara.
+        </p>
+        <p className={styles.contactMail}>
+          <a href={contactHref}>{contactEmail}</a>
         </p>
         <ul className={styles.links}>
+          {listenLinks.map((link) => (
+            <li key={link.platform}>
+              <a href={link.href} target="_blank" rel="noopener noreferrer">
+                {link.label}
+                <span aria-hidden="true"> ↗</span>
+                <span className="sr-only"> (membuka tab baru)</span>
+              </a>
+            </li>
+          ))}
           {socialLinks.map((link) => (
             <li key={link.platform}>
               <a href={link.href} target="_blank" rel="noopener noreferrer">
@@ -147,9 +161,8 @@ export default function EpkPage() {
             </Link>
           </li>
         </ul>
-        <p className={styles.contactNeeds}>
-          <span className={styles.needs}>[NEEDS OWNER]</span> Email booking/pers, kontak manajemen,
-          dan bio panjang 150–200 kata.
+        <p className={styles.sheetNote}>
+          Format kerja: {artistServices.map((item) => item.toLowerCase()).join(", ")}. {licensingNote}
         </p>
       </section>
 

@@ -3,9 +3,9 @@
 //   npm run db:seed            write the verified releases (idempotent)
 //   npm run db:seed -- --dry   print what would be written, touch nothing
 //
-// Only data the owner has confirmed is written: the six verified titles. Release year, date,
-// streaming links and artwork stay empty on purpose — the Studio is where the owner fills them in
-// later, and nothing here guesses.
+// Only data the owner has confirmed is written: title, type, year and the streaming links they
+// supplied (D-090). Anything still missing stays empty on purpose — the Studio is where the owner
+// fills the rest in, and nothing here guesses.
 //
 // Writes to `studio_pages` under `release:<slug>`, with draft and published set to the same JSON so
 // the release appears on /music immediately. Rows that already exist are left untouched, so running
@@ -27,15 +27,19 @@ loadEnvConfig(process.cwd());
 
 const dryRun = process.argv.includes("--dry");
 
-function toDocument(title: string): ReleaseDocument {
+/**
+ * Title, type and the owner's links go in; a year becomes a release date only when the owner gave
+ * one, and `dateVerified` stays false because a year is not a confirmed day. Nothing else is filled.
+ */
+function toDocument(release: (typeof releases)[number]): ReleaseDocument {
   return {
-    title,
-    type: "unknown",
+    title: releaseDisplayTitle(release),
+    type: release.type ?? "unknown",
     releaseDate: null,
     dateVerified: false,
     description: "",
     artworkId: null,
-    links: [],
+    links: release.links.map((link) => ({ label: link.label, href: link.href })),
     seoTitle: "",
     seoDescription: "",
   };
@@ -43,7 +47,7 @@ function toDocument(title: string): ReleaseDocument {
 
 async function main() {
   const rows = releases.map((release) => {
-    const json = JSON.stringify(toDocument(releaseDisplayTitle(release)));
+    const json = JSON.stringify(toDocument(release));
     const now = Date.now();
     return {
       slug: releaseKey(release.slug),
@@ -87,7 +91,7 @@ async function main() {
     const skipped = rows.length - inserted.length;
     console.log(`Inserted ${inserted.length} release document(s).`);
     if (skipped > 0) console.log(`Skipped ${skipped} that already existed (left untouched).`);
-    console.log("Nothing else was written: no years, dates, links or artwork were invented.");
+    console.log("Nothing else was written: no dates, artwork or extra links were invented.");
   } finally {
     client.close();
   }

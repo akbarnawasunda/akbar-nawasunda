@@ -25,7 +25,7 @@ import { heroStats } from "@/content/stats";
 import { visualItems } from "@/content/visuals";
 import { artistFacts, artistTimeline } from "@/content/artist";
 import { siteConfig } from "@/config/site";
-import { listenUrl, socialLinks } from "@/config/socials";
+import { contactEmail, contactHref, listenLinks, listenUrl, socialLinks } from "@/config/socials";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage } from "@/studio/public";
 import styles from "./page.module.css";
@@ -44,9 +44,9 @@ import styles from "./page.module.css";
  * - the owner's own materials: tawny tape, off-white stock, a red stamp;
  * - type set tight (-0.03em) at a size that only fits because the layout is asymmetric.
  *
- * Copy rules are unchanged and non-negotiable: counts are derived (src/content/stats.ts), the four
- * social platforms are the only verified ones, and anything the owner has not confirmed is either
- * absent or literally printed as [NEEDS OWNER]. No stream totals, no awards, no booking address.
+ * Copy rules are unchanged and non-negotiable: counts are derived (src/content/stats.ts), every
+ * platform link comes from the owner's own files (14 of them, D-090), and anything the owner has not
+ * confirmed is either absent or literally printed as [NEEDS OWNER]. No stream totals, no awards.
  */
 export const metadata: Metadata = {
   title: {
@@ -63,6 +63,10 @@ const catalogue = releases.map((release) => ({
 }));
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
+/** How much of the catalogue is still missing a year or a listening link, counted not guessed. */
+const missingYear = releases.filter((release) => !release.year).length;
+const missingLink = releases.filter((release) => release.links.length === 0).length;
+const officialLinkCount = listenLinks.length + socialLinks.length;
 
 export default async function HomePage() {
   if (!featured) return null;
@@ -149,7 +153,7 @@ export default async function HomePage() {
               <div className={styles.stat}>
                 <dt>Platform</dt>
                 <dd>
-                  <span className={styles.statValue}>{socialLinks.length}</span>
+                  <span className={styles.statValue}>{officialLinkCount}</span>
                   <span className={styles.statNote}>tautan resmi</span>
                 </dd>
               </div>
@@ -223,10 +227,15 @@ export default async function HomePage() {
           <Reveal>
             <ReleaseBento featured={featured} rest={rest} total={stats.releaseCount} />
           </Reveal>
-          <p className={styles.footnote}>
-            Tahun rilis, artwork resmi, dan tautan platform per rilis belum dikonfirmasi pemilik
-            katalog. <span className={styles.needs}>[NEEDS OWNER]</span>
-          </p>
+          {missingYear > 0 || missingLink > 0 ? (
+            <p className={styles.footnote}>
+              {missingYear > 0 ? `${missingYear} rilis belum punya tahun` : null}
+              {missingYear > 0 && missingLink > 0 ? " · " : null}
+              {missingLink > 0 ? `${missingLink} rilis belum punya tautan dengar` : null}
+              {" — sisanya lengkap. "}
+              <span className={styles.needs}>[NEEDS OWNER]</span>
+            </p>
+          ) : null}
         </Container>
       </section>
 
@@ -337,14 +346,15 @@ export default async function HomePage() {
               </div>
             </div>
             <div className={styles.epkNote}>
-              <p className={styles.epkNoteLabel}>Kontak booking</p>
+              <p className={styles.epkNoteLabel}>Booking &amp; pers</p>
               <p className={styles.epkNoteValue}>
-                Belum ada alamat resmi yang bisa dipublikasikan.{" "}
-                <span className={styles.needs}>[NEEDS OWNER]</span>
+                <a href={contactHref}>{contactEmail}</a> — remix, kolaborasi, lisensi, dan materi
+                pers.
               </p>
               <p className={styles.epkNoteLabel}>Formulir</p>
               <p className={styles.epkNoteValue}>
-                Sengaja tidak ada. Form tanpa tujuan hanya terlihat seperti situs orang lain.
+                Sengaja tidak ada. Satu alamat email yang dijawab lebih berguna daripada form tanpa
+                tujuan.
               </p>
             </div>
           </div>

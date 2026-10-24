@@ -22,7 +22,10 @@ export const siteConfig = {
 /** The three roles the artist works in, in display order. Names only; no biography. */
 export const roles = ["Produser", "Remixer", "DJ"] as const;
 
-/** Genres listed as VERIFIED in FACTS_AND_VERIFICATION.md. */
-export const genres = ["Breakbeat", "Indo Bass", "Jedag Jedug", "Jungle Dutch"] as const;
+/**
+ * Genres from the owner's profile (`artistPlatform.ts → verifiedArtistProfile.genres`).
+ * Kendang Chops joined the four original ones on 2026-10-24, with the rest of their profile data.
+ */
+export const genres = ["Breakbeat", "Indo Bass", "Jedag Jedug", "Jungle Dutch", "Kendang Chops"] as const;
 
 export type SiteConfig = typeof siteConfig;

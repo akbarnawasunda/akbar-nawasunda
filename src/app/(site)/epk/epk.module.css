@@ -150,6 +150,28 @@
   color: var(--color-text-secondary);
 }
 
+.bio {
+  max-width: 62ch;
+  margin-top: var(--space-4);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.contactMail {
+  margin-top: var(--space-4);
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.125rem, 1rem + 0.8vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.contactMail a {
+  text-decoration-color: var(--color-signal-blue);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
 .facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

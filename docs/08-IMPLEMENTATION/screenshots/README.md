@@ -4,7 +4,7 @@ Four sets.
 
 | Folder / prefix | What it is | Status |
 |---|---|---|
-| `final/` | The current site: zine/brutalist-editorial homepage (D-081–D-089) on top of the Phase 8 build | **current** |
+| `final/` | The current site: zine/brutalist-editorial homepage (D-081–D-089) with the owner's catalogue data (D-090–D-094) | **current** |
 | `home-*`, `music-*` | Phase 2 revision | history |
 | `phase5-*` | Phase 5 routes (`/artist`, `/visuals`, `/epk`, 404) | history — the routes still exist |
 | `studio-*` | Phase 6 Studio flow (draft → publish) | current for Studio |
@@ -31,9 +31,11 @@ to the top, and **then** measures overflow, broken images and `canvas` count.
 | `/artist` | 390, 768, 1280 |
 | `/visuals` | 390, 768, 1280 |
 | `/epk` | 390, 768, 1280 |
+| `/contact` | 390, 768, 1280 |
 | `/nope` (404) | 390, 768, 1280 |
 
-All 21 route/width pairs render with `canvas` count 0, no broken images, and no horizontal overflow.
+All 24 route/width pairs (48 files) render with `canvas` count 0, no broken images, and no horizontal
+overflow — measured on each capture, not assumed. `/music` now shows the ten-release catalogue.
 Measure overflow *before* the full-page capture: headless shell resizes the viewport for it, and a
 measurement taken afterwards reports a phantom 2639 px scroll width.
 
