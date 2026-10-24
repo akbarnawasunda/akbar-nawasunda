@@ -61,6 +61,8 @@ const SHOTS = [
   { name: "14-home-390", route: "/", width: 390, height: 844 },
   { name: "15-music-390", route: "/music", width: 390, height: 844 },
   { name: "16-home-footer-1280", route: "/", width: 1280, height: 900, bottom: true },
+  { name: "17-release-1280", route: "/music/masih-mencintainya-papinka", width: 1280, height: 900, pointer: [1040, 520] },
+  { name: "18-release-390", route: "/music/masih-mencintainya-papinka", width: 390, height: 844 },
 ];
 
 const script = `

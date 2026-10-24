@@ -26,6 +26,7 @@ same gap: the page was well-composed but not *designed by a label*.
 | 11 | `11-artist-1280.webp` | Portrait on a blue plate, years set in display blue |
 | 12–13 | `12-contact-1280.webp`, `13-epk-1280.webp` | The address at 5vw on blue; the press kit's red stamp |
 | 14–16 | `14-home-390.webp`, `15-music-390.webp`, `16-home-footer-1280.webp` | Phones and the colophon |
+| 17–18 | `17-release-1280.webp`, `18-release-390.webp` | A release page as a sleeve: blue field, print on a plate, listening rows inside the field (round 8.2) |
 
 ## The four notes, answered
 
@@ -40,7 +41,9 @@ same gap: the page was well-composed but not *designed by a label*.
    only works with ink type on it (5,7:1 — white on this blue is 3,4:1 and is used nowhere). Four
    new tokens: `--color-brand`, `--color-brand-deep`, `--color-on-brand`, `--color-poster-red`. The
    poster red appears exactly once, as a rubber stamp on the press kit.
-3. **One object per route.** `/music` — a printed sleeve head plus a wall with a vanishing point;
+3. **One object per route.** `/music/[slug]` — a sleeve: the release title at sleeve scale on a blue
+   field, the artwork on a plate, and the listening rows printed inside the same field; `/music` — a
+   printed sleeve head plus a wall with a vanishing point;
    `/visuals` — prints laid by hand on a wall, each taking a blue plate on hover, with the archive
    note as a blue slip; `/artist` — the portrait on a blue plate and years in display blue;
    `/contact` — the address at 5vw on a full blue sheet; `/epk` — a document with a red stamp.
@@ -52,6 +55,15 @@ same gap: the page was well-composed but not *designed by a label*.
    reduced motion. The labels never fade in from opacity 0: the first version did, and axe caught
    nine-pixel text at 0 % — a real defect for the first 400 ms, not just a test artefact.
 
+## Round 8.2 — the release page
+
+The last route still built like a document: eyebrow, 4rem title, grey paragraph, four text links, a
+bordered square on the right. It is now three bands — the sleeve (blue, with the listening rows in
+it), the data sheet (ink), the neighbouring releases (ink) — so a stranger who lands here from a
+shared link sees a record, not a wiki entry. The order number is a *position* in the owner's list
+("Katalog 03 / 10"), never an invented catalogue number. `release.module.css` and the last
+`radial-gradient` on a public route went with the old layout, and `--radius-md` had no consumer left.
+
 ## Measured
 
 - `npm test` — 121/121. `npm run typecheck`, `npm run lint` — clean.
@@ -59,9 +71,9 @@ same gap: the page was well-composed but not *designed by a label*.
 - `npm run qa:motion` — **18/18**, including four new assertions for this round: the hero stage
   rotates, the hero's layers sit at different depths, the wall lifts the pointed sleeve, the title
   sequence counts and removes itself.
-- `npm run check:web` — JS **189 KB gz / 11 chunks** (budget 250), CSS **15,1 KB gz / 3 files**
+- `npm run check:web` — JS **189 KB gz / 11 chunks** (budget 250), CSS **15,6 KB gz / 3 files**
   (budget 40), 16 routes, 22 internal targets, 47 media files, no dead links.
-- `npm run audit:tokens` — 83 tokens, no raw hex in CSS modules, no orphaned tokens.
+- `npm run audit:tokens` — 82 tokens, no raw hex in CSS modules, no orphaned tokens.
 
 ## Deleted, not hidden
 
