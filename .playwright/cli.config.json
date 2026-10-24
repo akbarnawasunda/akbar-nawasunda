@@ -1,0 +1,14 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "launchOptions": {
+      "args": [
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--use-gl=swiftshader",
+        "--enable-unsafe-swiftshader"
+      ]
+    }
+  }
+}

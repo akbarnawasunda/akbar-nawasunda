@@ -49,18 +49,29 @@ export function AnMonogram() {
       ]);
       if (cancelled) return;
 
+      /**
+       * The canvas is attached only after the context exists. Constructing the renderer is the step
+       * that fails on a machine without WebGL, and a canvas appended before it stays in the DOM
+       * afterwards as a 300x150 grey rectangle — found in a Playwright CLI run where the browser had
+       * no SwiftShader libraries. An unattached canvas cannot leave that scar.
+       */
       const canvas = document.createElement("canvas");
       canvas.setAttribute("aria-hidden", "true");
-      stage.appendChild(canvas);
 
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        /* No MSAA: the mark is a handful of straight edges, and the wireframe overlay already
-           defines them. Antialiasing here doubled the fragment cost for no visible gain. */
-        antialias: false,
-        alpha: true,
-        powerPreference: "high-performance",
-      });
+      let renderer: InstanceType<typeof THREE.WebGLRenderer>;
+      try {
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          /* No MSAA: the mark is a handful of straight edges, and the wireframe overlay already
+             defines them. Antialiasing here doubled the fragment cost for no visible gain. */
+          antialias: false,
+          alpha: true,
+          powerPreference: "high-performance",
+        });
+      } catch {
+        return;
+      }
+      stage.appendChild(canvas);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
       renderer.setClearAlpha(0);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
