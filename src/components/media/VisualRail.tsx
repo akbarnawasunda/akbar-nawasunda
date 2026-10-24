@@ -7,19 +7,25 @@ import styles from "./VisualRail.module.css";
 /**
  * Horizontal archive rail: six real files, one per panel, with the source aspect ratio kept.
  *
- * A rail rather than a grid because the archive reads as a contact sheet being pulled across a
- * table. It is a native scroll container — no drag library, no scroll hijack, no pin — so it works
- * with a trackpad, a touch screen, a keyboard (the container is focusable) and with JS off.
+ * On a wide screen the rail is *pinned* — the band is three viewports tall, the rail sticks to the
+ * top, and vertical scrolling drags it sideways. That is done with `view-timeline` in CSS, not with
+ * a scroll library: the browser owns the maths, the effect runs on the compositor, and if the
+ * feature is missing the band simply stays a normal horizontal scroll container (the phone layout,
+ * where horizontal scrolling is the native gesture anyway).
+ *
+ * Nothing is hidden behind the animation: the rail keeps `tabIndex` and stays scrollable, so the
+ * panels are reachable with a keyboard or a screen reader at any scroll position.
  */
 export function VisualRail({ items }: { items: readonly VisualItem[] }) {
   return (
     <div className={styles.wrap}>
-      <div
-        className={styles.rail}
-        role="group"
-        aria-label="Arsip visual — geser horizontal"
-        tabIndex={0}
-      >
+      <div className={styles.stage}>
+        <div
+          className={styles.rail}
+          role="group"
+          aria-label="Arsip visual — geser horizontal"
+          tabIndex={0}
+        >
         {items.map((item, index) => (
           <figure key={item.id} className={styles.panel}>
             <span className={styles.index} aria-hidden="true">
@@ -37,10 +43,11 @@ export function VisualRail({ items }: { items: readonly VisualItem[] }) {
             <figcaption className={styles.caption}>{item.caption}</figcaption>
           </figure>
         ))}
+        </div>
+        <p className={styles.hint} aria-hidden="true">
+          Geser <span>→</span>
+        </p>
       </div>
-      <p className={styles.hint} aria-hidden="true">
-        Geser <span>→</span>
-      </p>
     </div>
   );
 }

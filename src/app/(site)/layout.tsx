@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 
 import { GrainOverlay } from "@/components/effects/GrainOverlay";
 import { CursorDot } from "@/components/zine/CursorDot";
+import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { ScrollProgress } from "@/components/zine/ScrollProgress";
+import { SmoothScroll } from "@/components/zine/SmoothScroll";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { designAttributes } from "@/studio/design";
@@ -19,6 +21,8 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
   const design = await getPublicDesign();
   return (
     <div className="site-root" {...designAttributes(design)}>
+      <LoadingCurtain />
+      <SmoothScroll />
       <ScrollProgress />
       <a href="#main" className="skip-link">
         Lompat ke konten

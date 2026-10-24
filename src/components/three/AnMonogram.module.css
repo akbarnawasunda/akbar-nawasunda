@@ -1,0 +1,35 @@
+/* The canvas is scenery: it sits behind the type, never above it, and never eats a pointer event. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Fades in only once the scene has drawn a frame, so there is no black rectangle in the meantime. */
+  opacity: 0;
+  transition: opacity 900ms var(--ease);
+}
+
+.canvas[data-ready="true"] {
+  /* The band gives the object its own stage, so it can be shown at nearly full strength. */
+  opacity: 0.92;
+  /* Feathered at the frame edges so the canvas is never a visible rectangle. */
+  mask-image: radial-gradient(115% 105% at 50% 46%, black 52%, transparent 96%);
+}
+
+@media (max-width: 1023px) {
+  .canvas[data-ready="true"] {
+    opacity: 0.85;
+  }
+}
+
+.canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    transition: none;
+  }
+}

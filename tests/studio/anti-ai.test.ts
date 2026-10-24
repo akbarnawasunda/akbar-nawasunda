@@ -36,20 +36,29 @@ describe("no generated visual effects ship", () => {
     assert.deepEqual(offenders, [], `these files still mention the removed effect: ${offenders.join(", ")}`);
   });
 
-  it("ships no canvas element anywhere on the site", () => {
-    for (const file of globSync("src/{app,components}/**/*.tsx", { cwd: root })) {
-      const body = readFileSync(join(root, file), "utf8");
-      assert.ok(!/<canvas/i.test(body), `${file} renders a <canvas>`);
-    }
+  /**
+   * Round 3 (D-095) allows exactly one canvas, for the owner's own mark, and exactly one file that
+   * may create it. A single `<canvas>` in the app is what the brief asks for; a second one is how
+   * the particle field came back last time, so the rule is written as an allowlist, not a ban.
+   */
+  const CANVAS_ALLOWLIST = ["src/components/three/AnMonogram.tsx"];
+
+  it("ships at most one canvas, in the monogram component only", () => {
+    const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter((file) => {
+      if (CANVAS_ALLOWLIST.includes(file)) return false;
+      return /<canvas/i.test(readFileSync(join(root, file), "utf8"));
+    });
+    assert.deepEqual(offenders, [], `these files render a <canvas>: ${offenders.join(", ")}`);
   });
 
-  it("does not depend on three, @react-three/fiber or @react-three/drei", () => {
+  it("allows three for the monogram but never the react-three wrappers", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
     const all = { ...pkg.dependencies, ...pkg.devDependencies };
-    for (const name of ["three", "@react-three/fiber", "@react-three/drei"]) {
+    assert.ok(all.three, "three is the one renderer the brief allows (D-095)");
+    for (const name of ["@react-three/fiber", "@react-three/drei", "gsap"]) {
       assert.equal(all[name], undefined, `${name} is installed again`);
     }
   });

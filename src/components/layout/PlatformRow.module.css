@@ -1,7 +1,8 @@
+/* Not sticky any more (D-097). A pinned bar crossing the paper band put a dark strip through the
+   one light surface on the site, and the bar only holds a set of links that the footer repeats. */
 .row {
-  position: sticky;
-  top: var(--header-height);
-  z-index: 5;
+  position: relative;
+  z-index: 1;
   background: color-mix(in srgb, var(--color-bg) 94%, transparent);
   display: flex;
   align-items: center;

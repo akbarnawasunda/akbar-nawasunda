@@ -5,6 +5,26 @@
   background: color-mix(in srgb, var(--color-bg) 80%, transparent);
   backdrop-filter: blur(12px) saturate(120%);
   border-bottom: 1px solid var(--color-border);
+  transition:
+    height 320ms var(--ease),
+    translate 420ms var(--ease),
+    background-color 320ms var(--ease);
+  will-change: transform;
+}
+
+/* Compact once the page has moved; off-canvas while the reader is going down, back on the way up. */
+.header[data-state="compact"] {
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+}
+
+.header[data-hidden="true"] {
+  translate: 0 -100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    transition: none;
+  }
 }
 
 .bar {
@@ -13,6 +33,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   height: var(--header-height);
+  transition: height 320ms var(--ease);
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
@@ -28,10 +49,19 @@
   min-width: 0;
 }
 
+.header[data-state="compact"] .bar {
+  height: var(--header-height-compact);
+}
+
 /* AN mark at 32px tall. The file is 174x112, so the ratio is preserved. */
 .mark {
   height: 32px;
   width: auto;
+  transition: height 320ms var(--ease);
+}
+
+.header[data-state="compact"] .mark {
+  height: 26px;
 }
 
 .wordmarkWrap {

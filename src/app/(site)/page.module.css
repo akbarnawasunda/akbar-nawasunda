@@ -187,15 +187,29 @@
 
 /* --------------------------------------------------------------- sticker */
 
+/* Pointer tilt lives on a wrapper: the figure keeps its layout, the wrapper only owns 3D. */
+.stickerTilt {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --tilt-z: 0px;
+  --tilt-scale: 1;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  justify-self: end;
+  translate: 0 -4%;
+}
+
 /* The portrait is deliberately wider and taller than its column and pulled up, so the H1 and the
    cut-out overlap. That overlap is the whole composition. */
 .sticker {
   position: relative;
   z-index: 1;
-  justify-self: end;
   width: min(46vw, 560px);
   margin: 0;
-  translate: 0 -4%;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(var(--tilt-z))
+    scale(var(--tilt-scale));
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .stickerTape {
@@ -255,31 +269,96 @@
   background: linear-gradient(to right, var(--color-signal-blue), var(--color-border));
 }
 
-/* ------------------------------------------------------------- manifesto */
+/* -------------------------------------------------------------- monogram */
 
-.manifesto {
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg);
+/* A dark band of its own, so the one object the scene has to show is never fighting the type for
+   the same pixels. Full-bleed, 78vh, the canvas inset behind a quiet editorial frame. */
+.signature {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: clamp(540px, 88vh, 820px);
+  overflow: hidden;
+  border-block: 1px solid var(--color-border);
+  /* Flat steps, not a radial glow: the band is a printed plate, and a radial highlight is how the
+     rejected "glowing orb" look creeps back in (tests/fixtures/anti-ai.ts). */
+  background: linear-gradient(180deg, #0d1320 0%, var(--color-ink-black) 62%, #050507 100%);
+  isolation: isolate;
 }
 
-.manifestoInner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  padding-block: var(--space-8);
+.signatureRule {
+  position: absolute;
+  inset: var(--space-6);
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--color-text-primary) 10%, transparent);
+  pointer-events: none;
 }
 
-.manifestoStamp {
-  flex: none;
-  color: var(--color-stamp);
-  font-size: 0.625rem;
-  line-height: 1.4;
+/* Copy sits on the floor of the band, over a scrim, so it is never read through the metal. */
+.signatureInner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 40rem;
+  padding: var(--space-16) var(--space-8) var(--space-8);
+  text-align: left;
+  pointer-events: none;
+  background: linear-gradient(to top, #050507 55%, rgb(5 5 7 / 70%) 78%, transparent 100%);
 }
 
-.manifestoText {
-  max-width: 62ch;
-  color: var(--color-text-secondary);
+.signatureLabel {
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.signatureTitle {
+  font-family: var(--font-display-stack);
+  font-size: clamp(2.6rem, 8vw, 6rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.signatureThin {
+  font-weight: 300;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-text-primary);
+}
+
+.signatureNote {
+  max-width: 46ch;
   font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.signatureMeta {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .signature {
+    min-height: 74vh;
+  }
+
+  .signatureInner {
+    padding: var(--space-12) var(--space-6) var(--space-8);
+  }
+
+  .signatureRule {
+    inset: var(--space-3);
+  }
 }
 
 /* --------------------------------------------------------------- sections */
@@ -564,20 +643,26 @@
     gap: var(--space-8);
   }
 
+  /* On a phone the slab belongs *under the type*, not beside the portrait: at 92vw it read as two
+     stray blue blocks either side of the photo. */
   .heroSpray {
-    top: 10%;
-    width: 92vw;
-    height: 42vw;
-    opacity: 0.13;
+    top: auto;
+    bottom: 34%;
+    width: 96vw;
+    height: 40vw;
+    opacity: 0.14;
+  }
+
+  .stickerTilt {
+    justify-self: center;
+    translate: 0;
+    order: -1;
   }
 
   .sticker {
-    justify-self: center;
     /* Smaller than the copy column on purpose: the portrait should not fill the first screen, so the
        H1 is already peeking above the fold. */
-    width: min(66vw, 340px);
-    translate: 0;
-    order: -1;
+    width: min(58vw, 300px);
   }
 
   .pressWrap,
@@ -604,12 +689,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .manifestoInner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-4);
-  }
-
   .press {
     padding: var(--space-8) var(--space-6) var(--space-12);
     transform: none;
@@ -618,5 +697,79 @@
   .timeline li {
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;
+  }
+}
+
+/* --------------------------------------------------- hero parallax (D-096)
+   Six layers leave the frame at six speeds. Written as CSS scroll timelines, not as a scroll
+   listener: the browser runs them on the compositor, so the effect costs no main-thread time and
+   degrades to a static hero in any browser without `animation-timeline`. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .eyebrow {
+      animation: parallax-tape linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 70%;
+    }
+
+    .titleLine {
+      animation: parallax-title linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 60%;
+    }
+
+    .sub,
+    .actions {
+      animation: parallax-copy linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 55%;
+    }
+
+    .stats {
+      animation: parallax-stats linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 45%;
+    }
+
+    .scrollCue {
+      animation: cue-out linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 140px;
+    }
+  }
+}
+
+@keyframes parallax-tape {
+  to {
+    transform: translateY(-34px);
+    opacity: 0.2;
+  }
+}
+
+@keyframes parallax-title {
+  to {
+    transform: translateY(-96px) scale(0.94);
+    opacity: 0.12;
+  }
+}
+
+@keyframes parallax-copy {
+  to {
+    transform: translateY(-150px);
+    opacity: 0;
+  }
+}
+
+@keyframes parallax-stats {
+  to {
+    transform: translateY(-210px);
+    opacity: 0;
+  }
+}
+
+@keyframes cue-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px);
   }
 }

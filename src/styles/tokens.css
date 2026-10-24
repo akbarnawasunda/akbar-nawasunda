@@ -96,7 +96,8 @@
   /* --- Layout ----------------------------------------------------------------------- */
   --container-max: 1280px;
   --gutter: 1.5rem;
-  --header-height: 4rem; /* 64px, per COMPONENT_DESIGN.md */
+  --header-height: 4.5rem; /* 72px at rest, 56px once the page is scrolled (D-096) */
+  --header-height-compact: 3.5rem;
   --section-padding: var(--space-16);
   --radius-sm: 8px;
   --radius-2xl: 24px;

@@ -21,15 +21,29 @@ dapat dilacak di §20.1 dokumen audit.
 
 | Metrik | Hasil | Budget |
 |---|---|---|
-| JS awal `/` (10 chunk) | **182 KB** | < 200 KB (Phase 8) — 1.4 KB dari komponen zine di D-083 |
-| JS 3D / efek | **0 KB** | < 70 KB — tidak ada renderer 3D, tidak ada GSAP/Lenis |
-| CSS (4 file) | **13 KB** | < 30 KB — naik dari 9.8 KB karena lapisan zine (tape/paper/stamp/rail) |
-| LCP `/` desktop (Lighthouse preset) | **0.8 s** | < 2.5 s |
-| LCP `/` mobile (Lighthouse `--throttling-method=devtools`) | **1.7 s** | < 2.5 s |
-| LCP `/` mobile (simulasi Lantern, server lokal HTTP/1.1) | 3.6–3.8 s (skor 87–89) | dicatat, lihat §20.1 |
-| Gambar LCP (stiker potret) | 31.6 KB AVIF / 63.7 KB WebP pada 1200w; 720w dipakai di ponsel | < 150 KB |
-| `canvas` di halaman | 0 | — |
-| CLS | 0 desktop / 0.002 mobile | < 0.1 |
+| JS awal `/` (13 chunk, HTML saja — tanpa chunk 3D) | **201 KB gz** | < 250 KB (round 3) / < 200 KB (Phase 8, terlampaui 1 KB) |
+| JS lazy 3D (chunk `three`) | **78.7 KB gz**, **0 KB** sampai band monogram masuk viewport | < 70 KB di luar anggaran awal — lihat D-096 |
+| CSS (3 file) | **14.3 KB gz** | < 40 KB (round 3) / < 30 KB (Phase 8) |
+| LCP `/` desktop (Lighthouse preset) | **0.9 s** | < 2.5 s |
+| LCP `/` mobile (simulasi Lantern, server lokal HTTP/1.1) | **3.4 s** (skor 90) | dicatat, lihat §20.1 |
+| Gambar LCP (stiker potret) | 31.6 KB AVIF / 63.7 KB WebP pada 1200w; 480–720w dipakai di ponsel | < 150 KB |
+| `canvas` di halaman, saat load | **0** | 1 (round 3) — hanya setelah band monogram terlihat |
+| TBT `/` | **0–10 ms** | < 200 ms |
+| CLS | 0 desktop / 0.009 mobile | < 0.1 |
+
+Skor Lighthouse terukur (2026-10-24, build produksi, `next start`):
+
+| Preset | Perf | A11y | Best practices | SEO |
+|---|---|---|---|---|
+| Desktop | 98 | 100 | 100 | 100 |
+| Mobile (Lantern, Moto G4) | 90 | 100 | 100 | 100 |
+
+Catatan round 3 (D-095…D-100): dua angka bergerak. (1) Anggaran JS dinaikkan owner dari 200 KB → 250 KB
+untuk round ini; terpakai 201 KB, jadi 1 KB di atas angka Phase 8 dan 49 KB di bawah angka baru. (2)
+`three` menambah 78.7 KB gz yang **tidak** masuk jalur awal: scene baru di-`import()` ketika halaman sudah
+`load` **dan** band monogram masuk viewport. Tanpa gerbang kedua, TBT desktop terukur 2.100 ms dan skor
+turun ke 66 — jadi gerbang itu bukan optimasi opsional, itu syarat anggaran. GSAP/Lenis: Lenis dipasang
+(~10 KB gz, inersia roda), GSAP **tidak** (D-097).
 
 Angka LCP diambil dari Lighthouse 12 (12.x) terhadap build produksi (lihat
 `PHASE_0_AUDIT_AND_PHASE_1.md` §20.1 dan §22). Baris simulasi Lantern lebih lambat karena server lokal

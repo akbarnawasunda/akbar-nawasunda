@@ -8,6 +8,7 @@ import {
   stickerPortraitSize,
   stickerPortraitSources,
 } from "@/assets/web";
+import { PaperAbout } from "@/components/content/PaperAbout";
 import { ReleaseBento } from "@/components/content/ReleaseBento";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
@@ -15,9 +16,11 @@ import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
+import { AnMonogram } from "@/components/three/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Magnetic } from "@/components/zine/Magnetic";
 import { Reveal } from "@/components/zine/Reveal";
+import { Tilt3D } from "@/components/zine/Tilt3D";
 import { coverArtwork } from "@/content/covers";
 import { fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
@@ -90,7 +93,7 @@ export default async function HomePage() {
         as="image"
         type="image/avif"
         imageSrcSet={stickerPortraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-        imageSizes="(min-width: 1024px) 46vw, 80vw"
+        imageSizes="(min-width: 1024px) 46vw, 58vw"
         fetchPriority="high"
       />
 
@@ -160,18 +163,19 @@ export default async function HomePage() {
             </dl>
           </div>
 
+          <Tilt3D className={styles.stickerTilt}>
           <figure className={styles.sticker}>
             <span className={styles.stickerTape} aria-hidden="true" />
             <picture>
               <source
                 type="image/avif"
                 srcSet={stickerPortraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-                sizes="(min-width: 1024px) 46vw, 80vw"
+                sizes="(min-width: 1024px) 46vw, 58vw"
               />
               <source
                 type="image/webp"
                 srcSet={stickerPortraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-                sizes="(min-width: 1024px) 46vw, 80vw"
+                sizes="(min-width: 1024px) 46vw, 58vw"
               />
               <img
                 className={styles.stickerImg}
@@ -187,6 +191,7 @@ export default async function HomePage() {
               Potret resmi — dipotong dari latar studio, file asli pemilik
             </figcaption>
           </figure>
+          </Tilt3D>
         </div>
 
         <p className={styles.scrollCue} aria-hidden="true">
@@ -195,24 +200,28 @@ export default async function HomePage() {
         </p>
       </section>
 
-      {/* ------------------------------------------------------- manifesto strip */}
-      <div className={styles.manifesto}>
-        <Container>
-          <div className={styles.manifestoInner}>
-            <p className={`stamp ${styles.manifestoStamp}`}>
-              Human made
-              <br />
-              no AI artwork
-            </p>
-            <p className={styles.manifestoText}>
-              Semua foto di situs ini file asli pemilik, semua sampul rilis dibuat dari judul dan
-              monogram. Tidak ada gambar hasil generate dan tidak ada angka yang dikarang.
-            </p>
-          </div>
-        </Container>
-      </div>
+      {/* -------------------------------------------------------------- monogram */}
+      <section className={styles.signature} aria-labelledby="signature-title">
+        {/* The only canvas on the site: the owner's own mark, extruded (D-095, D-096). */}
+        <AnMonogram />
+        <span className={styles.signatureRule} aria-hidden="true" />
+        <div className={styles.signatureInner}>
+          <p className={styles.signatureLabel}>02 — Monogram</p>
+          <h2 id="signature-title" className={styles.signatureTitle}>
+            Tanda <span className={styles.signatureThin}>AN</span>
+          </h2>
+          <p className={styles.signatureNote}>
+            Bentuk tiga dimensi dari penanda milik pemilik sendiri: satu huruf A dan satu huruf N
+            yang bertumpuk jadi satu garis. Dirender di peramban, bukan gambar tempelan.
+          </p>
+          <p className={styles.signatureMeta}>Bandung Barat, Jawa Barat · sejak {siteConfig.since}</p>
+        </div>
+      </section>
 
       <PlatformRow />
+
+      <PaperAbout />
+
       <GenreTape />
 
       {/* ----------------------------------------------------------------- music */}

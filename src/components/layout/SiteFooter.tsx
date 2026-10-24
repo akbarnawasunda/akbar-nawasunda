@@ -42,10 +42,10 @@ export function SiteFooter() {
           <p className={styles.mono}>
             {siteConfig.origin} • Sejak {siteConfig.since}
           </p>
-          <p className={`stamp ${styles.stamp}`}>
-            Human made
+          <p className={styles.stamp}>
+            Produser
             <br />
-            no AI artwork
+            Remixer · DJ
           </p>
         </div>
 
@@ -121,6 +121,14 @@ export function SiteFooter() {
         </div>
       </div>
 
+      {/* Tape bar: the one contact action the page actually wants, printed like a label on the box. */}
+      <div className={styles.tape}>
+        <a className={styles.tapeLink} href={contactHref}>
+          <span className={styles.tapeLabel}>Bookings · Remix · Kolaborasi</span>
+          <span className={styles.tapeValue}>{contactEmail}</span>
+        </a>
+      </div>
+
       <div className={styles.meta}>
         <p className={styles.mono}>
           © {new Date().getFullYear()} {siteConfig.name} • {siteConfig.origin} • Sejak {siteConfig.since}
@@ -129,8 +137,8 @@ export function SiteFooter() {
       </div>
 
       <p className={styles.smallprint}>
-        Dibuat di Bandung Barat. Foto, monogram, dan sampul rilis adalah berkas asli pemilik — tidak
-        ada gambar hasil generate di situs ini.
+        Breakbeat, Indo Bass, dan Jedag Jedug dari Bandung Barat. Sampul rilis dibuat dari judul dan
+        monogram; setiap tautan dengar mengarah ke kanal resmi.
       </p>
 
       <div className={styles.strip} aria-hidden="true" />

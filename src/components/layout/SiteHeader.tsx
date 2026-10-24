@@ -22,6 +22,46 @@ export function SiteHeader() {
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Two states, one listener, no layout reads per frame: the bar is 72px at rest and 56px once the
+   * page has moved, and it hides while the reader is scrolling down and returns on the first upward
+   * tick. `data-*` on the header drives the CSS; the positions are written once inside a rAF.
+   */
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    let last = window.scrollY;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const delta = y - last;
+      header.dataset.state = y > 24 ? "compact" : "rest";
+      if (y < 96) {
+        header.dataset.hidden = "false";
+      } else if (delta > 6) {
+        header.dataset.hidden = "true";
+      } else if (delta < -4) {
+        header.dataset.hidden = "false";
+      }
+      last = y;
+    };
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -61,7 +101,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className={styles.header}>
+    <header ref={headerRef} className={styles.header} data-state="rest" data-hidden="false">
       <div className={styles.bar}>
         {/* The accessible name is the visible text (mark + wordmark + RMX tag), so aria-label would
             make axe's label-content-name-mismatch fail. The link target is obvious from the mark. */}
