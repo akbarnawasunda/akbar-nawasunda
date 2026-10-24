@@ -28,6 +28,12 @@
   text-align: right;
 }
 
+.head {
+  /* Section scale: the plate is pulled 3 px, so a section head reads as printed and not as a
+     drop shadow competing with the page's own h1. */
+  --ink-shift: 3px;
+}
+
 .title {
   margin-top: var(--space-3);
   font-family: var(--font-display-stack);

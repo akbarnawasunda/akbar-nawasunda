@@ -43,7 +43,7 @@ const work = mkdtempSync(join(tmpdir(), "an-review-"));
 mkdirSync(out, { recursive: true });
 
 /** Named reviews: one page state each, all of them claims the design makes. */
-const SHOTS = [
+const R8_SHOTS = [
   /* R8: the title sequence, on a tab that has never seen it. */
   { name: "01-home-loader-1280", route: "/", width: 1280, height: 900, curtain: true, wait: 700 },
   { name: "02-home-hero-1280", route: "/", width: 1280, height: 900 },
@@ -65,6 +65,32 @@ const SHOTS = [
   { name: "18-release-390", route: "/music/masih-mencintainya-papinka", width: 390, height: 844 },
   { name: "19-phone-menu-390", route: "/", width: 390, height: 844, menu: true },
 ];
+
+/**
+ * R9 — the double print.
+ *
+ * Every shot here exists to answer one question honestly: does the second plate read as *printed*
+ * rather than as a drop shadow? That only shows with the pointer parked in a corner, which is why
+ * almost every entry carries one.
+ */
+const R9_SHOTS = [
+  { name: "01-misregister-hero-1280", route: "/", width: 1280, height: 900, pointer: [1240, 840] },
+  { name: "02-misregister-nocursor-1280", route: "/", width: 1280, height: 900 },
+  { name: "03-misregister-index-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']", pointer: [1240, 840] },
+  { name: "04-misregister-music-1280", route: "/music", width: 1280, height: 900, pointer: [1240, 840] },
+  { name: "05-misregister-release-1280", route: "/music/lali-dalane", width: 1280, height: 900, pointer: [1240, 840] },
+  { name: "06-misregister-artist-1280", route: "/artist", width: 1280, height: 1000, pointer: [1240, 940] },
+  { name: "07-misregister-visuals-1280", route: "/visuals", width: 1280, height: 900, pointer: [1240, 840] },
+  { name: "08-misregister-contact-1280", route: "/contact", width: 1280, height: 900, pointer: [1240, 840] },
+  { name: "09-misregister-epk-1280", route: "/epk", width: 1280, height: 900, pointer: [1240, 840] },
+  { name: "10-back-side-1280", route: "/", width: 1280, height: 900, sheet: true },
+  { name: "11-back-side-scrolled-1280", route: "/", width: 1280, height: 900, sheet: true, sheetScroll: 820 },
+  { name: "12-back-side-390", route: "/music", width: 390, height: 844, sheet: true },
+  { name: "13-back-side-tab-390", route: "/music", width: 390, height: 844 },
+  { name: "14-misregister-home-390", route: "/", width: 390, height: 844 },
+];
+
+const SHOTS = round === "round9" ? R9_SHOTS : R8_SHOTS;
 
 const script = `
 async page => {
@@ -126,6 +152,21 @@ async page => {
     }
 
     await settle();
+
+    if (shot.sheet) {
+      const sheetToggle = await page.$('[data-sheet-toggle]');
+      if (sheetToggle) {
+        await sheetToggle.click();
+        await page.waitForTimeout(900);
+        if (shot.sheetScroll) {
+          await page.evaluate((y) => {
+            const sheet = document.querySelector('[role="dialog"][aria-label^="Sisi belakang"]');
+            if (sheet) sheet.scrollTo(0, y);
+          }, shot.sheetScroll);
+          await page.waitForTimeout(350);
+        }
+      }
+    }
 
     if (shot.menu) {
       // The phone drawer is a state, not a route: open it the way a thumb would.

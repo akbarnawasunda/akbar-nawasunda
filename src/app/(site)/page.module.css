@@ -19,6 +19,9 @@
 /* ==================================================================== hero */
 
 .hero {
+  /* The name is the biggest ink on the site, so its plate is pulled the furthest: 9 px at the
+     pointer's edge, which is what makes the hero read as two passes rather than a drop shadow. */
+  --ink-shift: 7px;
   position: relative;
   display: grid;
   min-height: 100svh;
@@ -432,6 +435,10 @@
 */
 .indexBand {
   padding-block: var(--section-padding);
+  /* On stock the second plate is the poster red: a blue ghost at 3 px on paper reads as a printing
+     accident in a bad way, red reads as the second run it is. */
+  --ink-ghost: var(--color-stamp);
+  --ink-shift: 4px;
   background: var(--color-paper);
   color: var(--color-paper-ink);
 }

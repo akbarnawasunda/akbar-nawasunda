@@ -23,7 +23,7 @@ export function NotFoundView() {
 
         <div className={styles.copy}>
           <p className={styles.code}>Error 404</p>
-          <h1 className={styles.title}>
+          <h1 className={`${styles.title} ink`}>
             Sinyal <span className={styles.faded}>hilang</span>
           </h1>
           <p className={styles.lead}>

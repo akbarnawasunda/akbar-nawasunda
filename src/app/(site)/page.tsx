@@ -30,6 +30,8 @@ import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage } from "@/studio/public";
 
+import { Registration } from "@/components/print/Registration";
+
 import styles from "./page.module.css";
 
 /**
@@ -136,6 +138,7 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
+        <Registration tone="ink" code="lembar 1 dari 2 · cetak ganda" />
         {/*
           The photograph: the owner's own frame of an empty stage under one warm lamp. It is the
           only landscape image in the archive, and it does something no graphic could — it puts the
@@ -190,7 +193,7 @@ export default async function HomePage() {
         <Depth className={styles.heroText} y={-26} data-layer="hero-type">
         <div className={styles.heroBody}>
 
-          <h1 id="hero-title" className={styles.name}>
+          <h1 id="hero-title" className={`${styles.name} ink`}>
             <span className={styles.nameLine}>Akbar</span>
             <span className={`${styles.nameLine} ${styles.nameItalic}`}>
               Nawasunda<span className={styles.stop} aria-hidden="true">.</span>
@@ -309,7 +312,7 @@ export default async function HomePage() {
             <p className={styles.sectionNumber}>02 — Katalog</p>
             <p className={styles.sectionNote}>Sepuluh rilis · urut berkas pemilik</p>
           </div>
-          <h2 id="catalogue-title" className={styles.indexTitle}>
+          <h2 id="catalogue-title" className={`${styles.indexTitle} ink`}>
             Indeks
           </h2>
           <CatalogueIndex rows={indexRows} />

@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import type { CoverArtwork } from "@/content/covers";
 
+import { Registration } from "@/components/print/Registration";
+
 import { Plate3D } from "../zine/Plate3D";
 import { ReleaseCover } from "./ReleaseCover";
 import styles from "./ReleasePlate.module.css";
@@ -64,6 +66,7 @@ export function ReleasePlate({
     <article className={styles.record}>
       {/* ------------------------------------------------------------ the sleeve */}
       <header className={styles.band}>
+        <Registration tone="onBrand" code="cetak ganda · sisi depan" />
         <div className={styles.bandInner}>
           <div className={styles.copy}>
             <p className={styles.kicker}>
@@ -79,7 +82,7 @@ export function ReleasePlate({
               {meta.length > 0 ? <span className={styles.meta}>{meta.join(" · ")}</span> : null}
             </p>
 
-            <h1 className={styles.title}>
+            <h1 className={`${styles.title} ink`}>
               {title}
               {titleTail ? <em className={styles.tail}> — {titleTail}</em> : null}
             </h1>

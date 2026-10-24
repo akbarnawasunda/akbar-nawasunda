@@ -55,6 +55,9 @@
   --color-band-monogram: #0d1320; /* the cold step behind the 3D mark; it has to sit behind a metal object */
   --color-paper: #e8e6e1;
   --color-paper-ink: #0a0a0e;
+  /* Secondary type on printed stock. #a1a1b5 is grey for a dark ground and disappears on paper;
+     this is the same job done at 5.9:1 against #E8E6E1. */
+  --color-paper-muted: #55555f;
   --color-stamp: #ff3b30;
   /* Same ink, darker mix: 2.84:1 on paper is unreadable, 4.98:1 clears AA at label sizes. */
   --color-stamp-ink: #c01810;

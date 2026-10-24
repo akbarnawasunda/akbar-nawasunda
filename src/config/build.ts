@@ -14,6 +14,6 @@
 export const buildRev = process.env.NEXT_PUBLIC_BUILD_REV || "dev";
 
 /** The design round this build implements. Bump it when the concept changes, not every commit. */
-export const designRound = "R8 · sinyal";
+export const designRound = "R9 · cetak ganda";
 
 export const buildLabel = `${designRound} · ${buildRev}`;

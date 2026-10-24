@@ -42,7 +42,7 @@ export default function EpkPage() {
       <header className={styles.head}>
         <div className={styles.headCopy}>
           <p className={styles.eyebrow}>04 — Press kit</p>
-          <h1 className={styles.title}>Electronic press kit</h1>
+          <h1 className={`${styles.title} ink`}>Electronic press kit</h1>
           <p className={styles.lead}>
             Semua yang dibutuhkan untuk menulis tentang Akbar Nawasunda: potret resmi, logo transparan,
             fakta terverifikasi, dan tautan platform. Satu unduhan, tanpa akun.

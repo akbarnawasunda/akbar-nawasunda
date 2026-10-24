@@ -62,6 +62,18 @@ batched read pass and one batched write pass per frame, for the whole page. Elem
   1500 ms and the blue one 80 ms later (640 ms each, `cubic-bezier(0.76, 0, 0.24, 1)`). Once per
   session; gone entirely under reduced motion. The labels never fade from opacity 0 — a nine-pixel
   label at 0 % is a contrast violation for as long as the fade lasts, which the axe run caught.
+- **The second plate (R9).** Pointer position is normalised to −1…1 and written to `<html>` as
+  `--ink-x` / `--ink-y` by one rAF that lerps at 0.09 and **cancels itself when the plates settle**
+  within 0.002. Every `.ink` heading reads those two numbers through its `text-shadow`, so the whole
+  site goes out of register as one object rather than as many effects. Shift is per surface (7 px
+  hero, 5 px page heads, 3–4 px section heads and the verso) and per ground (blue plate on ink, red
+  plate on the blue fields and on stock). Touch pointers are ignored, and reduced motion never
+  attaches the listener — the numbers stay 0, which is the registered state, so the type prints flat
+  instead of disappearing.
+- **Turning the sheet (R9).** The verso is one fixed surface hinged on its left edge:
+  `rotateY(-104deg)` → `rotateY(0)` in 620 ms on `--ease-out`, with `visibility` held through the
+  turn so it cannot take focus or a tap while closed. Under reduced motion the sheet arrives without
+  the swing; the state change is the interaction, the rotation is the flourish.
 - **Phone menu.** The drawer is a surface, not a list: each line rises out of its own hairline
   (`translateY(16px)` → 0, opacity 0 → 1, 460 ms, 55 ms apart), and the panel itself fades in over
   260 ms. It is portalled to `<body>` and locks the page (`html[data-menu="open"]`) — a fixed overlay

@@ -6,6 +6,10 @@
 */
 .head {
   position: relative;
+  /* A blue field takes a red second plate: a blue ghost on blue is invisible, and red on blue is
+     the pair the owner's own poster uses. */
+  --ink-ghost: var(--color-poster-red);
+  --ink-shift: 5px;
   background: var(--color-brand);
   color: var(--color-on-brand);
   border-bottom: 2px solid var(--color-on-brand);

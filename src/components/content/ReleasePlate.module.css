@@ -17,6 +17,9 @@
 /* ------------------------------------------------------------------ the band */
 
 .band {
+  position: relative;
+  --ink-ghost: var(--color-poster-red);
+  --ink-shift: 5px;
   background: var(--color-brand);
   color: var(--color-on-brand);
   border-bottom: 2px solid var(--color-on-brand);

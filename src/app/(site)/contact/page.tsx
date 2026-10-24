@@ -2,6 +2,8 @@ import { Container } from "@/components/layout/Container";
 import { artistServices } from "@/content/artist";
 import { contactEmail, contactHref, listenLinks, socialLinks } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
+import { Registration } from "@/components/print/Registration";
+
 import styles from "./contact.module.css";
 
 export const metadata = pageMetadata({
@@ -25,9 +27,10 @@ export default function ContactPage() {
   return (
     <>
       <header className={styles.head}>
+        <Registration tone="onBrand" code="cetak ganda · sisi depan" />
         <div className={styles.headInner}>
           <p className={styles.eyebrow}>05 — Kontak</p>
-          <h1 className={styles.title}>Kontak</h1>
+          <h1 className={`${styles.title} ink`}>Kontak</h1>
           <p className={styles.lead}>
             Booking, permintaan remix, kolaborasi, lisensi, dan materi pers. Satu alamat, dijawab
             langsung.

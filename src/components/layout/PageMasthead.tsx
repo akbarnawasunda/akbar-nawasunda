@@ -1,3 +1,5 @@
+import { Registration } from "@/components/print/Registration";
+
 import styles from "./PageMasthead.module.css";
 
 /**
@@ -32,9 +34,10 @@ export function PageMasthead({
 }) {
   return (
     <header className={styles.head}>
+      <Registration tone="onBrand" code="cetak ganda · sisi depan" />
       <div className={styles.inner}>
         <p className={styles.eyebrow}>{index}</p>
-        <h1 className={styles.title}>{title}</h1>
+        <h1 className={`${styles.title} ink`}>{title}</h1>
 
         {figure ? (
           <p className={styles.figure} aria-hidden="true">

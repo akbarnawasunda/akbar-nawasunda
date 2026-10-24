@@ -23,7 +23,9 @@
  *   9. (R8) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move writes a
  *      rotation and a different displacement per layer, which is the difference between parallax
  *      and depth that the owner kept asking for;
- *  10. (R8) the title sequence runs once, counts, and removes itself.
+ *  10. (R8) the title sequence runs once, counts, and removes itself;
+ *  11. (R9) the display type is printed twice — the second plate moves with the pointer — and the
+ *      back of the sheet opens as a full screen that locks the page and gives focus back on Escape.
  *
  * Exits 1 on any failure so it can gate a release the same way `a11y` does.
  */
@@ -326,7 +328,9 @@ try {
     await menuButton.click();
     await sleep(450);
     const opened = await mobile.evaluate(() => {
-      const panel = document.querySelector('[id][role="dialog"], [class*="drawer"]');
+      // The back-of-sheet dialog also carries `role="dialog"` and comes first in the document, so the
+      // drawer is matched by its own class rather than by being the first dialog on the page.
+      const panel = document.querySelector('[class*="drawer"]');
       const toggle = document.querySelector('button[aria-expanded="true"]');
       const box = panel?.getBoundingClientRect();
       return {
@@ -465,6 +469,77 @@ try {
     JSON.stringify({ ...opening, cleared }),
   );
   await fresh.close();
+
+  /* ---------------------------------------------------------------------------------------
+   * R9 — the second plate, and the back of the sheet.
+   *
+   * The misregistration is the whole concept: if the ghost stops following the pointer, every page
+   * silently turns back into flat type and nothing fails. So it is measured, not eyeballed: the
+   * computed `text-shadow` of the page's h1 must exist and must change between two pointer
+   * positions.
+   * ------------------------------------------------------------------------------------- */
+  const pressProof = await browser.newPage();
+  await pressProof.setViewport({ width: 1440, height: 900 });
+  await pressProof.goto(`${base}/`, { waitUntil: "load", timeout: 60000 });
+  await sleep(600);
+  const shadowAt = async (x, y) => {
+    await pressProof.mouse.move(x, y, { steps: 6 });
+    await sleep(320);
+    return pressProof.evaluate(() => {
+      const heading = document.querySelector("h1");
+      return heading ? getComputedStyle(heading).textShadow : "none";
+    });
+  };
+  const shadowLeft = await shadowAt(60, 120);
+  const shadowRight = await shadowAt(1380, 780);
+  const inkVars = await pressProof.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue("--ink-x").trim(),
+  );
+  check(
+    "display type is printed twice and the second plate follows the pointer",
+    shadowLeft !== "none" && shadowRight !== "none" && shadowLeft !== shadowRight && inkVars !== "",
+    `${shadowLeft} → ${shadowRight}`,
+  );
+
+  const toggle = await pressProof.$("[data-sheet-toggle]");
+  if (toggle) {
+    await toggle.click();
+    await sleep(900);
+    const verso = await pressProof.evaluate(() => {
+      const sheet = document.querySelector('[role="dialog"][aria-label^="Sisi belakang"]');
+      if (!sheet) return { found: false };
+      const box = sheet.getBoundingClientRect();
+      return {
+        found: true,
+        visible: getComputedStyle(sheet).visibility === "visible",
+        covers: box.width >= window.innerWidth - 1 && box.height >= window.innerHeight - 1,
+        locked: document.documentElement.dataset.sheet === "open",
+        focusInside: sheet.contains(document.activeElement),
+        links: sheet.querySelectorAll("a[href]").length,
+      };
+    });
+    await shot(pressProof, "qa-back-side");
+    await pressProof.keyboard.press("Escape");
+    await sleep(700);
+    const closedVerso = await pressProof.evaluate(() => ({
+      locked: document.documentElement.dataset.sheet === "open",
+      focusOnToggle: document.activeElement?.matches("[data-sheet-toggle]") ?? false,
+    }));
+    check(
+      "the back of the sheet opens, covers the screen, locks the page and returns focus",
+      verso.found && verso.visible && verso.covers && verso.locked && verso.focusInside && verso.links > 20,
+      JSON.stringify(verso),
+    );
+    check(
+      "Escape closes the back of the sheet and unlocks the page",
+      !closedVerso.locked && closedVerso.focusOnToggle,
+      JSON.stringify(closedVerso),
+    );
+  } else {
+    check("the back of the sheet opens, covers the screen, locks the page and returns focus", false, "no [data-sheet-toggle]");
+    check("Escape closes the back of the sheet and unlocks the page", false, "no [data-sheet-toggle]");
+  }
+  await pressProof.close();
 
   // three.js reports an unavailable context itself when the machine has no GPU; that is the
   // environment, not the page. Everything else is a real error.

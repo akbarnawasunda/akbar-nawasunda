@@ -58,7 +58,7 @@ export default async function ArtistPage() {
       <section className={styles.intro} aria-labelledby="artist-title">
         <div className={styles.copy}>
           <p className={styles.eyebrow}>03 — Artist</p>
-          <h1 id="artist-title" className={styles.title}>
+          <h1 id="artist-title" className={`${styles.title} ink`}>
             Akbar <em className={styles.titleItalic}>Nawasunda</em>
             <span className={styles.stop} aria-hidden="true">.</span>
           </h1>

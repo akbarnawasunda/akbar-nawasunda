@@ -142,6 +142,45 @@ for (const width of widths) {
     }
   }
 
+  /*
+   * The back of the sheet is a second full surface with twenty-two links on it — printed data at
+   * label sizes on stock, which is exactly where contrast goes wrong. Audited open.
+   */
+  if (width === 1280) {
+    await page.goto(`${base}/`, { waitUntil: "load", timeout: 60000 });
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+    const sheetToggle = await page.$("[data-sheet-toggle]");
+    if (sheetToggle) {
+      await sheetToggle.click();
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      await page.evaluate(axeSource);
+      const verso = await page.evaluate(async () =>
+        await axe.run(document, {
+          runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"] },
+        }),
+      );
+      const label = "back of the sheet (open) @1280";
+      summary.push({
+        label,
+        violations: verso.violations.length,
+        incomplete: verso.incomplete.length,
+        passes: verso.passes.length,
+      });
+      if (verso.violations.length > 0) {
+        violations += verso.violations.length;
+        console.log(`\nFAIL ${label}`);
+        for (const violation of verso.violations) {
+          console.log(`  [${violation.impact}] ${violation.id}: ${violation.help}`);
+          for (const node of violation.nodes.slice(0, 3)) console.log(`    ${node.target.join(" ")}`);
+        }
+      } else {
+        console.log(`ok   ${label} — ${verso.passes.length} checks passed, ${verso.incomplete.length} incomplete`);
+      }
+    }
+  }
+
   await page.close();
 }
 

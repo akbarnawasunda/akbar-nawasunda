@@ -37,7 +37,7 @@ export function SectionHeader({
     <div className={align === "end" ? `${styles.head} ${styles.end}` : styles.head}>
       <div>
         <p className={styles.eyebrow}>{eyebrow}</p>
-        <Heading id={id} className={styles.title}>
+        <Heading id={id} className={`${styles.title} ink`}>
           {title}
         </Heading>
       </div>
