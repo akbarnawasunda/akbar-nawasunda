@@ -54,3 +54,36 @@ lamp touching one descender of the italic line at 1440; the glyph body sits on ~
 
 Gates: `qa:motion` 22/22 · `a11y` 0 violations / 16 loads · `audit:tokens` 83 · tests 131/131 ·
 `check:web` 191,5 KB gz JS / 17,9 KB gz CSS · `smoke` 28/28.
+
+## All pages, captured together
+
+`pages/` holds every public route at 1440 (desktop) and the four layout-heaviest at 390 (mobile),
+taken from the build of `29888c7`. `pages/overview/` holds three contact sheets.
+
+| Route | Desktop | Mobile |
+| --- | --- | --- |
+| `/` | `01-home-desktop.webp` | `01-home-mobile.webp` |
+| `/music` | `02-music-desktop.webp` | `02-music-mobile.webp` |
+| `/music/masih-mencintainya-papinka` | `03-release-desktop.webp` | `03-release-mobile.webp` |
+| `/artist` | `04-artist-desktop.webp` | `04-artist-mobile.webp` |
+| `/visuals` | `05-visuals-desktop.webp` | — |
+| `/epk` | `06-epk-desktop.webp` | — |
+| `/contact` | `07-contact-desktop.webp` | — |
+| `/nope` (404) | `08-404-desktop.webp` | — |
+
+### What the walkthrough found
+
+One defect, measured rather than eyeballed, in `/contact`:
+
+- the email link is set at 64 px with `line-height: 67.2px`, `padding-bottom: 5.12px` and a 4 px
+  `border-bottom`. An Instrument Serif descender is ~0.22em = **14 px** below the baseline at that
+  size, so the 4 px rule crosses the descender of the `g` and the `@` tail. It reads as struck
+  through, not underlined. Fix is one line: `padding-bottom` of ~0.22em on the link.
+
+Checked and *not* a defect:
+
+- the PRESS stamp on `/epk` appears clipped in a contact sheet only because the sheet crops the tile;
+  measured, its right edge is at x=1352 of 1440 and `documentElement.scrollWidth` equals the viewport,
+  so it is a deliberate bleed inside the frame, not overflow;
+- the blue fringe around red type in the resized contact sheets is a JPEG artefact of the montage —
+  the 2× crop is clean.
