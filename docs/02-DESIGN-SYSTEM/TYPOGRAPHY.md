@@ -55,37 +55,39 @@ short of in a meta line.
 - uses `--leading-stamp` (0.94) instead of `--leading-hero`, because a condensed face at 0.86 lets its
   ascenders touch the line above.
 
-## Current binaries (round 18 state — the purchased faces)
+## Current system (round 19 state — two faces, strict hierarchy)
 
-All five target families are now in the repository, self-hosted, subset to the Latin ranges the site
-sets. `npm run audit:fonts` prints this table from `src/lib/fonts.ts` and fails loudly if a slot ever
-points somewhere else:
+The owner's correction after seeing rounds 17–18 on screen: five families in one viewport read as a
+ransom note. The site now ships **two**:
 
-| slot | file in use | family | weight |
-| --- | --- | --- | --- |
-| display | `Excess V Straight.woff2` | Excess V Straight | 400 (static) |
-| heading | `Psychlone Straight.woff2` | Psychlone Straight | 400 (static) |
-| body | `Relidux.woff2` | Relidux | 400 (static) |
-| label | `Impact Label SWL.woff2` | Impact Label SWL | 400 (static) |
-| accent | `Marseloup.woff2` | Marseloup | 400 (static) |
+| role | family | where it may appear |
+| --- | --- | --- |
+| `--font-display` | Excess V Straight | the hero H1 — the giant "AKBAR NAWASUNDA". Nowhere else. |
+| `--font-body` | Relidux | everything else: H2/H3, page names, release and track titles, paragraphs, buttons, navigation, meta labels, the footer wordmark, the loading curtain. |
 
-Two consequences of "every face is a static 400", both enforced in code:
+Psychlone Straight, Impact Label SWL and Marseloup remain purchased files in `src/assets/fonts/`
+(documented in `LICENSE-COMMERCIAL.txt`) but nothing loads them. `npm run audit:fonts` exits non-zero
+if any stylesheet, component or loader reaches for them again — the contract is enforced, not asked
+for. The label face's white tape box disappeared with the face: it was drawn inside the glyphs.
 
-1. Every loader declares `weight: "400"` — declaring a range a static file does not have makes the
-   browser synthesise the missing weights.
-2. `font-synthesis: none` in `globals.css`, and no stylesheet on the site asks for a weight other
-   than 400. Hierarchy is carried by size, tracking and space, never by bold.
+Both binaries are static 400 faces, so every weight declaration on the site is 400 and
+`font-synthesis: none` forbids a fake bold. Hierarchy is size, tracking, case and colour:
 
-Sizing was re-fitted for the new display face: Excess V Straight is roughly 25% wider than the Space
-Grotesk it replaced, so `--text-hero` moved from `clamp(2.75rem, 12.5vw, 11.5rem)` to
-`clamp(1.9rem, 10.2vw, 10.5rem)` (measured: "NAWASUNDA" = 8.43 × font-size at the hero tracking), and
-the footer wordmark and loading curtain follow at 10.2vw. The footer wordmark also wraps at the
-space between the two names now (`overflow-wrap: normal`), never inside a word.
+| treatment | use |
+| --- | --- |
+| `--text-hero` (10.2vw) + `--tracking-hero` + `--leading-hero` | the hero name only |
+| `--text-display` / masthead sizes + `--tracking-tight` + `--leading-tight` | page and section names |
+| uppercase + `--tracking-title` (0.04em) + `--leading-title` (1.12) | release and track titles — plain Relidux text, no box |
+| `--leading-body` (1.6) + `--color-text-secondary` | every paragraph: grey ink, not glaring white |
+| uppercase + `--tracking-label` (0.2em) / `--tracking-nav` (0.13em) | meta labels, nav, buttons |
 
-Licences: the five are commercial faces purchased by the site owner; see
-`src/assets/fonts/LICENSE-COMMERCIAL.txt`. The previous open-licensed set was removed except Anton,
-which survives only inside `scripts/generate-placeholder-covers.mjs` for rasterising placeholder
-cover art and is never served as page type.
+Placeholder sleeves carry **no type at all** since round 19 (`scripts/generate-placeholder-covers.mjs`):
+a rasterised title in a face the page does not ship is the same ransom note, and raster type cannot
+reflow, be selected or be translated. Every title on the site is HTML text.
+
+Layout notes that keep it clean on phones: the catalogue wall is one column below 560px (two columns
+of Relidux caps leave a 130px title column at 390px, which cannot fit "MENCINTAINYA" at any legible
+size), and wall titles carry `overflow-wrap: break-word` as a last resort only.
 
 ## Superseded
 

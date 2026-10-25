@@ -78,11 +78,11 @@
 */
 .title {
   margin: var(--space-2) 0 0;
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(2.375rem, 6.6vw, 5.75rem);
-  line-height: var(--leading-stamp);
-  letter-spacing: var(--tracking-stamp);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-wrap: balance;
 }
 
@@ -224,11 +224,11 @@
 }
 
 .linkLabel {
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.5rem, 3.6vw, 2.75rem);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-stamp);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-transform: uppercase;
 }
 
@@ -327,11 +327,12 @@
 
 .neighbourTitle {
   max-width: 24ch;
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
   font-size: 1.125rem;
-  line-height: 1.15;
+  line-height: var(--leading-title);
   text-transform: uppercase;
-  letter-spacing: var(--tracking-stamp);
+  letter-spacing: var(--tracking-title);
 }
 
 .all {

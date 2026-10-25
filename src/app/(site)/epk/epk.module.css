@@ -30,7 +30,8 @@
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
   overflow-wrap: anywhere;
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
 }
 
 .lead {
@@ -198,7 +199,7 @@
 
 .contactMail {
   margin-top: var(--space-6);
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.5rem, 4vw, 3rem);
   line-height: 1.05;

@@ -104,7 +104,7 @@
 
 .name {
   margin-top: var(--space-3);
-  font-family: var(--font-display-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: 1.5rem;
   line-height: 1;
@@ -227,11 +227,13 @@
 .wordmark {
   margin: var(--space-8) 0 0;
   padding-inline: var(--gutter);
-  font-family: var(--font-display-stack);
+  /* Round 19, read literally: the display face belongs to the hero name and nowhere else. The
+     footer repeats the name in the reading face, set giant — a wordmark, not a second logo. */
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: 10.2vw;
-  line-height: 0.84;
-  letter-spacing: -0.05em;
+  line-height: 0.95;
+  letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
   color: var(--color-text-primary);
   text-align: center;

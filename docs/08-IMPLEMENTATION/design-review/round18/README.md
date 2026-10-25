@@ -1,3 +1,7 @@
+> **Superseded by [round 19](../round19/README.md).** Five families read as a ransom note on
+> screen; the owner cut the system to two faces (display for the hero name, Relidux for everything
+> else) and this round's five-role map is history.
+
 # Round 18 — the five licensed faces land
 
 Round 17 built the five-role map and ran it on stand-ins, because the licensed binaries were not in

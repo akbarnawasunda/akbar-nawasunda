@@ -295,7 +295,7 @@
 }
 
 .drawerLabel {
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(2.5rem, 9.5vw, 5rem);
   line-height: var(--leading-hero);
@@ -357,11 +357,11 @@
 }
 
 .drawerLatestTitle {
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: 1.25rem;
-  line-height: 1.05;
-  letter-spacing: var(--tracking-stamp);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-transform: uppercase;
 }
 

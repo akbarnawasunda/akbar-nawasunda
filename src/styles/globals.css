@@ -52,34 +52,48 @@ body {
 /*
  * Display type: the whole design in three declarations.
  *
- * Two families, split by job (round 17): the display face for the site's own name, the heading face
- * for section titles. Both want a genuine 700 rather than a synthesised one, and both want an
- * uppercase that is wide and square, which is what lets a word span the viewport without looking
- * stretched. Leading 0.86 and −0.045em tracking are the two numbers that matter: at 12vw the default
- * leading leaves a gap you could park a car in.
+ * Two families, split by job (round 19): the display face for the site's own name and nothing
+ * else; Relidux for every other glyph on the site — headings, titles, paragraphs, buttons, nav,
+ * labels. One reading face is what makes ten sections look like one publication instead of a
+ * ransom note.
+ *
+ * Both binaries ship a single weight (400), so `font-synthesis: none` plus the explicit weights
+ * below mean the browser never fakes a bold. Hierarchy lives in size, weight-as-declared, tracking
+ * and space.
  */
 h1,
 h2,
 h3 {
-  /* Every family on this site ships 400 only (and `font-synthesis: none` forbids a fake bold), so
-     this is a statement of fact, not a design choice. Hierarchy is size, tracking and space. */
-  font-weight: 400;
-  letter-spacing: var(--tracking-hero);
-  line-height: var(--leading-hero);
   text-transform: uppercase;
   text-wrap: balance;
 }
 
-/* The site's own name, and nothing else, is set in the display face: the hero, the footer
-   wordmark, the loading curtain, the 404. A page title (MUSIK, ARSIP) is a section title and takes
-   the heading face, which is what keeps the two roles visible even while they are the same binary. */
+/* The site's own name: the hero, the footer wordmark, the loading curtain. Nowhere else. */
 h1 {
   font-family: var(--font-display-stack);
+  font-weight: 400;
+  letter-spacing: var(--tracking-hero);
+  line-height: var(--leading-hero);
 }
 
+/* Every other heading is reading type set large: Relidux at full size, a touch of negative
+   tracking, and enough leading for two-line uppercase to breathe. */
 h2,
 h3 {
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+/*
+ * Reading copy. 1.6 leading and one step down from pure white: on a #000 ground, full-white
+ * paragraphs vibrate; #b8b8b8 reads as ink on paper and holds a 10:1 contrast ratio, comfortably
+ * past WCAG AAA.
+ */
+p {
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
 }
 
 /*

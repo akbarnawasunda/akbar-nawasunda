@@ -31,7 +31,8 @@
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
 }
 
 .lead {
@@ -43,7 +44,7 @@
 .mail {
   display: inline-block;
   margin-top: var(--space-8);
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.35rem, 5.4vw, 5rem);
   line-height: 1.02;

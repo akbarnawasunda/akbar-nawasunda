@@ -225,7 +225,7 @@
 
 .fact dd {
   margin: 0;
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.5rem, 2.6vw, 2.25rem);
   line-height: 1;
@@ -387,10 +387,10 @@
 }
 
 .transmissionTitle {
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
   font-size: var(--text-display);
-  line-height: var(--leading-stamp);
-  letter-spacing: var(--tracking-stamp);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-transform: uppercase;
   font-weight: 400;
   overflow-wrap: anywhere;
@@ -509,10 +509,11 @@
   margin: 0 auto;
   padding-inline: var(--gutter);
   padding-bottom: var(--space-8);
-  font-family: var(--font-accent-stack);
+  font-family: var(--font-body-stack);
+  color: var(--color-text-secondary);
   font-weight: 400;
   font-size: clamp(1.75rem, 4.4vw, 3.5rem);
-  line-height: 1.04;
+  line-height: 1.3;
   letter-spacing: var(--tracking-tight);
   text-wrap: balance;
   text-shadow: 0 1px 40px rgb(0 0 0 / 0.65);
@@ -608,7 +609,7 @@
 }
 
 .timelineTitle {
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: var(--text-title);
   line-height: 1.1;
@@ -686,7 +687,8 @@
 }
 
 .epkNoteValue {
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);
   line-height: 1.15;
   letter-spacing: var(--tracking-tight);

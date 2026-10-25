@@ -20,7 +20,7 @@
   margin: 0;
   padding: 0 var(--space-4) 0 0;
   list-style: none;
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.5rem, 3.6vw, 3rem);
   line-height: 1;

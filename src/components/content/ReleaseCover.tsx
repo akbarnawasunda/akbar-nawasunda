@@ -34,15 +34,13 @@ export function ReleaseCover({
   showTitle = true,
 }: ReleaseCoverProps) {
   if (artwork.kind !== "generated") {
-    const isSleeve = artwork.kind === "sleeve";
     return (
       <span className={`${styles.cover} ${shape === "wide" ? styles.wide : styles.square}`}>
         {/* eslint-disable-next-line @next/next/no-img-element -- local file, exact bytes */}
         <img
           src={artwork.src}
-          /* A generated sleeve already prints the title, so its alt names the object instead of
-             repeating the words that are visible in the image. */
-          alt={isSleeve ? `Sampul ${title}` : `Artwork ${title}`}
+          /* A sleeve carries no type at all (round 19), so every alt names the release. */
+          alt={`Artwork ${title}`}
           width={shape === "wide" ? 1200 : 600}
           height={shape === "wide" ? 675 : 600}
           loading={priority ? "eager" : "lazy"}

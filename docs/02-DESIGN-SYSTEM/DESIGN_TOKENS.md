@@ -18,19 +18,16 @@ demoted from a page colour to the light inside the monogram and the focus ring.
     "stamp": {"default": "#FF3B30", "ink": "#FF6B62"}
   },
   "font": {
-    "display": "Excess-V-Straight (h1: the site's own name)",
-    "heading": "Psychlone-Straight (h2/h3: section titles)",
-    "body": "Relidux (body copy, nav, buttons, every meta label)",
-    "label": "Impact-Label-SWL (release and track titles, play links)",
-    "accent": "Marse-loup (quotes, decorative lines)"
+    "display": "Excess-V-Straight (h1 hero name only — round 19)",
+    "body": "Relidux (everything else: h2/h3, titles, paragraphs, buttons, nav, meta)"
   },
   "metric": {
-    "leading": {"hero": "0.86", "tight": "1.02", "stamp": "0.94", "body": "1.6"},
-    "tracking": {"hero": "-0.045em", "tight": "-0.02em", "label": "0.2em", "nav": "0.13em", "stamp": "0.015em"}
+    "leading": {"hero": "0.86", "tight": "1.02", "title": "1.12", "body": "1.6"},
+    "tracking": {"hero": "-0.045em", "tight": "-0.02em", "title": "0.04em", "label": "0.2em", "nav": "0.13em"}
   },
   "size": {
     "text": {
-      "hero": "clamp(2.75rem, 12.5vw, 11.5rem)",
+      "hero": "clamp(1.9rem, 10.2vw, 10.5rem)",
       "display": "clamp(2rem, 6.2vw, 5rem)",
       "title": "clamp(1.35rem, 2.2vw, 1.9rem)",
       "body": "clamp(1rem, 0.96rem + 0.2vw, 1.0625rem)",
@@ -49,9 +46,12 @@ demoted from a page colour to the light inside the monogram and the focus ring.
 
 ## Rules that come with these values
 
-1. **Type is the design.** A page states its name in uppercase at `--text-hero`. Nothing else on the
-   band is allowed to be large; the copy under it is 1rem and the controls are 0.6875rem body type at
-   `--tracking-nav`. No component names a family — only a role token (`--font-label-stack`).
+1. **Type is the design, and two faces are the type.** The display face sets the hero name and
+   nothing else; Relidux sets every other glyph (round 19). A page states its name in uppercase at
+   `--text-hero`; nothing else on the band is allowed to be large; the copy under it is 1rem at
+   `--leading-body` in `--color-text-secondary`, and the controls are 0.6875rem body type at
+   `--tracking-nav`. No component names a family — only a role token (`--font-display-stack` /
+   `--font-body-stack`), and `npm run audit:fonts` fails the build if a third face ever returns.
 2. **No fill except white.** Panels are the ground plus a hairline. The only filled objects on the
    site are the primary button, the hovered index row, and a hovered social cell — all white.
 3. **The accent is not paint.** `#0087FF` appears as: the full stop after the hero name, the "AN" in

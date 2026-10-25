@@ -18,7 +18,7 @@
 
 .brand {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   text-decoration: none;
@@ -90,7 +90,7 @@
 
 .sectionTitle {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .card {
@@ -219,7 +219,7 @@
   min-height: 44px;
   padding-inline: var(--space-6);
   font: inherit;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--color-ink-950);
   background: var(--color-fg);
   border: 0;

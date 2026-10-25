@@ -8,7 +8,7 @@
  *              scripts/generate-placeholder-covers.mjs from the title, the original artist, the AN
  *              mark and the palette. It is a designed sleeve, never an empty card and never
  *              someone else's artwork. The `@sleeve` suffix is what lets the site tell it apart from
- *              a real cover: the sleeve already prints the title, so the card under it does not
+ *              a real cover; since round 19 the sleeve carries no type, so the card under it does
  *              print the same words again.
  * 4. MANUAL    an override with the same slug but another extension, e.g. an AVIF master.
  *
@@ -39,7 +39,7 @@ export function resolveCover(slug: string, publicDir: string = join(process.cwd(
  * What a card has to render.
  *
  * `image` is real artwork (owner file or Spotify download).
- * `sleeve` is a generated file that already carries the release title.
+ * `sleeve` is a generated placeholder file; it carries no type, the card prints the title.
  * `generated` means no file at all: the component draws the sleeve itself.
  */
 export type CoverArtwork =

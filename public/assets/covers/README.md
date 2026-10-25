@@ -14,9 +14,9 @@ artwork yet, so each one has a generated sleeve.
 
 Levels 1 and 2 share one slot on purpose: `covers:fetch` writes the same file a manual upload would,
 so nothing in the site has to know where the pixels came from. The generated sleeve lives in its own
-`@sleeve` slot so dropping a real cover in never means deleting anything, and so the card can tell
-the two apart — a sleeve already has the title printed inside the image, so the tile does not print
-it a second time under the artwork.
+`@sleeve` slot so dropping a real cover in never means deleting anything. Since round 19 the sleeve
+carries no type at all — ground, ghost monogram, misregistration rule — and every release title on
+the site is Relidux HTML text printed by the card.
 
 ## scripts/generate-placeholder-covers.mjs
 
@@ -25,16 +25,16 @@ npm run covers:sleeves          # fill in what is missing
 npm run covers:sleeves -- --force
 ```
 
-1000 × 1000 WebP, built only from verified content: the release title in caps, the original artist
-and year when they are known, the AN monogram at ~10%, the page ground `#0A0A0E` (or paper `#E8E6E1`
-for the inverted half of the series), and a 4 px misregistration rule — press cyan `#2E8C86` on the
+1000 × 1000 WebP, built only from verified brand elements: the AN monogram at ~10%, the page ground
+`#0A0A0E` (or paper `#E8E6E1` for the inverted half of the series), and a 4 px misregistration rule —
+press cyan `#2E8C86` on the
 ink series, poster red `#C93A22` on the paper one. No stock photo, no invented artwork, no
 per-release genre (genres are verified for the artist, not for each song).
 
-It renders text with **Anton** (display) and **JetBrains Mono** (labels) — the two families the site
-ships — so those fonts have to be installed where the script runs (`~/.fonts` is enough; Anton is
-`src/assets/fonts/anton-latin-400.woff2` unpacked to `~/.fonts/Anton-Regular.ttf`). Without them the
-rasteriser falls back to a system sans and the sleeve will look wrong; check the output.
+It renders **no type at all** (round 19): a sleeve that prints its own title in a face the page does
+not ship is the ransom-note effect the owner rejected, and rasterised text cannot reflow, be selected
+or be translated. Every release title on the site is Relidux HTML text printed by the card under the
+artwork. The script therefore needs no fonts installed — only `sharp`.
 
 ## Adding real artwork
 

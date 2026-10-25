@@ -37,7 +37,8 @@
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
   overflow-wrap: anywhere;
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
 }
 
 .titleLine {

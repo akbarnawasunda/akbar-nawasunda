@@ -1,125 +1,78 @@
 #!/usr/bin/env node
 /**
- * Font audit — which family is actually serving each of the five type roles.
+ * Font audit — the two-face contract, enforced (round 19).
  *
  *   npm run audit:fonts
  *
- * Why this exists: the round 17 role map (`display / heading / body / label / accent`) is wired to
- * stand-in binaries until the owner's five licensed files land in `src/assets/fonts`. That is
- * invisible on a screenshot when one stand-in happens to look like the face it replaces, and the
- * round 17 report had to say "nothing changed" to the owner without being able to prove which of the
- * five slots had actually moved. This script answers that in one command:
+ * The owner's rule after seeing five families fight in one viewport ("ransom note effect"):
  *
- *   1. reads the ROLE MAP out of `src/lib/fonts.ts` (the target family and the file in use);
- *   2. checks the file exists in `src/assets/fonts/` and is a real WOFF2 (magic bytes `wOF2`);
- *   3. reports how many roles are on their target family and how many are on a stand-in.
+ *   --font-display  Excess V Straight  H1 / the giant hero name ONLY — plus the two other places
+ *                                      where that same name IS the graphic: the footer wordmark
+ *                                      and the loading curtain.
+ *   --font-body     Relidux            everything else: H2/H3, release and track titles,
+ *                                      paragraphs, buttons, navigation, meta labels.
  *
- * Exit code is 0 either way: a stand-in is a legitimate, working state. The point is the printed
- * table, not a pass/fail.
+ * Psychlone Straight, Impact Label SWL and Marseloup are purchased and stay in src/assets/fonts,
+ * but nothing may load or reference them. This script checks both halves:
+ *
+ *   1. the two live slots point at real WOFF2 binaries that exist;
+ *   2. no stylesheet or component reaches for a retired family, a retired stack token, or a
+ *      third/fourth `localFont` loader.
+ *
+ * Exit 1 on any violation — this is a pass/fail contract now, not a report.
  */
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
 const root = process.cwd();
 const fontsDir = join(root, "src", "assets", "fonts");
 const fontsTs = readFileSync(join(root, "src", "lib", "fonts.ts"), "utf8");
 
-/**
- * The map below is the contract, not a copy of the file. `target` is what the owner asked for;
- * `slot` is the CSS role. If fonts.ts ever points somewhere unexpected, the mismatch is printed.
- */
-const ROLES = [
-  {
-    slot: "display",
-    variable: "--font-display",
-    target: "Excess-V-Straight",
-    use: "h1 — the site's own name, hero, footer wordmark, 404",
-  },
-  {
-    slot: "heading",
-    variable: "--font-heading",
-    target: "Psychlone-Straight",
-    use: "h2/h3 — section titles, page names, stat values",
-  },
-  {
-    slot: "body",
-    variable: "--font-body",
-    target: "Relidux",
-    use: "body copy, nav, buttons, every meta label",
-  },
-  {
-    slot: "label",
-    variable: "--font-label",
-    target: "Impact-Label-SWL",
-    use: "release and track titles, play links, stamp surfaces",
-  },
-  {
-    slot: "accent",
-    variable: "--font-accent",
-    target: "Marseloup",
-    use: "quotes and decorative lines",
-  },
+const LIVE = [
+  { variable: "--font-display", file: "Excess V Straight.woff2", role: "H1 / hero name, footer wordmark, loading curtain" },
+  { variable: "--font-body", file: "Relidux.woff2", role: "everything else" },
 ];
 
-/** Pull the `src:` value(s) for one export block out of fonts.ts. */
-function srcFor(variable) {
-  const at = fontsTs.indexOf(`variable: "${variable}"`);
-  if (at === -1) return { error: "variable not found in fonts.ts" };
-  const start = fontsTs.lastIndexOf("localFont({", at);
-  const block = fontsTs.slice(start, fontsTs.indexOf("});", at));
-  const files = [...block.matchAll(/"\.\.\/assets\/fonts\/([^"]+)"/g)].map((m) => m[1]);
-  const weights = [...block.matchAll(/weight:\s*"([^"]+)"/g)].map((m) => m[1]);
-  return { files, weight: weights[0] ?? "—" };
-}
+const RETIRED_FAMILIES = ["Psychlone", "Impact Label", "Marseloup", "Marse-loup", "Marse Loup"];
+const RETIRED_TOKENS = ["--font-heading", "--font-label", "--font-accent"];
 
-function woff2(file) {
-  const path = join(fontsDir, file);
-  if (!existsSync(path)) return { ok: false, why: "missing" };
-  const head = readFileSync(path).subarray(0, 4).toString("latin1");
-  return head === "wOF2" ? { ok: true, bytes: readFileSync(path).length } : { ok: false, why: `not WOFF2 (${head})` };
-}
-
-const pad = (s, n) => String(s).padEnd(n);
-console.log("\nrole      variable          target family        in use                                  weight   status");
-console.log("--------  ----------------  -------------------  --------------------------------------  -------  ------");
-
-let onTarget = 0;
 const problems = [];
 
-for (const role of ROLES) {
-  const { files, weight, error } = srcFor(role.variable);
-  if (error) {
-    problems.push(`${role.slot}: ${error}`);
-    continue;
-  }
-  const checks = files.map(woff2);
-  const bad = checks.find((c) => !c.ok);
-  const inUse = files.map((f) => f.replace(/\.woff2$/, "")).join(" + ");
-  const isTarget =
-    inUse.toLowerCase().includes(role.target.toLowerCase().replace(/[^a-z]/g, "").slice(0, 5)) ||
-    files.some((f) => f.toLowerCase().startsWith(role.target.toLowerCase().split("-")[0].toLowerCase()));
-  if (isTarget) onTarget += 1;
-  if (bad) problems.push(`${role.slot}: ${bad.why} — ${files.join(", ")}`);
-
-  console.log(
-    `${pad(role.slot, 8)}  ${pad(role.variable, 16)}  ${pad(role.target, 19)}  ${pad(inUse.slice(0, 38), 38)}  ${pad(weight, 7)}  ${
-      bad ? "BROKEN" : isTarget ? "target" : "stand-in"
-    }`,
-  );
+console.log("\nlive slots");
+for (const slot of LIVE) {
+  const path = join(fontsDir, slot.file);
+  const ok = existsSync(path) && readFileSync(path).subarray(0, 4).toString("latin1") === "wOF2";
+  const wired = fontsTs.includes(`variable: "${slot.variable}"`) && fontsTs.includes(`../assets/fonts/${slot.file}`);
+  if (!ok) problems.push(`${slot.file}: missing or not WOFF2`);
+  if (!wired) problems.push(`${slot.variable}: not wired in src/lib/fonts.ts`);
+  console.log(`  ${slot.variable.padEnd(14)} ${slot.file.padEnd(26)} ${ok && wired ? "ok" : "BROKEN"}   ${slot.role}`);
 }
 
-console.log(`\n${onTarget}/5 role(s) on the target family.`);
-for (const role of ROLES) console.log(`  ${pad(role.slot, 8)} ${role.use}`);
+const loaders = (fontsTs.match(/localFont\(/g) || []).length;
+if (loaders !== LIVE.length) problems.push(`src/lib/fonts.ts declares ${loaders} loaders, expected ${LIVE.length}`);
+
+console.log("\nretired faces — must appear nowhere in src/");
+const walk = (dir) =>
+  readdirSync(dir).flatMap((name) => {
+    const p = join(dir, name);
+    return statSync(p).isDirectory() ? walk(p) : [p];
+  });
+const sources = walk(join(root, "src")).filter((p) => /\.(css|tsx?|ts)$/.test(p) && !p.includes("fonts.ts"));
+for (const p of sources) {
+  const text = readFileSync(p, "utf8");
+  for (const fam of RETIRED_FAMILIES) {
+    if (text.includes(fam)) problems.push(`${relative(root, p)}: references retired family "${fam}"`);
+  }
+  for (const tok of RETIRED_TOKENS) {
+    if (text.includes(tok)) problems.push(`${relative(root, p)}: references retired token "${tok}"`);
+  }
+}
+console.log(problems.length === 0 ? "  clean — no stylesheet or component reaches for them" : "  violations above");
 
 if (problems.length > 0) {
   console.log("\nproblems:");
   for (const p of problems) console.log(`  - ${p}`);
-  process.exitCode = 1;
-} else if (onTarget < ROLES.length) {
-  console.log(
-    "\nThe map is wired and rendering; the missing piece is the licensed binaries. Drop them into\n" +
-      "src/assets/fonts/ and point the five `src:` values in src/lib/fonts.ts at them — no component\n" +
-      "names a family, so nothing else changes.",
-  );
+  console.log("");
+  process.exit(1);
 }
-console.log("");
+console.log("\n2 families, 1 voice for the identity, 1 voice for reading.\n");

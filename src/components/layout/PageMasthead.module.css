@@ -31,8 +31,9 @@
 }
 
 .title {
-  font-family: var(--font-heading-stack);
-  margin-top: var(--space-4);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  margin-top: var(--space-6);
   /* The name is allowed to break a long word rather than overflow the viewport at 320px. */
   overflow-wrap: anywhere;
   font-size: var(--text-hero);
@@ -61,7 +62,7 @@
 
 /* The count is the one number on the page, so it is set as display type, not as a statistic. */
 .figure {
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1;

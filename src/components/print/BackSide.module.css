@@ -148,7 +148,7 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(2.5rem, 7vw, 5.5rem);
   line-height: 0.94;
@@ -261,11 +261,12 @@
 }
 
 .releaseTitle {
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
   font-size: 1.0625rem;
-  line-height: 1.12;
+  line-height: var(--leading-title);
   text-transform: uppercase;
-  letter-spacing: var(--tracking-stamp);
+  letter-spacing: var(--tracking-title);
 }
 
 .releaseMeta {

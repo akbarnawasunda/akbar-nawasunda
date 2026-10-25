@@ -64,7 +64,7 @@
 
 .title {
   margin-top: var(--space-4);
-  font-family: var(--font-heading-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(3rem, 1.5rem + 7vw, 7rem);
   line-height: 0.95;

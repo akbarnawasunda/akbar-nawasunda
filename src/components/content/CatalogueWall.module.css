@@ -17,7 +17,7 @@
 .wall {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 2.5vw, 2rem);
+  gap: clamp(2.25rem, 5vw, 4.5rem) clamp(1.25rem, 3vw, 2.75rem);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -100,13 +100,16 @@
 }
 
 .title {
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.125rem, 1.9vw, 1.625rem);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-stamp);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-transform: uppercase;
   text-wrap: balance;
+  /* Relidux is wider than the condensed face this replaced: at 320px the title column is ~103px
+     and "MENCINTAINYA" does not fit on one line. Break only when a word truly cannot fit. */
+  overflow-wrap: break-word;
 }
 
 .meta {
@@ -115,6 +118,18 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
+}
+
+/*
+ * One column on phones. Two columns of Relidux caps leave a ~130px title column at 390px, and
+ * "MENCINTAINYA" needs ~180px at the smallest legible size — the only ways out are type too small
+ * to read or words broken mid-syllable, and both look broken. A record bin is one sleeve per row
+ * anyway; the wall reads calmer for it.
+ */
+@media (max-width: 560px) {
+  .wall {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 720px) {

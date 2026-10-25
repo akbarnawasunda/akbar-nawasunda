@@ -12,24 +12,21 @@
  * Why a separate file name instead of <slug>.webp: `<slug>.webp` is the slot for real artwork (the
  * owner's file, or Spotify's via `npm run covers:fetch`). Keeping the generated sleeve in its own
  * slot means dropping a real cover in never has to delete anything, and the site's resolver
- * (src/content/covers.ts) can tell the two apart — a sleeve already has the title printed on it, so
- * the card under it does not need to print the same words again.
+ * (src/content/covers.ts) can tell the two apart — and because a sleeve carries no type at all, the
+ * card under it always prints the release title itself, in Relidux like everything else.
  *
- * The sleeve is built only from things that are verified: the release title, the original artist and
- * year when they are known, the AN monogram, and the brand palette. No stock photo, no invented
- * artwork, no genre label per release (genres are verified for the artist, not for each song).
+ * The sleeve is built only from things that are verified: the series ground, the AN monogram as a
+ * ghost, and one misregistration rule in the series colour. No stock photo, no invented artwork, no
+ * type — and nothing that pretends to be owner-supplied art.
  *
- * Typography: renders with Anton 400 (display, all caps) and JetBrains Mono 500 (labels). Both must be
- * installed locally for the rasteriser to find them — fontconfig sees ~/.fonts; the display face is
- * the same OFL file the site ships (`src/assets/fonts/anton-latin-400.woff2`, unpacked to
- * ~/.fonts/Anton-Regular.ttf so librsvg can use it). Without them the text falls back to a system
- * sans and the file looks wrong, so check the result.
+ * Typography: none. Round 19 took every letter off the sleeve — a placeholder that prints its own
+ * title in a face the site does not ship is the ransom-note effect the owner rejected, and
+ * rasterised type cannot reflow, be selected or be translated. Titles live in the page as Relidux
+ * HTML text; the sleeve is ground, ghost monogram and misregistration rule.
  *
- * The display face changed twice: grotesque 800 → Instrument Serif (2026-10-24, D-108) → Anton
- * (round 13, "SALAH CETAK"). The sleeves are the loudest type on the site — ten of them, one per
- * release — and a serif cover sitting next to a condensed-sans page reads as two different sites.
- * The titles are set in caps now for the same reason: the sleeve is printed matter, not a caption.
- */
+ * History, for the archaeologists: the sleeve face changed grotesque 800 → Instrument Serif
+ * (2026-10-24, D-108) → Anton + JetBrains Mono (round 13) → nothing (round 19).
+*/
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -45,13 +42,6 @@ const outDir = join(root, "public", "assets", "covers");
 const markPath = join(root, "public", "brand", "an-mark.webp");
 const SIZE = 1000;
 const PAD = 72;
-const COLUMN = 660; // text column; the ghost sits to the right of it
-/*
- * Anton is condensed, so it holds a square at a much larger size than the serif it replaced: a
- * three-line caps block at 150 is 450 px of 1000. The ladder starts high and steps down until the
- * title fits three lines, so short titles get billboard type and long ones stay inside the margin.
- */
-const TITLE_SIZES = [190, 172, 154, 138, 122, 108, 94, 82, 72];
 
 /**
  * Two sleeve series (D-117).
@@ -96,96 +86,16 @@ function xml(value) {
     .replace(/"/g, "&quot;");
 }
 
-/**
- * Anton advance widths, in 1000ths of the em, read out of the actual font file (fontTools / hmtx,
- * unitsPerEm 2048). Measuring beats guessing: Anton's "M" is 0.746 em and its "I" is 0.227 em, so a
- * flat per-character estimate wraps a caps title in the wrong place. The map covers the caps, digits
- * and punctuation the catalogue actually contains; anything else falls back to 0.48 em.
- */
-const DISPLAY_WIDTHS = {
-  A: 0.485, B: 0.479, C: 0.474, D: 0.493, E: 0.412, F: 0.399, G: 0.485, H: 0.499, I: 0.227,
-  J: 0.466, K: 0.472, L: 0.397, M: 0.746, N: 0.498, O: 0.486, P: 0.472, Q: 0.494, R: 0.477,
-  S: 0.461, T: 0.396, U: 0.474, V: 0.469, W: 0.712, X: 0.484, Y: 0.446, Z: 0.41,
-  0: 0.494, 1: 0.331, 2: 0.494, 3: 0.494, 4: 0.494, 5: 0.494, 6: 0.494, 7: 0.494, 8: 0.494,
-  9: 0.494,
-  " ": 0.234, ".": 0.229, ",": 0.236, "-": 0.311, "–": 0.311, "—": 0.563, "'": 0.214, "’": 0.232,
-  "/": 0.405, "&": 0.52, "(": 0.291, ")": 0.291, "!": 0.229, "?": 0.492, ":": 0.242, "·": 0.234,
-  "@": 0.864,
-};
 
-/* Caps at display size want a hair of air, not the negative tracking a lowercase serif took. */
-const TRACKING = 0.015;
 
-/** Advance width of one line, including the tracking. */
-function measure(text, size) {
-  const glyphs = [...text];
-  const sum = glyphs.reduce((total, char) => total + (DISPLAY_WIDTHS[char] ?? 0.48), 0);
-  return (sum + glyphs.length * TRACKING) * size;
-}
 
-/** Greedy word wrap at a fixed column width. */
-function wrap(text, size, maxWidth) {
-  const lines = [];
-  let line = "";
-  for (const word of text.split(/\s+/)) {
-    const candidate = line ? `${line} ${word}` : word;
-    if (line && measure(candidate, size) > maxWidth) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = candidate;
-    }
-  }
-  if (line) lines.push(line);
-  return lines;
-}
 
-/** Largest size (down to the smallest allowed) whose wrap still fits three lines. */
-function fitTitle(title) {
-  for (const size of TITLE_SIZES) {
-    const lines = wrap(title, size, COLUMN);
-    if (lines.length <= 3 && lines.every((line) => measure(line, size) <= COLUMN)) return { size, lines };
-  }
-  const size = TITLE_SIZES[TITLE_SIZES.length - 1];
-  return { size, lines: wrap(title, size, COLUMN).slice(0, 3) };
-}
 
-/** Mono label: original artist, verified year, era — only what is actually known. */
-function eyebrow(release) {
-  const parts = [release.source ? release.source.toUpperCase() : "RILIS"];
-  if (release.year) parts.push(String(release.year));
-  if (release.era) parts.push(release.era.toUpperCase());
-  return parts.join(" · ");
-}
 
 function sleeveSvg(release) {
   const series = seriesFor(release.slug);
-  /* Caps: Anton's lowercase is a different, lighter voice — the sleeve wants the shout. */
-  const { size, lines } = fitTitle(release.title.toUpperCase());
-  /* 0.92 leading stacks the lines until they touch, which is what makes a sleeve read as a poster
-     rather than a paragraph with big type. */
-  const lineHeight = Math.round(size * 0.92);
-  /* Bottom-anchored block: the title rests on the bottom margin and the eyebrow sits above it. A
-     top-anchored block left two thirds of the square empty on short titles, which is what made the
-     old sleeves look like an unstyled template rather than a record cover. There is no "RILIS 01/10"
-     pill any more: the grid already prints an index, and two indices in one tile read as a mistake. */
-  const lastBaseline = SIZE - PAD - 44;
-  const firstBaseline = lastBaseline - (lines.length - 1) * lineHeight;
-  const eyebrowY = firstBaseline - Math.round(size * 1.08);
-
-  const title = lines
-    .map(
-      (line, lineIndex) =>
-        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Anton" font-weight="400" font-size="${size}" letter-spacing="${(size * TRACKING).toFixed(2)}" fill="${series.title}">${xml(line)}</text>`,
-    )
-    .join("");
-
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
   <rect width="${SIZE}" height="${SIZE}" fill="${series.ground}"/>
-
-  <text x="${PAD}" y="${eyebrowY}" font-family="JetBrains Mono" font-weight="500" font-size="21" letter-spacing="3.4" fill="${series.label}">${xml(eyebrow(release))}</text>
-
-  ${title}
 
   <rect x="0" y="${series.ruleEdge === "bottom" ? SIZE - 4 : 0}" width="${SIZE}" height="4" fill="${series.rule}"/>
 </svg>`);
@@ -226,9 +136,12 @@ async function render(release) {
   const svg = sleeveSvg(release);
   /* The paper series prints a larger, lower mark: white space at the top of a pale sleeve reads as
      an empty file, while the same area on ink reads as a sleeve. */
-  const ghost = await faded(await ghostMark(series.paper ? 460 : 360, series.ghost), series.ghostOpacity);
-  const left = series.paper ? 500 : 586;
-  const top = series.paper ? 300 : 168;
+  const width = series.paper ? 460 : 360;
+  const ghost = await faded(await ghostMark(width, series.ghost), series.ghostOpacity);
+  /* Centred: with the title gone the mark IS the sleeve's subject, and a centred mark on a square
+     is the one composition that reads as deliberate at every crop. */
+  const left = Math.round((SIZE - width) / 2);
+  const top = Math.round((SIZE - width) / 2) - (series.paper ? 20 : 0);
 
   const composed = await sharp(svg)
     .composite([{ input: ghost, left, top }])

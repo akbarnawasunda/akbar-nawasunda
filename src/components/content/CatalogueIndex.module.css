@@ -69,11 +69,11 @@
 }
 
 .title {
-  font-family: var(--font-label-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.25rem, 2.6vw, 2.25rem);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-stamp);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-transform: uppercase;
   text-wrap: balance;
 }

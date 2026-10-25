@@ -75,11 +75,11 @@
   align-self: center;
   justify-self: center;
   display: grid;
-  font-family: var(--font-display-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.9rem, 10.2vw, 9rem);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
   text-align: center;
 }
