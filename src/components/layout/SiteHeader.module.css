@@ -184,7 +184,7 @@
   cursor: pointer;
   font-family: var(--font-body-stack);
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
 }
@@ -296,7 +296,7 @@
 
 .drawerLabel {
   font-family: var(--font-heading-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(2.5rem, 9.5vw, 5rem);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);

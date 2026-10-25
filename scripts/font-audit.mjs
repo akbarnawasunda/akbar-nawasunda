@@ -56,7 +56,7 @@ const ROLES = [
   {
     slot: "accent",
     variable: "--font-accent",
-    target: "Marse-loup",
+    target: "Marseloup",
     use: "quotes and decorative lines",
   },
 ];

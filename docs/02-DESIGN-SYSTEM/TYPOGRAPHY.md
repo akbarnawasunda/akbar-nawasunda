@@ -55,25 +55,37 @@ short of in a meta line.
 - uses `--leading-stamp` (0.94) instead of `--leading-hero`, because a condensed face at 0.86 lets its
   ascenders touch the line above.
 
-## Current binaries (round 17 state)
+## Current binaries (round 18 state — the purchased faces)
 
-The five target families are **not in the repository yet** — the folder still holds the previous set —
-so each slot is filled by the closest available face and the build stays green:
+All five target families are now in the repository, self-hosted, subset to the Latin ranges the site
+sets. `npm run audit:fonts` prints this table from `src/lib/fonts.ts` and fails loudly if a slot ever
+points somewhere else:
 
-| slot | file in use | stands in for |
-| --- | --- | --- |
-| display | `space-grotesk-latin-wght-normal.woff2` | Excess-V-Straight |
-| heading | `instrument-sans-latin-wght.woff2` | Psychlone-Straight |
-| body | `inter-latin-wght-normal.woff2` | Relidux |
-| label | `anton-latin-400.woff2` | Impact-Label-SWL |
-| accent | `instrument-serif-latin-400.woff2` (+ italic) | Marse-loup |
+| slot | file in use | family | weight |
+| --- | --- | --- | --- |
+| display | `Excess V Straight.woff2` | Excess V Straight | 400 (static) |
+| heading | `Psychlone Straight.woff2` | Psychlone Straight | 400 (static) |
+| body | `Relidux.woff2` | Relidux | 400 (static) |
+| label | `Impact Label SWL.woff2` | Impact Label SWL | 400 (static) |
+| accent | `Marseloup.woff2` | Marseloup | 400 (static) |
 
-Deliberately different stand-ins per slot: with display and heading sharing one file, a reviewer
-cannot see whether the role map works, and a mapping nobody can see is a mapping nobody maintains.
+Two consequences of "every face is a static 400", both enforced in code:
 
-To finish the migration: drop the five licensed files into `src/assets/fonts/`, point the five `src:`
-values in `src/lib/fonts.ts` at them (and fix `weight` where the face is single-weight), and delete the
-stand-in files. Nothing else changes.
+1. Every loader declares `weight: "400"` — declaring a range a static file does not have makes the
+   browser synthesise the missing weights.
+2. `font-synthesis: none` in `globals.css`, and no stylesheet on the site asks for a weight other
+   than 400. Hierarchy is carried by size, tracking and space, never by bold.
+
+Sizing was re-fitted for the new display face: Excess V Straight is roughly 25% wider than the Space
+Grotesk it replaced, so `--text-hero` moved from `clamp(2.75rem, 12.5vw, 11.5rem)` to
+`clamp(1.9rem, 10.2vw, 10.5rem)` (measured: "NAWASUNDA" = 8.43 × font-size at the hero tracking), and
+the footer wordmark and loading curtain follow at 10.2vw. The footer wordmark also wraps at the
+space between the two names now (`overflow-wrap: normal`), never inside a word.
+
+Licences: the five are commercial faces purchased by the site owner; see
+`src/assets/fonts/LICENSE-COMMERCIAL.txt`. The previous open-licensed set was removed except Anton,
+which survives only inside `scripts/generate-placeholder-covers.mjs` for rasterising placeholder
+cover art and is never served as page type.
 
 ## Superseded
 

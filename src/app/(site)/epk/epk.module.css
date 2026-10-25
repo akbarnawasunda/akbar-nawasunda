@@ -199,7 +199,7 @@
 .contactMail {
   margin-top: var(--space-6);
   font-family: var(--font-heading-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(1.5rem, 4vw, 3rem);
   line-height: 1.05;
   letter-spacing: var(--tracking-hero);

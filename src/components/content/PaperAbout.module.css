@@ -37,7 +37,7 @@
 
 .heading {
   font-family: var(--font-heading-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: var(--text-display);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
@@ -157,7 +157,7 @@
 .title {
   font-family: var(--font-heading-stack);
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: var(--tracking-tight);
   line-height: 1.15;
   text-transform: uppercase;

@@ -1,3 +1,7 @@
+> **Superseded by [round 18](../round18/README.md).** The five licensed faces arrived (the owner
+> purchased them) and now run in every slot; everything below documents the round-17 state, when the
+> map shipped on stand-ins. Kept as history.
+
 # Round 17 — the five-role type map
 
 The owner asked for a new font mapping for `next/font/local`:

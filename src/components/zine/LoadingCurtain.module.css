@@ -76,8 +76,8 @@
   justify-self: center;
   display: grid;
   font-family: var(--font-display-stack);
-  font-weight: 700;
-  font-size: clamp(2.5rem, 11vw, 9rem);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 10.2vw, 9rem);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;

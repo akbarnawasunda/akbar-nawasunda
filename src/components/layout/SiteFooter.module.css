@@ -105,7 +105,7 @@
 .name {
   margin-top: var(--space-3);
   font-family: var(--font-display-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: 1.5rem;
   line-height: 1;
   letter-spacing: var(--tracking-tight);
@@ -208,7 +208,7 @@
 
 .contactValue {
   font-family: var(--font-body-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(1.25rem, 2.6vw, 2rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
@@ -218,21 +218,24 @@
 /* -------------------------------------------------------------------------------- wordmark */
 
 /*
- * The name at 11.5vw, cropped by the viewport edge on purpose: it is a graphic, not a heading, and
- * a graphic that exactly fits its box looks like a logo lockup rather than a wall.
+ * The name as a wall: two lines, one word each, both as wide as the viewport allows.
+ *
+ * 10.2vw is the largest size at which "NAWASUNDA" fits a phone or a 1920 monitor on one line in
+ * Excess V Straight (see --text-hero in tokens.css). `overflow-wrap: normal` is deliberate — the
+ * word wraps at the space between the two names, never inside one.
  */
 .wordmark {
   margin: var(--space-8) 0 0;
   padding-inline: var(--gutter);
   font-family: var(--font-display-stack);
-  font-weight: 700;
-  font-size: 11.5vw;
-  line-height: 0.82;
+  font-weight: 400;
+  font-size: 10.2vw;
+  line-height: 0.84;
   letter-spacing: -0.05em;
   text-transform: uppercase;
   color: var(--color-text-primary);
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   user-select: none;
 }
 

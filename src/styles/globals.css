@@ -61,7 +61,9 @@ body {
 h1,
 h2,
 h3 {
-  font-weight: 700;
+  /* Every family on this site ships 400 only (and `font-synthesis: none` forbids a fake bold), so
+     this is a statement of fact, not a design choice. Hierarchy is size, tracking and space. */
+  font-weight: 400;
   letter-spacing: var(--tracking-hero);
   line-height: var(--leading-hero);
   text-transform: uppercase;

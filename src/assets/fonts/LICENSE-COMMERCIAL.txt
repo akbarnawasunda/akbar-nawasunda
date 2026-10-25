@@ -1,0 +1,27 @@
+COMMERCIAL LICENCES — HELD BY THE SITE OWNER, NOT REDISTRIBUTED HERE
+====================================================================
+
+The following five typefaces are commercial fonts purchased by the site owner
+(Akbar Nawasunda) and licensed for use on this website. The licence documents
+themselves are held by the owner off-repository; only the webfont binaries the
+licence permits to be self-hosted are committed here, in this folder:
+
+  Excess V Straight.woff2     display role  (--font-display)
+  Psychlone Straight.woff2    heading role  (--font-heading)
+  Relidux.woff2               body role     (--font-body)
+  Impact Label SWL.woff2      label role    (--font-label)
+  Marseloup.woff2             accent role   (--font-accent)
+
+Each binary has been subset to the Latin ranges the site sets (basic Latin,
+Latin-1 punctuation, general punctuation, arrows) and re-packed as WOFF2 with
+FontTools. Subsetting for self-hosting is a standard webfont practice; glyph
+metrics and the family name are untouched, so what renders is the licensed
+face exactly as drawn.
+
+Do not copy these five files into other projects. They are not open-licensed.
+
+The remaining file in this folder, anton-latin-400.woff2, is a different case:
+Anton is open-licensed (SIL OFL 1.1) and its licence text ships beside it in
+LICENSE-anton.txt. It is used only by scripts/generate-placeholder-covers.mjs
+to rasterise placeholder cover art — it is not served to any browser as page
+type.

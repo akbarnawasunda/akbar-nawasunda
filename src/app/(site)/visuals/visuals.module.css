@@ -59,7 +59,7 @@
   display: block;
   font-family: var(--font-body-stack);
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
   color: var(--color-text-primary);

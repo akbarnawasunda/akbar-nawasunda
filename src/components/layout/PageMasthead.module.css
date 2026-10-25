@@ -62,7 +62,7 @@
 /* The count is the one number on the page, so it is set as display type, not as a statistic. */
 .figure {
   font-family: var(--font-heading-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);

@@ -226,7 +226,7 @@
 .fact dd {
   margin: 0;
   font-family: var(--font-heading-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(1.5rem, 2.6vw, 2.25rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
@@ -510,7 +510,7 @@
   padding-inline: var(--gutter);
   padding-bottom: var(--space-8);
   font-family: var(--font-accent-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(1.75rem, 4.4vw, 3.5rem);
   line-height: 1.04;
   letter-spacing: var(--tracking-tight);
@@ -609,7 +609,7 @@
 
 .timelineTitle {
   font-family: var(--font-heading-stack);
-  font-weight: 700;
+  font-weight: 400;
   font-size: var(--text-title);
   line-height: 1.1;
   letter-spacing: var(--tracking-tight);

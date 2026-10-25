@@ -103,8 +103,8 @@
   --font-display-stack: var(--font-display), "Excess V Straight", sans-serif;
   --font-heading-stack: var(--font-heading), "Psychlone Straight", sans-serif;
   --font-body-stack: var(--font-body), "Relidux", sans-serif;
-  --font-label-stack: var(--font-label), "Impact Label", "Arial Narrow", sans-serif;
-  --font-accent-stack: var(--font-accent), "Marse Loup", serif;
+  --font-label-stack: var(--font-label), "Impact Label SWL", Impact, "Arial Narrow", sans-serif;
+  --font-accent-stack: var(--font-accent), "Marseloup", Georgia, serif;
 
   /*
    * Poster metrics, on purpose.
@@ -136,7 +136,19 @@
   --tracking-nav: 0.13em;
   --tracking-stamp: 0.015em;
 
-  --text-hero: clamp(2.75rem, 12.5vw, 11.5rem);
+  /*
+   * Fitted to the face, not chosen from a scale.
+   *
+   * "NAWASUNDA" measures 8.43 × font-size in Excess V Straight at −0.045em tracking (measured in the
+   * browser, not guessed). The container is ~viewport − 2 gutters, so the largest size at which the
+   * longest word still sits on ONE line is ≈10.7vw across the whole 320–1920 range. 10.2vw leaves a
+   * little air at every width; the 1.9rem floor keeps a 320px phone above the legibility edge, and
+   * the 10.5rem ceiling stops a 2560px monitor from getting a 270px word.
+   *
+   * The previous 12.5vw was tuned for Space Grotesk, which is roughly 25% narrower — with the new
+   * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
+   */
+  --text-hero: clamp(1.9rem, 10.2vw, 10.5rem);
   --text-display: clamp(2rem, 6.2vw, 5rem);
   --text-title: clamp(1.35rem, 2.2vw, 1.9rem);
   --text-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
