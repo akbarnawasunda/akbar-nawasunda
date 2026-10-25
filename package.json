@@ -32,7 +32,8 @@
     "qa:motion": "node scripts/qa-motion.mjs",
     "perf:audit": "node scripts/perf-audit.mjs",
     "audit:tokens": "node scripts/token-audit.mjs",
-    "review:shots": "node scripts/review/shots.mjs"
+    "review:shots": "node scripts/review/shots.mjs",
+    "audit:fonts": "node scripts/font-audit.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

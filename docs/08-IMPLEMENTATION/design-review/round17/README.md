@@ -66,10 +66,18 @@ a11y 0 violations / 16 loads ✓   qa:motion 22/22 ✓   smoke 28/28 ✓
 check:web 196 KB gz JS (budget 250) · 17 KB gz CSS (budget 40)
 ```
 
-## Screenshots
+## Screenshots and proof
 
 `home-desktop.webp`, `home-mobile.webp`, `music-desktop.webp`, `music-mobile.webp` — production build,
 1440×900 and 390×844, full page, curtain skipped, scroll walk first.
+
+`type-specimen.png` — one line per role, rendered **through the live token stacks** (`var(--font-*-stack)`
+read off `:root` in the running build), with the family each text node actually resolves to shown next
+to it. This is the sheet to look at when asking "did the mapping apply".
+
+`npm run audit:fonts` — the same question answered without a browser: reads the role map out of
+`src/lib/fonts.ts`, checks each binary exists and is real WOFF2, and prints whether the slot is on the
+target family or on a stand-in. Today it reports **0/5 on target, 5/5 wired and rendering**.
 
 Known capture artefacts (not layout bugs): the sticky header appears twice in a full-page mobile
 capture, and the 3D monogram band can render before its first frame under software Chromium.
