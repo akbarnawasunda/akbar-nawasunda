@@ -115,11 +115,13 @@ picture {
   filter: grayscale(1) contrast(1.18) brightness(0.92);
 }
 
-/* Sleeve artwork is typography, not photography: one step lighter, so a sleeve's own title stays
-   readable at 320px. */
-.cover img {
-  filter: grayscale(1) contrast(1.06) brightness(0.98);
-}
+/*
+ * Sleeve artwork is typography, not photography: it gets one step less contrast and brightness than
+ * a photograph so the sleeve's own title stays readable at 320px. That override lives in
+ * `ReleaseCover.module.css`, not here — `.cover` is a CSS-module class, so a plain `.cover img` in a
+ * global sheet never matches it (16: it shipped as dead code for two rounds and sleeves were being
+ * graded as photographs).
+ */
 
 h1,
 h2,

@@ -37,6 +37,15 @@
   transition: transform var(--duration-slow) var(--ease-out);
 }
 
+/*
+ * A sleeve is typography, not a photograph: it keeps its own type, so it gets less contrast and one
+ * stop of brightness back compared with the site-wide `.site-main img` treatment. Two classes
+ * because that global rule is (0,1,1) too — reaching it from a module needs the extra class.
+ */
+.cover.cover > img {
+  filter: grayscale(1) contrast(1.06) brightness(0.98);
+}
+
 /* Level 3 sleeve: surface colour, AN mark at 10%, title at 24px, 4px signal rule. */
 .generated {
   display: grid;

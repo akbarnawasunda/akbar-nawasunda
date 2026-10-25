@@ -32,6 +32,11 @@ Two honest notes about the capture environment:
   `[class*="canvas"][data-ready="true"]`. A full-page screenshot of the homepage cannot show the 3D:
   the scene is 30 fps only while it is on screen, and a full-page capture in software Chromium
   renders it before the first frame lands.
+- The featured sleeve on the homepage also looks darker in these sheets than it does live. It sits
+  inside a `perspective` plate, and a full-page capture in software Chromium flattens that layer at
+  reduced luminance. An element shot of `[data-sleeve]` shows the truth: the real cover's white
+  title on its ink ground, fully legible. The cover art itself is near-black by design (it is the
+  artist's own sleeve), so it *is* a dark object on a black page — that is the sleeve, not a bug.
 - Below 768px the WebGL renderer never mounts (round 14 rule: no canvas below 768px), so the phone
   shows the **static mark** in the band instead of an empty 74svh of black. That is the mobile
   centrepiece, and it is visible in `monogram-mobile.webp`.
@@ -58,6 +63,10 @@ Two honest notes about the capture environment:
 - **`/music`, `/visuals`, `/artist`, `/epk`, `/contact`** — mastheads at hero size, hairlines, no
   coloured plates, no stamps, no footnotes explaining the page.
 - **`BackSide`** — "Balik lembar" became "Indeks"; its accent fills became white rules.
+- **`ReleaseCover.module.css`** — sleeves were being graded as photographs. The intended "sleeve art
+  is typography, one step lighter" filter was written as `.cover img` in `globals.css`, where `.cover`
+  is a *CSS-module* class and therefore never matched; it had been dead code since round 13. It now
+  lives in the module as `.cover.cover > img`, verified on the live page.
 - **`qa-motion.mjs`** — the canvas check now measures a fresh tab at scroll 0 and compares against
   where the band actually is. The old assertion ("zero canvases after scrolling halfway down") was
   written when the monogram sat 4,400px down; round 16 moved it directly under the hero, so a
