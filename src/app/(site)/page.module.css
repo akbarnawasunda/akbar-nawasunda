@@ -68,7 +68,15 @@
 
   position: relative;
   display: grid;
-  min-height: 100svh;
+  /*
+    One screen *including* the header, not one screen plus the header.
+
+    At `100svh` the hero box started 73 px down the page and ended 73 px below the fold, so the
+    scroll cue — the last thing on the sheet — was never on screen at 1440x900, and on a laptop the
+    facts row sat hard against the bottom edge. A magazine page is composed to fit the plate it is
+    printed on; an opening spread that loses its last line to the trim is a mistake, not a style.
+  */
+  min-height: calc(100svh - var(--header-height));
   overflow: clip;
   isolation: isolate;
   /*
@@ -112,15 +120,43 @@
 }
 
 /*
-  The scrim is two flat steps, not a glow: heavy at the floor (the type sits there) and again at the
-  top (the header sits there). The middle of the photograph is left alone, because the middle of the
-  photograph is the reason it is on the page.
+  The scrim, rebuilt as three flat washes instead of two.
+
+  What it has to do is a lighting problem, not a decoration one: the photograph's subject is a single
+  warm lamp on the right, and every word in the hero is set on the left. A uniform darkening either
+  kills the lamp (and with it the photograph's only reason to exist) or leaves the type sitting on
+  lit haze — which is what the old two-step version did: 72% at the bottom dropping to 6% by
+  72% height, so the name's second line was the least protected thing on the page while being the
+  largest.
+
+  So the washes are directional:
+
+  - **floor** — heavy and *held* under the type block, then released, so the paragraph and the ruled
+    figures sit on near-ink instead of on the floor of the frame;
+  - **ceiling** — under the header, so the bar never floats on a bright edge;
+  - **left** — at 640 px and up only: a horizontal wash that takes the type column to near-ink and
+    reaches zero right where the lamp begins. The lamp stays warm and the words stay white. Below
+    640 px there is no "column" to protect — the type is the full width — so the vertical washes
+    carry it and the horizontal one would only flatten the photograph.
+
+  Flat linear steps throughout, no blur and no glow (tests/fixtures/anti-ai.ts). The steps are placed
+  where the type actually ends, measured at 1440: the name's descenders at 62% of the frame, the
+  facts row at 94%.
 */
 .heroScrim {
   z-index: 1;
   background:
-    linear-gradient(to top, var(--color-ink-black) 2%, rgb(5 5 7 / 72%) 34%, rgb(5 5 7 / 6%) 72%),
-    linear-gradient(to bottom, rgb(5 5 7 / 82%) 0%, rgb(5 5 7 / 0%) 22%);
+    linear-gradient(to top, var(--color-ink-black) 0%, rgb(5 5 7 / 88%) 26%, rgb(5 5 7 / 52%) 52%, rgb(5 5 7 / 10%) 82%),
+    linear-gradient(to bottom, rgb(5 5 7 / 88%) 0%, rgb(5 5 7 / 30%) 18%, rgb(5 5 7 / 0%) 30%);
+}
+
+@media (min-width: 640px) {
+  .heroScrim {
+    background:
+      linear-gradient(to top, var(--color-ink-black) 0%, rgb(5 5 7 / 88%) 26%, rgb(5 5 7 / 52%) 52%, rgb(5 5 7 / 10%) 82%),
+      linear-gradient(to bottom, rgb(5 5 7 / 88%) 0%, rgb(5 5 7 / 30%) 18%, rgb(5 5 7 / 0%) 30%),
+      linear-gradient(to right, rgb(5 5 7 / 84%) 0%, rgb(5 5 7 / 62%) 34%, rgb(5 5 7 / 28%) 60%, rgb(5 5 7 / 0%) 80%);
+  }
 }
 
 /*
@@ -137,9 +173,20 @@
   position: relative;
   z-index: 2;
   height: 100%;
-  display: grid;
-  align-content: space-between;
-  gap: var(--space-8);
+  /*
+    A grid with explicit margins, not `space-between`.
+
+    `align-content: space-between` divides whatever is left over into equal gaps, which is why the
+    measured rhythm was 64 px / 62 px / 31 px — even, mechanical, and with no hierarchy: every joint
+    in the composition claimed the same importance. Print sets rhythm by *deciding* the gaps, so the
+    five blocks below are placed from the top with their own air, and only the facts row is allowed
+    to fall to the bottom (`margin-top: auto`). The leftover height therefore collects as one
+    generous margin above the ruled figures — the bottom margin of a page — instead of being spread
+    into three identical ones.
+  */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   /*
     The sheet itself. One `translateZ` for the whole type block: masthead, name, paragraph, facts and
     cue all live on this surface and inherit its depth, so they cannot drift apart. `preserve-3d`
@@ -153,7 +200,7 @@
   /* Bottom padding is one step wider than the top margin needs to be: when the sheet tips, the cue
      at its lower edge travels downwards, and the hero clips at its own bottom. Eight px of extra
      room keeps 16 px of clearance at the worst corner instead of 2 px. */
-  padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-8);
+  padding: var(--space-12) var(--gutter) var(--space-8);
 }
 
 .masthead {
@@ -196,7 +243,19 @@
   still have air, and the two lines have to lock together as a block.
 */
 .name {
-  margin: 0;
+  /*
+    The two margins are the whole job of this rule, and they are optical, not typographic.
+
+    Display type overflows its own line box: at 168 px the ascenders and descenders reach ~39 px
+    past the block on each side, so a `margin: 0` name sat 13 px under the blue rule and, on a 1440
+    screen, its descenders crossed the hairline above the paragraph by 16 px — the single worst
+    "cramped" signal in the hero, and invisible in any metric that only reads box heights.
+
+    So the air is set against the *ink*, not the box: enough above for the ascenders to clear the
+    rule, enough below for the descenders to clear the next rule. It scales with the type, because
+    the overflow does.
+  */
+  margin: clamp(var(--space-8), 4.4vw, var(--space-16)) 0 0;
   /* On the sheet, not in front of it. Its depth arrives from `.heroInner`; adding its own would put
      the name out of register with the rule above it and, at any forward Z, wide enough to clip. */
   font-family: var(--font-display-stack);
@@ -213,6 +272,12 @@
 
 .nameItalic {
   font-style: italic;
+  /*
+    Optical sidebearing. An italic serif at display size leans into the margin, so at −0.03em the
+    two lines look like they belong to different settings; a hair looser and the italic sits inside
+    the same left edge as the roman above it.
+  */
+  letter-spacing: -0.012em;
 }
 
 .stop {
@@ -231,17 +296,24 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: var(--space-8);
-  margin-top: var(--space-8);
+  gap: var(--space-6) var(--space-8);
+  /*
+    The gap above this rule is measured from the descenders of the name, which overhang by ~39 px at
+    desktop size. 88 px of margin minus that overhang is the ~48 px of white the eye actually reads.
+  */
+  margin-top: clamp(var(--space-12), 6vw, var(--space-24));
+  margin-bottom: var(--space-8);
   padding-top: var(--space-6);
   border-top: 1px solid rgb(255 255 255 / 16%);
 }
 
 .heroSub {
-  max-width: 46ch;
+  /* A narrower measure than the grid allows: 44 characters is a book column, 46 was a paragraph
+     stretched to fill a slot. */
+  max-width: 44ch;
   margin: 0;
   font-size: 1.0625rem;
-  line-height: 1.55;
+  line-height: 1.65;
   color: var(--color-text-secondary);
   text-wrap: pretty;
 }
@@ -260,6 +332,16 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
   gap: var(--space-6);
+  /*
+    Pushed to the foot of the sheet, with the leftover height collected above it as one margin.
+    This is why `.heroInner` is a flex column and not a grid: an auto margin only receives free
+    space from a *stretched* box, and a grid row packed with `align-content: start` is never
+    stretched — measured, it resolved to zero and the facts rule ended up touching the paragraph's
+    last line.
+  */
+  margin-top: auto;
+  padding-top: var(--space-8);
+  border-top: 1px solid rgb(255 255 255 / 12%);
 }
 
 .facts {
@@ -275,9 +357,9 @@
 */
 .fact {
   display: grid;
-  gap: 2px;
-  padding-right: var(--space-6);
-  margin-right: var(--space-6);
+  gap: var(--space-2);
+  padding-right: var(--space-8);
+  margin-right: var(--space-8);
   border-right: 1px solid rgb(255 255 255 / 16%);
 }
 
@@ -324,7 +406,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin: 0;
+  /* `margin: 0` used to swallow this: the shorthand came after the longhand and reset it, so the
+     cue sat flush against the facts rule. */
+  margin: var(--space-6) 0 0;
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
@@ -957,19 +1041,32 @@
 }
 
 @media (max-width: 720px) {
-  /* A 100svh hero on a phone leaves no room for the copy above the fold; the composition is
-     capped and the photograph takes what is left. */
+  /*
+    This used to be `min-height: auto`, because at 60 px type plus 174 px of padding above the
+    masthead a full-screen hero really did push the paragraph below the fold. With the scale and the
+    padding corrected, a phone opening fits its own copy with room to spare — measured, 600 px of
+    content in 772 px — so the plate gets to be a plate again and the cue lands on screen instead of
+    past it. `min-height` is a floor, not a cap: content taller than the frame still grows the box.
+  */
   .hero {
-    min-height: auto;
+    min-height: calc(100svh - var(--header-height));
   }
 
+  /*
+    `calc(header + space-24)` was 174 px of nothing above the masthead on a 390 screen — the top
+    third of a phone hero, spent on air that nobody reads as margin, while the paragraph, the
+    buttons, the ruled figures and the cue were packed into the last 350 px. The sheet now starts
+    at the same margin it has on desktop and the slack collects at the foot, where it belongs.
+  */
   .heroInner {
-    padding-block: calc(var(--header-height) + var(--space-24)) var(--space-8);
+    padding-block: var(--space-12) var(--space-6);
   }
 
   .name {
-    font-size: clamp(3rem, 15.5vw, 5rem);
-    line-height: 0.86;
+    /* Below the base token's floor, the name has to keep filling the measure — but 15.5vw made it
+       taller than the photograph it sits on. 13.2vw fills the column and still leaves the gutters. */
+    font-size: clamp(2.75rem, 13.2vw, 5rem);
+    line-height: 0.88;
   }
 
   /* One line of issue information is enough on a phone; the second line pushes the name down and
@@ -980,6 +1077,21 @@
 
   .heroSub {
     font-size: 1rem;
+  }
+
+  /*
+    On a phone the slack has to collect at the *foot* of the sheet, not between the paragraph and the
+    figures. Left where the desktop rule puts it, `margin-top: auto` opened a 124 px hole between the
+    buttons and the ruled numbers — a gap in the middle of a composition reads as something failed to
+    load. Moving the auto margin to the cue puts the same slack where a page actually keeps it: after
+    the last printed line.
+  */
+  .factsBar {
+    margin-top: var(--space-8);
+  }
+
+  .cue {
+    margin-top: auto;
   }
 
   .fact {

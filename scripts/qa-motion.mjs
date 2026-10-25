@@ -478,8 +478,18 @@ try {
   const fresh = await browser.newPage();
   await fresh.setViewport({ width: 1440, height: 900 });
   await fresh.goto(`${base}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  // The sheet is switched on by an effect, one frame after hydration.
-  await sleep(200);
+  /*
+   * The sheet is switched on by an effect, one frame after hydration — so wait for the state rather
+   * than for a number. A fixed 200 ms sleep assumed a fast machine; on a loaded CI box hydration
+   * took longer and the check read `data-state="idle"` and failed a curtain that was working
+   * perfectly. Waiting for the condition tests the behaviour; sleeping tests the hardware.
+   */
+  await fresh
+    .waitForFunction(() => document.querySelector("[data-count]")?.closest('[data-state="playing"]') ?? false, {
+      timeout: 5000,
+      polling: 50,
+    })
+    .catch(() => undefined);
   const opening = await fresh.evaluate(() => {
     const count = document.querySelector("[data-count]");
     return {

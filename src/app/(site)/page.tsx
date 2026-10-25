@@ -179,21 +179,26 @@ export default async function HomePage() {
           relative to anything else on it, so the rule, the name and the facts stay in register at
           every angle, and the sheet's own turn is the only thing that moves.
 
-          6.2° of yaw, and only 0.8° of pitch. The split is the point: a yaw keeps every horizontal
-          line horizontal, so the masthead rule and the baselines never look crooked — the block
-          converges towards its far edge and slides, which the eye reads as a surface turning. Pitch
-          tips those lines, and past about a degree a registration rule simply looks badly set. The
-          yaw is also the number clearance was measured against: its near edge is magnified outwards
-          and its far edge contracts inwards, so the larger it gets the closer the name's ink comes
-          to the left edge of the frame. At 6.2° that is still 13 px at the pointer's far corner, at
-          every width from 320 to 1920, and the cue keeps 17 px at the bottom.
+          2° of yaw and 0.5° of pitch — a glance, not a turn.
+
+          The previous pass ran 6.2°/0.8° and the owner's note was that it made him queasy: at that
+          angle the hero stops being a printed sheet and becomes a tilting panel, and a full-width
+          block of 14vw type swinging under the cursor is nausea, not depth. The correction is not
+          "a bit less" but a different gesture — the sheet should read as *leaning into the room*
+          just enough that the photograph behind it stops looking pasted on.
+
+          At 2° the whole surface still foreshortens as one plane, the photo still holds still, and
+          the ink plate still moves at the corner, but nobody will describe the motion before they
+          describe the page. The depth that remains legible is carried by the sheet's own −40 px of
+          Z and the scroll drift between the two planes, which cost nothing and never make anyone
+          motion-sick.
         */}
         <Plate3D
           className={styles.heroStage}
           data-plate="hero-stage"
-          tiltY={6.2}
-          tiltX={0.8}
-          shift={10}
+          tiltY={2}
+          tiltX={0.5}
+          shift={6}
           perspective={1300}
         >
         <div className={styles.heroInner}>
