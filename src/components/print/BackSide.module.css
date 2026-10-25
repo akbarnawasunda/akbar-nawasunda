@@ -29,8 +29,8 @@
   border: 1px solid var(--color-border-strong);
   border-right: 0;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  background: var(--color-ink-black);
-  color: var(--color-paper);
+  background: var(--color-bg-base);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -66,9 +66,9 @@
 
 .tab:hover,
 .tab:focus-visible {
-  background: var(--color-brand);
+  background: var(--color-signal-blue);
   color: var(--color-on-brand);
-  border-color: var(--color-brand);
+  border-color: var(--color-signal-blue);
 }
 
 /* ------------------------------------------------------------------ the sheet */

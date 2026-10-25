@@ -1,4 +1,8 @@
-/* Footer: the back page. Deepest ink on the site, a giant watermark, four columns, a tape bar. */
+/*
+  Footer: the system's last panel. Same ground as the page, a hairline to close the content, four
+  columns of plain links, one contact action and a colophon. The oversized monogram is still there
+  as a watermark, at 2.5 % — visible as a shape, never as something you read through.
+*/
 .footer {
   position: relative;
   isolation: isolate;
@@ -17,7 +21,7 @@
   translate: -50% 0;
   width: min(120vw, 1500px);
   height: auto;
-  opacity: 0.05;
+  opacity: 0.025;
   pointer-events: none;
   user-select: none;
 }
@@ -165,11 +169,11 @@
   opacity: 0.75;
 }
 
-/* The 5px strip that closes the page. */
+/* The rule that closes the page: two pixels of the accent, the thinnest possible full stop. */
 .strip {
   position: relative;
   z-index: 1;
-  height: 5px;
+  height: 2px;
   background: var(--color-signal-blue);
 }
 
@@ -219,19 +223,26 @@
   justify-content: space-between;
   gap: var(--space-2) var(--space-6);
   padding: var(--space-4) var(--space-6);
-  background: var(--color-paper);
-  color: var(--color-paper-ink);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-primary);
   text-decoration: none;
   transition:
     background 240ms var(--ease),
+    border-color 240ms var(--ease),
     translate 240ms var(--ease-out);
 }
 
 .contactLink:hover,
 .contactLink:focus-visible {
-  background: var(--color-signal-blue);
-  color: var(--color-ink-black);
+  border-color: var(--color-hairline-strong);
+  background: color-mix(in srgb, var(--color-signal-blue) 8%, transparent);
   translate: 0 -2px;
+}
+
+.contactLink:hover .contactValue,
+.contactLink:focus-visible .contactValue {
+  color: var(--color-signal-blue);
 }
 
 .contactLabel {
@@ -244,7 +255,8 @@
 .contactValue {
   font-family: var(--font-display-stack);
   font-size: clamp(1.25rem, 2.6vw, 1.875rem);
-  letter-spacing: -0.015em;
+  letter-spacing: var(--tracking-tight);
+  transition: color 240ms var(--ease);
 }
 
 @media (max-width: 720px) {

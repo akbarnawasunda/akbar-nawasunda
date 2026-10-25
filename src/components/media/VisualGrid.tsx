@@ -21,7 +21,7 @@ export interface VisualItem {
 interface VisualGridProps {
   items: readonly VisualItem[];
   /**
-   * "grid" is the homepage 2x2 block with a staggered second column.
+   * "grid" is the homepage block: two columns from 560 px, no stagger.
    * "masonry" is the archive layout: CSS columns, tiles keep their own aspect ratio.
    */
   variant?: "grid" | "masonry";
@@ -59,7 +59,7 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
   return (
     <>
       <ul className={variant === "masonry" ? `${styles.grid} ${styles.masonry}` : styles.grid}>
-        {items.map((item) => (
+        {items.map((item, index) => (
           <li key={item.id} className={item.onSurface ? styles.surfaceTile : styles.photoTile}>
             <button
               type="button"
@@ -68,7 +68,6 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
                 triggerRef.current = event.currentTarget;
                 setOpenId(item.id);
               }}
-              aria-label={`Perbesar: ${item.caption}`}
             >
               {/*
                 Eager, low priority. The four thumbnails total ~100 KB (27/33/13/33), and they are
@@ -76,20 +75,37 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
                 tiles in some Android in-app browsers and when a page is printed or captured. They
                 are fetched after the LCP image, which is above the fold and high priority.
               */}
-              {/* eslint-disable-next-line @next/next/no-img-element -- fixed local assets, exact bytes */}
-              <img
-                src={item.src}
-                alt={item.alt}
-                width={480}
-                height={480}
-                loading="eager"
-                fetchPriority="low"
-                decoding="async"
-              />
-              <span className={styles.caption}>{item.caption}</span>
-              <span className={styles.expand} aria-hidden="true">
-                ⤢
+              {/*
+                The frame owns the crop and the treatment; the image is only the plate inside it.
+                Every tile is a square so the wall stays symmetric, and the crop anchor alternates by
+                position (`VisualGrid.module.css`) so six reused files still read as six slides.
+              */}
+              <span className={styles.frame}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- fixed local assets, exact bytes */}
+                <img
+                  src={item.src}
+                  alt={item.alt}
+                  width={480}
+                  height={480}
+                  loading="eager"
+                  fetchPriority="low"
+                  decoding="async"
+                />
               </span>
+              {/* A caption row, not a floating chip: the number is the set's order, and it is the
+                  only place on this page where an accent colour appears. */}
+              <span className={styles.meta}>
+                <span className={styles.ordinal}>{String(index + 1).padStart(2, "0")}</span>
+                <span className={styles.caption}>{item.caption}</span>
+                <span className={styles.expand} aria-hidden="true">
+                  ⤢
+                </span>
+              </span>
+              {/* The button's own text is the accessible name: the ordinal and the caption a person
+                  can see, plus this cue. An `aria-label` that does not repeat the visible text fails
+                  axe's label-content-name-mismatch, which is the rule that keeps voice control usable
+                  ("click 01 potret resmi"). */}
+              <span className="sr-only">Perbesar</span>
             </button>
           </li>
         ))}

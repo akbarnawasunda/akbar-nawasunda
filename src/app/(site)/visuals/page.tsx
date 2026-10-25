@@ -10,7 +10,7 @@ import styles from "./visuals.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "Visuals",
   description:
-    "Arsip visual resmi Akbar Nawasunda: potret, foto jalan malam, panggung, maskot, monogram AN, dan lockup.",
+    "Arsip visual Akbar Nawasunda: potret, jalan malam, panggung, maskot, monogram AN, dan lockup.",
   path: "/visuals",
 });
 
@@ -30,8 +30,8 @@ export default function VisualsPage() {
         index="02 — Visual"
         title="Arsip"
         figure={count}
-        lead="Potret, panggung, jalan malam, maskot, monogram, dan lockup — setiap berkas berasal dari pemilik, bukan stok atau hasil generate."
-        note={`${count} aset resmi · tanpa stok`}
+        lead="Potret, panggung, jalan malam, maskot, monogram, dan lockup. Semua berkas milik pemilik."
+        note={`${count} aset · tanpa stok`}
       />
 
       <Container>
@@ -57,9 +57,8 @@ export default function VisualsPage() {
 
             <p className={styles.noteLabel}>Menyusul</p>
             <p className={styles.noteText}>
-              Foto panggung lain, still video, dan artwork rilis. Kirim lewat Studio atau letakkan di{" "}
-              <code>public/assets/covers/</code>.{" "}
-              <span className={styles.needs}>[NEEDS OWNER]</span>
+              Foto panggung lain, still video, artwork rilis. Kirim lewat Studio atau letakkan di{" "}
+              <code>public/assets/covers/</code>. <span className={styles.needs}>[NEEDS OWNER]</span>
             </p>
           </aside>
         </div>

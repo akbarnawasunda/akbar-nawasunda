@@ -1,52 +1,59 @@
+/*
+  Actions, in the interface's own language (round 15).
+
+  The zine pass demoted the accent out of the button entirely: a paper block with ink type, and blue
+  only on hover. That was a reaction against the "SaaS pill", and it overcorrected — on a near-black
+  page a paper button is a hole, and the owner asked for the accent to be applied consistently, which
+  means the primary action should look like the one lit thing in the row.
+
+  So: solid `#0087FF` with near-black ink (5.7:1 — the same pair the monogram band uses), no pill, a
+  single hairline, and a hover that lightens the fill rather than moving anything.
+*/
+
 .base {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: 48px;
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  font-size: var(--text-small);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
   font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   text-decoration: none;
   transition:
     background var(--duration-fast) var(--ease),
     border-color var(--duration-fast) var(--ease),
-    color var(--duration-fast) var(--ease),
-    transform var(--duration-fast) var(--ease);
+    color var(--duration-fast) var(--ease);
 }
 
-.base:hover {
-  transform: translateY(-1px);
-}
-
-/*
- * The primary action is printed, not lit (D-115): a paper block with near-black ink, the same
- * relationship the press sheet has to its page. A filled #0087FF pill was the single most corporate
- * object on the page — it read as a SaaS CTA sitting inside an editorial layout — so the blue is
- * demoted to the hover state, where it can be a signal instead of furniture.
- *
- * Contrast: #0A0A0E on paper is 15.6:1; on the hover blue it is 5.56:1. Both clear AA.
- */
 .primary {
-  background: var(--color-paper);
-  color: var(--color-paper-ink);
-  font-weight: 600;
+  background: var(--color-signal-blue);
+  border-color: var(--color-signal-blue);
+  color: var(--color-on-brand);
 }
 
-.primary:hover {
-  background: var(--color-signal-blue);
-  color: var(--color-ink-black);
+.primary:hover,
+.primary:focus-visible {
+  background: var(--color-signal-blue-hover);
+  border-color: var(--color-signal-blue-hover);
+  color: var(--color-on-brand);
 }
 
 .secondary {
   background: transparent;
-  border-color: var(--color-border-strong);
+  border-color: var(--color-hairline-strong);
   color: var(--color-text-primary);
 }
 
-.secondary:hover {
+.secondary:hover,
+.secondary:focus-visible {
   border-color: var(--color-signal-blue);
+  background: color-mix(in srgb, var(--color-signal-blue) 12%, transparent);
+  color: var(--color-text-primary);
 }
 
 .ghost {
@@ -55,8 +62,9 @@
   color: var(--color-text-secondary);
 }
 
-.ghost:hover {
-  color: var(--color-text-primary);
+.ghost:hover,
+.ghost:focus-visible {
+  color: var(--color-signal-blue);
 }
 
 .arrow {

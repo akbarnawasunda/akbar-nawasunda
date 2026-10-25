@@ -1,11 +1,11 @@
 /*
   The running head. One band, full bleed, between the hero and the first release.
 
-  Since R8 it is also the identity colour at full strength (D-121): a solid sheet of the brand blue
-  with ink type on it. That is the one large colour field on the homepage, and it is deliberately a
-  *printed* field — black on #0087FF measures 5.7:1, white on it measures 3.4:1 and would fail. The
-  band is the page's spine: every release in the catalogue runs along it, and it is the first thing
-  after the photograph.
+  In round 15 the band stopped being a field of colour and became a *readout*: the ground is the
+  page's own black, the trim is a hairline, and the accent appears only in the live dot, the section
+  label and the separators. A full-width slab of #0087FF between the hero and the first release was
+  the loudest object on the page, and the brief now asks for one lit accent against restraint — not
+  a second hero made of paint.
 
   The only movement is `translate` on one element, written by the scroll loop as `--ticker` (0 → 1
   across the band's pass through the viewport). Because the track holds two identical runs, moving
@@ -19,9 +19,9 @@
   align-items: center;
   gap: var(--space-6);
   padding-block: var(--space-4);
-  border-block: 1px solid var(--color-brand);
-  background: var(--color-brand);
-  color: var(--color-on-brand);
+  border-block: 1px solid var(--color-hairline);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
   overflow: hidden;
 }
 
@@ -33,10 +33,9 @@
   padding-inline: var(--gutter);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  /* Ink on the blue field: 5.7:1, and the only tone that survives at 9 px on this ground. */
-  color: var(--color-on-brand);
+  color: var(--color-signal-blue);
   white-space: nowrap;
 }
 
@@ -45,8 +44,9 @@
 .dot {
   width: 5px;
   height: 5px;
-  background: var(--color-on-brand);
+  background: var(--color-signal-blue);
   border-radius: 50%;
+  box-shadow: 0 0 10px var(--color-signal-blue);
   flex: none;
 }
 
@@ -85,15 +85,16 @@
   align-items: baseline;
   gap: var(--space-2);
   text-decoration: none;
-  color: var(--color-on-brand);
+  color: var(--color-text-primary);
 }
 
 .title {
   font-family: var(--font-display-stack);
   font-weight: 400;
-  font-size: clamp(1.25rem, 1.9vw, 1.75rem);
+  font-size: clamp(1.125rem, 1.7vw, 1.5rem);
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
   transition: color var(--duration-fast) var(--ease);
 }
 
@@ -102,23 +103,25 @@
   font-size: 0.5625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-on-brand);
+  color: var(--color-text-muted);
 }
 
-/* Hover is a print rule, not a colour change: on a blue field the only legible emphasis left is
-   ink, which the type already is. */
+/* On a dark band the emphasis is the accent: the title lights up and nothing moves. */
 .link:hover .title,
 .link:focus-visible .title {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.14em;
+  color: var(--color-signal-blue);
+}
+
+.link:hover .meta,
+.link:focus-visible .meta {
+  color: var(--color-text-secondary);
 }
 
 /* A 3 px square, not a bullet: typewriter, not list. */
 .sep {
   width: 3px;
   height: 3px;
-  background: color-mix(in srgb, var(--color-on-brand) 55%, transparent);
+  background: color-mix(in srgb, var(--color-signal-blue) 70%, transparent);
   translate: 0 -0.25em;
 }
 

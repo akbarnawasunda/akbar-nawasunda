@@ -1,7 +1,13 @@
 /*
-  The title sequence. Two full-screen sheets, ink over blue, and the name rising into place behind
-  a mask — the same typographic gesture as the hero, so the first thing a visitor sees is a preview
-  of the page rather than a spinner with a logo on it.
+  The title sequence (round 15).
+
+  It used to be a full-screen sheet of #0087FF that the ink curtain slid off. That is a full-bleed
+  colour field as the *first* thing a visitor sees, which is the one place the accent must not go: a
+  brief that keeps the accent for hairlines and hover states cannot open on two screens of paint.
+
+  It is now two sheets of the page's own ground and a single lit hairline that sweeps across as the
+  counter runs. The mechanism is unchanged — `data-state`, the count, the two transforms — only the
+  paint moved.
 */
 .boot {
   position: fixed;
@@ -22,9 +28,10 @@
   will-change: transform;
 }
 
-/* The identity colour, at full strength, as the last thing the sequence shows. */
+/* The second ground. One step off black, so the hand-off at the end of the count is still a wipe
+   rather than nothing happening. */
 .sheet {
-  background: var(--color-brand);
+  background: var(--color-bg-surface);
 }
 
 .curtain {
@@ -56,7 +63,8 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--color-brand);
+  background: var(--color-signal-blue);
+  box-shadow: 0 0 10px var(--color-signal-blue);
   flex: none;
 }
 
@@ -71,6 +79,7 @@
   display: grid;
   font-family: var(--font-display-stack);
   font-weight: 400;
+  font-weight: 500;
   font-size: clamp(2.5rem, 11vw, 9rem);
   line-height: 0.92;
   letter-spacing: -0.03em;
@@ -100,7 +109,7 @@
 .lineItalic::after {
   content: ".";
   font-style: normal;
-  color: var(--color-brand);
+  color: var(--color-signal-blue);
 }
 
 .roles {
@@ -125,7 +134,7 @@
 .bar {
   position: absolute;
   inset: auto 0 0 0;
-  height: 3px;
+  height: 2px;
   background: color-mix(in srgb, var(--color-text-primary) 14%, transparent);
 }
 
@@ -133,7 +142,8 @@
   display: block;
   height: 100%;
   width: 100%;
-  background: var(--color-brand);
+  background: var(--color-signal-blue);
+  box-shadow: 0 0 12px var(--color-signal-blue);
   transform: scaleX(0);
   transform-origin: left;
 }

@@ -30,7 +30,6 @@ import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage } from "@/studio/public";
 
-import { Registration } from "@/components/print/Registration";
 
 import styles from "./page.module.css";
 
@@ -138,7 +137,6 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
-        <Registration tone="ink" code="lembar 1 dari 2 · cetak ganda" />
         {/*
           The photograph: the owner's own frame of an empty stage under one warm lamp. It is the
           only landscape image in the archive, and it does something no graphic could — it puts the
@@ -230,8 +228,8 @@ export default async function HomePage() {
 
           <div className={styles.heroFoot} data-depth="hero-foot">
             <p className={styles.heroSub}>
-              Produser, remixer, dan DJ asal Bandung Barat. Breakbeat, Indo Bass, Jedag Jedug — tiga
-              bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.
+              Produser, remixer, DJ. Breakbeat, Indo Bass, Jedag Jedug — tiga bahasa, satu set,
+              direkam di studio rumah.
             </p>
 
             <div className={styles.heroActions}>
@@ -267,21 +265,8 @@ export default async function HomePage() {
             <dd>{officialLinkCount}</dd>
           </div>
         </dl>
-        <p className={styles.factNote}>
-          Semua angka dihitung dari katalog dan berkas pemilik. Tidak ada statistik platform.
-        </p>
+        <p className={styles.factNote}>Dihitung dari katalog dan berkas pemilik · tanpa statistik platform</p>
         </div>
-
-        {/*
-          A vertical strip on the right edge, where a flyer prints its run information. It crosses
-          the photograph rather than sitting politely beside it — that overlap is the difference
-          between a composition and a container.
-        */}
-        <p className={styles.sideStrip} aria-hidden="true">
-          <span>Sisi depan</span>
-          <span>Cetak ganda</span>
-          <span>Bandung Barat</span>
-        </p>
 
         <p className={styles.cue} aria-hidden="true" data-depth="hero-cue">
           <span>Gulir</span>
@@ -312,8 +297,7 @@ export default async function HomePage() {
               </h2>
               <p className={styles.transmissionMeta}>{featured.meta}</p>
               <p className={styles.transmissionText}>
-                Rilis terbaru di katalog. Sampul, tahun, dan tautan dengar diambil dari berkas
-                pemilik — bukan dari basis data platform.
+                Rilis terbaru di katalog. Sampul, tahun, dan tautan dari berkas pemilik.
               </p>
               <div className={styles.transmissionActions}>
                 <Magnetic>
@@ -374,7 +358,7 @@ export default async function HomePage() {
         site made up. This is the one place on the page with no interface on it at all: a reader
         scrolls past a photograph and a sentence, which is what an artist site should feel like.
       */}
-      <section className={styles.night} aria-label="Malam">
+      <section className={styles.night} aria-label="Malam" data-section="night">
         <Depth className={styles.nightMedia} y={-90} perspective={1200}>
           {/* eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame */}
           <img
@@ -408,9 +392,8 @@ export default async function HomePage() {
           <Depth y={26} fade={0.08}>
             <SectionHeader
               eyebrow="03 — Arsip"
-              title="Enam aset, tanpa stok"
+              title="Arsip visual"
               id="visuals-title"
-              align="end"
               action={youtube ? { href: youtube.href, label: "YouTube" } : undefined}
             />
           </Depth>
@@ -427,8 +410,7 @@ export default async function HomePage() {
             Tanda <span className={styles.signatureAccent}>AN</span>
           </h2>
           <p className={styles.signatureNote}>
-            Bentuk tiga dimensi dari penanda milik pemilik sendiri: satu huruf A dan satu huruf N
-            yang bertumpuk jadi satu garis. Dirender di peramban, bukan gambar tempelan.
+            Satu A, satu N, satu garis. Dirender langsung di peramban — bukan gambar tempelan.
           </p>
           <p className={styles.signatureMeta}>Bandung Barat, Jawa Barat · sejak {siteConfig.since}</p>
         </div>
@@ -444,8 +426,8 @@ export default async function HomePage() {
                 Akbar Nawasunda
               </h2>
               <p className={styles.pressLead}>
-                Produser dan DJ asal Bandung Barat. Aktif sejak {siteConfig.since} dengan nama
-                panggung DJ Akbar Remix, sekarang tampil sebagai Akbar Nawasunda.
+                Produser dan DJ asal Bandung Barat. Aktif sejak {siteConfig.since} sebagai DJ Akbar
+                Remix; kini Akbar Nawasunda.
               </p>
 
               <ol className={styles.timeline}>
@@ -512,8 +494,8 @@ export default async function HomePage() {
                 Press kit siap unduh
               </h2>
               <p className={styles.epkText}>
-                Bio singkat, fakta terverifikasi, potret resolusi cetak, monogram, dan lockup dalam
-                satu arsip. Semua isinya file asli pemilik.
+                Bio, fakta terverifikasi, potret resolusi cetak, dan monogram. Satu arsip, semua
+                berkas asli.
               </p>
               <div className={styles.epkActions}>
                 <Magnetic>
@@ -529,13 +511,11 @@ export default async function HomePage() {
             <div className={styles.epkNote}>
               <p className={styles.epkNoteLabel}>Booking &amp; pers</p>
               <p className={styles.epkNoteValue}>
-                <a href={contactHref}>{contactEmail}</a> — remix, kolaborasi, lisensi, dan materi
-                pers.
+                <a href={contactHref}>{contactEmail}</a> — remix, kolaborasi, lisensi.
               </p>
               <p className={styles.epkNoteLabel}>Formulir</p>
               <p className={styles.epkNoteValue}>
-                Sengaja tidak ada. Satu alamat email yang dijawab lebih berguna daripada form tanpa
-                tujuan.
+                Sengaja tidak ada. Satu alamat email yang dijawab lebih berguna daripada formulir.
               </p>
             </div>
           </div>

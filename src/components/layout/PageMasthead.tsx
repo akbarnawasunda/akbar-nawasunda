@@ -1,23 +1,15 @@
-import { Registration } from "@/components/print/Registration";
-
 import styles from "./PageMasthead.module.css";
 
 /**
- * The page head, printed on the identity colour.
+ * The head of an inner page.
  *
- * Four inner pages used to open with the same three lines — a mono eyebrow, a serif title, a grey
- * paragraph — inside a container, on the same near-black as everything else. That is the definition
- * of a generic inner page: the only thing telling you which section you are in was the word at the
- * top. This head is a *sleeve*: a full-bleed sheet of the brand blue with ink type, the section
- * number, and one figure printed at display size. Arrive at /music and the page is blue; arrive at
- * /visuals and the number changes. You know where you are before you read anything.
+ * Four routes share it, so it carries the whole "where am I" job: a numbered mono eyebrow in the
+ * accent, the section name at display size, one short line of lead, and a ruled row holding the
+ * count and the provenance note. Nothing here is a sheet, a plate or a sticker — it is a page head,
+ * and the restraint is the point: the archive below it is the content.
  *
- * Black on #0087FF is 5.7:1, which is why the type here is ink and never white (3.4:1). It is also
- * the reason the page below can go back to ink without the transition feeling like a mistake: two
- * grounds, one edge.
- *
- * `figure` is decorative (the same count is stated in `note`), so it is `aria-hidden` — a giant "10"
- * read out before the heading would be a number with no noun.
+ * The giant figure is decorative (the same count is stated in words in the note), so it is
+ * `aria-hidden` — a number read out before the heading is a number with no noun.
  */
 export function PageMasthead({
   index,
@@ -34,19 +26,22 @@ export function PageMasthead({
 }) {
   return (
     <header className={styles.head}>
-      <Registration tone="onBrand" code="cetak ganda · sisi depan" />
       <div className={styles.inner}>
         <p className={styles.eyebrow}>{index}</p>
         <h1 className={`${styles.title} ink`}>{title}</h1>
 
-        {figure ? (
-          <p className={styles.figure} aria-hidden="true">
-            {figure}
-          </p>
-        ) : null}
-
         {lead ? <p className={styles.lead}>{lead}</p> : null}
-        {note ? <p className={styles.note}>{note}</p> : null}
+
+        {figure || note ? (
+          <div className={styles.noteBar}>
+            {figure ? (
+              <p className={styles.figure} aria-hidden="true">
+                {figure} <span>berkas</span>
+              </p>
+            ) : null}
+            {note ? <p className={styles.note}>{note}</p> : null}
+          </div>
+        ) : null}
       </div>
     </header>
   );

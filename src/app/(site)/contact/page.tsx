@@ -2,8 +2,6 @@ import { Container } from "@/components/layout/Container";
 import { artistServices } from "@/content/artist";
 import { contactEmail, contactHref, listenLinks, socialLinks } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
-import { Registration } from "@/components/print/Registration";
-
 import styles from "./contact.module.css";
 
 export const metadata = pageMetadata({
@@ -27,7 +25,6 @@ export default function ContactPage() {
   return (
     <>
       <header className={styles.head}>
-        <Registration tone="onBrand" code="cetak ganda · sisi depan" />
         <div className={styles.headInner}>
           <p className={styles.eyebrow}>05 — Kontak</p>
           <h1 className={`${styles.title} ink`}>Kontak</h1>
@@ -46,21 +43,6 @@ export default function ContactPage() {
           </p>
         </div>
 
-        {/*
-          Printer's furniture, not content: a running strip down the right edge and a barcode at the
-          trim. Round 12 filled this page's empty half with marks a print shop would actually put
-          there, because a full-bleed field with one address in the corner reads as a blank slide.
-
-          It is static type, not an animation. A scrolling marquee would be `animation: infinite`,
-          which MOTION_DESIGN.md bans and `tests/fixtures/anti-ai.ts` fails the build over — and a
-          strip of repeated words reads as "running text" without moving, which is how a press sheet
-          does it anyway.
-        */}
-        <div className={styles.furniture} aria-hidden="true">
-          <span className={styles.rules} />
-          <span className={styles.barcode} />
-          <p className={styles.strip}>Booking · Remix · Lisensi</p>
-        </div>
       </header>
 
       <Container>

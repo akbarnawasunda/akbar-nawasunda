@@ -1,12 +1,12 @@
 /*
-  The release page as a sleeve.
+  The release page (round 15).
 
-  Three bands, and only three: the blue table with the print on it, the listening rows on ink, and
-  the colophon with the neighbouring releases. No card, no frame, no grey paragraph in the middle of
-  the page — a release either has a link to listen to or it says so.
+  Three bands: the sleeve and its title, the listening rows, and the colophon with the neighbouring
+  releases. The band is dark now instead of a sheet of #0087FF, because on this site the accent is a
+  light — the one bright object on the page is the sleeve itself, sitting in a bloom of it.
 
-  Contrast note: everything set on the blue is `--color-on-brand` (5.7:1). Nothing on this page is
-  white-on-blue (3.4:1) and nothing on the field is a translucent grey.
+  No card, no frame, no grey paragraph in the middle: a release either has a link to listen to or it
+  says so in a sentence.
 */
 
 .record {
@@ -16,13 +16,17 @@
 
 /* ------------------------------------------------------------------ the band */
 
+/*
+  The band is the page's ground, not a field of colour. It used to be a full-bleed sheet of #0087FF
+  with ink type on it — the loudest object on any route, and the thing that made a release page look
+  like a different site from the one that linked to it. The sleeve is the object here; the band only
+  gives it a dark room and a lit hairline.
+*/
 .band {
   position: relative;
-  --ink-ghost: var(--color-poster-red);
-  --ink-shift: 5px;
-  background: var(--color-brand);
-  color: var(--color-on-brand);
-  border-bottom: 2px solid var(--color-on-brand);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .bandInner {
@@ -49,9 +53,9 @@
   margin: 0;
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-on-brand);
+  color: var(--color-text-muted);
 }
 
 .counter {
@@ -65,27 +69,25 @@
 /* The type line, in its own tint: the same ink, without the weight of the counter. */
 .meta {
   padding-left: var(--space-6);
-  border-left: 1px solid color-mix(in srgb, var(--color-on-brand) 40%, transparent);
+  border-left: 1px solid var(--color-border);
 }
 
 /*
-  The title, at sleeve scale. Instrument Serif at 6vw on a saturated field is the loudest thing on
-  the site after the homepage name, which is correct: this is the one page where the release is the
-  subject. `text-wrap: balance` keeps a two-word remix title from breaking into three ragged lines.
+  The title, at sleeve scale: the release is the subject of this page, so it is the largest thing on
+  it. `text-wrap: balance` keeps a three-word remix title from breaking into ragged lines.
 */
 .title {
   margin: var(--space-2) 0 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
+  font-weight: 500;
   font-size: clamp(2.375rem, 6.6vw, 5.75rem);
-  line-height: 0.94;
-  letter-spacing: -0.03em;
-  margin-left: -0.03em;
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
   text-wrap: balance;
 }
 
 .tail {
-  font-style: italic;
+  color: var(--color-text-secondary);
 }
 
 .lead {
@@ -102,7 +104,7 @@
   max-width: 40ch;
   margin: var(--space-4) 0 0;
   padding-top: var(--space-3);
-  border-top: 2px solid var(--color-on-brand);
+  border-top: 1px solid var(--color-hairline);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -110,8 +112,9 @@
 .noLinksLabel {
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
+  color: var(--color-signal-blue);
 }
 
 /* --------------------------------------------------------------- the print */
@@ -160,12 +163,12 @@
   margin: 0 0 var(--space-4);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-brand);
+  color: var(--color-signal-blue);
 }
 
-/* Printed on the blue field: ink rows over ink hairlines, spanning the whole band. */
+/* The listening rows: hairline rules across the whole band, one row per platform. */
 .links {
   grid-column: 1 / -1;
   display: grid;
@@ -173,7 +176,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 2px solid var(--color-on-brand);
+  border-top: 1px solid var(--color-hairline);
 }
 
 /*
@@ -187,8 +190,8 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4) var(--space-3) 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-on-brand) 35%, transparent);
-  color: var(--color-on-brand);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
   text-decoration: none;
   transition:
     background var(--duration-base) var(--ease),
@@ -196,17 +199,13 @@
     padding var(--duration-base) var(--ease-out);
 }
 
-/* The inversion, same as the homepage index: blue paper → solid ink. */
+/* Same gesture as the homepage index: a tint of the accent and a lit left edge. */
 .link:hover,
 .link:focus-visible {
-  background: var(--color-on-brand);
-  color: var(--color-brand);
+  background: color-mix(in srgb, var(--color-signal-blue) 10%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-signal-blue);
   padding-left: var(--space-4);
   outline: none;
-}
-
-.link:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--color-brand);
 }
 
 .linkIndex,
@@ -214,22 +213,22 @@
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.18em;
-  color: var(--color-on-brand);
+  color: var(--color-text-muted);
 }
 
 .link:hover .linkIndex,
 .link:focus-visible .linkIndex,
 .link:hover .linkArrow,
 .link:focus-visible .linkArrow {
-  color: var(--color-brand);
+  color: var(--color-signal-blue);
 }
 
 .linkLabel {
   font-family: var(--font-display-stack);
-  font-weight: 400;
+  font-weight: 500;
   font-size: clamp(1.5rem, 3.6vw, 2.75rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
 }
 

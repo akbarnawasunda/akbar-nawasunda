@@ -11,13 +11,17 @@
 
 .eyebrow {
   font-family: var(--font-mono-stack);
-  font-size: var(--text-label);
+  font-size: 0.6875rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-signal-blue);
 }
 
-/* Mirror: the label and the "see all" link swap sides, the text still reads left to right. */
+/*
+  Mirrored section heads were the zine's idea of rhythm (D-111). On a page whose whole argument is
+  symmetry, a title that flips to the right gutter every other section reads as an accident, so the
+  mirror still exists for callers that ask for it but the homepage no longer does.
+*/
 .end {
   flex-direction: row-reverse;
 }
@@ -28,19 +32,13 @@
   text-align: right;
 }
 
-.head {
-  /* Section scale: the plate is pulled 3 px, so a section head reads as printed and not as a
-     drop shadow competing with the page's own h1. */
-  --ink-shift: 3px;
-}
-
 .title {
   margin-top: var(--space-3);
   font-family: var(--font-display-stack);
-  font-weight: 400;
+  font-weight: 500;
   font-size: var(--text-title);
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-hero);
+  letter-spacing: var(--tracking-tight);
 }
 
 .action {
@@ -53,6 +51,7 @@
   transition: color var(--duration-fast) var(--ease);
 }
 
-.action:hover {
-  color: var(--color-text-primary);
+.action:hover,
+.action:focus-visible {
+  color: var(--color-signal-blue);
 }

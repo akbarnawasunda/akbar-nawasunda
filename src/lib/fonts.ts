@@ -4,45 +4,46 @@ import localFont from "next/font/local";
  * Three vendored families, self-hosted so the build never depends on a third-party font host.
  * Files and their OFL licences live in src/assets/fonts.
  *
- * - display: **Anton** (single weight 400, 18 KB latin). Round 12 replaced Instrument Serif with it
- *   after the owner's verdict on the serif build: "template AI yang generik, aman, dan korporat".
- *   He was right, and the reason is structural rather than a matter of taste — a high-contrast serif
- *   plus a clean blue plus a symmetrical grid *is* the visual language of a premium SaaS landing
- *   page in 2026. A zine is set in whatever the print shop had: condensed, heavy, uppercase, tight,
- *   with no finesse in the letterforms at all. Anton is that voice — a 19th-century poster grotesque,
- *   one weight, no italic, 18 KB. The CSS asks for `font-style: italic` on two accents and the
- *   browser synthesises an oblique, which is exactly what a photocopied zine does.
+ * Round 15 replaced the display face again, and this time the reason is the whole art direction,
+ * not one detail. The zine pass set everything in Anton — a 19th-century poster grotesque, one
+ * weight, tight, uppercase. At 144 px it shouted, which was the point then and is the problem now:
+ * a page built out of poster type has no room to breathe, and the owner's verdict on the result was
+ * "font looks cheap, text hard to read". A premium high-tech interface is set in a *geometric*
+ * sans with real letterforms and a full weight range, and it whispers rather than shouts.
  *
- *   The two Instrument Serif files stay in `src/assets/fonts` (they are real assets and the licence
- *   is committed) but neither is loaded any more: dropping them from the loader removes 43 KB from
- *   the build and one preload from the critical path.
- * - body: **Instrument Sans** (variable 400-700). Designed by the same foundry as the display face,
- *   so the two share proportions and terminals; Inter was neutral to the point of anonymous.
- * - mono: **JetBrains Mono** for metadata such as "BANDUNG BARAT • SINCE 2020".
+ * - display: **Space Grotesk** (variable 300–700, 22 KB latin). Geometrically constructed, slightly
+ *   quirky terminals, designed for interfaces and headlines rather than posters. It reads as
+ *   technical without cosplay — the register the 3D monogram is already in.
+ * - body: **Inter** (variable 100–900, 48 KB latin). The most legible UI sans there is; at 15–17 px
+ *   it is the reason long copy in this design can be *longer* than the zine's and still read.
+ * - mono: **JetBrains Mono** for labels, indices and metadata.
  *
- * preload: false on the text faces. Their `@font-face` rules are inlined in the document, so the
- * browser still finds them immediately — but without a <link rel=preload> they stop competing with
- * the hero portrait for the first 200 KB of the mobile connection (D-072). Display type keeps its
- * preload: the H1 is the largest text on the page and a serif is far more obvious when it flashes a
- * fallback than a grotesque was.
+ * Anton stays in `src/assets/fonts` (real asset, licence committed) but is no longer loaded: one
+ * fewer family on the critical path.
+ *
+ * preload: false on the two text faces — their @font-face rules are inlined in the document, so the
+ * browser still finds them immediately, but without a <link rel=preload> they stop competing with
+ * the hero photograph for the first 200 KB of a mobile connection (D-072). The display face keeps
+ * its preload: the H1 is the largest text on the page, and a geometric sans flashing a fallback is
+ * more obvious than a condensed one was.
  */
 export const displayFont = localFont({
-  src: "../assets/fonts/anton-latin-400.woff2",
+  src: "../assets/fonts/space-grotesk-latin-wght-normal.woff2",
   variable: "--font-display",
   display: "swap",
-  weight: "400",
-  /* The fallback is a condensed grotesque stack before it reaches a serif: if Anton never arrives,
-     the page should still read as a poster, not as a book. */
-  fallback: ["Impact", "Haettenschweiler", "Arial Narrow Bold", "Helvetica Neue", "Arial", "sans-serif"],
+  weight: "300 700",
+  /* A geometric sans before a condensed one: if Space Grotesk never arrives the page should still
+     look like an interface, not like a newspaper. */
+  fallback: ["Helvetica Neue", "Inter", "Arial", "sans-serif"],
   adjustFontFallback: false,
 });
 
 export const bodyFont = localFont({
-  src: "../assets/fonts/instrument-sans-latin-wght.woff2",
+  src: "../assets/fonts/inter-latin-wght-normal.woff2",
   variable: "--font-body",
   display: "swap",
   preload: false,
-  weight: "400 700",
+  weight: "100 900",
   fallback: ["ui-sans-serif", "system-ui", "Helvetica Neue", "Arial", "sans-serif"],
   adjustFontFallback: false,
 });

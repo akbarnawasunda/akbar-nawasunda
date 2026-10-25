@@ -1,101 +1,200 @@
+/*
+  The archive wall (round 15).
+
+  The previous pass laid these prints by hand: each tile rotated a fraction of a degree off the wall
+  and lifted 46 px out of it on hover. That was the zine, and it is gone. What replaces it is the
+  most literal reading of "precise": one square, one gap, one hairline, and the crop doing the
+  composing.
+
+  Two things earn their complexity here:
+
+  1. **The treatment.** Six owner files are reused across five routes, so a tile that is left plain
+     looks like the same photograph you already scrolled past. Every tile is duotoned and screened
+     (see `.frame`), which is a legible, deliberate look rather than a filter switch.
+  2. **The crop.** The same portrait at 42% 20% and at 58% 30% is two different photographs to a
+     reader. Alternating the anchor per column is the cheapest way to make a contact sheet feel
+     authored instead of dumped.
+
+  Symmetry is not negotiable on this page, so: three equal columns, equal gaps, equal squares. The
+  only asymmetry is which part of each frame the crop keeps.
+*/
+
 .grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6) var(--space-4);
 }
 
 .photoTile,
 .surfaceTile {
   position: relative;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
-  background: var(--color-bg-surface);
-}
-
-.photoTile {
-  aspect-ratio: 4 / 5;
-  /* grid (not block): the trigger inside sizes with height:100%, which needs a definite track. */
   display: grid;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
-.surfaceTile {
-  aspect-ratio: 4 / 5;
-  display: grid;
-  place-items: center;
-}
+/* ---------------------------------------------------------------- the print */
 
-/* Stagger the second column so the block does not read as a symmetric 2x2 (reference 3).
-   Scoped to the grid variant: in the masonry the tiles already sit at different heights. */
-.grid:not(.masonry) li:nth-child(2) {
-  margin-top: var(--space-8);
-}
-
-.grid:not(.masonry) li:nth-child(3) {
-  margin-top: calc(var(--space-8) * -1);
-}
-
-.trigger {
+.frame {
   position: relative;
   display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: zoom-in;
-  color: inherit;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--color-border);
+  background: var(--color-field);
+  transition: border-color var(--duration-base) var(--ease);
 }
 
-.trigger img {
+/*
+  Every image on this page is duotone: grayscale first so the six files share one tonal ramp, then
+  a sepia pass rotated into the accent's hue so that ramp runs ink → neon instead of ink → brown.
+  No `mix-blend-mode` and no blur: both are on the project's anti-slop list, and neither is needed —
+  a filter chain is enough and it costs one compositor pass.
+*/
+.frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--duration-base) var(--ease-out);
+  object-position: 50% 24%;
+  filter: grayscale(1) contrast(1.06) brightness(0.92) sepia(0.32) hue-rotate(178deg) saturate(2.6);
+  transition:
+    filter var(--duration-base) var(--ease),
+    scale var(--duration-slow) var(--ease-out);
 }
 
-.surfaceTile .trigger img {
+/* The screen: a 3 px raster at 4 % white, the way a monitor shows a photograph. Drawn as an overlay
+   so it never touches the image's own contrast. */
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.04) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* Marks (monogram, mascot, lockup) are drawings on white, not photographs: contain them, and lift the
+   brightness so the white field stays a white field after the duotone. */
+.surfaceTile .frame img {
   object-fit: contain;
-  padding: 18%;
+  padding: 16%;
+  filter: grayscale(1) contrast(1.02) brightness(1.04) sepia(0.16) hue-rotate(178deg) saturate(1.9);
 }
 
-.trigger:hover img {
-  transform: scale(1.03);
+/* Crop anchors, alternating by position so no two neighbours keep the same part of the frame. */
+.grid > li:nth-child(2n) .frame img {
+  object-position: 58% 32%;
+}
+
+.grid > li:nth-child(3n) .frame img {
+  object-position: 40% 40%;
+}
+
+/* --------------------------------------------------------------- caption row */
+
+.meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.ordinal {
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  color: var(--color-signal-blue);
+  font-variant-numeric: tabular-nums;
 }
 
 .caption {
-  position: absolute;
-  left: var(--space-3);
-  bottom: var(--space-3);
-  z-index: 1;
-  padding: 4px 8px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease);
 }
 
 .expand {
-  position: absolute;
-  right: var(--space-3);
-  top: var(--space-3);
-  z-index: 1;
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease);
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transition: color var(--duration-fast) var(--ease);
 }
 
+.trigger {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: zoom-in;
+}
+
+.trigger:focus-visible {
+  outline-offset: 6px;
+}
+
+.trigger:hover .frame,
+.trigger:focus-visible .frame {
+  border-color: var(--color-signal-blue);
+}
+
+.trigger:hover .frame img,
+.trigger:focus-visible .frame img {
+  /* The hover is a change of exposure, not of position: nothing on this page moves off the grid. */
+  filter: grayscale(0.35) contrast(1.08) brightness(1) sepia(0.18) hue-rotate(178deg) saturate(1.8);
+  scale: 1.02;
+}
+
+.trigger:hover .caption,
+.trigger:focus-visible .caption,
 .trigger:hover .expand,
 .trigger:focus-visible .expand {
-  opacity: 1;
+  color: var(--color-signal-blue);
+}
+
+/* The homepage block: same object, two columns, no size change. */
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid.masonry .frame,
+  .grid:not(.masonry) .frame {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+@media (min-width: 900px) {
+  .grid {
+    gap: var(--space-8) var(--space-6);
+  }
+
+  .masonry {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .masonry .frame {
+    aspect-ratio: 1 / 1;
+  }
 }
 
 /* ------------------------------------------------------------------ lightbox */
@@ -114,31 +213,32 @@
   inset: 0;
   border: 0;
   padding: 0;
-  background: rgba(5, 5, 6, 0.92);
+  background: rgb(5 5 7 / 0.94);
   cursor: zoom-out;
 }
 
 .lightbox {
   position: relative;
   margin: 0;
-  max-width: min(92vw, 820px);
-  max-height: 82vh;
+  max-width: min(92vw, 880px);
+  max-height: 84vh;
   display: grid;
   gap: var(--space-3);
   justify-items: center;
 }
 
+/* The lightbox shows the file as the owner supplied it — the duotone is a page treatment, not an
+   edit to the asset, so the largest view is the honest one. */
 .lightbox img {
-  max-height: 72vh;
+  max-height: 74vh;
   width: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-hairline-strong);
 }
 
 .lightboxCaption {
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
-  letter-spacing: 0.18em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
@@ -149,111 +249,12 @@
   right: var(--space-4);
   min-height: 40px;
   padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-bg-surface);
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   cursor: pointer;
-}
-
-/* ------------------------------------------------------------------ masonry */
-
-/*
-  The archive keeps the source aspect ratios (4:5 portrait, 1:1 stage) instead of forcing every tile
-  into one box, which is what makes it read as a contact sheet rather than a product grid.
-  CSS columns do the packing; the li owns the aspect ratio and the tile fills it, so the trigger's
-  `height: 100%` always has a definite box to resolve against.
-*/
-.masonry {
-  display: block;
-  columns: 1;
-  column-gap: var(--space-4);
-  /*
-    The wall has a vanishing point (R8). Each print is a flat object on it, and the one you point at
-    comes forward and takes a blue plate behind it — the same misregistered-print device as the
-    homepage sleeve, scaled down to a printed photograph.
-  */
-  perspective: 1500px;
-}
-
-.masonry li {
-  display: block;
-  break-inside: avoid;
-  margin: 0 0 var(--space-4);
-  /* Deterministic "laid by hand": alternating prints sit a couple of degrees off the wall. It never
-     changes between builds, so it cannot reshuffle on a re-render. */
-  transform: rotate(-0.6deg);
-}
-
-.masonry li:nth-child(even) {
-  transform: rotate(0.7deg);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .masonry li:hover {
-    z-index: 1;
-  }
-
-  .masonry li:hover .photoTile,
-  .masonry li:focus-within .photoTile,
-  .masonry li:hover .surfaceTile,
-  .masonry li:focus-within .surfaceTile {
-    transform: translateZ(46px) rotateY(-2.5deg) rotateX(1.5deg);
-    box-shadow: 16px 18px 0 var(--color-brand);
-  }
-}
-
-.masonry .photoTile,
-.masonry .surfaceTile {
-  aspect-ratio: auto;
-  display: block;
-  height: 100%;
-  /* A print has no radius and no frame: the photograph is the edge. */
-  border: 0;
-  border-radius: 0;
-  transform-style: preserve-3d;
-  transition:
-    transform 380ms var(--ease-out),
-    box-shadow 380ms var(--ease-out);
-}
-
-.masonry li:nth-child(1) {
-  aspect-ratio: 4 / 5;
-}
-
-.masonry li:nth-child(2),
-.masonry li:nth-child(4) {
-  aspect-ratio: 1 / 1;
-}
-
-.masonry li:nth-child(3) {
-  aspect-ratio: 16 / 9;
-}
-
-.masonry li:nth-child(5),
-.masonry li:nth-child(6) {
-  aspect-ratio: 4 / 3;
-}
-
-/* Two columns from 560px: a third column leaves a hole under the shortest tile, and two wider
-   columns give the portrait the room it needs. */
-@media (min-width: 560px) {
-  .masonry {
-    columns: 2;
-  }
-}
-
-@media (max-width: 559px) {
-
-  .grid:not(.masonry) li:nth-child(2) {
-    margin-top: var(--space-4);
-  }
-
-  .grid:not(.masonry) li:nth-child(3) {
-    margin-top: calc(var(--space-4) * -1);
-  }
 }

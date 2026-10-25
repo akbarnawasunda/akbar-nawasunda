@@ -1,184 +1,59 @@
 /*
-  /contact — a mailbox printed on a navy field (R12).
+  /contact (round 15).
 
-  Two things were wrong with the R8 build, and the owner named both: the field was that clean digital
-  blue, and the right two thirds of it were empty. A contact page is a *flyer* — one address, a lot
-  of ink furniture around it — so the head is now a two-column press sheet: the address on the left,
-  a running strip and a barcode on the right, halftone along the trim.
+  The zine made this head a "flyer": a navy field with press rules, a barcode and a running strip
+  down the right margin. Three decorations whose only job was to fill the empty half — and all three
+  were print artefacts the owner has since rejected by name.
 
-  Ink discipline on the field is unchanged from R8 and still load-bearing: paper type on navy, no grey
-  anywhere (a 70% grey on a saturated field is 2.8:1, which is why nothing here is muted).
+  The empty half is now the point. One address at display size, a hairline under the header, and an
+  unbroken measure to the right of it. On a contact page the address *is* the design, and the fastest
+  way to look expensive is to leave it alone.
 */
 
 .head {
   position: relative;
-  --ink-shift: 6px;
-  --ink-plate-red-x: 3px;
-  --ink-plate-red-y: 2px;
-  --ink-plate-cyan-x: -3px;
-  --ink-plate-cyan-y: -2px;
-  background: var(--color-field);
-  color: var(--color-on-field);
-  border-block: 4px solid var(--color-ink-black);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
   overflow: hidden;
-}
-
-/*
-  The halftone trim: flat hard-stop stripes, no gradient interpolation, no blur.
-*/
-.head::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 14px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-brand) 0 4px,
-    transparent 4px 9px
-  );
-  pointer-events: none;
 }
 
 .headInner {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: end;
-  gap: var(--space-3);
+  gap: var(--space-4);
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: calc(var(--header-height) + var(--space-12)) var(--gutter) var(--space-12);
-}
-
-@media (min-width: 1024px) {
-  .headInner {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
-    column-gap: var(--space-8);
-  }
-
-  /* The address and its note take the left column; the furniture owns the right one. */
-  .eyebrow,
-  .title,
-  .lead,
-  .mail,
-  .mailNote {
-    grid-column: 1;
-  }
-}
-
-/* --- printer's furniture: rules, a barcode, a running head ----------------------------- */
-
-/*
-  Measured twice, not guessed.
-
-  Attempt one repeated the strip six times inside a 44 px box: a 2023 px column that the head's
-  `overflow: hidden` clipped, so it rendered and nobody could see it. Attempt two printed the strip
-  once, but in normal flow with its intrinsic height — 321 px of type dragged the head from 552 px
-  to 881 px, i.e. a page whose header was taller than the viewport, with the halftone trim below the
-  fold. The strip is furniture; it must never set the size of the sheet it is printed on.
-
-  So it is small and it is short. Column two now carries three marks, top to bottom: a block of
-  press rules, a barcode, and a running head laid on the column axis. All three together measure
-  less than the address column, so the head stays content-shaped.
-*/
-.furniture {
-  display: none;
-}
-
-/*
-  Out of flow on purpose. As a flow sibling of `.headInner` the block measured 321 px tall and turned
-  a 552 px head into an 881 px one — the halftone trim fell below the fold and the strip, being the
-  last item, was clipped mid-word. Absolute positioning pins the furniture to the sheet's right
-  margin without letting it set the size of the sheet: the head stays exactly as tall as the address.
-*/
-@media (min-width: 1024px) {
-  .furniture {
-    display: flex;
-    position: absolute;
-    top: calc(var(--header-height) + var(--space-12));
-    right: var(--gutter);
-    bottom: calc(var(--space-8) + 14px);
-    width: 32%;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: flex-end;
-    gap: var(--space-6);
-    pointer-events: none;
-  }
-}
-
-/*
-  A ruled band, two pixels of ink every ten. At 1 px every 7 the block read as three empty form
-  fields — the pitch was so fine that the eye grouped it into a box. At 2/10 it is unmistakably a
-  ruling, which is what a press sheet puts in the margin nobody is going to write on.
-*/
-.rules {
-  width: 100%;
-  height: 64px;
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--color-brand) 0 2px,
-    transparent 2px 10px
-  );
-}
-
-.strip {
-  margin: 0;
-  writing-mode: vertical-rl;
-  font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--color-on-field);
-  white-space: nowrap;
-  /* Faint: it is furniture, not a label. Half-tone ink on the same sheet. */
-  opacity: 0.72;
-  /* Clear of the fixed "balik lembar" tab at the right edge (measured at 1440: the tab owns the
-     last 46 px), and clear of the trim below. */
-  margin-right: var(--space-8);
-  margin-bottom: var(--space-2);
-}
-
-.barcode {
-  width: 92px;
-  height: 40px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-on-field) 0 2px,
-    transparent 2px 4px,
-    var(--color-on-field) 4px 5px,
-    transparent 5px 9px,
-    var(--color-on-field) 9px 13px,
-    transparent 13px 14px,
-    var(--color-on-field) 14px 15px,
-    transparent 15px 18px
-  );
+  padding: calc(var(--header-height) + var(--space-16)) var(--gutter) var(--space-16);
 }
 
 .eyebrow {
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-on-field);
+  color: var(--color-signal-blue);
 }
 
 .title {
   margin: 0;
   text-transform: uppercase;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(3rem, 7.5vw, 6rem);
-  line-height: 0.84;
-  letter-spacing: 0;
+  font-weight: 500;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
 }
 
 .lead {
   max-width: 46ch;
   margin: var(--space-2) 0 0;
-  font-size: 0.9375rem;
+  font-size: clamp(1rem, 1.1vw, 1.125rem);
   line-height: var(--leading-body);
+  color: var(--color-text-secondary);
 }
 
 .mail {
@@ -187,28 +62,26 @@
   font-weight: 400;
   font-size: clamp(1.375rem, 5.2vw, 4rem);
   line-height: 1.05;
-  letter-spacing: 0;
-  color: var(--color-on-field);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
   text-decoration: none;
   overflow-wrap: anywhere;
   width: fit-content;
-  border-bottom: 4px solid var(--color-on-field);
+  border-bottom: 1px solid var(--color-hairline-strong);
   /* 0.08em put the rule through the descender of the g and the tail of the @ (measured in the page
      review: 5.12px of padding against ~14px of descender at 64px). 0.2em cleared it, but at 64px
      that is a 12.8 px gap — the rule floats away from the word. 0.12em clears the descender and
      still sits on the baseline like a ruled line under a headline. */
   padding-bottom: 0.12em;
   transition:
-    background 220ms var(--ease),
-    color 220ms var(--ease),
-    padding 220ms var(--ease-out);
+    border-color 220ms var(--ease),
+    color 220ms var(--ease);
 }
 
 .mail:hover,
 .mail:focus-visible {
-  background: var(--color-on-field);
-  color: var(--color-field);
-  padding-inline: 0.12em;
+  border-color: var(--color-signal-blue);
+  color: var(--color-signal-blue);
 }
 
 .mailNote {
@@ -216,6 +89,7 @@
   margin: var(--space-6) 0 0;
   font-size: 0.875rem;
   line-height: 1.6;
+  color: var(--color-text-muted);
 }
 
 /* ------------------------------------------------------------------- below */
@@ -234,10 +108,10 @@
 .sectionTitle {
   margin: 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
+  font-weight: 500;
   font-size: clamp(1.75rem, 3.4vw, 2.75rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
 }
 
 .label {
@@ -294,5 +168,5 @@
 
 .links a:hover,
 .links a:focus-visible {
-  color: var(--color-text-primary);
+  color: var(--color-signal-blue);
 }

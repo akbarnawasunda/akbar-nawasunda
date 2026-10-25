@@ -49,25 +49,28 @@ body {
   font-synthesis: none;
 }
 
-/* One material, used on purpose: paper. The About band and the press sheet are printed stock, so
-   they get a flat off-white surface and a 2px edge — no torn bottom (a torn edge is ornament: it
-   carries no information and it was the loudest random-looking device on the page, D-108). */
-
+/*
+ * One panel material. Round 15 removed the printed sheet: there is no light surface anywhere on the
+ * site now. `--color-paper` is still the name every component uses, but it resolves to a surface a
+ * few percent above the ground, edged with a hairline. Structure comes from that line, not from a
+ * fill — which is what keeps a 10-section page from looking like ten cards.
+ */
 .paper {
   background: var(--color-paper);
   color: var(--color-paper-ink);
-  border-radius: 2px;
+  border-block: 1px solid var(--color-border);
 }
 
-/* Atmospheric texture: 2% noise, never a gradient wash (COLOR_SYSTEM.md). Fixed so it does not
-   scroll with content and cannot be mistaken for an image. */
+/* Atmospheric texture: 1.5% noise, never a gradient wash. Fixed so it does not scroll with content
+   and cannot be mistaken for an image. Round 15 pulled this back from the zine's 6.5% — at 6.5% it
+   read as photocopier dirt on top of a premium object. */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: var(--z-chrome);
   pointer-events: none;
-  opacity: 0.02;
+  opacity: 0.015;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -77,6 +80,51 @@ canvas,
 picture {
   display: block;
   max-width: 100%;
+}
+
+/*
+ * Photograph treatment — one rule, every photo.
+ *
+ * The archive is six owner files and a handful of release sleeves, reused across five routes. Left
+ * plain, the same portrait appears three times in one scroll and the page reads as thin. Duotone
+ * fixes that at the source: grayscale first (so every photo shares one tonal ramp regardless of what
+ * colour it was shot under), then a sepia pass rotated into the accent's hue, which maps that ramp
+ * onto ink → neon instead of ink → brown.
+ *
+ * Verified against the actual files: the night street frame, the studio portrait and the empty stage
+ * all land on the same blue, which is what stops them looking like three different photographers.
+ */
+.site-main img,
+.stage img {
+  filter: grayscale(1) contrast(1.08) brightness(0.9) sepia(0.34) hue-rotate(178deg) saturate(2.7);
+}
+
+/* Sleeve artwork is typography, not photography: it is duotoned one step lighter, because a sleeve's
+   own title has to stay readable at 320 px. */
+.cover img {
+  filter: grayscale(1) contrast(1.02) brightness(0.96) sepia(0.22) hue-rotate(178deg) saturate(2.1);
+}
+
+/*
+ * Scanlines. A two-pixel raster laid over a photo, the way a monitor in a 1980s control room shows
+ * one. Applied as an overlay element rather than a filter so it never touches the image's own
+ * contrast, and at 4% white so it reads as the glass in front of the photo, not as a pattern on it.
+ */
+.scan {
+  position: relative;
+}
+
+.scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.04) 0 1px,
+    transparent 1px 3px
+  );
 }
 
 h1,
@@ -95,55 +143,39 @@ a {
 
 ::selection {
   background: var(--color-signal-blue);
-  color: #000;
+  color: var(--color-on-brand);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-  border-radius: 2px;
+  outline: 2px solid var(--color-signal-blue);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 /*
- * Two plates, one sheet.
+ * Display type, lit.
  *
- * `--ink-x` / `--ink-y` are written by <InkPress /> from the pointer and read by every `.ink`
- * heading below. They default to 0, which is the registered state: with no pointer, or under
- * reduced motion, the type still carries its second plate, at zero offset, and prints flat.
+ * The zine pass printed every heading twice — a red plate and a cyan plate a couple of pixels out of
+ * register, moving under the pointer. It was the most distinctive thing on the site and it is also
+ * the thing the owner called cheap: at 40 px it reads as a printing accident, and a printing
+ * accident next to a black chrome 3D object reads as a mistake, not a style.
  *
- * The ghost is a `text-shadow` rather than a duplicated element on purpose — it inherits with the
- * glyphs, survives an <em> inside a heading, cannot be selected or read out, and never touches the
- * colour of the ink itself, so contrast is always measured on the real type.
+ * `.ink` is now what a neon interface does to type instead: a soft bloom of the accent under the
+ * glyphs, plus a 1 px core so the edges stay crisp at small sizes. `--ink-x` / `--ink-y` are still
+ * written by <InkPress /> from the pointer, but they modulate the *bloom radius*, not a duplicate
+ * plate — the type never leaves its position, which is the whole point of a precise layout.
  */
 :root {
   --ink-x: 0;
   --ink-y: 0;
-  --ink-shift: 5px;
-  /*
-   * R12 — two plates, and they never line up.
-   *
-   * The single ghost offset that shipped in R9 read as a drop shadow, which is the one thing a
-   * misprint is not: a shadow is *behind* the type, a slipped plate is *beside* it. So the display
-   * type now carries two colour plates — red one way, cyan the other — each with its own resting
-   * offset, and the pointer moves both. `--ink-plate-*` are the resting misregistration; the pointer
-   * adds `--ink-shift` on top.
-   *
-   * The resting offsets are what matter for character: a zine printed on a machine that was slightly
-   * out of register looks like that *before* anyone interacts with it. Zero interaction, still wrong.
-   */
-  --ink-plate-red-x: 2px;
-  --ink-plate-red-y: 1px;
-  --ink-plate-cyan-x: -2px;
-  --ink-plate-cyan-y: -1px;
-  --ink-ghost: var(--color-misreg-red);
+  --ink-glow: 18px;
+  --ink-glow-tight: 3px;
 }
 
 .ink {
   text-shadow:
-    calc(var(--ink-plate-red-x) + var(--ink-x) * var(--ink-shift))
-      calc(var(--ink-plate-red-y) + var(--ink-y) * var(--ink-shift)) 0 var(--color-misreg-red),
-    calc(var(--ink-plate-cyan-x) + var(--ink-x) * var(--ink-shift) * 0.6)
-      calc(var(--ink-plate-cyan-y) + var(--ink-y) * var(--ink-shift) * 0.6) 0 var(--color-misreg-cyan);
+    0 0 calc(var(--ink-glow-tight) + (var(--ink-x) + var(--ink-y)) * 1.5px) rgb(0 135 255 / 0.55),
+    0 0 calc(var(--ink-glow) + (var(--ink-x) + var(--ink-y)) * 6px) rgb(0 135 255 / 0.22);
 }
 
 /*

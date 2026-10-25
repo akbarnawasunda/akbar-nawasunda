@@ -1,100 +1,37 @@
 /*
-  Homepage — "frekuensi" (D-119).
+  Beranda — "NEON GRID" (round 15).
 
-  Composition rules for this file, so the next pass does not have to rediscover them:
+  This file replaces the zine pass completely. The zine was built out of *print artefacts*: rotated
+  stickers, misregistered plates, barcodes, halftone bands, a torn sheet, a vertical running head.
+  Every one of those was a deliberate break in the grid, and together they made the page loud and
+  hard to read — which is exactly what the owner rejected.
 
-  - Bands, not cards. Every section is a full-width band with a hairline or a photograph as its
-    edge. Nothing on this page is a bordered box with a radius, except the paper sheet, which is
-    paper.
-  - Scale is the hierarchy. The name is ~14vw, section headings are ~9vw, release titles are
-    ~5vw, labels are 10px. There is almost nothing in between, which is what stops the page from
-    reading as a dashboard.
-  - One accent. Signal blue: the full stop, the drawn timeline, the link underline, the focus ring.
-    Amber: exactly one 5px record light in the ticker. Everything else is ink, paper or muted grey.
-  - No circular-gradient washes, no blur filters, no blend modes, no endless animation in this
-    file — tests/fixtures/anti-ai.ts enforces all four, comments included, which is why this note
-    describes them instead of spelling them.
+  What is here instead is the opposite discipline, and it is worth stating as a rule because the
+  whole page follows from it:
+
+      structure is a hairline, hierarchy is size and space, and the only colour is a light.
+
+  So: one ground, one ink, one accent. Sections are separated by a 1 px line and 8–10 rem of air
+  rather than by a fill. Nothing is rotated, nothing overlaps, nothing sits off the grid. Display
+  type is a geometric sans at a size that earns the space around it, and every number on the page is
+  either derived from the catalogue or absent.
+
+  Layout: a 1240 px measure inside a fluid gutter, a 12-column mental model used sparingly (two
+  columns where there are genuinely two things), and a vertical rhythm on the 4 px scale.
 */
 
-/* ==================================================================== hero */
+/* ======================================================================= hero */
 
 .hero {
-  /* The name is the biggest ink on the site, so its plate is pulled the furthest: 7 px at the
-     pointer's edge, which is what makes the hero read as two passes rather than a drop shadow. */
-  --ink-shift: 7px;
-
-  /*
-    How far the printed sheet sits behind the glass (D-128).
-
-    The hero is a room with one sheet of paper held in it. The photograph is the room and holds
-    still under the pointer; the type is printed on the sheet and turns as a single rigid object.
-    Everything on the sheet therefore stays in register with everything else on it — masthead rule,
-    name, paragraph, facts, cue — which is the part the last build got wrong.
-
-    The last build gave every layer its own `translateZ` (name +55 px, masthead −110 px, foot
-    +15 px, facts −55 px) inside a 1500 px lens. It is the textbook parallax stack and it was
-    measured against the real hero before being thrown out:
-
-    - **A layer at negative Z is pulled towards the vanishing point.** At −110 px the masthead rule
-      ended 48 px inside both gutters instead of on them, and the facts bar sat 25 px inside the
-      paragraph above it. Both read as a broken layout, not as depth, because a stack of
-      left-aligned text is supposed to share one vertical edge.
-    - **A layer at positive Z is magnified.** At +55 px the name's own box reached 8.4 px outside a
-      320 px viewport and 7.4 px outside a 390 px one; `overflow: clip` is what would have eaten the
-      `ink` offset on the last glyph. The glyphs happened to survive inside the block's sidebearing,
-      so this is not a visible bug at every width — but the frame stopped holding the sheet, and
-      that is not something to leave to luck on the narrowest device.
-    - Forward magnification is only 1300/(1300−55) ≈ 3.8% anyway, which nobody can see, while both
-      of the failures above are structural. So the name does not come towards the reader at all.
-
-    What is left is the honest version: the whole block is ONE surface, 40 px behind the glass, so
-    it projects at 1300/1340 = 0.970 — three per cent its own size, with air on every side, which is
-    what lets the paper read as an object in a room rather than a crop of one. Turning that surface
-    then does the work: its near edge is magnified outwards and its far edge contracts inwards, so
-    the block slides towards the near side and every line on it foreshortens together.
-
-    The photo behind it does not turn at all. That is deliberate: a static room is the reference
-    that makes the sheet's movement legible as *the paper moved*, not as *the page moved*. The two
-    planes also separate on scroll, where `Depth` drifts the photograph 70 px against the type — but
-    on pointer there is nothing for the type to slide against, which is exactly why it reads as one
-    object rather than as several.
-
-    Clearance was measured for that turn at 320 / 390 / 768 / 1024 / 1280 / 1440 / 1920, pointer in
-    both bottom corners: the name's ink stays at least 13 px from the nearest edge of the viewport,
-    and the cue keeps 17 px from the bottom of the hero. Values here are transform offsets, not
-    spacing, so they are structural literals (AGENTS.md §1.2).
-  */
-  --depth-sheet: -40px;
-
   position: relative;
   display: grid;
-  /*
-    One screen *including* the header, not one screen plus the header.
-
-    At `100svh` the hero box started 73 px down the page and ended 73 px below the fold, so the
-    scroll cue — the last thing on the sheet — was never on screen at 1440x900, and on a laptop the
-    facts row sat hard against the bottom edge. A magazine page is composed to fit the plate it is
-    printed on; an opening spread that loses its last line to the trim is a mistake, not a style.
-  */
   min-height: calc(100svh - var(--header-height));
   overflow: clip;
-  isolation: isolate;
-  /*
-    Containment, because the hero is the one band on the site that repaints continuously.
-
-    Every frame the plate turns, the sheet inside it is re-rastered; every frame the pointer moves,
-    the ink plate is re-drawn. Without containment each of those invalidations is *document* work:
-    the layer tree above the hero has to be re-composited and the browser is free to walk ancestors
-    when it decides what to repaint. `contain: layout paint` tells it that nothing inside this box
-    can affect anything outside it and that no pixel of it can escape its own edge — which is
-    already true here (`overflow: clip`, `isolation: isolate`), so the declaration only removes
-    work, it does not change what is drawn.
-
-    It does not use `contain: size`, which would treat the box as empty for intrinsic sizing and
-    flatten a phone hero whose content is taller than `100svh`. `layout` alone keeps the height
-    driven by the content, which is what the two lines above rely on.
-  */
+  /* The hero is a self-contained paint surface: nothing inside it can repaint the rest of the page
+     while the plate turns or the photograph parallaxes. `size` containment is deliberately absent —
+     it would treat the box as empty for intrinsic sizing and flatten the hero on a tall phone. */
   contain: layout paint;
+  isolation: isolate;
   background: var(--color-ink-black);
   color: var(--color-text-primary);
 }
@@ -107,8 +44,6 @@
 
 .heroMedia {
   z-index: 0;
-  /* The photograph is deliberately oversized so its parallax never exposes an edge. */
-  scale: 1.06;
 }
 
 .heroImage {
@@ -116,67 +51,44 @@
   height: 100%;
   object-fit: cover;
   /*
-    The empty stage: bulb at the right, floor at the bottom. Crop to keep the light in frame.
-
-    Two crops, because the frame is two shapes (R13, measured). At 1440 the photograph is wider than
-    the viewport and `58% 42%` centres the lit half. On a 390 px phone the same square is scaled to
-    the *height* of the hero and then cropped to a third of its width — at 58% that third lands on
-    the dark stage and a phone user gets a black page. 74% walks the crop to the bulb, so the hero
-    still has a light source at every width.
+    One treated photograph, cropped wide. The frame is 16:9 in the archive; here it is pushed to a
+    cinematic band and anchored to the lamp, so the light sits off-centre behind the type instead of
+    behind the words. The duotone itself comes from the global rule in globals.css — this only picks
+    the crop.
   */
-  object-position: 74% 34%;
-}
-
-@media (min-width: 640px) {
-  .heroImage {
-    object-position: 58% 42%;
-  }
+  object-position: 62% 46%;
+  /*
+    The hero is the one frame that carries the page, and the duotone default leaves it very dark:
+    an empty stage photographed at night has almost no midtones, so brightness is pushed 15 % here
+    and the scrim does the legibility work instead of the exposure.
+  */
+  filter: grayscale(1) contrast(1.06) brightness(1.16) sepia(0.3) hue-rotate(178deg) saturate(2.3);
 }
 
 /*
-  The scrim, rebuilt as three flat washes instead of two.
-
-  What it has to do is a lighting problem, not a decoration one: the photograph's subject is a single
-  warm lamp on the right, and every word in the hero is set on the left. A uniform darkening either
-  kills the lamp (and with it the photograph's only reason to exist) or leaves the type sitting on
-  lit haze — which is what the old two-step version did: 72% at the bottom dropping to 6% by
-  72% height, so the name's second line was the least protected thing on the page while being the
-  largest.
-
-  So the washes are directional:
-
-  - **floor** — heavy and *held* under the type block, then released, so the paragraph and the ruled
-    figures sit on near-ink instead of on the floor of the frame;
-  - **ceiling** — under the header, so the bar never floats on a bright edge;
-  - **left** — at 640 px and up only: a horizontal wash that takes the type column to near-ink and
-    reaches zero right where the lamp begins. The lamp stays warm and the words stay white. Below
-    640 px there is no "column" to protect — the type is the full width — so the vertical washes
-    carry it and the horizontal one would only flatten the photograph.
-
-  Flat linear steps throughout, no blur and no glow (tests/fixtures/anti-ai.ts). The steps are placed
-  where the type actually ends, measured at 1440: the name's descenders at 62% of the frame, the
-  facts row at 94%.
+  The scrim is a single directional wash, not a stack of three.
+  What it has to do is a legibility problem: white 15–96 px type over a photograph. A left-to-right
+  wash to near-ink plus a bottom wash is enough for both, and unlike the zine's three-step version it
+  never produces a visible band edge across the photo.
 */
 .heroScrim {
   z-index: 1;
   background:
-    linear-gradient(to top, var(--color-ink-black) 0%, rgb(5 5 7 / 88%) 26%, rgb(5 5 7 / 52%) 52%, rgb(5 5 7 / 10%) 82%),
-    linear-gradient(to bottom, rgb(5 5 7 / 88%) 0%, rgb(5 5 7 / 30%) 18%, rgb(5 5 7 / 0%) 30%);
+    linear-gradient(90deg, var(--color-ink-black) 0%, rgb(5 5 7 / 0.88) 38%, rgb(5 5 7 / 0.42) 68%, rgb(5 5 7 / 0.2) 100%),
+    linear-gradient(0deg, rgb(5 5 7 / 0.96) 0%, rgb(5 5 7 / 0.25) 42%, rgb(5 5 7 / 0) 70%);
 }
 
-@media (min-width: 640px) {
-  .heroScrim {
-    background:
-      linear-gradient(to top, var(--color-ink-black) 0%, rgb(5 5 7 / 88%) 26%, rgb(5 5 7 / 52%) 52%, rgb(5 5 7 / 10%) 82%),
-      linear-gradient(to bottom, rgb(5 5 7 / 88%) 0%, rgb(5 5 7 / 30%) 18%, rgb(5 5 7 / 0%) 30%),
-      linear-gradient(to right, rgb(5 5 7 / 84%) 0%, rgb(5 5 7 / 62%) 34%, rgb(5 5 7 / 28%) 60%, rgb(5 5 7 / 0%) 80%);
-  }
+.heroScrim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.035) 0 1px,
+    transparent 1px 3px
+  );
 }
 
-/*
-  The stage. It is absolutely positioned over the photograph so the photograph keeps its own
-  full-bleed layout and the type scene can rotate above it without touching that geometry.
-*/
 .heroStage {
   position: absolute;
   inset: 0;
@@ -186,215 +98,112 @@
 .heroInner {
   position: relative;
   z-index: 2;
-  height: 100%;
-  /*
-    A grid with explicit margins, not `space-between`.
-
-    `align-content: space-between` divides whatever is left over into equal gaps, which is why the
-    measured rhythm was 64 px / 62 px / 31 px — even, mechanical, and with no hierarchy: every joint
-    in the composition claimed the same importance. Print sets rhythm by *deciding* the gaps, so the
-    five blocks below are placed from the top with their own air, and only the facts row is allowed
-    to fall to the bottom (`margin-top: auto`). The leftover height therefore collects as one
-    generous margin above the ruled figures — the bottom margin of a page — instead of being spread
-    into three identical ones.
-  */
   display: flex;
   flex-direction: column;
-  gap: 0;
-  /*
-    The sheet itself. One `translateZ` for the whole type block: masthead, name, paragraph, facts and
-    cue all live on this surface and inherit its depth, so they cannot drift apart. `preserve-3d`
-    keeps the box in the plate's scene rather than flattening it on top of the room.
-  */
-  transform: translateZ(var(--depth-sheet));
-  transform-style: preserve-3d;
+  gap: var(--space-12);
   width: 100%;
   max-width: var(--container-max);
+  min-height: calc(100svh - var(--header-height));
   margin-inline: auto;
-  /* Bottom padding is one step wider than the top margin needs to be: when the sheet tips, the cue
-     at its lower edge travels downwards, and the hero clips at its own bottom. Eight px of extra
-     room keeps 16 px of clearance at the worst corner instead of 2 px. */
-  padding: var(--space-12) var(--gutter) var(--space-8);
+  padding: var(--space-8) var(--gutter) var(--space-12);
+  /*
+    The sheet sits 40 px behind the glass. Everything on it — rule, name, facts, cue — shares that
+    one plane, so the plate can lean the whole surface without any two elements slipping out of
+    register. This is the number the depth harness asserts on; it is not decorative.
+  */
+  transform: translateZ(-40px);
 }
+
+/* --------------------------------------------------------------- masthead */
 
 .masthead {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
   padding-bottom: var(--space-4);
-  /* The rule above the name is a printed registration bar: thick, uneven in weight against the
-     hairline everywhere else, and full bleed to the gutter. */
-  border-bottom: 4px solid var(--color-brand);
-  padding-bottom: var(--space-3);
-  /* No transform of its own: the rule is printed on the sheet and turns with it. The old build slid
-     this line against the name by −0.35 of the pointer, which is the parallax the owner read as
-     "flat pictures at different speeds" — two things on one piece of paper cannot do that. */
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-/*
-  The issue line is a sticker taped on the sheet, tilted against the name.
-
-  Two opposite tilts — the name at −1.4°, this at +1.8° — is the cheapest way to say "made by a
-  person with scissors" instead of "laid out by a grid". It also carries the one heavy border in the
-  hero, which is where the eye should start.
-*/
 .kicker {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   margin: 0;
-  padding: var(--space-1) var(--space-3);
-  border: 2px solid var(--color-on-field);
-  background: var(--color-field);
-  color: var(--color-on-field);
   font-family: var(--font-mono-stack);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-}
-
-.masthead {
-  justify-content: flex-start;
-  gap: var(--space-4);
-  position: relative;
-}
-
-.masthead .kicker {
-  rotate: -1.8deg;
-}
-
-.masthead .kicker + .kicker {
-  background: transparent;
   color: var(--color-text-secondary);
-  border-color: var(--color-border-strong);
-  rotate: 1.2deg;
 }
 
-/* The record light. One 5px amber pixel, the only warm colour in the interface. */
+/* A live dot, drawn rather than typed. The only round thing on the page. */
 .live {
   width: 5px;
   height: 5px;
-  border-radius: 50%;
-  background: var(--color-poster-yellow);
-  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-signal-blue);
+  box-shadow: 0 0 10px var(--color-signal-blue);
 }
 
-/*
-  The name. Two lines, 400 weight, the second in italic — the whole typographic idea of the site in
-  one element. 0.82 leading is tighter than a text setting on purpose: at this size the counters
-  still have air, and the two lines have to lock together as a block.
-*/
+/* ------------------------------------------------------------ the name */
+
+.heroText {
+  margin-top: auto;
+}
+
+.heroBody {
+  display: grid;
+  gap: var(--space-8);
+}
+
 .name {
-  /*
-    R12 — the name is a pasted clipping, not a heading.
-
-    Three things make it read as print rather than as a hero: it is set in caps in a condensed poster
-    grotesque, it is rotated a degree and a half off true (a sheet glued down by hand is never
-    square), and it is allowed to run past the column edge — the left margin is pulled out so the
-    "A" sits in the gutter, which is where a zine puts its masthead when it runs out of room.
-
-    The rotation is static: it is part of the setting, not an effect, so it costs nothing per frame
-    and stays put under `prefers-reduced-motion`.
-  */
-  text-transform: uppercase;
-  transform: rotate(-1.4deg);
-  transform-origin: 0 60%;
-  margin-left: calc(var(--gutter) * -0.5);
-  /*
-    The two margins are the whole job of this rule, and they are optical, not typographic.
-
-    Display type overflows its own line box: at 168 px the ascenders and descenders reach ~39 px
-    past the block on each side, so a `margin: 0` name sat 13 px under the blue rule and, on a 1440
-    screen, its descenders crossed the hairline above the paragraph by 16 px — the single worst
-    "cramped" signal in the hero, and invisible in any metric that only reads box heights.
-
-    So the air is set against the *ink*, not the box: enough above for the ascenders to clear the
-    rule, enough below for the descenders to clear the next rule. It scales with the type, because
-    the overflow does.
-  */
-  /* Pulled up so the ascenders break the registration rule: overlapping is the point. */
-  margin: clamp(var(--space-2), 1.2vw, var(--space-4)) 0 0;
-  /* On the sheet, not in front of it. Its depth arrives from `.heroInner`; adding its own would put
-     the name out of register with the rule above it and, at any forward Z, wide enough to clip. */
+  margin: 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
+  font-weight: 500;
   font-size: var(--text-hero);
   line-height: var(--leading-hero);
-  letter-spacing: -0.03em;
-  margin-left: -0.03em;
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  text-wrap: balance;
 }
 
 /*
-  The two lines are not stacked — they are *pasted*, one over the other's shoulder.
-
-  Line one runs flush from the gutter. Line two is pulled left, past the margin, so it starts before
-  the first line does; that single misalignment is what stops the block reading as a centred hero and
-  starts it reading as a cut-out. The negative top margin locks them tight enough to overlap
-  optically at 144 px, which is how a poster sets a two-line masthead.
+  Two lines, both flush left, no offset, no rotation, no overlap. The old pass pushed the second line
+  into the first and leaned the block −1.4°; at 150 px that is not "energy", it is a broken baseline,
+  and it was one of the three things the owner called cheap.
 */
 .nameLine {
   display: block;
 }
 
-.nameLine:first-child {
-  margin-left: 0.04em;
-}
-
 .nameItalic {
-  margin-left: -0.05em;
-  margin-top: -0.045em;
-}
-
-.nameItalic {
-  font-style: italic;
-  /*
-    Optical sidebearing. An italic serif at display size leans into the margin, so at −0.03em the
-    two lines look like they belong to different settings; a hair looser and the italic sits inside
-    the same left edge as the roman above it.
-  */
-  letter-spacing: -0.012em;
-}
-
-.stop {
-  font-style: normal;
+  /* Space Grotesk has no italic in the variable file; the accent is carried by colour and weight. */
+  font-weight: 300;
   color: var(--color-signal-blue);
 }
 
-/* The type layer of the hero. It moves against the photograph, which is what makes the two read as
-   two depths rather than one picture sliding. */
-.heroText {
-  position: relative;
+.stop {
+  color: var(--color-signal-blue);
 }
 
+/* ------------------------------------------------------------- sub block */
 
 .heroFoot {
   display: grid;
-  /* One column, not copy-left/actions-right (R13). Side by side, the buttons landed on the lit part
-     of the photograph — two paper chips floating over a lamp — and the eye went to them instead of
-     the name. Stacked in the left column, the band reads as a flyer's bottom third: rule, sentence,
-     two stamps, all on the same edge as everything above them. */
   grid-template-columns: minmax(0, 1fr);
-  align-items: end;
   gap: var(--space-6);
-  /*
-    The gap above this rule is measured from the descenders of the name, which overhang by ~39 px at
-    desktop size. 88 px of margin minus that overhang is the ~48 px of white the eye actually reads.
-  */
-  margin-top: clamp(var(--space-12), 6vw, var(--space-24));
-  margin-bottom: var(--space-8);
   padding-top: var(--space-6);
-  border-top: 1px solid rgb(255 255 255 / 16%);
+  border-top: 1px solid var(--color-border);
 }
 
 .heroSub {
-  /* A narrower measure than the grid allows: 44 characters is a book column, 46 was a paragraph
-     stretched to fill a slot. */
-  max-width: 44ch;
+  max-width: 46ch;
   margin: 0;
-  font-size: 1.0625rem;
-  line-height: 1.65;
+  font-size: clamp(1rem, 1.1vw, 1.125rem);
+  line-height: var(--leading-body);
   color: var(--color-text-secondary);
   text-wrap: pretty;
 }
@@ -403,220 +212,217 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-  justify-content: flex-start;
-  margin-top: var(--space-2);
 }
 
-/* ------------------------------------------------------------------- facts */
+@media (min-width: 900px) {
+  .heroFoot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--space-8);
+  }
+}
+
+/* ---------------------------------------------------------------- facts */
 
 /*
-  The figures sit in a ruled strip — two heavy rules, no box — the way a paper runs a results table.
-  The numbers are in the poster face now, which is what makes three small integers look set rather
-  than typed.
+  Three numbers and a sentence, separated from the copy by a hairline — a readout, not a card wall.
+  The figures are the display face at a size that makes them scannable; the labels are mono.
 */
 .factsBar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  border-block: 3px solid var(--color-border-strong);
-  align-items: end;
-  gap: var(--space-6);
-  /*
-    Pushed to the foot of the sheet, with the leftover height collected above it as one margin.
-    This is why `.heroInner` is a flex column and not a grid: an auto margin only receives free
-    space from a *stretched* box, and a grid row packed with `align-content: start` is never
-    stretched — measured, it resolved to zero and the facts rule ended up touching the paragraph's
-    last line.
-  */
-  margin-top: auto;
-  padding-top: var(--space-8);
-  border-top: 1px solid rgb(255 255 255 / 12%);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0;
+  gap: var(--space-8);
   margin: 0;
 }
 
-/*
-  A figure sets `dt` under `dd`? No — the label goes above the number, in mono, and the number is
-  display type. They are separated by a vertical hairline so the row reads as a printed table.
-*/
 .fact {
   display: grid;
-  gap: var(--space-2);
-  padding-right: var(--space-8);
-  margin-right: var(--space-8);
-  border-right: 1px solid rgb(255 255 255 / 16%);
-}
-
-.fact:last-child {
-  border-right: 0;
-  margin-right: 0;
-  padding-right: 0;
+  gap: 2px;
 }
 
 .fact dt {
   font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.24em;
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
-  order: 2;
+  color: var(--color-text-muted);
 }
 
 .fact dd {
   margin: 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-  /* The one place the identity colour appears at display size above the fold. */
-  color: var(--color-brand);
-  font-variant-numeric: lining-nums;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+.fact:first-child dd {
+  color: var(--color-signal-blue);
 }
 
 .factNote {
+  max-width: 52ch;
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  line-height: 1.6;
-  letter-spacing: 0.1em;
+  font-size: 0.625rem;
+  line-height: 1.7;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
-  text-align: right;
-  text-wrap: balance;
+  color: var(--color-text-muted);
 }
+
+@media (min-width: 900px) {
+  .factsBar {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .factNote {
+    justify-self: end;
+    text-align: right;
+  }
+}
+
+/* ------------------------------------------------------------------ cue */
 
 .cue {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  /* `margin: 0` used to swallow this: the shorthand came after the longhand and reset it, so the
-     cue sat flush against the facts rule. */
-  margin: var(--space-6) 0 0;
-  font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
+  display: none;
 }
 
-/*
-  The scroll cue is a barcode, drawn with one repeating gradient.
+@media (min-width: 900px) {
+  .cue {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+    font-family: var(--font-mono-stack);
+    font-size: 0.5625rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
 
-  It is the one piece of pure print furniture in the hero: no icon, no arrow, no "scroll" chevron —
-  a strip of bars and the word next to it, which is how a flyer marks its trim. Static, one element,
-  no animation; the bars are a repeating background, so it costs a single paint.
-*/
-.cueLine {
-  width: 72px;
-  height: 14px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-text-primary) 0 2px,
-    transparent 2px 3px,
-    var(--color-text-primary) 3px 4px,
-    transparent 4px 7px,
-    var(--color-text-primary) 7px 10px,
-    transparent 10px 11px,
-    var(--color-text-primary) 11px 12px,
-    transparent 12px 16px
-  );
+  /* One hairline that fades to nothing: the page telling you there is more below, in the interface's
+     own language rather than in a printed barcode. */
+  .cueLine {
+    width: 72px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-signal-blue), transparent);
+  }
 }
 
-/* ============================================================ transmission */
+/* ============================================================ section shell */
+
+.transmission,
+.indexBand,
+.archive,
+.pressBand,
+.epkBand,
+.notesBand {
+  padding-block: var(--section-padding);
+  border-top: 1px solid var(--color-border);
+}
 
 .transmission {
-  padding-block: var(--section-padding);
-  border-bottom: 1px solid var(--color-border);
+  /* The seam under the hero is the one rule on the page that is fully lit: it is where the dark room
+     ends and the document starts. Every other divider is a quiet hairline. */
+  border-top-color: var(--color-hairline-strong);
 }
 
 .transmissionHead {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
 }
 
 .sectionNumber {
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.26em;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  /* Small caps-sized mono needs 4.5:1; muted grey is a decorative grey, so labels use secondary.
-     On the ink ground the section numbers carry the identity colour — 5.7:1 on #050507, and it is
-     the quietest way to make the page feel signed on every band. The paper band overrides them
-     back to ink, because blue on paper is 2.6:1 and would be unreadable. */
-  color: var(--color-brand);
+  color: var(--color-signal-blue);
 }
 
-.sectionLink,
 .sectionNote {
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.2em;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .sectionLink {
+  font-family: var(--font-mono-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease);
 }
 
 .sectionLink:hover,
 .sectionLink:focus-visible {
-  color: var(--color-text-primary);
+  color: var(--color-signal-blue);
 }
+
+/* ---------------------------------------------------------- transmission */
 
 .transmissionBody {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-12);
   align-items: center;
-  gap: clamp(2rem, 6vw, 6rem);
-  padding-top: clamp(2rem, 5vw, 4rem);
 }
 
 .transmissionCopy {
-  min-width: 0;
+  display: grid;
+  gap: var(--space-4);
+  max-width: 34ch;
 }
 
-/*
-  The release title at up to 5rem. This is the correct size for the one thing the page is about;
-  the pass before this set it at 3rem inside a bordered box, which is a card, not a headline.
-*/
 .transmissionTitle {
   margin: 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2.25rem, 5.4vw, 4.75rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
   text-wrap: balance;
 }
 
 .transmissionMeta {
-  margin: var(--space-4) 0 0;
+  margin: 0;
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
-  letter-spacing: 0.22em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-signal-blue);
 }
 
 .transmissionText {
-  max-width: 40ch;
-  margin: var(--space-6) 0 0;
+  max-width: 42ch;
+  margin: 0;
   color: var(--color-text-secondary);
   line-height: var(--leading-body);
-  text-wrap: pretty;
 }
 
 .transmissionActions {
@@ -624,27 +430,24 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-6);
-  margin-top: var(--space-8);
+  margin-top: var(--space-2);
 }
 
 .transmissionCount {
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.2em;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
-/*
-  The sleeve. A printed object with a blue plate behind it — the "misregistered print" device the
-  identity colour is used for now (D-121): a solid sheet of brand blue sits 18 px down and right of
-  the artwork, so the object reads as two printed layers instead of a picture with a drop shadow.
-  The plate is at `translateZ(-30px)` inside the plate stage, so a pointer tilt separates them.
-*/
+.transmissionArt {
+  justify-self: start;
+}
+
 .sleeveStage {
-  max-width: 430px;
-  /* Room for the blue plate's 16 px overhang, so the printed offset is never cut by the container. */
-  margin-inline: auto var(--space-4);
+  max-width: 380px;
+  margin: 0;
 }
 
 .sleeveLink {
@@ -653,122 +456,98 @@
   transition: translate var(--duration-slow) var(--ease-out);
 }
 
+.sleeveLink:hover,
+.sleeveLink:focus-visible {
+  /* The `translate` property, not a transform: the plate already owns this element's transform, and
+     a hover that writes to the same property fights the rAF loop for it. */
+  translate: 0 -6px;
+}
+
 .sleeveEdge,
 .sleeveFace {
   display: block;
 }
 
+/*
+  The sleeve's own shadow, not a plate. On a near-black page the only way a black sleeve reads as an
+  object is a hairline plus a bloom of the accent behind it: the glow says "lit", the hairline says
+  "edge".
+*/
 .sleeveEdge {
   position: absolute;
-  inset: 16px -16px -16px 16px;
-  background: var(--color-brand);
-  transform: translateZ(-30px);
+  inset: 0;
+  box-shadow: 0 0 40px rgb(0 135 255 / 0.18);
+  pointer-events: none;
 }
 
 .sleeveFace {
   position: relative;
-  box-shadow: 0 24px 60px rgb(0 0 0 / 55%);
-}
-
-.sleeveLink:hover,
-.sleeveLink:focus-visible {
-  translate: -4px -4px;
+  border: 1px solid var(--color-border-strong);
 }
 
 .sleeveCaption {
-  margin: var(--space-6) var(--space-4) 0 0;
+  margin: var(--space-4) 0 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.24em;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
-  text-align: right;
+  color: var(--color-text-muted);
 }
 
-/* =================================================================== index */
+@media (min-width: 900px) {
+  .transmissionBody {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+    gap: var(--space-24);
+  }
+}
 
-/*
-  The second ground (D-119). Paper, with the site's ink on it. Everything above is a dark room; this
-  is the page you are handed at the venue, and the alternation is what gives the scroll a structure
-  you can feel without a single divider graphic.
-*/
+/* ================================================================= index */
+
 .indexBand {
-  padding-block: var(--section-padding);
-  /* On stock the second plate is the poster red: a blue ghost at 3 px on paper reads as a printing
-     accident in a bad way, red reads as the second run it is. */
-  --ink-ghost: var(--color-stamp);
-  --ink-shift: 4px;
-  background: var(--color-paper);
-  color: var(--color-paper-ink);
+  background: var(--color-bg-surface);
 }
 
-.indexBand .sectionNumber,
-.indexBand .sectionNote,
-.indexBand .footnote {
-  color: color-mix(in srgb, var(--color-paper-ink) 72%, transparent);
-}
-
-/* The [NEEDS OWNER] stamp is a print red; on stock it needs the darker ink (4.98:1 vs 2.84:1). */
-.indexBand .needs {
-  color: var(--color-stamp-ink);
-}
-
-/*
-  "Indeks" is set as a section word, not a headline sentence: one word, 9vw, hanging on its own
-  baseline above the rows. The rows themselves are the content.
-*/
 .indexTitle {
-  margin: clamp(1rem, 3vw, 2rem) 0 clamp(1.5rem, 4vw, 3rem);
+  margin: 0 0 var(--space-8);
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(3rem, 9vw, 7.5rem);
-  line-height: 0.85;
-  letter-spacing: -0.03em;
-  margin-left: -0.02em;
-  color: var(--color-paper-ink);
+  font-weight: 500;
+  font-size: var(--text-hero);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
 }
 
 .footnote {
-  margin: var(--space-6) 0 0;
+  margin: var(--space-8) 0 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
 }
 
 .needs {
-  font-family: var(--font-mono-stack);
-  color: var(--color-stamp);
-  white-space: nowrap;
-}
-
-/* The stamp red is a print ink; on the sheet it needs the darker mix (D-108). */
-.press .needs {
   color: var(--color-stamp-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
 }
 
-/* =================================================================== night */
+/* ================================================================== night */
 
-/*
-  A photograph with a sentence on it and nothing else. No button, no label, no caption row of
-  links — the reader is allowed one band on the page that asks nothing of them.
-*/
 .night {
   position: relative;
   display: grid;
   align-content: end;
-  min-height: clamp(460px, 74vh, 720px);
+  min-height: clamp(420px, 62vh, 620px);
   overflow: clip;
   isolation: isolate;
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .nightMedia {
   position: absolute;
   inset: 0;
   z-index: 0;
-  scale: 1.12;
 }
 
 .nightImage {
@@ -776,43 +555,32 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 32%;
-  /* Desaturated before the blue sheet goes over it, so the band is a *blue print* rather than a
-     colour photo with a blue filter on top. Grayscale is a paint-time filter on one image; the
-     banned one is blur, and it stays banned. */
-  filter: grayscale(0.7) contrast(1.06);
 }
 
-.night::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(to top, var(--color-ink-black) 4%, rgb(5 5 7 / 55%) 55%, rgb(5 5 7 / 18%) 100%);
-}
-
+/* The tint is the accent at 18%, so the photo reads as lit by the same neon as everything else. */
 .nightTint {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: var(--color-brand-deep);
-  opacity: 0.38;
+  background:
+    linear-gradient(0deg, var(--color-ink-black) 4%, rgb(5 5 7 / 0.55) 46%, rgb(5 5 7 / 0.18) 100%),
+    linear-gradient(180deg, rgb(0 135 255 / 0.16), rgb(0 135 255 / 0) 60%);
   pointer-events: none;
 }
 
 .nightQuote {
   position: relative;
   z-index: 2;
+  max-width: 22ch;
+  margin: 0 auto var(--space-4);
+  padding-inline: var(--gutter);
   width: 100%;
   max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
   font-family: var(--font-display-stack);
   font-weight: 400;
-  font-style: italic;
-  font-size: clamp(1.75rem, 4.4vw, 3.75rem);
-  line-height: 1.08;
-  letter-spacing: -0.015em;
-  color: var(--color-text-primary);
+  font-size: clamp(1.5rem, 3.4vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
   text-wrap: balance;
 }
 
@@ -821,171 +589,185 @@
   z-index: 2;
   width: 100%;
   max-width: var(--container-max);
-  margin: var(--space-4) auto var(--space-8);
-  padding: 0 var(--gutter);
+  margin: 0 auto var(--space-12);
+  padding-inline: var(--gutter);
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
 
-/* ================================================================= archive */
+/* ================================================================ archive */
 
 .archive {
-  padding-block: var(--section-padding);
-  border-bottom: 1px solid var(--color-border);
+  padding-inline: 0;
 }
 
-/* ================================================================ monogram */
+/* ============================================================= signature */
 
+/*
+  The monogram band. The 3D object is the one thing on the site that is allowed to look like a
+  machine, so this band is deliberately empty: a heading, one line of copy, a meta line, and 12 rem of
+  air around a scene that runs at 30 fps. The canvas supplies its own stage (grid, horizon, bloom), so
+  the band's job is to not compete with it.
+*/
 .signature {
   position: relative;
   display: grid;
   align-items: end;
-  min-height: clamp(540px, 86vh, 800px);
+  min-height: clamp(560px, 88vh, 860px);
   overflow: hidden;
-  border-block: 1px solid var(--color-border);
-  /* Flat steps, not a circular glow: the band is a printed plate (tests/fixtures/anti-ai.ts). */
-  background: linear-gradient(
-    180deg,
-    var(--color-band-monogram) 0%,
-    var(--color-ink-black) 62%,
-    var(--color-ink-black) 100%
-  );
+  border-top: 1px solid var(--color-border);
+  background: linear-gradient(180deg, var(--color-band-monogram) 0%, var(--color-ink-black) 70%);
   isolation: isolate;
 }
 
 /*
-  Under 768 px there is no canvas (AnMonogram does not mount), so a band sized for an object is a
-  band with a hole in it: measured on a 390 px phone, 480 px of empty navy above the heading. The
-  band keeps its type and loses the stage — the section becomes a printed strip, which is what it
-  is when there is nothing to show.
+  A wash of the ground over the left third of the scene. The monogram is tuned to be looked at, not to
+  be read through, and its brightest edge lands exactly where the copy sits; this keeps the type on a
+  dark field without dimming the object where it matters (the right two thirds are untouched).
 */
-@media (max-width: 767px) {
-  .signature {
-    min-height: 0;
-  }
+.signature::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--color-ink-black) 0%,
+    rgb(5 5 7 / 0.86) 20%,
+    rgb(5 5 7 / 0.34) 42%,
+    rgb(5 5 7 / 0) 60%
+  );
 }
 
 .signatureInner {
   position: relative;
   z-index: 2;
   display: grid;
-  justify-items: start;
   gap: var(--space-3);
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: var(--space-16) var(--gutter) var(--space-12);
+  padding: var(--space-40) var(--gutter) var(--space-16);
+  pointer-events: none;
 }
 
 .signatureTitle {
   margin: var(--space-2) 0 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2.75rem, 7.5vw, 5.5rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
 }
 
 .signatureAccent {
-  font-style: italic;
-  /*
-    Neon here, not press cyan (round 14). This band's whole subject is an object glowing #0087FF; a
-    teal accent next to it reads as two unrelated colours fighting. The token is scoped to this band
-    (see tokens.css) — everything else on the page stays printed stock.
-  */
-  color: var(--color-neon-blue);
+  color: var(--color-signal-blue);
+  text-shadow: 0 0 24px rgb(0 135 255 / 0.55);
 }
 
 .signatureNote {
-  max-width: 46ch;
+  max-width: 44ch;
   margin: var(--space-2) 0 0;
-  font-size: 0.9375rem;
-  line-height: 1.55;
   color: var(--color-text-secondary);
+  line-height: var(--leading-body);
 }
 
 .signatureMeta {
   margin: var(--space-4) 0 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
-/* =================================================================== press */
+/* Without the canvas (a phone) the band has no object, so it must not keep the object's stage. */
+@media (max-width: 767px) {
+  .signature {
+    min-height: 0;
+  }
+}
+
+/* ================================================================== press */
 
 .pressBand {
-  padding-block: var(--section-padding);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
 }
 
 .pressWrap {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-12);
   align-items: start;
-  gap: clamp(2rem, 5vw, 4rem);
 }
 
 .press {
-  padding: clamp(1.5rem, 4vw, 3.5rem);
+  display: grid;
+  gap: var(--space-4);
+  padding: clamp(var(--space-8), 4vw, var(--space-12));
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-base);
 }
 
 .pressEyebrow {
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.26em;
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
+  color: var(--color-signal-blue);
 }
 
 .pressTitle {
-  margin: var(--space-3) 0 0;
+  margin: 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2rem, 3.6vw, 3rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  color: var(--color-paper-ink);
+  font-weight: 500;
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
 }
 
 .pressLead {
-  max-width: 48ch;
-  margin: var(--space-4) 0 0;
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  color: color-mix(in srgb, var(--color-paper-ink) 78%, transparent);
+  max-width: 52ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: var(--leading-body);
 }
 
 .timeline {
   display: grid;
-  gap: 0;
-  margin: var(--space-8) 0 0;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid color-mix(in srgb, var(--color-paper-ink) 18%, transparent);
 }
 
-.timeline > li {
+.timeline li {
   display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr);
-  gap: var(--space-3);
-  padding-block: var(--space-4);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-paper-ink) 12%, transparent);
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/*
+  The unverified row is marked by its colour, not by opacity. Fading a whole block to 72 % drops its
+  9 px mono year to 3.2:1 — the row that most needs reading became the row that failed the audit.
+*/
+.pending .timelineYear {
+  color: var(--color-text-muted);
 }
 
 .timelineYear {
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-paper-ink) 58%, transparent);
-  padding-top: 4px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--color-signal-blue);
 }
 
 .timelineBody {
@@ -994,43 +776,38 @@
 }
 
 .timelineTitle {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--color-paper-ink);
+  font-family: var(--font-display-stack);
+  font-weight: 500;
+  font-size: 1.0625rem;
+  letter-spacing: var(--tracking-tight);
 }
 
 .timelineDetail {
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--color-paper-ink) 72%, transparent);
-}
-
-.pending .timelineTitle {
-  color: color-mix(in srgb, var(--color-paper-ink) 74%, transparent);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
 }
 
 .factSheet {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4) var(--space-6);
-  margin: var(--space-8) 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
   padding-top: var(--space-4);
-  border-top: 1px solid color-mix(in srgb, var(--color-paper-ink) 18%, transparent);
+  border-top: 1px solid var(--color-border);
 }
 
 .factSheet dt {
   font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.22em;
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-paper-ink) 74%, transparent);
+  color: var(--color-text-muted);
 }
 
 .factSheet dd {
   margin: 2px 0 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--color-paper-ink);
+  font-size: 0.875rem;
 }
 
 .pressPhoto {
@@ -1038,46 +815,58 @@
 }
 
 .pressPhoto img {
-  display: block;
   width: 100%;
   height: auto;
   border: 1px solid var(--color-border);
+  /* A different crop from the hero and the night band: 4:5, the portrait ratio a press desk asks
+     for. Same photograph, three shapes across the site — which is how a small archive stops
+     repeating itself. */
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 18%;
 }
 
 .pressPhotoCaption {
-  margin: var(--space-2) 0 0;
+  margin-top: var(--space-3);
   font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
-/* ===================================================================== epk */
+@media (min-width: 900px) {
+  .pressWrap {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: var(--space-16);
+  }
+}
+
+/* =================================================================== epk */
 
 .epkBand {
-  padding-block: var(--section-padding);
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .epk {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: clamp(2rem, 6vw, 6rem);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-12);
   align-items: start;
 }
 
 .epkTitle {
-  margin: var(--space-3) 0 0;
+  margin: var(--space-2) 0 0;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2.25rem, 5vw, 4.25rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
 }
 
 .epkText {
-  max-width: 44ch;
+  max-width: 46ch;
   margin: var(--space-4) 0 0;
   color: var(--color-text-secondary);
   line-height: var(--leading-body);
@@ -1093,192 +882,46 @@
 .epkNote {
   display: grid;
   gap: var(--space-2);
-  padding-left: var(--space-6);
-  border-left: 1px solid var(--color-border);
+  align-content: start;
+  padding: var(--space-8);
+  border: 1px solid var(--color-border);
 }
 
 .epkNoteLabel {
-  margin: var(--space-4) 0 0;
+  margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.24em;
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-signal-blue);
 }
 
-.epkNoteLabel:first-child {
-  margin-top: 0;
+.epkNoteLabel:not(:first-child) {
+  margin-top: var(--space-6);
 }
 
 .epkNoteValue {
   margin: 0;
   font-size: 0.9375rem;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--color-text-secondary);
 }
 
 .epkNoteValue a {
   color: var(--color-text-primary);
   text-decoration-color: var(--color-signal-blue);
-  text-underline-offset: 3px;
+  text-underline-offset: 0.25em;
 }
+
+@media (min-width: 900px) {
+  .epk {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--space-16);
+  }
+}
+
+/* ================================================================ notes */
 
 .notesBand {
-  padding-block: var(--section-padding);
-}
-
-/* ================================================================ responsive */
-
-@media (max-width: 1024px) {
-  .transmissionBody,
-  .pressWrap,
-  .epk {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .epkNote {
-    padding-left: 0;
-    border-left: 0;
-    border-top: 1px solid var(--color-border);
-    padding-top: var(--space-6);
-  }
-
-  .heroFoot {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-6);
-  }
-
-  .heroActions {
-    justify-content: flex-start;
-  }
-
-  .factsBar {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-4);
-  }
-
-  .factNote {
-    text-align: left;
-  }
-}
-
-@media (max-width: 720px) {
-  /*
-    This used to be `min-height: auto`, because at 60 px type plus 174 px of padding above the
-    masthead a full-screen hero really did push the paragraph below the fold. With the scale and the
-    padding corrected, a phone opening fits its own copy with room to spare — measured, 600 px of
-    content in 772 px — so the plate gets to be a plate again and the cue lands on screen instead of
-    past it. `min-height` is a floor, not a cap: content taller than the frame still grows the box.
-  */
-  .hero {
-    min-height: calc(100svh - var(--header-height));
-  }
-
-  /*
-    `calc(header + space-24)` was 174 px of nothing above the masthead on a 390 screen — the top
-    third of a phone hero, spent on air that nobody reads as margin, while the paragraph, the
-    buttons, the ruled figures and the cue were packed into the last 350 px. The sheet now starts
-    at the same margin it has on desktop and the slack collects at the foot, where it belongs.
-  */
-  .heroInner {
-    padding-block: var(--space-12) var(--space-6);
-  }
-
-  .name {
-    /* Below the base token's floor, the name has to keep filling the measure — but 15.5vw made it
-       taller than the photograph it sits on. 13.2vw fills the column and still leaves the gutters. */
-    font-size: clamp(2.75rem, 13.2vw, 5rem);
-    line-height: 0.88;
-  }
-
-  /* One line of issue information is enough on a phone; the second line pushes the name down and
-     then wraps itself into a two-line label, which is worse than not having it. */
-  .masthead .kicker:last-child {
-    display: none;
-  }
-
-  .heroSub {
-    font-size: 1rem;
-  }
-
-  /*
-    On a phone the slack has to collect at the *foot* of the sheet, not between the paragraph and the
-    figures. Left where the desktop rule puts it, `margin-top: auto` opened a 124 px hole between the
-    buttons and the ruled numbers — a gap in the middle of a composition reads as something failed to
-    load. Moving the auto margin to the cue puts the same slack where a page actually keeps it: after
-    the last printed line.
-  */
-  .factsBar {
-    margin-top: var(--space-8);
-  }
-
-  .cue {
-    margin-top: auto;
-  }
-
-  .fact {
-    padding-right: var(--space-4);
-    margin-right: var(--space-4);
-  }
-
-  .timeline > li {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-1);
-  }
-
-  .factSheet {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sleeveLink {
-    box-shadow: 10px 10px 0 rgb(0 0 0 / 45%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sleeveLink,
-  .sectionLink {
-    transition: none;
-  }
-
-  .sleeveLink:hover,
-  .sleeveLink:focus-visible {
-    translate: none;
-  }
-}
-
-/* ---------------------------------------------------------- side strip (R12) */
-
-/*
-  Vertical running head on the right edge. Rotated text is cheap — it is laid out once and never
-  repainted — and it is the one element on the page that makes the photograph feel like a surface
-  something was printed *on* rather than an image behind some type.
-*/
-.sideStrip {
-  position: absolute;
-  top: 50%;
-  right: var(--space-2);
-  display: none;
-  margin: 0;
-  padding: var(--space-3) var(--space-1);
-  border-block: 2px solid var(--color-brand);
-  writing-mode: vertical-rl;
-  font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  translate: 0 -50%;
-  pointer-events: none;
-}
-
-.sideStrip span + span {
-  margin-top: 1.4em;
-  color: var(--color-brand);
-}
-
-@media (min-width: 1024px) {
-  .sideStrip {
-    display: block;
-  }
+  background: var(--color-bg-surface);
 }

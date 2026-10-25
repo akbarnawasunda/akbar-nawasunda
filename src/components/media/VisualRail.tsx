@@ -54,19 +54,25 @@ export function VisualRail({ items }: { items: readonly VisualItem[] }) {
         >
         {items.map((item, index) => (
           <figure key={item.id} className={styles.panel}>
-            <span className={styles.index} aria-hidden="true">
-              {String(index + 1).padStart(3, "0")}
+            {/* The frame owns the crop and the screen; the caption is a row underneath, not a band
+                laid over the photograph. */}
+            <span className={styles.frame}>
+              <Image
+                className={item.onSurface ? `${styles.media} ${styles.onSurface}` : styles.media}
+                src={item.src}
+                alt={item.alt}
+                width={640}
+                height={800}
+                sizes="(min-width: 1024px) 30vw, 78vw"
+                loading={index < 2 ? "eager" : "lazy"}
+              />
             </span>
-            <Image
-              className={item.onSurface ? `${styles.media} ${styles.onSurface}` : styles.media}
-              src={item.src}
-              alt={item.alt}
-              width={640}
-              height={800}
-              sizes="(min-width: 1024px) 30vw, 78vw"
-              loading={index < 2 ? "eager" : "lazy"}
-            />
-            <figcaption className={styles.caption}>{item.caption}</figcaption>
+            <figcaption className={styles.caption}>
+              <span className={styles.index} aria-hidden="true">
+                {String(index + 1).padStart(3, "0")}
+              </span>
+              {item.caption}
+            </figcaption>
           </figure>
         ))}
         </div>

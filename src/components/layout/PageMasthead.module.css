@@ -1,126 +1,107 @@
 /*
-  A page head that is a printed sleeve — now actually printed.
+  The page head (round 15).
 
-  R11 shipped this as a full-bleed #0087FF field with near-black type: clean, symmetrical, and
-  exactly the "corporate" the owner objected to. Three changes turn it into a press sheet:
+  Four routes share this component, so it is the site's clearest statement of what a section is. The
+  zine pass made it a "printed sleeve": a navy field, a halftone band along the trim edge, a heavy
+  frame, a misregistered title. All of that read as print artefacts — ink, roller marks, crop edges —
+  and the owner's verdict on that vocabulary was blunt.
 
-  - the field is a **dark navy** with paper type on it, so the cyan is an accent again rather than a
-    background wash. A two-colour job spends its second ink on marks, not on wallpaper;
-  - a **halftone band** runs along the bottom edge — flat repeating rules, no gradient, no blur
-    (both banned by tests/fixtures/anti-ai.ts) — which is the printed texture the flat field was
-    missing;
-  - the head is **framed** with a heavy rule and the figure is boxed, so the composition reads as a
-    cut-out from a larger sheet instead of a responsive container.
+  The replacement is the interface's own head:
 
-  The head sits under the fixed header, so the top padding is the header height plus a step — the
-  same trick every other page uses, kept in one place now that four pages share it.
+  - **one ground** (`--color-bg-base`), separated from the page by a single hairline;
+  - **a numbered eyebrow** in mono, in the accent, so the section is labelled the way a system labels
+    a panel;
+  - **the title** at display size, tight tracking, uppercase — the only large object above the fold;
+  - **the figure** as a quiet mono count in the accent, not a boxed slab;
+  - **an air gap** of a full section step below it before any content starts.
+
+  Everything sits on the shared container measure, so /music, /artist, /visuals and /contact all
+  begin on the same left edge as the homepage.
 */
+
 .head {
-  position: relative;
-  /*
-    Paper type on navy takes a cyan second plate instead of a red one: red disappears against navy at
-    display weight, while a cyan plate on a dark field reads exactly like the second roller picking
-    up too much ink.
-  */
-  --ink-shift: 6px;
-  --ink-plate-red-x: 3px;
-  --ink-plate-red-y: 2px;
-  --ink-plate-cyan-x: -3px;
-  --ink-plate-cyan-y: -2px;
-  background: var(--color-field);
-  color: var(--color-on-field);
-  border-block: 4px solid var(--color-ink-black);
-}
-
-/*
-  The halftone band: 6 px of flat stripes along the trim edge. `repeating-linear-gradient` with hard
-  stops is a printed rule pattern, not a gradient — no interpolation happens anywhere in it.
-*/
-.head::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 14px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-brand) 0 4px,
-    transparent 4px 9px
-  );
-  opacity: 0.85;
-  pointer-events: none;
+  border-bottom: 1px solid var(--color-hairline);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
 }
 
 .inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-content: end;
-  gap: var(--space-3) var(--space-8);
+  gap: var(--space-6);
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: calc(var(--header-height) + var(--space-12)) var(--gutter) var(--space-8);
+  padding: calc(var(--header-height) + var(--space-16)) var(--gutter) var(--space-12);
 }
 
-.eyebrow,
-.note {
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-on-field);
+  color: var(--color-signal-blue);
+}
+
+/* A short lit rule after the eyebrow. It fills the otherwise empty top-right corner without adding
+   an object: the head is a heading, a label and a line. */
+.eyebrow::after {
+  content: "";
+  width: 64px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-signal-blue), transparent);
 }
 
 .title {
-  grid-column: 1;
   margin: 0;
-  text-transform: uppercase;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(3.5rem, 11.5vw, 9.5rem);
-  line-height: 0.84;
-  letter-spacing: 0;
-  /* A hair past the column edge, the way a cut headline is pasted over the margin of a spread. */
-  margin-left: -0.012em;
+  font-weight: 500;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
   text-wrap: balance;
 }
 
-.figure {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: end;
-  justify-self: end;
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 3px solid var(--color-on-field);
-  font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(3.5rem, 8.5vw, 7rem);
-  line-height: 0.78;
-  letter-spacing: 0;
-  font-variant-numeric: lining-nums;
-  color: var(--color-on-field);
-}
-
 .lead {
-  grid-column: 1 / -1;
-  max-width: 48ch;
-  margin: var(--space-3) 0 0;
-  font-size: 0.9375rem;
+  max-width: 52ch;
+  margin: 0;
+  font-size: clamp(1rem, 1.1vw, 1.125rem);
   line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
 }
 
+/* The count sits on the same line as the note, right-aligned on a wide screen: two mono facts, one
+   row, no boxes. */
+.noteBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.figure,
 .note {
-  grid-column: 1 / -1;
-  margin-top: var(--space-2);
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
-@media (max-width: 720px) {
-  .inner {
-    padding-top: calc(var(--header-height) + var(--space-8));
-  }
+.figure {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-signal-blue);
+}
 
-  .figure {
-    display: none;
-  }
+.figure span {
+  color: var(--color-text-muted);
 }

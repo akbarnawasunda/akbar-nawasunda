@@ -1,124 +1,83 @@
 /*
- * Design tokens — brand v3 (Vercel + Turso baseline).
+ * Design tokens — "NEON GRID" (round 15).
  *
- * Values come from docs/02-DESIGN-SYSTEM/DESIGN_TOKENS.md and COLOR_SYSTEM.md, which win over
- * prose when the two disagree (AGENTS.md §4). Every colour, spacing step, type size, motion curve
- * and z-layer used by the app is defined here; components reference these variables and never
- * hard-code values.
+ * The two rounds before this one were a zine: press cyan, paper stock, misregistered plates,
+ * rotated stickers, barcodes. The owner's verdict killed it — "Zine/Brutalist has destroyed the
+ * layout, made the type look cheap, the text hard to read, and the photos boring". This file is the
+ * replacement, and it is a different system, not a re-skin:
+ *
+ *   - one ground (#050507), one ink (pure white), one accent (neon blue #0087FF);
+ *   - hairline structure instead of heavy rules; quiet geometry instead of print artefacts;
+ *   - generous vertical rhythm — the whitespace *is* the luxury;
+ *   - a geometric display face with a real weight range, and Inter underneath for reading.
+ *
+ * Values come from docs/02-DESIGN-SYSTEM/DESIGN_TOKENS.md, which wins over prose when the two
+ * disagree (AGENTS.md §4). Every colour, spacing step, type size, motion curve and z-layer used by
+ * the app is defined here; components reference these variables and never hard-code values.
  */
 :root {
-  /* --- Colour: near-black ink ramp + signal accents -------------------------------- */
-  --color-bg-base: #0a0a0e;
-  --color-bg-surface: #101014;
-  --color-bg-surface-2: #1a1a22;
+  /* --- Colour: ink ground, one neon ------------------------------------------------ */
+  --color-bg-base: #050507;
+  --color-bg-surface: #0a0a12;
+  --color-bg-surface-2: #101019;
 
   --color-text-primary: #ffffff;
-  --color-text-secondary: #a1a1b5;
-  --color-text-muted: #6b6b80;
+  --color-text-secondary: #a8b0c2;
+  --color-text-muted: #8a93a6;
 
   /*
-   * R12 — the inks are dirty now.
-   *
-   * #0087FF is a *screen* blue: maximum saturation, perfectly even, the colour a SaaS dashboard
-   * picks because it tests well and offends nobody. Printed cyan is nothing like it — it is duller,
-   * greener, and it sits unevenly on paper, which is why a real two-colour zine reads as an object
-   * and a gradient button reads as software. The owner's verdict on the old palette was "kayak
-   * template AI", and the single biggest contributor was this hex.
-   *
-   * `--color-brand` is now a faded press cyan: still the owner's mark colour family, but mixed with
-   * the paper rather than lit from behind. Contrast on the ink ground measures 6.1:1, so it can be
-   * type as well as a field.
+   * The neon. This is the owner's own #0087FF — the colour of the AN mark, the rim light on the 3D
+   * monogram, and the accent in every interaction on this site. It is a *light*, not an ink: it is
+   * used at full strength for lines, focus, hover and small type, and never as a large flat field
+   * behind body copy (white on it is 3.36:1; near-black on it is 5.7:1, which is why
+   * --color-on-brand is the ink).
    */
-  --color-signal-blue: #2e8c86;
-  --color-signal-blue-hover: #3ba39c;
+  --color-signal-blue: #0087ff;
+  --color-signal-blue-hover: #38a7ff;
+  --color-signal-icy: #7fc4ff;
   --color-signal-purple: #6d4a7c;
-  --color-signal-icy: #9ecfc9;
 
-  /*
-   * The identity colour, promoted to a field (D-121).
-   *
-   * The blue is not a new decision: it is the colour of the owner's own AN mark — the vector edge
-   * on the logo, the letter on the mascot's jacket, the gradient in the RMX lockup. For six rounds
-   * it survived only as a full stop, a hairline and a link underline, and the owner's note was
-   * exact: "gak ada warna punya gua". A colour that only appears at 12 px is not a brand, it is a
-   * hyperlink.
-   *
-   * So the same blue now also fills things: the running-head band, the catalogue's hover bar, the
-   * two page heads that are posters, the loader sheet. `--color-on-brand` is the ink those fields
-   * carry, because white on #0087FF is 3.36:1 — a blue field only works as a *printed* blue field,
-   * with black type on it, and black on this blue measures 5.7:1.
-   */
-  --color-brand: #2e8c86;
-  --color-brand-deep: #14263a; /* the dark navy a poster field is printed on */
+  --color-brand: var(--color-signal-blue);
+  --color-brand-deep: #04121f;
   --color-on-brand: #050507;
+
+  /* A dark panel — the only "field" left. Section bands and the press sheet sit on it. */
+  --color-field: #070710;
+
   /*
-   * A poster field, and the stock it carries. The big bands on /music, /visuals and /contact used to
-   * be the identity blue with near-black type on it; a full-bleed navy with paper type reads as a
-   * printed sheet instead of a hero section, and it lets the cyan stay an *accent* — which is what a
-   * two-colour print job actually spends it on.
+   * Structure is a hairline, not a rule. Two weights: a resting grid line you should barely see, and
+   * a hover/active line. Colour lives in the tokens because a neon line is a palette decision.
    */
-  --color-field: #14263a;
-  --color-on-field: #e8e6e1;
-  /* The red from the owner's own "future" poster. Used once, as a rubber stamp — never as UI. */
-  /*
-    Poster red. The owner's original poster used a hot #FF2D20; R13 dirtied it to #C93A22 — which
-    was correct on paper and wrong on ink: 3.96:1 for the EPK stamp's 9 px mono label against the
-    near-black ground, i.e. an axe failure. #D94A2F is the same ink one step up in value: 4.78:1 on
-    ink, 3.38:1 on paper (which is display-size type, so it clears the 3:1 large-text bar).
-  */
-  --color-poster-red: #d94a2f;
+  --color-hairline: rgb(0 135 255 / 0.18);
+  --color-hairline-strong: rgb(0 135 255 / 0.52);
+  --color-border: #1b1f2a;
+  --color-border-strong: #2a3244;
+
+  /* Panels: a surface that is almost the ground, so structure comes from the hairline. */
+  --color-paper: #0a0a12;
+  --color-paper-ink: #ffffff;
+  --color-paper-muted: #8a93a6;
+  --color-ink-black: #050507;
+  /* The monogram band is the one place allowed a cold step, because the 3D object needs a stage. */
+  --color-band-monogram: #04070d;
 
   /*
-    The brand's neon. Round 13 deleted #0087FF from the printed page — it was the screen blue the
-    whole redesign existed to get rid of. Round 14 brings it back for exactly one place: the 3D
-    monogram band, where the owner's own banner is a black chrome object lit by neon. The object
-    needs a light, not an ink, and an ink cannot glow.
-
-    Scope is deliberate and narrow: the monogram canvas (its light, its edges, its bloom) and the one
-    display accent in that band's heading. It is never a link colour, never a button, never a rule.
-  */
-  --color-neon-blue: #0087ff;
-
-  /*
-   * Misregistration (R12). Every display heading is printed twice: the black plate, plus a red and a
-   * cyan plate that never quite line up. Two plates, not one, because that is what a real
-   * two-colour job does when the paper slips — and the pair is what makes the eye read "misprint"
-   * instead of "drop shadow", which is the effect the serif build was accidentally imitating.
+   * Content markers. [NEEDS OWNER] has to be unmissable on ink and it is the only red left in the
+   * system: it marks a hole in the content, not a mood. --color-poster-red follows the accent now —
+   * the "poster" it was named after does not exist in this design.
    */
-  --color-misreg-red: #c93a22;
-  --color-misreg-cyan: #2c7f90;
-
-  --color-border: #2a2a38;
-  --color-border-strong: #3a3a48;
-
-  /*
-   * Material layer (D-083, trimmed in D-108, trimmed again in D-121). What survived: paper (the
-   * press sheet is printed stock), the stamp red (the [NEEDS OWNER] marker, which must be
-   * unmissable) and the poster red (one rubber stamp on the press kit). The waveform lime went with
-   * the bento grid — nothing referenced it any more, and a token with no consumer is a colour
-   * waiting to be used badly. Every value here is a flat colour; none is a gradient.
-   */
-  --color-ink-black: #050507; /* deeper than the page, used only behind the hero and the footer */
-  --color-band-monogram: #0d1320; /* the cold step behind the 3D mark; it has to sit behind a metal object */
-  --color-paper: #e8e6e1;
-  --color-paper-ink: #0a0a0e;
-  /* Secondary type on printed stock. #a1a1b5 is grey for a dark ground and disappears on paper;
-     this is the same job done at 5.9:1 against #E8E6E1. */
-  --color-paper-muted: #55555f;
   --color-stamp: #ff3b30;
-  /* Same ink, darker mix: 2.84:1 on paper is unreadable, 4.98:1 clears AA at label sizes. */
-  --color-stamp-ink: #c01810;
+  --color-stamp-ink: #ff6b62;
+  --color-poster-red: var(--color-signal-blue);
   --color-poster-yellow: #ffd60a;
 
   /*
    * Studio status colours (D-114). Three states have to be readable at a glance in a dense admin
-   * table, and `dotBad` was using the brand blue — the one colour on the site that means "this is a
-   * link". Anything that ships a public page needed a token, not a literal in a module.
+   * table; the public site never shows them.
    */
   --color-status-ok: #7bd389;
   --color-status-warn: #f2b84b;
   --color-status-bad: var(--color-stamp);
-  /* Preview mode gets its own warm ink so an unpublished page can never be mistaken for the live one. */
   --color-preview-ink: #3a1d12;
 
   /* Semantic aliases used by components. */
@@ -128,10 +87,7 @@
   --color-accent: var(--color-signal-blue);
   --color-focus: var(--color-signal-icy);
 
-  /*
-   * Legacy ramp names kept so the Studio and existing pages inherit the new palette in one step.
-   * New code should use the semantic names above.
-   */
+  /* Legacy ramp names kept so the Studio and existing pages inherit the palette in one step. */
   --color-ink-950: var(--color-bg-base);
   --color-ink-900: var(--color-bg-surface);
   --color-bone-100: var(--color-text-primary);
@@ -140,35 +96,29 @@
   --color-signal: var(--color-signal-blue);
 
   /* --- Typography ------------------------------------------------------------------- */
-  --font-display-stack: var(--font-display), "Anton", Impact, Haettenschweiler, "Arial Narrow Bold",
-    "Helvetica Neue", Arial, sans-serif;
-  --font-body-stack: var(--font-body), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display-stack: var(--font-display), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body-stack: var(--font-body), "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono-stack: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /*
-     Poster metrics, not book metrics.
+   * Interface metrics, not poster metrics.
+   *
+   * A geometric sans at display size wants air: 0.96 on the hero (the two lines read as one block
+   * without touching), 1.02 on section heads, and negative tracking only where the type is large
+   * enough that the default sidebearings look loose. Body copy runs at 1.65 — the old 1.6 was set for
+   * 15 px paragraphs; at 17 px with a wider face it reads tight.
+   */
+  --leading-hero: 0.96;
+  --leading-tight: 1.04;
+  --leading-body: 1.65;
+  --tracking-hero: -0.03em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.18em;
 
-     A condensed poster grotesque is drawn to be set solid: its caps are already narrow, so the lines
-     have to sit almost on top of each other or the block falls apart into separate lines. 0.86 for
-     the hero (two lines stacked as one slab), 0.9 for section heads, and tracking at 0 — Anton is
-     tight by design, and adding negative tracking to it crushes the counters into each other, which
-     is a mistake that only shows up at 150 px.
-  */
-  --leading-hero: 0.86;
-  --leading-tight: 0.9;
-  --leading-body: 1.6;
-  --tracking-hero: -0.005em;
-  --tracking-tight: 0;
-  --tracking-label: 0.16em;
-
-  /*
-     The name is the page, and it is set in caps now, so it is *wider* per character than the serif
-     was: Anton at 11.8vw overran the gutters. Measured on "NAWASUNDA." at every breakpoint, 10.6vw
-     fills the measure with the right margin intact, and the cap stays at 9rem.
-  */
-  --text-hero: clamp(3rem, 10.6vw, 9rem);
-  --text-title: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
-  --text-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+  --text-hero: clamp(2.75rem, 7.2vw, 6.5rem);
+  --text-display: clamp(2rem, 1.1rem + 3vw, 4rem);
+  --text-title: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+  --text-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
   --text-small: 0.875rem;
   --text-label: 0.75rem;
 
@@ -183,22 +133,20 @@
   --space-16: 4rem;
   --space-24: 6rem;
   --space-32: 8rem;
+  --space-40: 10rem;
 
   /* --- Layout ----------------------------------------------------------------------- */
-  --container-max: 1280px;
+  --container-max: 1240px;
   --gutter: 1.5rem;
   --header-height: 4.5rem; /* 72px at rest, 56px once the page is scrolled (D-096) */
   --header-height-compact: 3.5rem;
   --section-padding: var(--space-16);
   /*
-   * Corners, D-115. The zine pass put 16–24 px radii on every card, and a 24 px radius on a 1:1
-   * sleeve is the most reliable "product UI" tell there is: no printed sleeve, press sheet, ticket
-   * or record has it. Print is square, with a hairline edge. The scale now tops out at 4 px, and only
-   * the smallest chrome marks (the RMX tag) keep a pill.
+   * Corners. The premium register is *sharp*: 2 px on chrome (buttons, chips), 4 px on panels, and
+   * nothing rounder. A pill is reserved for the one status dot in the Studio.
    */
   --radius-sm: 2px;
   --radius-2xl: 4px;
-  --radius-lg: 4px;
   --radius-xl: 4px;
   --radius-pill: 9999px;
 
@@ -219,13 +167,13 @@
 
 @media (max-width: 719px) {
   :root {
-    --gutter: 1rem;
+    --gutter: 1.25rem;
     --section-padding: var(--space-12);
   }
 }
 
 @media (min-width: 1024px) {
   :root {
-    --section-padding: var(--space-24);
+    --section-padding: var(--space-32);
   }
 }

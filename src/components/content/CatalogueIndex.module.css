@@ -24,11 +24,11 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid color-mix(in srgb, var(--color-paper-ink) 28%, transparent);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .row {
-  border-bottom: 1px solid color-mix(in srgb, var(--color-paper-ink) 16%, transparent);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .link {
@@ -38,7 +38,9 @@
   gap: var(--space-4);
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
   text-decoration: none;
-  color: var(--color-paper-ink);
+  /* Rows rest a step down from white and come up to white under the pointer, so the hover is a
+     change of ink as well as a change of ground — which is also what the motion harness reads. */
+  color: var(--color-text-secondary);
   transition:
     background var(--duration-base) var(--ease),
     color var(--duration-base) var(--ease),
@@ -49,14 +51,13 @@
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.18em;
-  /* 62% of the ink on paper is the lightest grey that still clears 4.5:1 at 9 px. */
-  color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
+  color: var(--color-text-muted);
   transition: color var(--duration-base) var(--ease);
 }
 
 .link:hover .ordinal,
 .link:focus-visible .ordinal {
-  color: var(--color-on-brand);
+  color: var(--color-signal-blue);
 }
 
 /*
@@ -67,22 +68,21 @@
 */
 .link:hover,
 .link:focus-visible {
-  background: var(--color-brand);
-  color: var(--color-on-brand);
+  /* A tint of the accent plus a lit edge, not a full field of blue: the row has to gain emphasis
+     without becoming the loudest thing on a page whose whole argument is restraint. */
+  background: color-mix(in srgb, var(--color-signal-blue) 10%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-signal-blue);
+  color: var(--color-text-primary);
   padding-left: var(--space-4);
   outline: none;
 }
 
-.link:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--color-on-brand);
-}
-
 .title {
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(1.5rem, 3.4vw, 3rem);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
+  font-weight: 500;
+  font-size: clamp(1.375rem, 3vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: var(--tracking-tight);
   text-wrap: balance;
 }
 
@@ -91,18 +91,18 @@
   font-size: 0.5625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-paper-ink) 68%, transparent);
+  color: var(--color-text-muted);
   transition: color var(--duration-base) var(--ease);
 }
 
 .link:hover .meta,
 .link:focus-visible .meta {
-  color: var(--color-on-brand);
+  color: var(--color-text-secondary);
 }
 
 .arrow {
   font-size: 0.875rem;
-  color: color-mix(in srgb, var(--color-paper-ink) 50%, transparent);
+  color: var(--color-text-muted);
   transition:
     color var(--duration-base) var(--ease),
     translate var(--duration-base) var(--ease-out);
@@ -110,7 +110,7 @@
 
 .link:hover .arrow,
 .link:focus-visible .arrow {
-  color: var(--color-on-brand);
+  color: var(--color-signal-blue);
   translate: 2px -2px;
 }
 
@@ -169,10 +169,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border: 1px solid var(--color-paper-ink);
-  /* A hard offset shadow in the identity colour: the sleeve is pressed against the page, and the
-     plate behind it is the same blue as the row that just inverted. */
-  box-shadow: 12px 14px 0 var(--color-brand);
+  border: 1px solid var(--color-border-strong);
+  /* A bloom, not an offset plate: the sleeve is the one object under the pointer, so it is the one
+     thing that gets the accent as light rather than as ink. */
+  box-shadow: 0 0 48px rgb(0 135 255 / 0.32);
 }
 
 @media (max-width: 720px) {

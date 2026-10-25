@@ -90,7 +90,33 @@ const R9_SHOTS = [
   { name: "14-misregister-home-390", route: "/", width: 390, height: 844 },
 ];
 
-const SHOTS = round === "round9" ? R9_SHOTS : R8_SHOTS;
+/**
+ * R15 — the premium / high-tech pass.
+ *
+ * The set is deliberately about *one* claim per shot, because that is what the owner reviews: the
+ * hero (did the layout get quiet?), the index (is the catalogue legible?), the archive wall (does
+ * every photograph carry the duotone?), the monogram band (is the object integrated?), and the two
+ * phone widths where a band like this usually breaks.
+ */
+const R15_SHOTS = [
+  { name: "01-home-hero-1440", route: "/", width: 1440, height: 960 },
+  { name: "02-home-ticker-1440", route: "/", width: 1440, height: 960, selector: "[data-ticker]" },
+  { name: "03-home-release-1440", route: "/", width: 1440, height: 960, selector: "#music", pointer: [1180, 640] },
+  { name: "04-home-index-1440", route: "/", width: 1440, height: 960, selector: "[class*='indexBand']" },
+  { name: "05-home-archive-1440", route: "/", width: 1440, height: 960, selector: "[class*='archive']" },
+  { name: "06-home-night-1440", route: "/", width: 1440, height: 960, selector: "[class*='night']" },
+  { name: "07-home-monogram-1440", route: "/", width: 1440, height: 960, selector: "[class*='signature']" },
+  { name: "08-home-press-1440", route: "/", width: 1440, height: 960, selector: "#press" },
+  { name: "09-home-epk-1440", route: "/", width: 1440, height: 960, selector: "[class*='epkBand']" },
+  { name: "10-visuals-1440", route: "/visuals", width: 1440, height: 960 },
+  { name: "11-visuals-wall-390", route: "/visuals", width: 390, height: 844, scroll: 420 },
+  { name: "12-home-hero-390", route: "/", width: 390, height: 844 },
+  { name: "13-music-1440", route: "/music", width: 1440, height: 960 },
+  { name: "14-artist-1440", route: "/artist", width: 1440, height: 960 },
+];
+
+const SHOTS =
+  round === "round15" ? R15_SHOTS : round === "round9" ? R9_SHOTS : R8_SHOTS;
 
 const script = `
 async page => {
@@ -197,17 +223,128 @@ const scriptPath = join(work, "review.js");
 writeFileSync(scriptPath, script, "utf8");
 
 console.log(`reviewing ${SHOTS.length} states against ${base}`);
+/**
+ * Two drivers, one shot list.
+ *
+ * `playwright-cli` is the intended one and it needs Playwright's own Chromium download. On a machine
+ * where that download is blocked (a locked-down CI image, a sandbox with an egress allowlist) the
+ * review would simply not run — and a review that cannot run is an opinion, which is the exact
+ * failure this file was written to avoid. So the same `SHOTS` array is replayed through
+ * `puppeteer-core` and the Chromium already on PATH (`CHROME_PATH`), and the shot names, waits and
+ * states are identical. The fallback is not a lower standard; it is the same review with the browser
+ * the audit scripts already use.
+ */
+const chromium = process.env.CHROME_PATH;
+let shotDriver = "playwright-cli";
+
 try {
-  execFileSync("playwright-cli", ["run-code", "--filename", scriptPath], {
-    cwd: process.cwd(),
-    stdio: "inherit",
+  if (!chromium) throw new Error("no CHROME_PATH");
+  const { default: puppeteer } = await import("puppeteer-core");
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
     env: process.env,
-    timeout: 600000,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-swiftshader",
+      "--ignore-gpu-blocklist",
+    ],
   });
-} catch (error) {
-  console.error("\nplaywright-cli failed. Is the production server up, and is playwright-cli installed?");
-  console.error(String(error.message ?? error).split("\n").slice(0, 6).join("\n"));
-  process.exitCode = 1;
+  try {
+    for (const shot of SHOTS) {
+      const page = await browser.newPage();
+      await page.setViewport({ width: shot.width, height: shot.height });
+      const file = join(work, `${shot.name}.png`);
+      if (shot.curtain) {
+        await page.goto(base + shot.route, { waitUntil: "load", timeout: 60000 });
+        await new Promise((r) => setTimeout(r, shot.wait ?? 600));
+        await page.screenshot({ path: file });
+        await page.close();
+        continue;
+      }
+
+      await page.goto(base + shot.route, { waitUntil: "load", timeout: 60000 });
+      await page.evaluate(() => sessionStorage.setItem("an-curtain", "1"));
+      await page.reload({ waitUntil: "load" });
+      await new Promise((r) => setTimeout(r, 500));
+      await page.mouse.move(1, 1);
+
+      if (shot.pointer) {
+        await page.mouse.move(shot.pointer[0], shot.pointer[1], { steps: 10 });
+        await new Promise((r) => setTimeout(r, 400));
+      }
+
+      await page.evaluate((target) => {
+        const node = target ? document.querySelector(target) : null;
+        if (node) window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - 40);
+        else if (target === undefined) window.scrollTo(0, 0);
+      }, shot.selector ?? (shot.bottom ? "#footer" : shot.scroll ? "__none__" : undefined));
+
+      if (shot.scroll) await page.evaluate((y) => window.scrollTo(0, y), shot.scroll);
+      if (shot.offset) await page.evaluate((y) => window.scrollTo(0, y), shot.offset);
+
+      /* Settle: fonts ready, then wait until the smooth-scroll layer has actually stopped moving. */
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        let last = -1;
+        for (let i = 0; i < 120; i += 1) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          if (Math.abs(window.scrollY - last) < 1) return;
+          last = window.scrollY;
+        }
+      });
+      await new Promise((r) => setTimeout(r, 700));
+
+      if (shot.sheet) {
+        const toggle = await page.$("[data-sheet-toggle]");
+        if (toggle) {
+          await toggle.click();
+          await new Promise((r) => setTimeout(r, 900));
+        }
+      }
+
+      if (shot.menu) {
+        const toggle = await page.$('button[aria-expanded="false"]');
+        if (toggle) {
+          await toggle.click();
+          await new Promise((r) => setTimeout(r, 700));
+        }
+      }
+
+      if (shot.hover) {
+        const target = await page.$(shot.hover);
+        if (target) {
+          await target.hover();
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+
+      await page.screenshot({ path: file });
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+} catch (fallbackError) {
+  shotDriver = "playwright-cli";
+  try {
+    execFileSync("playwright-cli", ["run-code", "--filename", scriptPath], {
+      cwd: process.cwd(),
+      stdio: "inherit",
+      env: process.env,
+      timeout: 600000,
+    });
+  } catch (error) {
+    console.error("\nNeither puppeteer-core (CHROME_PATH) nor playwright-cli could drive a browser.");
+    console.error(String(fallbackError.message ?? fallbackError).split("\n")[0]);
+    console.error(String(error.message ?? error).split("\n").slice(0, 6).join("\n"));
+    console.error("Is the production server up?");
+    process.exitCode = 1;
+  }
 }
 
 if (!existsSync(work)) process.exit(1);
@@ -216,7 +353,7 @@ const pngs = readdirSync(work).filter((file) => file.endsWith(".png"));
 for (const file of pngs) copyFileSync(join(work, file), join(out, file));
 rmSync(work, { recursive: true, force: true });
 
-console.log(`\n${pngs.length} screenshot(s) written to ${out}`);
+console.log(`\n${pngs.length} screenshot(s) written to ${out} (${shotDriver})`);
 if (pngs.length !== SHOTS.length) {
   console.warn(`WARNING: expected ${SHOTS.length}. A failed navigation usually means the route 404s.`);
   process.exitCode = 1;

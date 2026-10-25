@@ -2,8 +2,6 @@ import Link from "next/link";
 
 import type { CoverArtwork } from "@/content/covers";
 
-import { Registration } from "@/components/print/Registration";
-
 import { Plate3D } from "../zine/Plate3D";
 import { ReleaseCover } from "./ReleaseCover";
 import styles from "./ReleasePlate.module.css";
@@ -66,7 +64,6 @@ export function ReleasePlate({
     <article className={styles.record}>
       {/* ------------------------------------------------------------ the sleeve */}
       <header className={styles.band}>
-        <Registration tone="onBrand" code="cetak ganda · sisi depan" />
         <div className={styles.bandInner}>
           <div className={styles.copy}>
             <p className={styles.kicker}>

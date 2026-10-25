@@ -1,15 +1,16 @@
 /*
-  /visuals — the archive as a wall of prints (R8).
+  /visuals (round 15).
 
-  The note column used to be a bordered, rounded card with a surface fill — the one object on the
-  page that looked like a dashboard widget next to six photographs. It is a printed slip now: the
-  identity blue, ink type, no radius, no border. It is the only colour block on the page, which is
-  what makes it read as an annotation rather than another panel.
+  The wall is the page. Everything below is a caption to it: the grid takes the whole measure, and
+  the annotation column is a hairline panel — no fill, no radius, no accent block. The zine pass had
+  it as a blue "note slip"; a solid field of the accent next to six duotoned prints competed with the
+  photographs for the same job, and the accent is supposed to mean "this is the interface talking".
 */
+
 .body {
   display: grid;
-  gap: var(--space-8);
-  padding-block: var(--space-12) var(--space-16);
+  gap: var(--space-16);
+  padding-block: var(--space-12) var(--section-padding);
 }
 
 .aside {
@@ -17,63 +18,75 @@
   gap: var(--space-2);
   align-content: start;
   padding: var(--space-6);
-  background: var(--color-brand);
-  color: var(--color-on-brand);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
 }
 
 .noteLabel {
+  margin: 0;
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.18em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-on-brand);
+  color: var(--color-signal-blue);
 }
 
 .noteLabel:not(:first-child) {
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
 .uses {
   display: grid;
-  gap: var(--space-2);
-  margin: var(--space-2) 0 0;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
 }
 
 .uses li {
   display: grid;
-  gap: 1px;
+  gap: 3px;
 }
 
 .uses span {
   font-family: var(--font-display-stack);
-  font-size: 1.0625rem;
-  letter-spacing: -0.01em;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
 }
 
 .noteText {
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-small);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
 }
 
 .noteText code {
   font-family: var(--font-mono-stack);
   font-size: 0.75rem;
+  color: var(--color-text-primary);
 }
 
 .needs {
   font-family: var(--font-mono-stack);
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   letter-spacing: 0.08em;
-  border-bottom: 2px solid var(--color-on-brand);
+  color: var(--color-stamp-ink);
+  border-bottom: 1px solid var(--color-stamp);
 }
 
 @media (min-width: 1024px) {
   .body {
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) 280px;
     gap: var(--space-12);
     align-items: start;
   }
