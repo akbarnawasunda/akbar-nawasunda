@@ -24,6 +24,21 @@
 }
 ```
 
+## Round 14 addition — one neon, one place
+
+`--color-neon-blue: #0087FF`. Round 13 removed this blue from the entire printed page; round 14
+brings it back for the 3D monogram band only, because the owner's own brand banner is a black chrome
+object lit by neon and an ink cannot glow.
+
+Scope, enforced by review rather than by a lint rule because it is a *judgement* rule:
+
+- allowed: the monogram scene (light colour, edge colour, bloom source), the `AN` accent in that
+  band's heading;
+- never: links, buttons, focus rings, rules, body copy, any other page.
+
+Everything else in this file still describes the printed page. Where the two lists disagree on a
+colour value, `src/styles/tokens.css` is authoritative.
+
 ## Usage MUST
 - bg.base untuk body, bg.surface untuk cards
 - signal.blue hanya untuk primary CTA, active states, 5px strip

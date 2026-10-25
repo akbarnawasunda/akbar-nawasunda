@@ -69,6 +69,17 @@
   --color-poster-red: #d94a2f;
 
   /*
+    The brand's neon. Round 13 deleted #0087FF from the printed page — it was the screen blue the
+    whole redesign existed to get rid of. Round 14 brings it back for exactly one place: the 3D
+    monogram band, where the owner's own banner is a black chrome object lit by neon. The object
+    needs a light, not an ink, and an ink cannot glow.
+
+    Scope is deliberate and narrow: the monogram canvas (its light, its edges, its bloom) and the one
+    display accent in that band's heading. It is never a link colour, never a button, never a rule.
+  */
+  --color-neon-blue: #0087ff;
+
+  /*
    * Misregistration (R12). Every display heading is printed twice: the black plate, plus a red and a
    * cyan plate that never quite line up. Two plates, not one, because that is what a real
    * two-colour job does when the paper slips — and the pair is what makes the eye read "misprint"

@@ -856,6 +856,18 @@
   isolation: isolate;
 }
 
+/*
+  Under 768 px there is no canvas (AnMonogram does not mount), so a band sized for an object is a
+  band with a hole in it: measured on a 390 px phone, 480 px of empty navy above the heading. The
+  band keeps its type and loses the stage — the section becomes a printed strip, which is what it
+  is when there is nothing to show.
+*/
+@media (max-width: 767px) {
+  .signature {
+    min-height: 0;
+  }
+}
+
 .signatureInner {
   position: relative;
   z-index: 2;
@@ -880,7 +892,12 @@
 
 .signatureAccent {
   font-style: italic;
-  color: var(--color-signal-blue);
+  /*
+    Neon here, not press cyan (round 14). This band's whole subject is an object glowing #0087FF; a
+    teal accent next to it reads as two unrelated colours fighting. The token is scoped to this band
+    (see tokens.css) — everything else on the page stays printed stock.
+  */
+  color: var(--color-neon-blue);
 }
 
 .signatureNote {
