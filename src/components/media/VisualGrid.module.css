@@ -109,7 +109,7 @@
 }
 
 .ordinal {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.12em;
   color: var(--color-text-primary);
@@ -117,7 +117,7 @@
 }
 
 .caption {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -236,7 +236,7 @@
 }
 
 .lightboxCaption {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -252,7 +252,7 @@
   border: 1px solid var(--color-hairline-strong);
   background: var(--color-bg-base);
   color: var(--color-text-primary);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;

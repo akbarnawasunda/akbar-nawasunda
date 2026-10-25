@@ -88,9 +88,23 @@
   --color-signal: var(--color-signal-blue);
 
   /* --- Typography ------------------------------------------------------------------- */
-  --font-display-stack: var(--font-display), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-body-stack: var(--font-body), "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono-stack: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /*
+   * Five roles, five families (see src/lib/fonts.ts for the map and for which binary currently
+   * fills each slot). A component asks for a role, never for a family: that is what made this
+   * round a one-file change instead of a search-and-replace across 24 stylesheets.
+   *
+   * The fallbacks are not decoration. Every role names a face that exists on the device before
+   * `sans-serif`, because a giant uppercase headline that reflows on a slow connection is worse
+   * than one set in Helvetica.
+   */
+  /* `var(--font-*)` already carries next/font's own fallback chain (it is emitted as
+     `family, ui-sans-serif, system-ui, …`), so the stack below only adds the *intended* family —
+     the one that will be there once the real files land — and one generic. */
+  --font-display-stack: var(--font-display), "Excess V Straight", sans-serif;
+  --font-heading-stack: var(--font-heading), "Psychlone Straight", sans-serif;
+  --font-body-stack: var(--font-body), "Relidux", sans-serif;
+  --font-label-stack: var(--font-label), "Impact Label", "Arial Narrow", sans-serif;
+  --font-accent-stack: var(--font-accent), "Marse Loup", serif;
 
   /*
    * Poster metrics, on purpose.
@@ -103,10 +117,24 @@
    */
   --leading-hero: 0.86;
   --leading-tight: 1.02;
+  /* The label face is a condensed stamp: at 0.86 its ascenders touch the line above, at 0.94
+     it reads as one block of tape. Used only where --font-label-stack is set. */
+  --leading-stamp: 0.94;
   --leading-body: 1.6;
   --tracking-hero: -0.045em;
   --tracking-tight: -0.02em;
+  /*
+   * Tracking, as a function of size. A display face at 12vw needs to be pulled together or it falls
+   * apart into letters; 9px uppercase needs to be pushed apart or it becomes a grey smear. The three
+   * label steps are the difference between those two jobs:
+   *
+   *   --tracking-label   9–10px uppercase meta ("01 — Katalog", counters, footer rules)
+   *   --tracking-nav     11–14px navigation, buttons, list meta
+   *   --tracking-stamp   the label face at title size — a label maker's tape is tight, not airy
+   */
   --tracking-label: 0.2em;
+  --tracking-nav: 0.13em;
+  --tracking-stamp: 0.015em;
 
   --text-hero: clamp(2.75rem, 12.5vw, 11.5rem);
   --text-display: clamp(2rem, 6.2vw, 5rem);

@@ -219,7 +219,7 @@ export function BackSide({ data }: { data: SheetData }) {
                 </div>
                 <div>
                   <dt>Huruf</dt>
-                  <dd>Anton · Instrument Sans · JetBrains Mono</dd>
+                  <dd>Excess-V-Straight · Psychlone-Straight · Relidux · Impact-Label · Marse-loup</dd>
                 </div>
                 <div>
                   <dt>Tautan</dt>

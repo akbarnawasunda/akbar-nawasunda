@@ -24,7 +24,7 @@
 }
 
 .eyebrow {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -44,7 +44,7 @@
   flex-shrink: 0;
   padding-bottom: 2px;
   border-bottom: 1px solid var(--color-border-strong);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;

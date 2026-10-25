@@ -46,7 +46,7 @@
 .kicker,
 .roles,
 .readout {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;

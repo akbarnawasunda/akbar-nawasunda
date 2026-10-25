@@ -23,7 +23,7 @@
 }
 
 .eyebrow {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -31,6 +31,7 @@
 }
 
 .title {
+  font-family: var(--font-heading-stack);
   margin-top: var(--space-4);
   /* The name is allowed to break a long word rather than overflow the viewport at 320px. */
   overflow-wrap: anywhere;
@@ -60,7 +61,7 @@
 
 /* The count is the one number on the page, so it is set as display type, not as a statistic. */
 .figure {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-heading-stack);
   font-weight: 700;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1;
@@ -70,7 +71,7 @@
 .figure span {
   display: block;
   margin-top: var(--space-2);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   font-weight: 400;
   letter-spacing: var(--tracking-label);
@@ -79,7 +80,7 @@
 }
 
 .note {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;

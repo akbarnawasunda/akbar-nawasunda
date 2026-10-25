@@ -20,7 +20,7 @@
 }
 
 .kicker {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -36,7 +36,7 @@
 }
 
 .heading {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-heading-stack);
   font-weight: 700;
   font-size: var(--text-display);
   line-height: var(--leading-hero);
@@ -58,7 +58,7 @@
 }
 
 .meta {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -148,14 +148,14 @@
 }
 
 .year {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .title {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-heading-stack);
   font-size: 1.0625rem;
   font-weight: 700;
   letter-spacing: var(--tracking-tight);
@@ -175,7 +175,7 @@
 }
 
 .flag {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.16em;
   /* 70% ink on paper clears AA at 9px; 55% did not (axe, 2026-10-24). */

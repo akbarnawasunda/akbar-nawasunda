@@ -106,10 +106,10 @@
  * product code next to the mark rather than as a second logo competing with the 12vw name below.
  */
 .wordmark {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-weight: 500;
   font-size: 0.6875rem;
-  letter-spacing: 0.18em;
+  letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--color-text-secondary);
@@ -121,7 +121,7 @@
   border: 1px solid var(--color-border-strong);
   background: none;
   color: var(--color-text-secondary);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5rem;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -147,9 +147,9 @@
   background: none;
   color: var(--color-text-primary);
   font-weight: 500;
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
-  letter-spacing: 0.2em;
+  letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
   text-decoration: none;
   transition:
@@ -182,10 +182,10 @@
   border: 0;
   color: var(--color-fg);
   cursor: pointer;
-  font-family: var(--font-display-stack);
+  font-family: var(--font-body-stack);
   font-size: 1.125rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
 }
 
@@ -196,10 +196,11 @@
 }
 
 .menuWord {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-body-stack);
   text-transform: uppercase;
   font-size: 1.125rem;
   line-height: 1;
+  letter-spacing: var(--tracking-nav);
 }
 
 .burger {
@@ -287,14 +288,14 @@
 }
 
 .drawerIndex {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
-  letter-spacing: 0.18em;
+  letter-spacing: var(--tracking-nav);
   color: var(--color-text-muted);
 }
 
 .drawerLabel {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-heading-stack);
   font-weight: 700;
   font-size: clamp(2.5rem, 9.5vw, 5rem);
   line-height: var(--leading-hero);
@@ -318,7 +319,7 @@
 
 .drawerLatestLabel {
   margin: 0;
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -356,16 +357,16 @@
 }
 
 .drawerLatestTitle {
-  font-family: var(--font-display-stack);
-  font-weight: 700;
+  font-family: var(--font-label-stack);
+  font-weight: 400;
   font-size: 1.25rem;
   line-height: 1.05;
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
 }
 
 .drawerLatestMeta {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -379,7 +380,7 @@
   padding: var(--space-3) var(--space-6);
   border: 1px solid var(--color-text-primary);
   color: var(--color-text-primary);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -398,7 +399,7 @@
 .drawerMeta {
   /* Pinned to the bottom: the list is the menu, the colophon is the edge of the page. */
   margin: auto 0 0;
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;

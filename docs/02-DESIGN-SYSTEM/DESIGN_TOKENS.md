@@ -18,13 +18,15 @@ demoted from a page colour to the light inside the monogram and the focus ring.
     "stamp": {"default": "#FF3B30", "ink": "#FF6B62"}
   },
   "font": {
-    "display": "Space Grotesk 700 (uppercase, every h1/h2/h3)",
-    "body": "Inter (running text only)",
-    "mono": "JetBrains Mono (labels, counters, every number, every button)"
+    "display": "Excess-V-Straight (h1: the site's own name)",
+    "heading": "Psychlone-Straight (h2/h3: section titles)",
+    "body": "Relidux (body copy, nav, buttons, every meta label)",
+    "label": "Impact-Label-SWL (release and track titles, play links)",
+    "accent": "Marse-loup (quotes, decorative lines)"
   },
   "metric": {
-    "leading": {"hero": "0.86", "tight": "1.02", "body": "1.6"},
-    "tracking": {"hero": "-0.045em", "tight": "-0.02em", "label": "0.2em"}
+    "leading": {"hero": "0.86", "tight": "1.02", "stamp": "0.94", "body": "1.6"},
+    "tracking": {"hero": "-0.045em", "tight": "-0.02em", "label": "0.2em", "nav": "0.13em", "stamp": "0.015em"}
   },
   "size": {
     "text": {
@@ -48,7 +50,8 @@ demoted from a page colour to the light inside the monogram and the focus ring.
 ## Rules that come with these values
 
 1. **Type is the design.** A page states its name in uppercase at `--text-hero`. Nothing else on the
-   band is allowed to be large; the copy under it is 1rem and the controls are 0.6875rem mono.
+   band is allowed to be large; the copy under it is 1rem and the controls are 0.6875rem body type at
+   `--tracking-nav`. No component names a family — only a role token (`--font-label-stack`).
 2. **No fill except white.** Panels are the ground plus a hairline. The only filled objects on the
    site are the primary button, the hovered index row, and a hovered social cell — all white.
 3. **The accent is not paint.** `#0087FF` appears as: the full stop after the hero name, the "AN" in

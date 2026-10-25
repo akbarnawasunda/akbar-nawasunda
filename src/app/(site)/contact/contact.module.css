@@ -18,7 +18,7 @@
 }
 
 .eyebrow {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -31,6 +31,7 @@
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
+  font-family: var(--font-heading-stack);
 }
 
 .lead {
@@ -42,7 +43,7 @@
 .mail {
   display: inline-block;
   margin-top: var(--space-8);
-  font-family: var(--font-display-stack);
+  font-family: var(--font-heading-stack);
   font-weight: 700;
   font-size: clamp(1.35rem, 5.4vw, 5rem);
   line-height: 1.02;
@@ -62,7 +63,7 @@
 .mailNote {
   max-width: 44ch;
   margin-top: var(--space-6);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -94,11 +95,11 @@
 .services li {
   padding-block: var(--space-3);
   border-bottom: 1px solid var(--color-hairline);
-  font-family: var(--font-display-stack);
+  font-family: var(--font-body-stack);
   font-weight: 700;
   font-size: var(--text-title);
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
 }
 
@@ -118,7 +119,7 @@
 
 .label {
   margin-bottom: var(--space-3);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;

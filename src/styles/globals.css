@@ -52,20 +52,32 @@ body {
 /*
  * Display type: the whole design in three declarations.
  *
- * Only Space Grotesk 700 survives at headline sizes. It is the face the reference uses, it has a
- * genuine 700 rather than a synthesised one, and its uppercase is wide and square, which is what
- * lets a word span the viewport without looking stretched. Leading 0.86 and −0.045em tracking are
- * the two numbers that matter: at 12vw the default leading leaves a gap you could park a car in.
+ * Two families, split by job (round 17): the display face for the site's own name, the heading face
+ * for section titles. Both want a genuine 700 rather than a synthesised one, and both want an
+ * uppercase that is wide and square, which is what lets a word span the viewport without looking
+ * stretched. Leading 0.86 and −0.045em tracking are the two numbers that matter: at 12vw the default
+ * leading leaves a gap you could park a car in.
  */
 h1,
 h2,
 h3 {
-  font-family: var(--font-display-stack);
   font-weight: 700;
   letter-spacing: var(--tracking-hero);
   line-height: var(--leading-hero);
   text-transform: uppercase;
   text-wrap: balance;
+}
+
+/* The site's own name, and nothing else, is set in the display face: the hero, the footer
+   wordmark, the loading curtain, the 404. A page title (MUSIK, ARSIP) is a section title and takes
+   the heading face, which is what keeps the two roles visible even while they are the same binary. */
+h1 {
+  font-family: var(--font-display-stack);
+}
+
+h2,
+h3 {
+  font-family: var(--font-heading-stack);
 }
 
 /*

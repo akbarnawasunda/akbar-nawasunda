@@ -18,10 +18,10 @@
   padding: 14px 22px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.2em;
+  letter-spacing: var(--tracking-nav);
   line-height: 1;
   text-transform: uppercase;
   text-decoration: none;

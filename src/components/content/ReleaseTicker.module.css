@@ -31,7 +31,7 @@
   gap: var(--space-2);
   margin: 0;
   padding-inline: var(--gutter);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -87,18 +87,18 @@
 }
 
 .title {
-  font-family: var(--font-display-stack);
-  font-weight: 700;
+  font-family: var(--font-label-stack);
+  font-weight: 400;
   font-size: clamp(1.25rem, 2.4vw, 2.125rem);
   line-height: 1;
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--color-text-primary);
   transition: color var(--duration-fast) var(--ease);
 }
 
 .meta {
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-body-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;

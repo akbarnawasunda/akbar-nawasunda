@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { bodyFont, displayFont, monoFont } from "@/lib/fonts";
+import { accentFont, bodyFont, displayFont, headingFont, labelFont } from "@/lib/fonts";
 import { siteConfig } from "@/config/site";
 import { defaultSocialImages } from "@/lib/metadata";
 import "@/styles/globals.css";
@@ -44,7 +44,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="id" className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`}>
+    <html
+      lang="id"
+      className={[
+        displayFont.variable,
+        headingFont.variable,
+        bodyFont.variable,
+        labelFont.variable,
+        accentFont.variable,
+      ].join(" ")}
+    >
       <body>{children}</body>
     </html>
   );
