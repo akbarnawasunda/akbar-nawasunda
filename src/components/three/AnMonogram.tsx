@@ -16,6 +16,7 @@ import { perfFlag } from "../zine/perf-flags";
  * - nothing is imported until the page has loaded *and* the band is within one screen of the
  *   viewport, so the bundle, the shader compile and the env-map pass all land after LCP — and on a
  *   page nobody has scrolled yet, they never land at all;
+ * - **nothing mounts at all below 768 px** (R12): a phone gets the band without the renderer;
  * - the loop stops when the canvas leaves the viewport or the tab is hidden;
  * - **the scene is painted at 30 fps, not 60** (R11). What moves here is a 5.2 s sine on one axis
  *   with an amplitude of 0.22 rad — at 30 fps that is ~1.3° of motion per paint, which is below the
@@ -40,6 +41,21 @@ export function AnMonogram() {
     /* Ablation switch: `?perf=nocanvas` never imports three.js, so the scene cannot be measured
        against the rest of the page while it is also running. */
     if (perfFlag("nocanvas")) return;
+    /*
+     * No scene on a phone (R12).
+     *
+     * The mark is 300 px of decorative metal behind the signature band. On a phone it is cropped to
+     * a third of its width, sits under a full-width heading, and costs the three things a mid-range
+     * Android has least of: a WebGL context, a megabyte of texture memory, and a repeat paint every
+     * 33 ms on the same main thread that is running Lenis and the plate. The band is designed to be
+     * complete without it — the heading, the rules and the plate are the whole composition — so on a
+     * small screen it simply does not mount, and the GPU is never touched at all.
+     *
+     * The gate is a media query read once at mount, deliberately: this is not a pointer hint (which
+     * would be `pointerType`), it is a decision about whether to allocate a renderer on a device we
+     * are not going to show it to.
+     */
+    if (window.matchMedia("(max-width: 767px)").matches) return;
 
     // Bound once: TypeScript cannot narrow a ref across the closures below.
     const stage: HTMLDivElement = host;
@@ -104,7 +120,7 @@ export function AnMonogram() {
       const key = new THREE.DirectionalLight(0xdfe7ff, 2.2);
       key.position.set(-2.4, 2.8, 3.2);
       scene.add(key);
-      const rim = new THREE.DirectionalLight(0x0087ff, 2.6);
+      const rim = new THREE.DirectionalLight(0x2e8c86, 2.6);
       rim.position.set(3.2, -1.4, 1.4);
       scene.add(rim);
 
@@ -143,7 +159,7 @@ export function AnMonogram() {
         color: 0xe8e6e1,
         metalness: 0.92,
         roughness: 0.16,
-        emissive: new THREE.Color(0x0087ff),
+        emissive: new THREE.Color(0x2e8c86),
         emissiveIntensity: 0.06,
         envMapIntensity: 1.15,
       });
@@ -151,7 +167,7 @@ export function AnMonogram() {
       const mesh = new THREE.Mesh(geometry, metal);
       const wire = new THREE.LineSegments(
         new THREE.EdgesGeometry(geometry, 24),
-        new THREE.LineBasicMaterial({ color: 0x0087ff, transparent: true, opacity: 0.38 }),
+        new THREE.LineBasicMaterial({ color: 0x2e8c86, transparent: true, opacity: 0.38 }),
       );
       wire.scale.setScalar(1.004);
 

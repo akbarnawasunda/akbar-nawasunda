@@ -25,14 +25,16 @@ npm run covers:sleeves          # fill in what is missing
 npm run covers:sleeves -- --force
 ```
 
-1000 × 1000 WebP, built only from verified content: the release title, the original artist and year
-when they are known, the AN monogram at 10%, `#101014`, and the 4 px `#0087FF → #7800FF` rule. No
-stock photo, no invented artwork, no per-release genre (genres are verified for the artist, not for
-each song).
+1000 × 1000 WebP, built only from verified content: the release title in caps, the original artist
+and year when they are known, the AN monogram at ~10%, the page ground `#0A0A0E` (or paper `#E8E6E1`
+for the inverted half of the series), and a 4 px misregistration rule — press cyan `#2E8C86` on the
+ink series, poster red `#C93A22` on the paper one. No stock photo, no invented artwork, no
+per-release genre (genres are verified for the artist, not for each song).
 
-It renders text with **Syne** (display) and **JetBrains Mono** (labels) — the two families the site
-ships — so those fonts have to be installed where the script runs (`~/.fonts` is enough). Without
-them the rasteriser falls back to a system sans and the sleeve will look wrong; check the output.
+It renders text with **Anton** (display) and **JetBrains Mono** (labels) — the two families the site
+ships — so those fonts have to be installed where the script runs (`~/.fonts` is enough; Anton is
+`src/assets/fonts/anton-latin-400.woff2` unpacked to `~/.fonts/Anton-Regular.ttf`). Without them the
+rasteriser falls back to a system sans and the sleeve will look wrong; check the output.
 
 ## Adding real artwork
 

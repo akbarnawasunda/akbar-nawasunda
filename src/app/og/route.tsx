@@ -30,7 +30,7 @@ export const runtime = "nodejs";
 const WIDTH = 1200;
 const HEIGHT = 630;
 
-const BLUE = "#0087FF";
+const BLUE = "#2E8C86";
 const INK = "#0A0A0E";
 const PAPER = "#E8E6E1";
 const SECONDARY = "#A1A1B5";
@@ -58,13 +58,9 @@ export async function GET(request: Request) {
   const slug = new URL(request.url).searchParams.get("slug");
   const release = slug ? releases.find((candidate) => candidate.slug === slug) : undefined;
 
-  const [fontBytes, italicBytes] = await Promise.all([
-    readAsset("fonts/instrument-serif-og.ttf"),
-    readAsset("fonts/instrument-serif-og-italic.ttf"),
-  ]);
+  const fontBytes = await readAsset("fonts/anton-og.ttf");
   if (!fontBytes) return new Response("OG font missing", { status: 500 });
   const font = new Uint8Array(fontBytes).buffer;
-  const italic = italicBytes ? new Uint8Array(italicBytes).buffer : null;
 
   const title = release ? releaseDisplayTitle(release) : "Akbar Nawasunda";
   const meta = release
@@ -72,11 +68,11 @@ export async function GET(request: Request) {
     : "Produser · Remixer · DJ";
 
   /**
-   * The card now uses the site's serif. Two consequences: the title is no longer uppercase
-   * (Instrument Serif in caps at 100px reads like a wedding invitation), and the type can be larger
-   * because a serif at 400 carries far less weight than a grotesque at 800.
+   * The card uses the site's display face, Anton, in caps (R13). Anton is condensed, so the same box
+   * holds far more title than the serif did: a 30-character release name still sets in two lines at
+   * 96. Satori needs a real TTF — `public/fonts/anton-og.ttf` is the OFL file, not a subset.
    */
-  const titleSize = title.length > 26 ? 76 : title.length > 16 ? 96 : 112;
+  const titleSize = title.length > 30 ? 88 : title.length > 18 ? 104 : 124;
 
   const artwork = release ? coverArtwork(release.slug) : null;
   // A data URI, not a URL: satori accepts both, but only one survives the SSRF guard and a cold CDN.
@@ -108,7 +104,7 @@ export async function GET(request: Request) {
           display: "flex",
           background: INK,
           color: PAPER,
-          fontFamily: "Instrument Serif",
+          fontFamily: "Anton",
           position: "relative",
         }}
       >
@@ -130,12 +126,15 @@ export async function GET(request: Request) {
             No slab behind the title any more (D-108): on the card it read as a stray rectangle that
             only lined up on two-line titles, and the site it links to no longer uses it either.
           */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 18, position: "relative" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 30, position: "relative" }}>
             <div
               style={{
                 fontSize: titleSize,
-                lineHeight: 0.98,
-                letterSpacing: -1.5,
+                /* 0.92 measured wrong on the card: satori lays the caps ink outside a sub-1 line box,
+                   so the meta line collided with the last baseline. 1.0 keeps the block exact. */
+                lineHeight: 1,
+                letterSpacing: 0.5,
+                textTransform: "uppercase",
                 maxWidth: 660,
                 display: "flex",
                 position: "relative",
@@ -184,7 +183,7 @@ export async function GET(request: Request) {
             }}
           >
             {/* The mark as type, not as a raster: the card must stay sharp at any size. */}
-            <div style={{ fontSize: 300, letterSpacing: -24, color: "#16161C", lineHeight: 1 }}>AN</div>
+            <div style={{ fontSize: 300, letterSpacing: -24, color: "#1A2430", lineHeight: 1 }}>AN</div>
           </div>
         )}
       </div>
@@ -192,10 +191,7 @@ export async function GET(request: Request) {
     {
       width: WIDTH,
       height: HEIGHT,
-      fonts: [
-        { name: "Instrument Serif", data: font, weight: 400, style: "normal" },
-        ...(italic ? [{ name: "Instrument Serif", data: italic, weight: 400 as const, style: "italic" as const }] : []),
-      ],
+      fonts: [{ name: "Anton", data: font, weight: 400, style: "normal" }],
       headers: {
         // Cards change only when the catalogue does; let the CDN hold them for a day.
         "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800",

@@ -197,14 +197,14 @@ export function BackSide({ data }: { data: SheetData }) {
                   <dt>Tinta</dt>
                   <dd className={styles.inks}>
                     <span className={styles.swatch} data-ink="brand" aria-hidden="true" />
-                    <span>Biru AN #0087FF</span>
+                    <span>Cyan cetak #2E8C86</span>
                   </dd>
                 </div>
                 <div>
                   <dt>&nbsp;</dt>
                   <dd className={styles.inks}>
                     <span className={styles.swatch} data-ink="red" aria-hidden="true" />
-                    <span>Merah poster #FF2D20</span>
+                    <span>Merah poster #C93A22</span>
                   </dd>
                 </div>
                 <div>
@@ -220,7 +220,7 @@ export function BackSide({ data }: { data: SheetData }) {
                 </div>
                 <div>
                   <dt>Huruf</dt>
-                  <dd>Instrument Serif · Instrument Sans · JetBrains Mono</dd>
+                  <dd>Anton · Instrument Sans · JetBrains Mono</dd>
                 </div>
                 <div>
                   <dt>Tautan</dt>

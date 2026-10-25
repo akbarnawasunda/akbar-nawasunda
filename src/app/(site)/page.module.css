@@ -115,8 +115,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* The empty stage: bulb at the right, floor at the bottom. Crop to keep the light in frame. */
-  object-position: 58% 42%;
+  /*
+    The empty stage: bulb at the right, floor at the bottom. Crop to keep the light in frame.
+
+    Two crops, because the frame is two shapes (R13, measured). At 1440 the photograph is wider than
+    the viewport and `58% 42%` centres the lit half. On a 390 px phone the same square is scaled to
+    the *height* of the hero and then cropped to a third of its width — at 58% that third lands on
+    the dark stage and a phone user gets a black page. 74% walks the crop to the bulb, so the hero
+    still has a light source at every width.
+  */
+  object-position: 74% 34%;
+}
+
+@media (min-width: 640px) {
+  .heroImage {
+    object-position: 58% 42%;
+  }
 }
 
 /*
@@ -209,23 +223,53 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding-bottom: var(--space-4);
-  /* The rule above the name is the identity colour: a printed registration line, 2 px, full width. */
-  border-bottom: 2px solid var(--color-brand);
+  /* The rule above the name is a printed registration bar: thick, uneven in weight against the
+     hairline everywhere else, and full bleed to the gutter. */
+  border-bottom: 4px solid var(--color-brand);
+  padding-bottom: var(--space-3);
   /* No transform of its own: the rule is printed on the sheet and turns with it. The old build slid
      this line against the name by −0.35 of the pointer, which is the parallax the owner read as
      "flat pictures at different speeds" — two things on one piece of paper cannot do that. */
 }
 
+/*
+  The issue line is a sticker taped on the sheet, tilted against the name.
+
+  Two opposite tilts — the name at −1.4°, this at +1.8° — is the cheapest way to say "made by a
+  person with scissors" instead of "laid out by a grid". It also carries the one heavy border in the
+  hero, which is where the eye should start.
+*/
 .kicker {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 2px solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
-  letter-spacing: 0.24em;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+
+.masthead {
+  justify-content: flex-start;
+  gap: var(--space-4);
+  position: relative;
+}
+
+.masthead .kicker {
+  rotate: -1.8deg;
+}
+
+.masthead .kicker + .kicker {
+  background: transparent;
   color: var(--color-text-secondary);
+  border-color: var(--color-border-strong);
+  rotate: 1.2deg;
 }
 
 /* The record light. One 5px amber pixel, the only warm colour in the interface. */
@@ -244,6 +288,21 @@
 */
 .name {
   /*
+    R12 — the name is a pasted clipping, not a heading.
+
+    Three things make it read as print rather than as a hero: it is set in caps in a condensed poster
+    grotesque, it is rotated a degree and a half off true (a sheet glued down by hand is never
+    square), and it is allowed to run past the column edge — the left margin is pulled out so the
+    "A" sits in the gutter, which is where a zine puts its masthead when it runs out of room.
+
+    The rotation is static: it is part of the setting, not an effect, so it costs nothing per frame
+    and stays put under `prefers-reduced-motion`.
+  */
+  text-transform: uppercase;
+  transform: rotate(-1.4deg);
+  transform-origin: 0 60%;
+  margin-left: calc(var(--gutter) * -0.5);
+  /*
     The two margins are the whole job of this rule, and they are optical, not typographic.
 
     Display type overflows its own line box: at 168 px the ascenders and descenders reach ~39 px
@@ -255,7 +314,8 @@
     rule, enough below for the descenders to clear the next rule. It scales with the type, because
     the overflow does.
   */
-  margin: clamp(var(--space-8), 4.4vw, var(--space-16)) 0 0;
+  /* Pulled up so the ascenders break the registration rule: overlapping is the point. */
+  margin: clamp(var(--space-2), 1.2vw, var(--space-4)) 0 0;
   /* On the sheet, not in front of it. Its depth arrives from `.heroInner`; adding its own would put
      the name out of register with the rule above it and, at any forward Z, wide enough to clip. */
   font-family: var(--font-display-stack);
@@ -266,8 +326,25 @@
   margin-left: -0.03em;
 }
 
+/*
+  The two lines are not stacked — they are *pasted*, one over the other's shoulder.
+
+  Line one runs flush from the gutter. Line two is pulled left, past the margin, so it starts before
+  the first line does; that single misalignment is what stops the block reading as a centred hero and
+  starts it reading as a cut-out. The negative top margin locks them tight enough to overlap
+  optically at 144 px, which is how a poster sets a two-line masthead.
+*/
 .nameLine {
   display: block;
+}
+
+.nameLine:first-child {
+  margin-left: 0.04em;
+}
+
+.nameItalic {
+  margin-left: -0.05em;
+  margin-top: -0.045em;
 }
 
 .nameItalic {
@@ -294,9 +371,13 @@
 
 .heroFoot {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* One column, not copy-left/actions-right (R13). Side by side, the buttons landed on the lit part
+     of the photograph — two paper chips floating over a lamp — and the eye went to them instead of
+     the name. Stacked in the left column, the band reads as a flyer's bottom third: rule, sentence,
+     two stamps, all on the same edge as everything above them. */
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
-  gap: var(--space-6) var(--space-8);
+  gap: var(--space-6);
   /*
     The gap above this rule is measured from the descenders of the name, which overhang by ~39 px at
     desktop size. 88 px of margin minus that overhang is the ~48 px of white the eye actually reads.
@@ -322,14 +403,21 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-  justify-content: flex-end;
+  justify-content: flex-start;
+  margin-top: var(--space-2);
 }
 
 /* ------------------------------------------------------------------- facts */
 
+/*
+  The figures sit in a ruled strip — two heavy rules, no box — the way a paper runs a results table.
+  The numbers are in the poster face now, which is what makes three small integers look set rather
+  than typed.
+*/
 .factsBar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-block: 3px solid var(--color-border-strong);
   align-items: end;
   gap: var(--space-6);
   /*
@@ -416,10 +504,27 @@
   color: var(--color-text-secondary);
 }
 
+/*
+  The scroll cue is a barcode, drawn with one repeating gradient.
+
+  It is the one piece of pure print furniture in the hero: no icon, no arrow, no "scroll" chevron —
+  a strip of bars and the word next to it, which is how a flyer marks its trim. Static, one element,
+  no animation; the bars are a repeating background, so it costs a single paint.
+*/
 .cueLine {
-  width: 56px;
-  height: 1px;
-  background: var(--color-signal-blue);
+  width: 72px;
+  height: 14px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-text-primary) 0 2px,
+    transparent 2px 3px,
+    var(--color-text-primary) 3px 4px,
+    transparent 4px 7px,
+    var(--color-text-primary) 7px 10px,
+    transparent 10px 11px,
+    var(--color-text-primary) 11px 12px,
+    transparent 12px 16px
+  );
 }
 
 /* ============================================================ transmission */
@@ -1122,5 +1227,41 @@
   .sleeveLink:hover,
   .sleeveLink:focus-visible {
     translate: none;
+  }
+}
+
+/* ---------------------------------------------------------- side strip (R12) */
+
+/*
+  Vertical running head on the right edge. Rotated text is cheap — it is laid out once and never
+  repainted — and it is the one element on the page that makes the photograph feel like a surface
+  something was printed *on* rather than an image behind some type.
+*/
+.sideStrip {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  display: none;
+  margin: 0;
+  padding: var(--space-3) var(--space-1);
+  border-block: 2px solid var(--color-brand);
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
+.sideStrip span + span {
+  margin-top: 1.4em;
+  color: var(--color-brand);
+}
+
+@media (min-width: 1024px) {
+  .sideStrip {
+    display: block;
   }
 }

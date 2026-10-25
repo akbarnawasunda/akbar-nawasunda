@@ -1,18 +1,54 @@
 /*
-  A page head that is a printed sleeve: the identity colour edge to edge, ink type, one figure.
+  A page head that is a printed sleeve — now actually printed.
+
+  R11 shipped this as a full-bleed #0087FF field with near-black type: clean, symmetrical, and
+  exactly the "corporate" the owner objected to. Three changes turn it into a press sheet:
+
+  - the field is a **dark navy** with paper type on it, so the cyan is an accent again rather than a
+    background wash. A two-colour job spends its second ink on marks, not on wallpaper;
+  - a **halftone band** runs along the bottom edge — flat repeating rules, no gradient, no blur
+    (both banned by tests/fixtures/anti-ai.ts) — which is the printed texture the flat field was
+    missing;
+  - the head is **framed** with a heavy rule and the figure is boxed, so the composition reads as a
+    cut-out from a larger sheet instead of a responsive container.
 
   The head sits under the fixed header, so the top padding is the header height plus a step — the
   same trick every other page uses, kept in one place now that four pages share it.
 */
 .head {
   position: relative;
-  /* A blue field takes a red second plate: a blue ghost on blue is invisible, and red on blue is
-     the pair the owner's own poster uses. */
-  --ink-ghost: var(--color-poster-red);
-  --ink-shift: 5px;
-  background: var(--color-brand);
-  color: var(--color-on-brand);
-  border-bottom: 2px solid var(--color-on-brand);
+  /*
+    Paper type on navy takes a cyan second plate instead of a red one: red disappears against navy at
+    display weight, while a cyan plate on a dark field reads exactly like the second roller picking
+    up too much ink.
+  */
+  --ink-shift: 6px;
+  --ink-plate-red-x: 3px;
+  --ink-plate-red-y: 2px;
+  --ink-plate-cyan-x: -3px;
+  --ink-plate-cyan-y: -2px;
+  background: var(--color-field);
+  color: var(--color-on-field);
+  border-block: 4px solid var(--color-ink-black);
+}
+
+/*
+  The halftone band: 6 px of flat stripes along the trim edge. `repeating-linear-gradient` with hard
+  stops is a printed rule pattern, not a gradient — no interpolation happens anywhere in it.
+*/
+.head::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 14px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-brand) 0 4px,
+    transparent 4px 9px
+  );
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .inner {
@@ -32,18 +68,20 @@
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--color-on-brand);
+  color: var(--color-on-field);
 }
 
 .title {
   grid-column: 1;
   margin: 0;
+  text-transform: uppercase;
   font-family: var(--font-display-stack);
   font-weight: 400;
-  font-size: clamp(3.25rem, 10.5vw, 8.5rem);
-  line-height: 0.86;
-  letter-spacing: -0.03em;
-  margin-left: -0.03em;
+  font-size: clamp(3.5rem, 11.5vw, 9.5rem);
+  line-height: 0.84;
+  letter-spacing: 0;
+  /* A hair past the column edge, the way a cut headline is pasted over the margin of a spread. */
+  margin-left: -0.012em;
   text-wrap: balance;
 }
 
@@ -51,14 +89,17 @@
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: end;
+  justify-self: end;
   margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 3px solid var(--color-on-field);
   font-family: var(--font-display-stack);
   font-weight: 400;
   font-size: clamp(3.5rem, 8.5vw, 7rem);
   line-height: 0.78;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   font-variant-numeric: lining-nums;
-  color: var(--color-on-brand);
+  color: var(--color-on-field);
 }
 
 .lead {

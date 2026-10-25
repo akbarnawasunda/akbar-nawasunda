@@ -19,14 +19,16 @@
  * year when they are known, the AN monogram, and the brand palette. No stock photo, no invented
  * artwork, no genre label per release (genres are verified for the artist, not for each song).
  *
- * Typography: renders with Instrument Serif 400 (display) and JetBrains Mono 500 (labels), the two
- * families the site ships. Both must be installed locally for the rasteriser to find them —
- * `fontconfig` sees ~/.fonts. Without them the text falls back to a system sans and the file will
- * look wrong, so check the result; the committed sleeves were rendered with Instrument Serif 400.
+ * Typography: renders with Anton 400 (display, all caps) and JetBrains Mono 500 (labels). Both must be
+ * installed locally for the rasteriser to find them — fontconfig sees ~/.fonts; the display face is
+ * the same OFL file the site ships (`src/assets/fonts/anton-latin-400.woff2`, unpacked to
+ * ~/.fonts/Anton-Regular.ttf so librsvg can use it). Without them the text falls back to a system
+ * sans and the file looks wrong, so check the result.
  *
- * The display face changed on 2026-10-24 (D-108). The sleeves are the loudest type on the site —
- * ten of them, one per release — so leaving them in the old 800-weight grotesque would have kept the
- * exact lettering the redesign replaced.
+ * The display face changed twice: grotesque 800 → Instrument Serif (2026-10-24, D-108) → Anton
+ * (round 13, "SALAH CETAK"). The sleeves are the loudest type on the site — ten of them, one per
+ * release — and a serif cover sitting next to a condensed-sans page reads as two different sites.
+ * The titles are set in caps now for the same reason: the sleeve is printed matter, not a caption.
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -44,9 +46,12 @@ const markPath = join(root, "public", "brand", "an-mark.webp");
 const SIZE = 1000;
 const PAD = 72;
 const COLUMN = 660; // text column; the ghost sits to the right of it
-/* A 400-weight serif needs to be much larger than an 800-weight grotesque to hold the same square:
-   the sleeve titles now start at 128 and step down until they fit three lines. */
-const TITLE_SIZES = [150, 132, 116, 100, 88, 76, 64];
+/*
+ * Anton is condensed, so it holds a square at a much larger size than the serif it replaced: a
+ * three-line caps block at 150 is 450 px of 1000. The ladder starts high and steps down until the
+ * title fits three lines, so short titles get billboard type and long ones stay inside the margin.
+ */
+const TITLE_SIZES = [190, 172, 154, 138, 122, 108, 94, 82, 72];
 
 /**
  * Two sleeve series (D-117).
@@ -61,9 +66,15 @@ const TITLE_SIZES = [150, 132, 116, 100, 88, 76, 64];
  * This is still not artwork. Artwork is the owner's file or the platform's, fetched by
  * `npm run covers:fetch` / the Covers Action. This is the designed floor under that.
  */
+/*
+ * The palette is the R13 press palette, not the R8 screen palette: the ground matches the page
+ * (`--color-bg-base` #0A0A0E) so a sleeve sitting on the catalogue wall looks printed on the same
+ * stock, and the 4 px rule carries one of the two misregistration inks — press cyan on the ink
+ * series, poster red on the paper one — instead of the deleted #0087FF.
+ */
 const SERIES = {
-  ink: { paper: false, ground: "#101014", title: "#FFFFFF", label: "#A1A1B5", ghost: "#FFFFFF", ghostOpacity: 0.1, rule: "bottom" },
-  paper: { paper: true, ground: "#E8E6E1", title: "#12120F", label: "#5C5A54", ghost: "#12120F", ghostOpacity: 0.09, rule: "top" },
+  ink: { paper: false, ground: "#0A0A0E", title: "#E8E6E1", label: "#9ECFC9", ghost: "#E8E6E1", ghostOpacity: 0.11, rule: "#2E8C86", ruleEdge: "bottom" },
+  paper: { paper: true, ground: "#E8E6E1", title: "#12120F", label: "#14263A", ghost: "#12120F", ghostOpacity: 0.09, rule: "#C93A22", ruleEdge: "top" },
 };
 
 function hash(text) {
@@ -86,28 +97,30 @@ function xml(value) {
 }
 
 /**
- * Instrument Serif Regular advance widths, in 1000ths of the em (unitsPerEm = 1000), read out of the
- * font file once (fontTools / hmtx). Measuring beats guessing: a serif "m" is 0.70 em and an "i" is
- * 0.22 em, so a flat per-character estimate wraps titles in the wrong place. Missing glyphs (the
- * em dash, most punctuation outside this set) fall back to 0.45 em.
+ * Anton advance widths, in 1000ths of the em, read out of the actual font file (fontTools / hmtx,
+ * unitsPerEm 2048). Measuring beats guessing: Anton's "M" is 0.746 em and its "I" is 0.227 em, so a
+ * flat per-character estimate wraps a caps title in the wrong place. The map covers the caps, digits
+ * and punctuation the catalogue actually contains; anything else falls back to 0.48 em.
  */
 const DISPLAY_WIDTHS = {
-  A: 1160, B: 1140, C: 1316, D: 1302, E: 1140, F: 1128, G: 1340, H: 1280, I: 420, J: 1004, K: 1215,
-  L: 943, M: 1580, N: 1300, O: 1330, P: 1177, Q: 1330, R: 1232, S: 1056, T: 1100, U: 1289, V: 1160,
-  W: 1882, X: 1140, Y: 1070, Z: 1200,
-  a: 1063, b: 1098, c: 994, d: 1098, e: 994, f: 674, g: 969, h: 1008, i: 364, j: 364, k: 942,
-  l: 360, m: 1654, n: 998, o: 1016, p: 1063, q: 1098, r: 563, s: 842, t: 628, u: 998, v: 918,
-  w: 1462, x: 980, y: 930, z: 896,
-  0: 1066, 1: 529, 2: 1003, 3: 1055, 4: 1094, 5: 1015, 6: 1133, 7: 1153, 8: 1081, 9: 1158,
-  " ": 310, ".": 354, ",": 303, "-": 590, "'": 300, "/": 622, "&": 1220, "(": 405, ")": 405,
-  "!": 394, "?": 864,
+  A: 0.485, B: 0.479, C: 0.474, D: 0.493, E: 0.412, F: 0.399, G: 0.485, H: 0.499, I: 0.227,
+  J: 0.466, K: 0.472, L: 0.397, M: 0.746, N: 0.498, O: 0.486, P: 0.472, Q: 0.494, R: 0.477,
+  S: 0.461, T: 0.396, U: 0.474, V: 0.469, W: 0.712, X: 0.484, Y: 0.446, Z: 0.41,
+  0: 0.494, 1: 0.331, 2: 0.494, 3: 0.494, 4: 0.494, 5: 0.494, 6: 0.494, 7: 0.494, 8: 0.494,
+  9: 0.494,
+  " ": 0.234, ".": 0.229, ",": 0.236, "-": 0.311, "–": 0.311, "—": 0.563, "'": 0.214, "’": 0.232,
+  "/": 0.405, "&": 0.52, "(": 0.291, ")": 0.291, "!": 0.229, "?": 0.492, ":": 0.242, "·": 0.234,
+  "@": 0.864,
 };
 
-/** Advance width of one line, including the -0.02em letter-spacing the SVG applies. */
+/* Caps at display size want a hair of air, not the negative tracking a lowercase serif took. */
+const TRACKING = 0.015;
+
+/** Advance width of one line, including the tracking. */
 function measure(text, size) {
   const glyphs = [...text];
-  const sum = glyphs.reduce((total, char) => total + (DISPLAY_WIDTHS[char] ?? 450) / 1000, 0);
-  return (sum - glyphs.length * 0.01) * size;
+  const sum = glyphs.reduce((total, char) => total + (DISPLAY_WIDTHS[char] ?? 0.48), 0);
+  return (sum + glyphs.length * TRACKING) * size;
 }
 
 /** Greedy word wrap at a fixed column width. */
@@ -147,20 +160,23 @@ function eyebrow(release) {
 
 function sleeveSvg(release) {
   const series = seriesFor(release.slug);
-  const { size, lines } = fitTitle(release.title);
-  const lineHeight = Math.round(size * 1.02);
+  /* Caps: Anton's lowercase is a different, lighter voice — the sleeve wants the shout. */
+  const { size, lines } = fitTitle(release.title.toUpperCase());
+  /* 0.92 leading stacks the lines until they touch, which is what makes a sleeve read as a poster
+     rather than a paragraph with big type. */
+  const lineHeight = Math.round(size * 0.92);
   /* Bottom-anchored block: the title rests on the bottom margin and the eyebrow sits above it. A
      top-anchored block left two thirds of the square empty on short titles, which is what made the
      old sleeves look like an unstyled template rather than a record cover. There is no "RILIS 01/10"
      pill any more: the grid already prints an index, and two indices in one tile read as a mistake. */
-  const lastBaseline = SIZE - PAD - 56;
+  const lastBaseline = SIZE - PAD - 44;
   const firstBaseline = lastBaseline - (lines.length - 1) * lineHeight;
   const eyebrowY = firstBaseline - Math.round(size * 1.08);
 
   const title = lines
     .map(
       (line, lineIndex) =>
-        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Instrument Serif" font-weight="400" font-size="${size}" letter-spacing="${(size * -0.01).toFixed(2)}" fill="${series.title}">${xml(line)}</text>`,
+        `<text x="${PAD}" y="${firstBaseline + lineIndex * lineHeight}" font-family="Anton" font-weight="400" font-size="${size}" letter-spacing="${(size * TRACKING).toFixed(2)}" fill="${series.title}">${xml(line)}</text>`,
     )
     .join("");
 
@@ -171,7 +187,7 @@ function sleeveSvg(release) {
 
   ${title}
 
-  <rect x="0" y="${series.rule === "bottom" ? SIZE - 4 : 0}" width="${SIZE}" height="4" fill="#0087FF"/>
+  <rect x="0" y="${series.ruleEdge === "bottom" ? SIZE - 4 : 0}" width="${SIZE}" height="4" fill="${series.rule}"/>
 </svg>`);
 }
 

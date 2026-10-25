@@ -272,6 +272,17 @@ export default async function HomePage() {
         </p>
         </div>
 
+        {/*
+          A vertical strip on the right edge, where a flyer prints its run information. It crosses
+          the photograph rather than sitting politely beside it — that overlap is the difference
+          between a composition and a container.
+        */}
+        <p className={styles.sideStrip} aria-hidden="true">
+          <span>Sisi depan</span>
+          <span>Cetak ganda</span>
+          <span>Bandung Barat</span>
+        </p>
+
         <p className={styles.cue} aria-hidden="true" data-depth="hero-cue">
           <span>Gulir</span>
           <span className={styles.cueLine} />

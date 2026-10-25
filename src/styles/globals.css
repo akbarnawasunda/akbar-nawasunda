@@ -119,12 +119,31 @@ a {
   --ink-x: 0;
   --ink-y: 0;
   --ink-shift: 5px;
-  --ink-ghost: var(--color-brand);
+  /*
+   * R12 — two plates, and they never line up.
+   *
+   * The single ghost offset that shipped in R9 read as a drop shadow, which is the one thing a
+   * misprint is not: a shadow is *behind* the type, a slipped plate is *beside* it. So the display
+   * type now carries two colour plates — red one way, cyan the other — each with its own resting
+   * offset, and the pointer moves both. `--ink-plate-*` are the resting misregistration; the pointer
+   * adds `--ink-shift` on top.
+   *
+   * The resting offsets are what matter for character: a zine printed on a machine that was slightly
+   * out of register looks like that *before* anyone interacts with it. Zero interaction, still wrong.
+   */
+  --ink-plate-red-x: 2px;
+  --ink-plate-red-y: 1px;
+  --ink-plate-cyan-x: -2px;
+  --ink-plate-cyan-y: -1px;
+  --ink-ghost: var(--color-misreg-red);
 }
 
 .ink {
-  text-shadow: calc(var(--ink-x) * var(--ink-shift)) calc(var(--ink-y) * var(--ink-shift)) 0
-    var(--ink-ghost);
+  text-shadow:
+    calc(var(--ink-plate-red-x) + var(--ink-x) * var(--ink-shift))
+      calc(var(--ink-plate-red-y) + var(--ink-y) * var(--ink-shift)) 0 var(--color-misreg-red),
+    calc(var(--ink-plate-cyan-x) + var(--ink-x) * var(--ink-shift) * 0.6)
+      calc(var(--ink-plate-cyan-y) + var(--ink-y) * var(--ink-shift) * 0.6) 0 var(--color-misreg-cyan);
 }
 
 /*

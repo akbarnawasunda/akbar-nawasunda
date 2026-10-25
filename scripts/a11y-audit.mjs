@@ -75,6 +75,37 @@ for (const width of widths) {
       window.scrollTo(0, 0);
     });
 
+    /*
+     * Scroll reveals are armed by IntersectionObserver and settle under Lenis, and a programmatic
+     * sweep of `window.scrollTo` can outrun the smooth-scroll interpolation — which leaves a block at
+     * opacity 0 while axe measures its text, and axe then reports the *blended* colour (text over its
+     * own background, 1:1) as a contrast failure. It is a harness race, not a page defect: the same
+     * text passes once the block has actually been scrolled to. So walk every armed reveal into view
+     * and wait for it to settle before auditing, instead of assuming the sweep reached it.
+     */
+    await page.evaluate(async () => {
+      for (const el of document.querySelectorAll('[class*="armed"]')) {
+        if (el.dataset.visible === "true") continue;
+        el.scrollIntoView({ block: "center" });
+        await new Promise((resolve) => setTimeout(resolve, 140));
+      }
+      window.scrollTo(0, 0);
+    });
+    /*
+     * Waiting for `data-visible` is not enough: the reveal then runs a 700 ms opacity transition,
+     * and axe measures whatever it finds mid-fade (a 0.3-opacity block reports its text as blended
+     * into its own background). Wait for the computed opacity to actually reach 1.
+     */
+    await page
+      .waitForFunction(
+        () =>
+          [...document.querySelectorAll('[class*="armed"]')].every(
+            (el) => getComputedStyle(el).opacity === "1",
+          ),
+        { timeout: 5000 },
+      )
+      .catch(() => {});
+
     await page.evaluate(axeSource);
     const result = await page.evaluate(async () =>
       await axe.run(document, {

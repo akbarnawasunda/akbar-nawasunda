@@ -4,8 +4,8 @@
  */
 
 export const ACCENT_OPTIONS = {
-  signal: { label: "Signal blue (brand)", value: "signal", hex: "#0087ff" },
-  icy: { label: "Icy cyan", value: "icy", hex: "#8ae8ff" },
+  signal: { label: "Press cyan (brand)", value: "signal", hex: "#2e8c86" },
+  icy: { label: "Icy cyan", value: "icy", hex: "#9ecfc9" },
   bone: { label: "Bone white", value: "bone", hex: "#ffffff" },
 } as const;
 

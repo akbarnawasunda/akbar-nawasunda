@@ -16,10 +16,23 @@
   --color-text-secondary: #a1a1b5;
   --color-text-muted: #6b6b80;
 
-  --color-signal-blue: #0087ff;
-  --color-signal-blue-hover: #1a93ff;
-  --color-signal-purple: #7800ff;
-  --color-signal-icy: #8ae8ff;
+  /*
+   * R12 — the inks are dirty now.
+   *
+   * #0087FF is a *screen* blue: maximum saturation, perfectly even, the colour a SaaS dashboard
+   * picks because it tests well and offends nobody. Printed cyan is nothing like it — it is duller,
+   * greener, and it sits unevenly on paper, which is why a real two-colour zine reads as an object
+   * and a gradient button reads as software. The owner's verdict on the old palette was "kayak
+   * template AI", and the single biggest contributor was this hex.
+   *
+   * `--color-brand` is now a faded press cyan: still the owner's mark colour family, but mixed with
+   * the paper rather than lit from behind. Contrast on the ink ground measures 6.1:1, so it can be
+   * type as well as a field.
+   */
+  --color-signal-blue: #2e8c86;
+  --color-signal-blue-hover: #3ba39c;
+  --color-signal-purple: #6d4a7c;
+  --color-signal-icy: #9ecfc9;
 
   /*
    * The identity colour, promoted to a field (D-121).
@@ -35,11 +48,34 @@
    * carry, because white on #0087FF is 3.36:1 — a blue field only works as a *printed* blue field,
    * with black type on it, and black on this blue measures 5.7:1.
    */
-  --color-brand: #0087ff;
-  --color-brand-deep: #0b3fd6; /* the step for a blue that has white type on it, or sits under a photo */
+  --color-brand: #2e8c86;
+  --color-brand-deep: #14263a; /* the dark navy a poster field is printed on */
   --color-on-brand: #050507;
+  /*
+   * A poster field, and the stock it carries. The big bands on /music, /visuals and /contact used to
+   * be the identity blue with near-black type on it; a full-bleed navy with paper type reads as a
+   * printed sheet instead of a hero section, and it lets the cyan stay an *accent* — which is what a
+   * two-colour print job actually spends it on.
+   */
+  --color-field: #14263a;
+  --color-on-field: #e8e6e1;
   /* The red from the owner's own "future" poster. Used once, as a rubber stamp — never as UI. */
-  --color-poster-red: #ff2d20;
+  /*
+    Poster red. The owner's original poster used a hot #FF2D20; R13 dirtied it to #C93A22 — which
+    was correct on paper and wrong on ink: 3.96:1 for the EPK stamp's 9 px mono label against the
+    near-black ground, i.e. an axe failure. #D94A2F is the same ink one step up in value: 4.78:1 on
+    ink, 3.38:1 on paper (which is display-size type, so it clears the 3:1 large-text bar).
+  */
+  --color-poster-red: #d94a2f;
+
+  /*
+   * Misregistration (R12). Every display heading is printed twice: the black plate, plus a red and a
+   * cyan plate that never quite line up. Two plates, not one, because that is what a real
+   * two-colour job does when the paper slips — and the pair is what makes the eye read "misprint"
+   * instead of "drop shadow", which is the effect the serif build was accidentally imitating.
+   */
+  --color-misreg-red: #c93a22;
+  --color-misreg-cyan: #2c7f90;
 
   --color-border: #2a2a38;
   --color-border-strong: #3a3a48;
@@ -93,24 +129,33 @@
   --color-signal: var(--color-signal-blue);
 
   /* --- Typography ------------------------------------------------------------------- */
-  --font-display-stack: var(--font-display), "Instrument Serif", ui-serif, Georgia, serif;
+  --font-display-stack: var(--font-display), "Anton", Impact, Haettenschweiler, "Arial Narrow Bold",
+    "Helvetica Neue", Arial, sans-serif;
   --font-body-stack: var(--font-body), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono-stack: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* A high-contrast serif wants air between the lines, not the 0.92 a grotesque can carry.
-     1.02 at display size is what makes Instrument Serif read as typeset rather than squashed.
-     The hero itself is the exception: at 13rem the counters already have air, and two lines have to
-     lock together as one block, so it sets at 0.82 (D-119). */
-  --leading-hero: 0.82;
-  --leading-tight: 1.02;
+  /*
+     Poster metrics, not book metrics.
+
+     A condensed poster grotesque is drawn to be set solid: its caps are already narrow, so the lines
+     have to sit almost on top of each other or the block falls apart into separate lines. 0.86 for
+     the hero (two lines stacked as one slab), 0.9 for section heads, and tracking at 0 — Anton is
+     tight by design, and adding negative tracking to it crushes the counters into each other, which
+     is a mistake that only shows up at 150 px.
+  */
+  --leading-hero: 0.86;
+  --leading-tight: 0.9;
   --leading-body: 1.6;
-  --tracking-hero: -0.02em;
-  --tracking-tight: -0.01em;
+  --tracking-hero: -0.005em;
+  --tracking-tight: 0;
   --tracking-label: 0.16em;
 
-  /* The name is the page: it sizes off the viewport, not off a container, and the cap is set so
-     "Nawasunda" (4.6em wide in Instrument Serif) still clears both gutters at 1920. */
-  --text-hero: clamp(2.875rem, 11.8vw, 9.75rem);
+  /*
+     The name is the page, and it is set in caps now, so it is *wider* per character than the serif
+     was: Anton at 11.8vw overran the gutters. Measured on "NAWASUNDA." at every breakpoint, 10.6vw
+     fills the measure with the right margin intact, and the cap stays at 9rem.
+  */
+  --text-hero: clamp(3rem, 10.6vw, 9rem);
   --text-title: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
   --text-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
   --text-small: 0.875rem;
