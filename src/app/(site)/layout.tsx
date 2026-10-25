@@ -5,6 +5,7 @@ import { BackSide, type SheetData } from "@/components/print/BackSide";
 import { InkPress } from "@/components/print/InkPress";
 import { CursorDot } from "@/components/zine/CursorDot";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
+import { PerfSwitches } from "@/components/zine/PerfSwitches";
 import { ScrollProgress } from "@/components/zine/ScrollProgress";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -66,6 +67,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
 
   return (
     <div className="site-root" {...designAttributes(design)}>
+      <PerfSwitches />
       <LoadingCurtain />
       <SmoothScroll />
       <ScrollProgress />

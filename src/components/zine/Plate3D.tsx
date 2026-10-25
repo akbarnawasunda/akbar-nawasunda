@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 import styles from "./Plate3D.module.css";
+import { perfFlag } from "./perf-flags";
 
 /**
  * The 3D stage: an object that turns towards the pointer inside a real vanishing point.
@@ -68,6 +69,12 @@ export function Plate3D({
     const host = hostRef.current;
     if (!host) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    /*
+     * Ablation switch: `?perf=noplate` leaves the stage flat — the same resting state as reduced
+     * motion, with no listener attached. It exists so the cost of the rotation can be measured on
+     * its own, without a rebuild and without guessing. See `perf-flags.ts`.
+     */
+    if (perfFlag("noplate")) return;
 
     const target = { x: 0, y: 0 };
     const current = { x: 0, y: 0 };

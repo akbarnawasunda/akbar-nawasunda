@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import styles from "./AnMonogram.module.css";
+import { perfFlag } from "../zine/perf-flags";
 
 /**
  * The one canvas on the site: the AN monogram, extruded from the owner's real mark.
@@ -36,6 +37,9 @@ export function AnMonogram() {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    /* Ablation switch: `?perf=nocanvas` never imports three.js, so the scene cannot be measured
+       against the rest of the page while it is also running. */
+    if (perfFlag("nocanvas")) return;
 
     // Bound once: TypeScript cannot narrow a ref across the closures below.
     const stage: HTMLDivElement = host;

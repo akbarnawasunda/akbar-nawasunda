@@ -20,6 +20,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 
 import { PLATE_STEPS, platePx, snapPlate } from "../../src/components/print/ink-plate";
+import { parsePerfFlags } from "../../src/components/zine/perf-flags";
 
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -95,4 +96,41 @@ test("the sticky bar does not blur what is animating underneath it", () => {
     !/backdrop-filter/.test(header),
     "`backdrop-filter` is back on the sticky bar — it re-blurs the full width on every frame the hero moves",
   );
+});
+
+/* ------------------------------------------------------------------ ablation switches */
+
+test("?perf= parses the documented switches, repeatable and comma-separated", () => {
+  assert.deepEqual([...parsePerfFlags("?perf=noplate")], ["noplate"]);
+  assert.deepEqual([...parsePerfFlags("?perf=noplate,noink")], ["noplate", "noink"]);
+  assert.deepEqual([...parsePerfFlags("?perf=noplate&perf=blur")], ["noplate", "blur"]);
+  assert.deepEqual([...parsePerfFlags("perf=blur")], ["blur"], "a bare query string should parse too");
+});
+
+test("an unknown or misspelled switch measures the baseline, not something else", () => {
+  /* The failure mode this prevents: `?perf=nopates` silently doing nothing while the person
+     measuring believes the plate is off — and concluding from it that the plate is free. */
+  assert.equal(parsePerfFlags("?perf=nopates").size, 0);
+  assert.equal(parsePerfFlags("?perf=").size, 0);
+  assert.equal(parsePerfFlags("").size, 0);
+  assert.deepEqual([...parsePerfFlags("?perf=noplate,typo,noink")], ["noplate", "noink"]);
+});
+
+test("the ablation switches are wired where they claim to be", () => {
+  const plate = read("src/components/zine/Plate3D.tsx");
+  const ink = read("src/components/print/InkPress.tsx");
+  const canvas = read("src/components/three/AnMonogram.tsx");
+  assert.match(plate, /perfFlag\("noplate"\)/, "Plate3D does not honour ?perf=noplate");
+  assert.match(ink, /perfFlag\("noink"\)/, "InkPress does not honour ?perf=noink");
+  assert.match(canvas, /perfFlag\("nocanvas"\)/, "AnMonogram does not honour ?perf=nocanvas");
+});
+
+test("the header blur only ever comes back behind the switch", () => {
+  const css = declarations(read("src/components/layout/SiteHeader.module.css"));
+  const hits = [...css.matchAll(/backdrop-filter/g)];
+  assert.equal(hits.length, 1, "backdrop-filter is expected exactly once, under the switch");
+  const rule = css
+    .split("}")
+    .find((chunk) => chunk.includes("backdrop-filter")) ?? "";
+  assert.match(rule, /html\[data-perf~="blur"\]/, "the blur is not scoped to ?perf=blur");
 });

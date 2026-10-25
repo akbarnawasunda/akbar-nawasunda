@@ -3,8 +3,19 @@
  * Frame-cost audit: what the page actually spends its frames on.
  *
  *   npm run perf:audit                       # four scenarios, ~20 s
+ *   npm run perf:audit -- --ablation         # one suspect at a time: the round-11 matrix
  *   npm run perf:audit -- --label=after      # names the JSON run under /tmp/an-perf
  *   npm run perf:audit -- --base=http://127.0.0.1:3100
+ *
+ * The two modes answer different questions, and neither is optional if the numbers are to mean
+ * anything:
+ *
+ *   - **scenarios** (default) answer "is the page holding 60 fps, and in which interaction does it
+ *     not?" — idle, pointer over the hero, pointer with the WebGL band on screen, wheel scrolling;
+ *   - **`--ablation`** answers "*why*" — it re-runs the pointer sweep with exactly one cost removed
+ *     per row, using the `?perf=` switches in `src/components/zine/perf-flags.ts`. Six changes
+ *     shipped in one commit, so a single before/after pair cannot attribute any of them; the matrix
+ *     can.
  *
  * Why this exists as a separate script when `qa:motion` already drives a browser: `qa:motion` runs
  * with `--disable-gpu --use-gl=swiftshader`, because it is asserting *behaviour* and wants the same
@@ -30,8 +41,13 @@
  *
  * Caveats worth stating out loud, because a benchmark that hides them is a lie:
  *   - a headless server usually has no GPU, so absolute numbers are software raster. Compare runs,
- *     do not compare them to a laptop;
- *   - the machine running this is also running the Next.js server.
+ *     do not compare them to a laptop. On a software rasteriser the *ratio* between rows is still
+ *     meaningful — fragment-heavy work is exactly what software raster punishes — but the absolute
+ *     fps is not;
+ *   - the machine running this is also running the Next.js server;
+ *   - `--ablation` scrolls nothing and leaves the page at the top, so the WebGL band is not on
+ *     screen during it: the `-canvas` row measures the cost of the canvas *not existing*, which on
+ *     that page is ~zero by design. Use the default mode with `pointer-monogram` for the scene.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -113,11 +129,11 @@ async function counters() {
   return Object.fromEntries(metrics.map((m) => [m.name, m.value]));
 }
 
-async function openPage() {
+async function openPage(query = "") {
   const page = await browser.newPage();
   await page.evaluateOnNewDocument(() => sessionStorage.setItem("an-curtain", "1"));
   await page.setViewport({ ...VIEWPORT, deviceScaleFactor: 1 });
-  await page.goto(`${base}/`, { waitUntil: "load", timeout: 60000 });
+  await page.goto(`${base}/${query}`, { waitUntil: "load", timeout: 60000 });
   await new Promise((r) => setTimeout(r, 1400));
   return page;
 }
@@ -169,56 +185,109 @@ async function scenario(page, name, drive) {
   };
 }
 
+/**
+ * Ablation profiles.
+ *
+ * `--ablation` runs the pointer sweep once per suspect and prints the matrix, which is the only way
+ * to read round 11 honestly: the round changed six things at once, so a single "before/after" number
+ * cannot attribute anything. Each row removes exactly one cost from the shipped build (or, for
+ * `blur`, adds one back), so the difference against `baseline` is that cost and nothing else.
+ *
+ * `?perf=` is documented in `src/components/zine/perf-flags.ts`.
+ */
+const ABLATION = [
+  { name: "baseline", query: "", note: "the shipped build" },
+  { name: "-plate", query: "?perf=noplate", note: "hero does not rotate towards the pointer" },
+  { name: "-ink", query: "?perf=noink", note: "ink plate frozen (no text-shadow writes)" },
+  { name: "-canvas", query: "?perf=nocanvas", note: "monogram scene never mounted" },
+  { name: "+blur", query: "?perf=blur", note: "header backdrop-filter restored" },
+  { name: "-plate-ink-blur", query: "?perf=noplate,noink,blur", note: "everything but the canvas, plus the blur" },
+];
+
+const ablation = args.includes("--ablation");
 const rows = [];
 try {
-  /* At rest at the top: the hero is on screen, nothing is animating. A high number here means the
-     page is paying for something it is not doing. */
-  {
-    const page = await openPage();
-    rows.push(await scenario(page, "idle-hero", () => new Promise((r) => setTimeout(r, 3000))));
-    await page.close();
-  }
+  if (ablation) {
+    for (const profile of ABLATION) {
+      const page = await openPage(profile.query);
+      const row = await scenario(page, profile.name, () => sweep(page, 4000));
+      rows.push({ ...row, note: profile.note, query: profile.query || "—" });
+      await page.close();
+    }
+  } else {
+    /* At rest at the top: the hero is on screen, nothing is animating. A high number here means the
+       page is paying for something it is not doing. */
+    {
+      const page = await openPage();
+      rows.push(await scenario(page, "idle-hero", () => new Promise((r) => setTimeout(r, 3000))));
+      await page.close();
+    }
 
-  /* The gesture the owner described as heavy: pointer moving over the hero. This exercises the
-     plate rotation, the ink plate, the header over the moving hero, and nothing else. */
-  {
-    const page = await openPage();
-    rows.push(await scenario(page, "pointer-hero", () => sweep(page, 4000)));
-    await page.close();
-  }
+    /* The gesture the owner described as heavy: pointer moving over the hero. This exercises the
+       plate rotation, the ink plate, the header over the moving hero, and nothing else. */
+    {
+      const page = await openPage();
+      rows.push(await scenario(page, "pointer-hero", () => sweep(page, 4000)));
+      await page.close();
+    }
 
-  /* Same gesture with the monogram band on screen, which adds the WebGL scene. */
-  {
-    const page = await openPage();
-    await page.evaluate(() => {
-      const band = document.querySelectorAll("section")[1];
-      band?.scrollIntoView({ block: "center" });
-    });
-    await new Promise((r) => setTimeout(r, 2500));
-    rows.push(await scenario(page, "pointer-monogram", () => sweep(page, 4000)));
-    await page.close();
-  }
+    /* Same gesture with the monogram band on screen, which adds the WebGL scene. */
+    {
+      const page = await openPage();
+      await page.evaluate(() => {
+        const band = document.querySelectorAll("section")[1];
+        band?.scrollIntoView({ block: "center" });
+      });
+      await new Promise((r) => setTimeout(r, 2500));
+      rows.push(await scenario(page, "pointer-monogram", () => sweep(page, 4000)));
+      await page.close();
+    }
 
-  /* Wheel scrolling: Lenis, the depth engine, the sticky header and the wall. */
-  {
-    const page = await openPage();
-    rows.push(
-      await scenario(page, "wheel-scroll", async () => {
-        const start = Date.now();
-        let flip = 1;
-        while (Date.now() - start < 4000) {
-          await page.mouse.wheel({ deltaY: flip * 140 });
-          flip = -flip;
-          await new Promise((r) => setTimeout(r, 40));
-        }
-      }),
-    );
-    await page.close();
+    /* Wheel scrolling: Lenis, the depth engine, the sticky header and the wall. */
+    {
+      const page = await openPage();
+      rows.push(
+        await scenario(page, "wheel-scroll", async () => {
+          const start = Date.now();
+          let flip = 1;
+          while (Date.now() - start < 4000) {
+            await page.mouse.wheel({ deltaY: flip * 140 });
+            flip = -flip;
+            await new Promise((r) => setTimeout(r, 40));
+          }
+        }),
+      );
+      await page.close();
+    }
   }
 } finally {
   console.log(`\nperf:audit — ${label} — ${base}`);
-  console.table(rows);
-  const file = join(outDir, `${label}.json`);
+  if (ablation) {
+    /* The delta table is the point of the mode: absolute frame times on a headless GPU-less server
+       are noise, but "removing X bought Y ms" is a comparison inside one machine and one run. */
+    const baseline = rows.find((r) => r.scenario === "baseline");
+    const delta = rows.map((row) => ({
+      profile: row.scenario,
+      query: row.query,
+      fps: row.fps,
+      "Δfps": baseline ? +(row.fps - baseline.fps).toFixed(1) : 0,
+      p95: row.p95FrameMs,
+      "Δp95": baseline ? +(row.p95FrameMs - baseline.p95FrameMs).toFixed(1) : 0,
+      "over20ms": row.over20ms,
+      styleLayout: row.loafStyleLayoutMs,
+      script: row.loafScriptMs,
+      layouts: row.layouts,
+      note: row.note,
+    }));
+    console.table(delta);
+    console.log(
+      "read it as: a large positive Δfps (or negative Δp95) on a row means that cost was the expensive one.\n" +
+        "`-plate` and `-canvas` are the two that change what the page *is*; `-ink` and `+blur` are pure cost.",
+    );
+  } else {
+    console.table(rows);
+  }
+  const file = join(outDir, `${label}${ablation ? "-ablation" : ""}.json`);
   writeFileSync(file, JSON.stringify({ label, base, viewport: VIEWPORT, rows }, null, 1));
   console.log(`written ${file}`);
   console.log(

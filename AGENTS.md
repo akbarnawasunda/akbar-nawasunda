@@ -66,7 +66,10 @@ dan kode yang berjalan.
 9. Semua konten tetap terbaca tanpa WebGL.
 10. Menyentuh gerak/3D/blur → jalankan `npm run perf:audit` sebelum dan sesudah, lampirkan angkanya.
     Alat ini bukan gerbang (tidak menggagalkan build), tapi klaim "lebih ringan" tanpa angka tidak
-    dihitung.
+    dihitung. Kalau satu commit mengubah lebih dari satu sumber biaya, jalankan
+    `npm run perf:audit -- --ablation` — satu variabel per baris, lewat saklar `?perf=` di
+    `src/components/zine/perf-flags.ts`. Angka gabungan dari enam perubahan sekaligus bukan hasil
+    pengukuran, itu harapan.
 
 ---
 

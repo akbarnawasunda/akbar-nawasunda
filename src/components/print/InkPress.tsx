@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { perfFlag } from "../zine/perf-flags";
+
 import { snapPlate } from "./ink-plate";
 
 /**
@@ -46,6 +48,9 @@ import { snapPlate } from "./ink-plate";
 export function InkPress() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    /* Ablation switch: `?perf=noink` freezes the plate at zero offset, which is the registered
+       state. Nothing is written, so the type is not repainted by the pointer at all. */
+    if (perfFlag("noink")) return;
 
     const root = document.documentElement;
     let targetX = 0;

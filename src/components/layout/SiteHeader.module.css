@@ -31,6 +31,20 @@
 }
 
 /* Compact once the page has moved; off-canvas while the reader is going down, back on the way up. */
+/*
+  The swallowed blur, for one reason only: `?perf=blur` (see `perf-flags.ts`).
+
+  Round 11 removed `backdrop-filter` from this bar because it re-blurs everything behind it on every
+  frame that content moves, and the bar sits on top of the site's only continuously moving band. The
+  claim that removal was worth something is only worth as much as the measurement behind it — so the
+  declaration is kept here, behind a switch, to be put back in one URL and measured against the
+  baseline in the same build. If the ablation shows the blur costs nothing on real hardware, this
+  rule is the one line that restores it: move it back into `.header` and delete the switch.
+*/
+:global(html[data-perf~="blur"]) .header {
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
 .header[data-state="compact"] {
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   --bar-h: var(--header-height-compact);
