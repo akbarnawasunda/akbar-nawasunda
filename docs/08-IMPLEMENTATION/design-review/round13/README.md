@@ -3,7 +3,8 @@
 Art-direction overhaul. The data architecture is untouched: no content model, no route, no
 component contract changed. What changed is the ink, the type, the grid and the texture.
 
-Files: `01-beranda-{1440,390}.webp`, `03-musik-{1440,390}.webp`, `05-kontak-{1440,390}.webp`
+Files: `01-beranda-{1440,390}.webp`, `03-musik-{1440,390}.webp`, `05-kontak-{1440,390}.webp`,
+`07-monogram-1440.webp`
 (captured after the final build, `sessionStorage an-curtain=1`, `document.fonts.ready` + 1.5 s).
 
 ## The verdict this round answered
@@ -41,6 +42,38 @@ with the marks a print shop actually puts there.
   WebGL context, and it is never imported for a band that is off-screen. The hero photograph is
   cropped to `74% 34%` on a phone so the lamp — the only light source in the frame — stays in view.
 
+## The monogram, printed instead of rendered
+
+The mark was the last metal object on the site: a PMREM room environment, metalness 0.92, roughness
+0.16, two lights and ACES tone mapping — an iron badge glued to a page that had just become a sheet
+of printed stock. It is now flat ink with no shading model at all:
+
+- `MeshBasicMaterial` on the caps (press cyan) and on the extruded walls (the same ink at 0.55), the
+  two groups `ExtrudeGeometry` already provides — so the form still reads as a solid, in two tones.
+- Every silhouette edge drawn in stock colour, and the same edges stamped again a hair to the right
+  in poster red: the two-plate misregistration `.ink` prints the headings with.
+- No environment map, no lights, no PMREM pass, no `computeVertexNormals`, `NoToneMapping` so the
+  ink is the exact value the palette specifies.
+
+**Cost, measured** (CDP frame counters patched over `drawElements`/`drawArrays`, 1440×900 @ DPR 2):
+
+| State | Draw calls / 2 s | rAF callbacks / 2 s |
+| --- | --- | --- |
+| Band far below the fold | 0 | 0 |
+| Band on screen | 480 | 120 |
+| Scrolled back to the top | **0** | **0** |
+
+The off-screen loop is *cancelled*, not throttled: `pause()` clears the pending frame, so a canvas
+nobody is looking at costs no frames at all. `devicePixelRatio` is capped at 1 — the canvas backing
+store measured 1440 × 772 at DPR 2, i.e. one device pixel per CSS pixel.
+
+## One piece of furniture moved
+
+The "balik lembar" edge tab was a `--color-paper` slab with ink type: 29 × 119 px of cream hanging in
+the middle of the right edge, over whatever the reader was looking at. It is ink now, with a hairline
+and stock-coloured type — part of the sheet instead of a label glued to the screen. The affordance
+stays (it is the only way to the back of the sheet on a phone, and it is under test).
+
 ## What did not change
 
 Routes, content, `Plate3D`/`Depth`/`Tilt3D` composition, `--depth-sheet`, the scroll engine, the
@@ -50,7 +83,7 @@ CSS **18.9 KB gz** (budget 40).
 ## Gates
 
 `audit:tokens` 87 ✓ · `typecheck` ✓ · `lint` ✓ · `test` 131/131 ✓ · `a11y` 0/16 ✓ ·
-`qa:motion` 22/22 ✓ · `smoke` 28/28 ✓ · `check:web` ✓ · `assets:check` ✓
+`qa:motion` 22/22 ✓ · `smoke` 28/28 ✓ · `check:web` 191.3 KB JS / 18.9 KB CSS ✓ · `assets:check` ✓
 
 One harness bug was found and fixed rather than worked around: the a11y sweep scrolled with
 `window.scrollTo` faster than Lenis could settle, so a scroll-revealed block was still at opacity 0

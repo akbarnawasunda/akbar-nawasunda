@@ -9,26 +9,33 @@ import { perfFlag } from "../zine/perf-flags";
  * The one canvas on the site: the AN monogram, extruded from the owner's real mark.
  *
  * What it is not: a particle field, a bloom pass, a displaced blob or a full-screen scene. It is a
- * single extrusion of the logo's own silhouette (traced offline by scripts/build-an-shape.mjs) with
- * a metal material and a thin blue wireframe on top — D-095.
+ * single extrusion of the logo's own silhouette (traced offline by scripts/build-an-shape.mjs),
+ * printed in flat ink — round 13, "SALAH CETAK".
+ *
+ * **No metal, no environment, no lights.** Until this round the mark was a chrome object: a PMREM
+ * room environment, metalness 0.92, roughness 0.16, two directional lights and ACES tone mapping.
+ * It looked expensive and it looked like every other 3D logo on the internet — an iron badge glued
+ * to a site that had just become a printed sheet. A zine does not reflect its surroundings. So the
+ * material is now two flat inks with no shading model at all: `MeshBasicMaterial` on the front and
+ * back caps (press cyan), a darker flat cyan on the extruded walls so the form still reads as a
+ * solid, a paper-coloured edge on every silhouette, and a second edge offset a few thousandths of a
+ * unit in poster red — the same two-plate misregistration the headings print with. It reads as a
+ * shape cut out of paper and stamped twice, not as a render.
  *
  * Cost control, in order of importance:
  * - nothing is imported until the page has loaded *and* the band is within one screen of the
  *   viewport, so the bundle, the shader compile and the env-map pass all land after LCP — and on a
  *   page nobody has scrolled yet, they never land at all;
  * - **nothing mounts at all below 768 px** (R12): a phone gets the band without the renderer;
- * - the loop stops when the canvas leaves the viewport or the tab is hidden;
+ * - **the loop is cancelled, not throttled, when the canvas leaves the viewport** (round 13): an
+ *   `IntersectionObserver` at 0.25 threshold cancels the pending `requestAnimationFrame`, so a
+ *   canvas that is off-screen costs zero frames and zero GPU work — not 30 fps of nothing;
+ * - **devicePixelRatio is capped at 1** (round 13). The mark is a flat silhouette with straight
+ *   edges; above 1 every extra device pixel is four times the fragment cost for an edge that is
+ *   already drawn by the line segments;
  * - **the scene is painted at 30 fps, not 60** (R11). What moves here is a 5.2 s sine on one axis
  *   with an amplitude of 0.22 rad — at 30 fps that is ~1.3° of motion per paint, which is below the
- *   threshold where the eye reads stepping, while the frame cost halves. The freed frames are the
- *   point: this canvas shares a main thread and a GPU queue with the hero's plate, the ink plate and
- *   Lenis, and it is the only one of the four that is a full scene;
- * - it only paints once a quarter of the band is on screen, because a scene that is 1% visible is
- *   still a full render of a mesh, an env map and a wireframe;
- * - `MeshStandardMaterial`, not `MeshPhysicalMaterial`: the clearcoat lobe this used to carry is a
- *   second specular evaluation on every fragment for a difference nobody can see on a 300 px metal
- *   mark. Metalness, roughness and the room env map — the parts that actually read as metal — stay;
- * - devicePixelRatio is capped at 1.25; the canvas is decorative, not a photo;
+ *   threshold where the eye reads stepping, while the frame cost halves;
  * - `prefers-reduced-motion: reduce` renders one frame and never starts the loop;
  * - WebGL failure is silent: the hero is designed to be complete without it.
  */
@@ -44,7 +51,7 @@ export function AnMonogram() {
     /*
      * No scene on a phone (R12).
      *
-     * The mark is 300 px of decorative metal behind the signature band. On a phone it is cropped to
+     * The mark is 300 px of decorative ink behind the signature band. On a phone it is cropped to
      * a third of its width, sits under a full-width heading, and costs the three things a mid-range
      * Android has least of: a WebGL context, a megabyte of texture memory, and a repeat paint every
      * 33 ms on the same main thread that is running Lenis and the plate. The band is designed to be
@@ -72,11 +79,7 @@ export function AnMonogram() {
     };
 
     async function mount() {
-      const [THREE, { RoomEnvironment }, { anShape }] = await Promise.all([
-        import("three"),
-        import("three/examples/jsm/environments/RoomEnvironment.js"),
-        import("@/assets/an-shape"),
-      ]);
+      const [THREE, { anShape }] = await Promise.all([import("three"), import("@/assets/an-shape")]);
       if (cancelled) return;
 
       /**
@@ -102,27 +105,27 @@ export function AnMonogram() {
         return;
       }
       stage.appendChild(canvas);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+      /*
+       * Capped at 1, not 1.25 (round 13). The mark is flat ink with straight edges: at 2x it is four
+       * times the fragments to describe the same silhouette, and the paper edge drawn on top of it
+       * is what the eye actually reads the form from.
+       */
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
       renderer.setClearAlpha(0);
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
+      /*
+       * No tone mapping. ACES existed to keep a metal highlight from clipping; flat ink must be the
+       * exact colour the design system specifies, or the print palette stops matching the page.
+       */
+      renderer.toneMapping = THREE.NoToneMapping;
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
       camera.position.set(0, 0, 3.1);
-
-      // Reflections for the metal without shipping an HDR file.
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-      scene.environment = envTexture;
-
-      scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-      const key = new THREE.DirectionalLight(0xdfe7ff, 2.2);
-      key.position.set(-2.4, 2.8, 3.2);
-      scene.add(key);
-      const rim = new THREE.DirectionalLight(0x2e8c86, 2.6);
-      rim.position.set(3.2, -1.4, 1.4);
-      scene.add(rim);
+      /*
+       * No scene.environment, no ambient, no key light, no rim light (round 13). MeshBasicMaterial
+       * ignores all of them; keeping them would only be a PMREM render pass and three uniform
+       * uploads per frame to light nothing.
+       */
 
       // --- geometry: every ring of every traced polygon becomes a shape (first ring) + holes.
       const shapes = anShape.map(([outer, ...holes]) => {
@@ -148,31 +151,47 @@ export function AnMonogram() {
         curveSegments: 1,
       });
       geometry.center();
-      geometry.computeVertexNormals();
+      /* No computeVertexNormals: nothing in this scene is lit, and a normal attribute would be a
+         vertex buffer the GPU never reads. */
 
       /*
-       * Standard, not Physical. The clearcoat this used to carry costs a second specular lobe per
-       * fragment and reads as nothing at this size; metalness + roughness + the RoomEnvironment
-       * reflection is where all of the visible metal comes from.
+       * Two flat inks and two drawn edges. ExtrudeGeometry puts the caps in group 0 and the walls in
+       * group 1, which is exactly the pair of tones a two-colour print gives a solid: the same ink
+       * on the face, a darker mix on the return.
        */
-      const metal = new THREE.MeshStandardMaterial({
-        color: 0xe8e6e1,
-        metalness: 0.92,
-        roughness: 0.16,
-        emissive: new THREE.Color(0x2e8c86),
-        emissiveIntensity: 0.06,
-        envMapIntensity: 1.15,
+      const INK_CYAN = 0x2e8c86;
+      const INK_RED = 0xc93a22;
+      const PAPER = 0xe8e6e1;
+
+      const face = new THREE.MeshBasicMaterial({ color: INK_CYAN });
+      const wall = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(INK_CYAN).multiplyScalar(0.55).getHex(),
       });
 
-      const mesh = new THREE.Mesh(geometry, metal);
-      const wire = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geometry, 24),
-        new THREE.LineBasicMaterial({ color: 0x2e8c86, transparent: true, opacity: 0.38 }),
+      const mesh = new THREE.Mesh(geometry, [face, wall]);
+
+      /*
+       * The paper plate: every silhouette edge in stock colour, then the same edges stamped again a
+       * hair to the right in poster red. That second, offset plate is the site's misregistration
+       * device — `.ink` does it to every display word — and it is what makes the object read as
+       * printed twice rather than rendered once.
+       */
+      const edges = new THREE.EdgesGeometry(geometry, 24);
+      const edgePaper = new THREE.LineSegments(
+        edges,
+        new THREE.LineBasicMaterial({ color: PAPER, transparent: true, opacity: 0.5 }),
       );
-      wire.scale.setScalar(1.004);
+      edgePaper.scale.setScalar(1.004);
+
+      const edgeRed = new THREE.LineSegments(
+        edges,
+        new THREE.LineBasicMaterial({ color: INK_RED, transparent: true, opacity: 0.55 }),
+      );
+      edgeRed.scale.setScalar(1.004);
+      edgeRed.position.set(0.012, -0.008, -0.004);
 
       const group = new THREE.Group();
-      group.add(mesh, wire);
+      group.add(mesh, edgePaper, edgeRed);
       group.rotation.set(-0.08, -0.5, 0.03);
       // The mark is wider than tall; fit the long side to the frame and keep its aspect.
       const fit = 1.75;
@@ -275,6 +294,15 @@ export function AnMonogram() {
       };
       reduceMotion.addEventListener("change", onReducedMotionChange);
 
+      /*
+       * The gate that makes this canvas free when nobody is looking at it (round 13).
+       *
+       * `pause()` cancels the pending frame, so an off-screen canvas does not run a cheap no-op rAF
+       * loop 60 times a second — it does not run at all, and `play()` is the only thing that can
+       * start it again. A quarter of the band, not 1%: a barely-peeking canvas is still a full
+       * scene per paint, and on a page where the band is 300 px in a 900 px viewport the threshold
+       * is reached only when the object is genuinely in frame.
+       */
       const intersection = new IntersectionObserver(
         (entries) => {
           const entry = entries[0];
@@ -283,8 +311,7 @@ export function AnMonogram() {
           if (visible) play();
           else pause();
         },
-        /* A quarter of the band, not 1%: a barely-peeking canvas is still a full scene per paint. */
-        { threshold: 0.25 },
+        { threshold: 0.25, rootMargin: "0px" },
       );
       intersection.observe(stage);
 
@@ -300,11 +327,11 @@ export function AnMonogram() {
         document.removeEventListener("visibilitychange", onVisibility);
         reduceMotion.removeEventListener("change", onReducedMotionChange);
         geometry.dispose();
-        metal.dispose();
-        wire.geometry.dispose();
-        (wire.material as InstanceType<typeof THREE.LineBasicMaterial>).dispose();
-        envTexture.dispose();
-        pmrem.dispose();
+        edges.dispose();
+        face.dispose();
+        wall.dispose();
+        (edgePaper.material as InstanceType<typeof THREE.LineBasicMaterial>).dispose();
+        (edgeRed.material as InstanceType<typeof THREE.LineBasicMaterial>).dispose();
         renderer.dispose();
         canvas.remove();
       };

@@ -6,7 +6,15 @@
   edge. That restraint is what keeps a sheet of paper from looking like a modal.
 */
 
-/* The tab: a small paper ticket on the right edge, present on every route. */
+/*
+  The tab: a small ticket on the right edge, present on every route.
+
+  It used to be a cream slab (--color-paper) with ink type — a paper label stuck onto the sheet, and
+  at 29 × 119 px in the middle of the right edge it read as a stray white box hanging over whatever
+  the reader was looking at, which is exactly how the round-13 review read it. It is ink now with a
+  hairline and stock-coloured type: part of the sheet, not a label glued to the screen. The
+  affordance stays (it is the only way to the back of the sheet on a phone), the white box goes.
+*/
 .tab {
   position: fixed;
   right: 0;
@@ -21,8 +29,8 @@
   border: 1px solid var(--color-border-strong);
   border-right: 0;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  background: var(--color-paper);
-  color: var(--color-paper-ink);
+  background: var(--color-ink-black);
+  color: var(--color-paper);
   cursor: pointer;
 }
 
