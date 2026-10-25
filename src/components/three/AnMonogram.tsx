@@ -32,6 +32,16 @@ import { perfFlag } from "../zine/perf-flags";
  *   `OutputPass`, imported as a separate lazy chunk. If that import fails the scene renders straight
  *   to the canvas and nothing else changes.
  *
+ * **Round 15, part two — liquid metal.** The object is now animated in the vertex shader rather than
+ * merely rotated: a 3D simplex noise field displaces every vertex of the extrusion, a gaussian bump
+ * with a travelling ring swells the metal under the pointer, and the plate leans towards the cursor
+ * with a smoothed, weighted lerp. The rules of the earlier rounds still hold (this is still the one
+ * canvas, it still never mounts below 768 px, it still pauses off-screen), but the frame budget is
+ * now adaptive: 30 fps at rest, 60 fps while the object is being touched, because an effect about
+ * contact cannot lag the contact. The noise is injected with `onBeforeCompile` into the *same*
+ * `MeshPhysicalMaterial` — the clearcoat, the PMREM room and the tone mapping are all preserved — so
+ * the metal is still chrome, it is just no longer rigid.
+ *
  * Cost control, in order of importance:
  * - nothing is imported until the page has loaded *and* the band is within one screen of the
  *   viewport, so the bundle, the shader compile and the env-map pass all land after LCP — and on a
@@ -43,9 +53,9 @@ import { perfFlag } from "../zine/perf-flags";
  *   off-screen canvas costs zero frames and zero draw calls — measured, not assumed;
  * - **devicePixelRatio is capped at 1.5**, and the bloom pass renders at half resolution: a glow is
  *   the one thing in a frame that does not need the pixels;
- * - **the scene is painted at 30 fps, not 60**. What moves is a 5.2 s sine on one axis and a slow
- *   shader clock; at 30 fps that is ~1.3° of motion per paint, below the threshold where the eye
- *   reads stepping, while the frame cost halves;
+ * - **the scene is painted at 30 fps until it is touched, and 60 while it is**. At rest what moves
+ *   is a slow float and the shader clock, which reads fine at 30; the extra frames only exist while
+ *   the pointer is on the object, and the strength decay puts it back;
  * - `prefers-reduced-motion: reduce` renders one frame and never starts the loop;
  * - WebGL failure is silent: the hero is designed to be complete without it.
  */
@@ -276,18 +286,191 @@ export function AnMonogram() {
       geometry.computeVertexNormals();
 
       /*
-       * Black chrome. `color` is near-black rather than pure black because a metal with no albedo
-       * reads as a hole: what little diffuse it has should still be the brand's ink.
+       * ------------------------------------------------------------------ liquid metal
+       *
+       * The object is no longer a rigid sculpture that rotates: it is a surface that flows. Two
+       * things do the work, and both are shader work — there is no physics engine here (a rigid-body
+       * solver would simulate *bodies*, and this is one continuous surface whose only forces are a
+       * noise field and a pointer).
+       *
+       * 1. **A noise flow field.** A 3D simplex noise (Ashima/Gustavson, MIT) sampled at three
+       *    offsets produces a vector; every vertex of the extruded mark is pushed along it. Because
+       *    the displacement is a function of *position only* — never of `normal` — the exact same
+       *    offset can be injected into the three materials that draw the object (chrome, neon edge,
+       *    halo). That is what keeps the blue rim welded to the surface while the surface moves: an
+       *    outline that does not follow its own object reads as a sticker.
+       *
+       * 2. **A touch field.** A gaussian bump plus a travelling ring around the pointer, in the
+       *    plate's own XY plane, pushes outwards and towards the viewer. The uniform is written from
+       *    a raycast into a camera-facing plane through the object, so a bulge appears *under the
+       *    cursor* rather than at a screen-space guess.
+       *
+       * The normals are perturbed by the same noise in the vertex shader. A chrome surface with a
+       * perfect normal and a moving silhouette would look like a warped photograph; the light has to
+       * ripple across the face as well, and that costs one extra noise sample rather than a
+       * tessellated, subdivided mesh.
+       */
+      const LIQUID_GLSL = /* glsl */ `
+        uniform float uTime;
+        uniform float uAmp;
+        uniform float uWarp;
+        uniform vec3 uPointer;
+        uniform float uStrength;
+
+        vec3 anMod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 anMod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 anPermute(vec4 x) { return anMod289(((x * 34.0) + 1.0) * x); }
+        vec4 anTaylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+        float anSnoise(vec3 v) {
+          const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+          const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+          vec3 i = floor(v + dot(v, C.yyy));
+          vec3 x0 = v - i + dot(i, C.xxx);
+          vec3 g = step(x0.yzx, x0.xyz);
+          vec3 l = 1.0 - g;
+          vec3 i1 = min(g.xyz, l.zxy);
+          vec3 i2 = max(g.xyz, l.zxy);
+          vec3 x1 = x0 - i1 + C.xxx;
+          vec3 x2 = x0 - i2 + C.yyy;
+          vec3 x3 = x0 - D.yyy;
+          i = anMod289(i);
+          vec4 p = anPermute(anPermute(anPermute(
+              i.z + vec4(0.0, i1.z, i2.z, 1.0))
+            + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+            + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+          float n_ = 0.142857142857;
+          vec3 ns = n_ * D.wyz - D.xzx;
+          vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+          vec4 x_ = floor(j * ns.z);
+          vec4 y_ = floor(j - 7.0 * x_);
+          vec4 x = x_ * ns.x + ns.yyyy;
+          vec4 y = y_ * ns.x + ns.yyyy;
+          vec4 h = 1.0 - abs(x) - abs(y);
+          vec4 b0 = vec4(x.xy, y.xy);
+          vec4 b1 = vec4(x.zw, y.zw);
+          vec4 s0 = floor(b0) * 2.0 + 1.0;
+          vec4 s1 = floor(b1) * 2.0 + 1.0;
+          vec4 sh = -step(h, vec4(0.0));
+          vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+          vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+          vec3 p0 = vec3(a0.xy, h.x);
+          vec3 p1 = vec3(a0.zw, h.y);
+          vec3 p2 = vec3(a1.xy, h.z);
+          vec3 p3 = vec3(a1.zw, h.w);
+          vec4 norm = anTaylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+          p0 *= norm.x;
+          p1 *= norm.y;
+          p2 *= norm.z;
+          p3 *= norm.w;
+          vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+          m = m * m;
+          return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+        }
+
+        /* Three decorrelated samples: a vector field, not a height field. Independent x/y/z is what
+           makes the surface look poured rather than embossed. */
+        vec3 anFlow(vec3 p) {
+          vec3 q = p * 2.3;
+          float t = uTime * 0.34;
+          return vec3(
+            anSnoise(q + vec3(0.0, 0.0, t)),
+            anSnoise(q.yzx + vec3(11.3, t * 0.8, 4.7)),
+            anSnoise(q.zxy + vec3(3.1, 7.7, t * 1.1))
+          );
+        }
+
+        /* The touch: a bump that swells under the pointer, plus a ring that travels out from it, so
+           a resting finger keeps radiating instead of parking one dent in the metal. */
+        float anTouch(vec3 p) {
+          float d = length(p.xy - uPointer.xy);
+          /* Wide and soft, not a pinprick: a thumb pressed into mercury makes a shallow bowl the
+             width of the whole hand, and the first version of this was tight enough to pinch the
+             bevel into spikes. */
+          float bump = exp(-d * d * 7.0);
+          float ring = sin(d * 18.0 - uTime * 4.5) * exp(-d * 2.6) * 0.30;
+          return (bump + ring) * uStrength;
+        }
+
+        vec3 anOffset(vec3 p) {
+          /* Mostly out of the plate with a radial component, so a bulge lifts towards the reader and
+             also parts sideways, the way a liquid does when something presses into it. */
+          vec3 dir = normalize(vec3(p.xy * 0.6, 1.0));
+          return anFlow(p) * uAmp + dir * anTouch(p) * 0.045;
+        }
+      `;
+
+      /*
+       * One set of uniform objects, shared by reference into every patched material, so the frame
+       * loop writes `uTime` once instead of once per material.
+       */
+      const liquid = {
+        uTime: { value: 0 },
+        uAmp: { value: 0.026 },
+        uWarp: { value: 0.55 },
+        uPointer: { value: new THREE.Vector3(0, 0, 0) },
+        uStrength: { value: 0 },
+      };
+
+      /**
+       * Injects the flow into a stock three material.
+       *
+       * `onBeforeCompile` rather than a hand-written `ShaderMaterial`: this object lives or dies by
+       * `MeshPhysicalMaterial` — clearcoat, metalness, the PMREM environment, tone mapping. Writing
+       * the whole shader by hand would mean re-implementing all of that (and re-testing it against
+       * every three release). Patching two chunks keeps every one of those lobes.
+       *
+       * `displaceNormals` is on only for the chrome: the edge lines and the halo are unlit, and a
+       * normal they never read would be a wasted sine.
+       */
+      const patchLiquid = (
+        material: InstanceType<typeof THREE.Material>,
+        { displaceNormals = false } = {},
+      ) => {
+        material.onBeforeCompile = (shader) => {
+          Object.assign(shader.uniforms, liquid);
+          shader.vertexShader = shader.vertexShader
+            .replace("#include <common>", `#include <common>\n${LIQUID_GLSL}`)
+            .replace(
+              "#include <begin_vertex>",
+              /* The one line that makes it liquid. Everything downstream — the env lookup, the
+                 bloom, the edge shell — follows this vertex. */
+              "vec3 transformed = position + anOffset(position);",
+            );
+          if (displaceNormals) {
+            shader.vertexShader = shader.vertexShader.replace(
+              "#include <beginnormal_vertex>",
+              `vec3 objectNormal = normalize(normal + anFlow(position * 1.1) * uWarp);
+              #ifdef USE_TANGENT
+                vec3 objectTangent = vec3(tangent.xyz);
+              #endif`,
+            );
+          }
+        };
+        /* Without a cache key three would reuse the *unpatched* program for a material compiled
+           earlier in the same context — the classic silent `onBeforeCompile` no-op. */
+        material.customProgramCacheKey = () => (displaceNormals ? "an-liquid-lit" : "an-liquid-basic");
+        material.needsUpdate = true;
+      };
+
+      /*
+       * Liquid chrome: metalness 1, roughness 0.1. The round-14 object ran 0.9 / 0.16, which is
+       * black *painted* chrome; a mirror needs the full 1.0, and at 0.1 roughness the PMREM room is
+       * reflected sharply enough that the noise in the vertex shader reads as movement of the metal
+       * rather than as a wobble of a matte surface.
+       *
+       * `color` stays a near-black blue-grey rather than #000: a metal with no albedo is a hole.
        */
       const chrome = new THREE.MeshPhysicalMaterial({
         color: 0x23262f,
-        metalness: 0.9,
-        roughness: 0.16,
-        clearcoat: 0.85,
-        clearcoatRoughness: 0.06,
+        metalness: 1,
+        roughness: 0.1,
+        clearcoat: 0.7,
+        clearcoatRoughness: 0.05,
         reflectivity: 0.7,
         envMapIntensity: 2.1,
       });
+      patchLiquid(chrome, { displaceNormals: true });
 
       const mesh = new THREE.Mesh(geometry, chrome);
 
@@ -300,23 +483,21 @@ export function AnMonogram() {
        * Both are above the bloom threshold, which is what the composer turns into light.
        */
       const edges = new THREE.EdgesGeometry(geometry, 24);
-      const neonEdge = new THREE.LineSegments(
-        edges,
-        new THREE.LineBasicMaterial({ color: 0x7fc4ff, transparent: true, opacity: 1 }),
-      );
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x7fc4ff, transparent: true, opacity: 1 });
+      patchLiquid(edgeMaterial);
+      const neonEdge = new THREE.LineSegments(edges, edgeMaterial);
       neonEdge.scale.setScalar(1.004);
 
-      const halo = new THREE.Mesh(
-        geometry,
-        new THREE.MeshBasicMaterial({
-          color: NEON,
-          transparent: true,
-          opacity: 0.05,
-          side: THREE.BackSide,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        }),
-      );
+      const haloMaterial = new THREE.MeshBasicMaterial({
+        color: NEON,
+        transparent: true,
+        opacity: 0.05,
+        side: THREE.BackSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      patchLiquid(haloMaterial);
+      const halo = new THREE.Mesh(geometry, haloMaterial);
       halo.scale.setScalar(1.045);
 
       const group = new THREE.Group();
@@ -511,12 +692,65 @@ export function AnMonogram() {
       let raf = 0;
       let visible = true;
 
-      /**
-       * One paint every other vsync. The rAF callback stays on 60 Hz — it is a scheduler, not a
-       * renderer — so the phase of the oscillation stays tied to wall-clock time and nothing drifts
-       * when the tab throttles.
+      /*
+       * --- the pointer.
+       *
+       * Three rules, all of them learned the hard way elsewhere in this codebase:
+       *
+       * - **never read the layout in the event handler.** A 1000 Hz mouse would force a synchronous
+       *   layout on every move. The handler stores `clientX/clientY` and nothing else; the rect is
+       *   read once per painted frame, which is also the only moment the answer is used.
+       * - **gate on the event, not on a media query.** `pointermove` from a finger counts, so a
+       *   tablet gets the same ripple a mouse does; `prefers-reduced-motion` is handled by never
+       *   starting the loop in the first place.
+       * - **convert to object space through a real ray.** The plate is rotated and scaled by the
+       *   scroll; a screen-space guess would put the bulge in the wrong place on every angle but
+       *   zero, and the whole point of the effect is that the metal reacts *where you touched it*.
        */
-      const FRAME_MS = 1000 / 30;
+      const pointer = { has: false, x: 0, y: 0 };
+      const ray = new THREE.Ray();
+      const plane = new THREE.Plane();
+      const hit = new THREE.Vector3();
+      const cameraDir = new THREE.Vector3();
+      const local = new THREE.Vector3();
+      /* Smoothed state: the pointer *targets* the object, so a snap of the mouse is a lean, not a
+         teleport. Everything here is integrated against dt, not per frame, or it would be twice as
+         fast on a 120 Hz display as on a 60 Hz one. */
+      let strength = 0;
+      let leanYaw = 0;
+      let leanPitch = 0;
+      /* True only while the pointer is inside the band. The frame budget keys off this and off
+         `strength`, never off "the mouse has moved at some point in this session" — that flag stays
+         true forever and would pin the scene to 60 fps for the rest of the visit. */
+      let overBand = false;
+
+      const onPointerMove = (event: PointerEvent) => {
+        pointer.has = true;
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+        /* Touch has no hover: a finger that is down and moving is interaction, and that is the only
+           moment we can honour. It goes through the same path as the mouse. */
+        if (event.pointerType !== "mouse" || event.buttons > 0) play();
+      };
+      const onPointerOff = () => {
+        pointer.has = false;
+        overBand = false;
+      };
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerdown", onPointerMove, { passive: true });
+      window.addEventListener("pointerup", onPointerOff, { passive: true });
+      window.addEventListener("blur", onPointerOff);
+
+      const ease = (current: number, target: number, rate: number, dt: number) =>
+        current + (target - current) * (1 - Math.exp(-rate * dt));
+
+      /**
+       * Paint budget. Idle is 30 fps, the same as round 14, because a breathing object and a slow
+       * shader clock do not need more. The moment the metal is being touched it goes to 60: the
+       * ripple has to track the cursor, and a 33 ms lag on an effect that is *about* contact reads
+       * as a broken promise. It drops back to 30 when the strength decays, so the extra frames only
+       * exist while a hand is on it.
+       */
       let paintedAt = 0;
       let startedAt = 0;
 
@@ -527,23 +761,81 @@ export function AnMonogram() {
 
       const frame = (now: number) => {
         raf = requestAnimationFrame(frame);
-        if (now - paintedAt < FRAME_MS - 1) return;
+        const hot = strength > 0.02 || overBand;
+        const frameMs = 1000 / (hot ? 60 : 30);
+        if (now - paintedAt < frameMs - 1) return;
+        const dt = paintedAt ? Math.min(0.1, (now - paintedAt) / 1000) : 1 / 30;
         paintedAt = now;
         if (!startedAt) startedAt = now;
         const elapsed = (now - startedAt) / 1000;
         backdropUniforms.uTime.value = elapsed;
+        liquid.uTime.value = elapsed;
+
+        /* --- pointer → object space, once per painted frame. */
+        let targetStrength = 0;
+        let targetYaw = 0;
+        let targetPitch = 0;
+        if (pointer.has) {
+          const rect = stage.getBoundingClientRect();
+          const inside =
+            pointer.x >= rect.left &&
+            pointer.x <= rect.right &&
+            pointer.y >= rect.top &&
+            pointer.y <= rect.bottom;
+          overBand = inside;
+          const nx = ((pointer.x - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+          const ny = -(((pointer.y - rect.top) / Math.max(1, rect.height)) * 2 - 1);
+          if (inside) {
+            camera.getWorldDirection(cameraDir);
+            plane.setFromNormalAndCoplanarPoint(cameraDir, group.position);
+            ray.origin.copy(camera.position);
+            ray.direction.set(nx, ny, 0.5).unproject(camera).sub(camera.position).normalize();
+            if (ray.intersectPlane(plane, hit)) {
+              group.updateMatrixWorld();
+              local.copy(hit);
+              group.worldToLocal(local);
+              /* The plate is ~1.1 units wide; clamp so a pointer at the very edge of the band
+                 cannot park the bulge a metre outside the object. */
+              liquid.uPointer.value.set(
+                Math.max(-0.9, Math.min(0.9, local.x)),
+                Math.max(-0.7, Math.min(0.7, local.y)),
+                0,
+              );
+              targetStrength = 1;
+            }
+            targetYaw = nx * 0.2;
+            targetPitch = ny * 0.11;
+          }
+        } else {
+          overBand = false;
+        }
+
+        strength = ease(strength, targetStrength, targetStrength > strength ? 9 : 3, dt);
+        leanYaw = ease(leanYaw, targetYaw, 5, dt);
+        leanPitch = ease(leanPitch, targetPitch, 5, dt);
+        liquid.uStrength.value = strength;
+        /* The flow itself is never fully off — a liquid at rest is still moving, and a completely
+           static silhouette between touches is what makes an interactive object feel dead. */
+        liquid.uAmp.value = 0.018 + strength * 0.014;
 
         if (!reduceMotion.matches) {
-          // Oscillation around a readable three-quarter view, not a continuous spin: a full rotation
-          // puts the mark edge-on twice a minute, and an edge-on monogram is a black slab.
-          group.rotation.y = -0.28 + Math.sin(now / 5200) * 0.22;
-          group.rotation.x = -0.05 + Math.sin(now / 2600) * 0.03;
-          group.position.y = (group.userData.baseY ?? 0) + Math.sin(now / 1800) * 0.02;
-          /* The light drifts a little too, so the chrome highlight travels across the bevel instead
-             of sitting still — this is the whole difference between "metal" and "grey". */
-          neonLight.position.x = -2.2 + Math.sin(now / 4300) * 0.45;
-          neonLight.position.y = 1.1 + Math.cos(now / 6100) * 0.3;
+          /*
+           * Idle: breathing, not rotating. A slow vertical float with a phase offset against a much
+           * slower yaw sway, so the object reads as suspended in something rather than mounted on a
+           * turntable. Both amplitudes are small on purpose — the motion should be noticed only when
+           * you stop reading.
+           */
+          const drift = Math.sin(elapsed * 0.62);
+          const sway = Math.sin(now / 5200) * 0.2;
+          group.rotation.y = -0.28 + sway + leanYaw;
+          group.rotation.x = -0.05 + Math.sin(now / 3400) * 0.025 + leanPitch;
+          group.position.y = (group.userData.baseY ?? 0) + drift * 0.035;
+          /* The light breathes with it: the highlight crossing the bevel is most of what sells the
+             surface as metal, so it should have a pulse of its own. */
+          neonLight.position.x = -2.2 + Math.sin(now / 4300) * 0.45 + leanYaw * 2.4;
+          neonLight.position.y = 1.1 + Math.cos(now / 6100) * 0.3 + leanPitch * 2.2;
         }
+
         const eased = 1 - Math.pow(1 - scrollProgress, 3);
         const target = baseScale * (1 + eased * 0.55);
         group.scale.setScalar(group.scale.x + (target - group.scale.x) * 0.15);
@@ -606,6 +898,10 @@ export function AnMonogram() {
         window.removeEventListener("scroll", onScroll);
         document.removeEventListener("visibilitychange", onVisibility);
         reduceMotion.removeEventListener("change", onReducedMotionChange);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerdown", onPointerMove);
+        window.removeEventListener("pointerup", onPointerOff);
+        window.removeEventListener("blur", onPointerOff);
         geometry.dispose();
         edges.dispose();
         chrome.dispose();
