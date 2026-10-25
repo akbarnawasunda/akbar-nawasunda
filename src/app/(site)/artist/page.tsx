@@ -8,7 +8,6 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Plate3D } from "@/components/zine/Plate3D";
 import {
-  artistBioGaps,
   artistFacts,
   artistLine,
   artistLongBio,
@@ -16,7 +15,6 @@ import {
   artistTimeline,
   licensingNote,
 } from "@/content/artist";
-import { siteConfig } from "@/config/site";
 import { listenUrl } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
 import { getPublicPage } from "@/studio/public";
@@ -59,8 +57,8 @@ export default async function ArtistPage() {
         <div className={styles.copy}>
           <p className={styles.eyebrow}>03 — Artist</p>
           <h1 id="artist-title" className={`${styles.title} ink`}>
-            Akbar <em className={styles.titleItalic}>Nawasunda</em>
-            <span className={styles.stop} aria-hidden="true">.</span>
+            Akbar
+            <span className={styles.titleLine}>Nawasunda<span className={styles.stop} aria-hidden="true">.</span></span>
           </h1>
           <p className={styles.lead}>{published?.lead.trim() || artistLine}</p>
 
@@ -77,7 +75,7 @@ export default async function ArtistPage() {
             {artistFacts.map((fact) => (
               <div key={fact.label} className={styles.fact}>
                 <dt>{fact.label}</dt>
-                <dd>{fact.value ?? <span className={styles.needs}>[NEEDS OWNER]</span>}</dd>
+                <dd>{fact.value ?? "—"}</dd>
               </div>
             ))}
           </dl>
@@ -136,17 +134,9 @@ export default async function ArtistPage() {
           <>
             <p className={styles.paragraph}>{artistLongBio}</p>
             <p className={styles.paragraph}>
-              Format kerja: {formatServices()}. {licensingNote}
+              Format kerja: {formatServices()}.
             </p>
-            {artistBioGaps.length > 0 ? (
-              <ul className={styles.needsList}>
-                {artistBioGaps.map((item) => (
-                  <li key={item}>
-                    <span className={styles.needs}>[NEEDS OWNER]</span> {item}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <p className={styles.paragraph}>{licensingNote}</p>
           </>
         )}
       </section>
@@ -159,24 +149,20 @@ export default async function ArtistPage() {
               DJ Akbar Remix ke Akbar Nawasunda
             </h2>
           </div>
-          <p className={styles.sectionNote}>
-            Hanya tonggak yang terverifikasi. Baris bergaris putus-putus berarti periode itu belum
-            terdokumentasi, bukan kosong.
-          </p>
+          <p className={styles.sectionNote}>Tonggak terverifikasi</p>
         </div>
 
         <ol className={styles.timeline}>
-          {artistTimeline.map((entry) => (
+          {artistTimeline
+            .filter((entry) => !entry.pending)
+            .map((entry) => (
             <li
               key={`${entry.marker}-${entry.title}`}
-              className={entry.pending ? `${styles.entry} ${styles.pending}` : styles.entry}
+              className={styles.entry}
             >
               <span className={styles.marker}>{entry.marker}</span>
               <div className={styles.entryBody}>
-                <h3 className={styles.entryTitle}>
-                  {entry.title}
-                  {entry.pending ? <span className={styles.pendingTag}>[NEEDS OWNER]</span> : null}
-                </h3>
+                <h3 className={styles.entryTitle}>{entry.title}</h3>
                 <p className={styles.entryDetail}>{entry.detail}</p>
               </div>
             </li>
@@ -191,8 +177,7 @@ export default async function ArtistPage() {
             Monogram dan lockup
           </h2>
           <p className={styles.paragraph}>
-            Monogram AN dipakai di navigasi, kartu rilis, dan materi panggung. Lockup penuh dipakai
-            saat nama perlu terbaca dari jauh. Keduanya tersedia sebagai PNG transparan di press kit.
+            Monogram AN dan lockup penuh, tersedia sebagai PNG transparan di press kit.
           </p>
           <ButtonLink href="/epk" variant="ghost">
             Unduh aset logo
@@ -214,7 +199,7 @@ export default async function ArtistPage() {
       </section>
 
       <p className={styles.contactHint}>
-        Untuk wawancara atau materi pers, mulai dari <a href="/epk">press kit</a> — {siteConfig.origin}.
+        Pers dan wawancara: <a href="/epk">press kit</a>
       </p>
 
     </Container>

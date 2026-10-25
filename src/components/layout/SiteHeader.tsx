@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 
 import { anMark } from "@/assets/web";
-import { drawerNav, primaryNav } from "@/config/navigation";
+import { drawerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { listenUrl } from "@/config/socials";
 import styles from "./SiteHeader.module.css";
@@ -146,18 +146,6 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
           </span>
         </Link>
 
-        <nav aria-label="Navigasi utama" className={styles.desktopNav}>
-          <ul>
-            {primaryNav.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
         <div className={styles.actions}>
           <a className={styles.listen} href={listenUrl} target="_blank" rel="noopener noreferrer">
             Listen
@@ -167,6 +155,16 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
             </span>
           </a>
 
+          {/*
+            One control, at every width.
+
+            The old bar carried four text links on desktop and a hamburger below 720px. The
+            reference has a mark on the left and the word MENU on the right, and it does that at
+            1440px as well as at 390px — which is not a phone compromise, it is the decision: a
+            full-screen index is a better catalogue than four 11px labels fighting a 5rem bar, and
+            it is the same interaction with a trackpad and with a thumb. `aria-expanded` still
+            drives the drawer, the focus trap and Escape, unchanged.
+          */}
           <button
             ref={toggleRef}
             type="button"
@@ -176,13 +174,13 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
             onClick={() => setOpen((value) => !value)}
           >
             <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-              {open ? (
-                <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" />
-              ) : (
-                <path d="M3 6h14M3 13h14" stroke="currentColor" strokeWidth="1.5" />
-              )}
-            </svg>
+            <span aria-hidden="true" className={styles.menuWord}>
+              Menu
+            </span>
+            <span aria-hidden="true" className={styles.burger}>
+              <span />
+              <span />
+            </span>
           </button>
         </div>
       </div>

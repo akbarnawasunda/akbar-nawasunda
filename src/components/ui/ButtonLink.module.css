@@ -1,72 +1,79 @@
 /*
-  Actions, in the interface's own language (round 15).
-
-  The zine pass demoted the accent out of the button entirely: a paper block with ink type, and blue
-  only on hover. That was a reaction against the "SaaS pill", and it overcorrected — on a near-black
-  page a paper button is a hole, and the owner asked for the accent to be applied consistently, which
-  means the primary action should look like the one lit thing in the row.
-
-  So: solid `#0087FF` with near-black ink (5.7:1 — the same pair the monogram band uses), no pill, a
-  single hairline, and a hover that lightens the fill rather than moving anything.
-*/
-
+ * The only link-as-button in the design system.
+ *
+ * Two shapes, both right-angled:
+ * - `primary` is a solid white box with black type. White is the loudest thing this palette has, so
+ *   the most important action on a page is the only filled object on it;
+ * - `secondary` is the same box with a 1px white rule and no fill, which is how the reference marks
+ *   every action that is not the main one.
+ *
+ * The label is mono, uppercase, 0.2em tracked at 11px. That is small on purpose: a button is not
+ * where the reader should be spending their attention on a page whose headline is 12vw.
+ */
 .base {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: 48px;
-  padding: var(--space-3) var(--space-6);
+  padding: 14px 22px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
+  line-height: 1;
   text-transform: uppercase;
   text-decoration: none;
+  cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease),
-    color var(--duration-fast) var(--ease);
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
 }
 
 .primary {
-  background: var(--color-signal-blue);
-  border-color: var(--color-signal-blue);
-  color: var(--color-on-brand);
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-ink-black);
 }
 
 .primary:hover,
 .primary:focus-visible {
-  background: var(--color-signal-blue-hover);
-  border-color: var(--color-signal-blue-hover);
-  color: var(--color-on-brand);
+  background: var(--color-ink-black);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 .secondary {
-  background: transparent;
-  border-color: var(--color-hairline-strong);
+  background: none;
+  border-color: var(--color-border-strong);
   color: var(--color-text-primary);
 }
 
 .secondary:hover,
 .secondary:focus-visible {
-  border-color: var(--color-signal-blue);
-  background: color-mix(in srgb, var(--color-signal-blue) 12%, transparent);
-  color: var(--color-text-primary);
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-ink-black);
 }
 
+/* Text with an arrow: for the third action in a row, where a second box would be noise. */
 .ghost {
-  min-height: 40px;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-text-secondary);
+  min-height: 0;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  letter-spacing: 0.18em;
 }
 
 .ghost:hover,
 .ghost:focus-visible {
-  color: var(--color-signal-blue);
+  border-bottom-color: var(--color-text-primary);
 }
 
 .arrow {
   font-size: 0.9em;
+  line-height: 1;
 }

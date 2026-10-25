@@ -323,10 +323,29 @@ try {
   );
   check("header hides on scroll down and returns on scroll up", headerDown.hidden === "true" && headerUp === "false");
 
-  // Canvas: at most one, lazy, and — when the environment has no WebGL — none at all, no dead
-  // element left behind (D-102). The headless Chromium in this sandbox is exactly that environment,
-  // so the check asserts the *contract* rather than a GPU-dependent outcome.
-  const canvasAtTop = await page.evaluate(() => document.querySelectorAll("canvas").length);
+  /*
+   * Canvas: at most one, and never mounted before its band is on screen (D-102).
+   *
+   * This used to read the *main* tab after a dozen interactions, which was fine while the monogram
+   * sat 4,400px down the page — nothing could have mounted it. Round 16 moved the object directly
+   * under the hero, so by the time the header checks have scrolled the page the band is on screen
+   * and a mounted canvas is the correct outcome. The contract was never "zero canvases at some
+   * arbitrary scroll position", it was "nothing is allocated before the band is reached", so the
+   * measurement is taken on a fresh tab at scroll 0 and compared against where the band actually is.
+   */
+  const canvasProbe = await browser.newPage();
+  await canvasProbe.setViewport({ width: 1440, height: 900 });
+  await canvasProbe.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(1600);
+  const canvasBefore = await canvasProbe.evaluate(() => {
+    const band = document.querySelector('[class*="signature"]');
+    const box = band?.getBoundingClientRect();
+    return {
+      count: document.querySelectorAll("canvas").length,
+      onScreen: Boolean(box && box.top < window.innerHeight && box.bottom > 0),
+    };
+  });
+  await canvasProbe.close();
   const webgl = await page.evaluate(() => {
     const probe = document.createElement("canvas");
     return Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
@@ -425,9 +444,10 @@ try {
   await sleep(1800);
   const canvasLater = await page.evaluate(() => document.querySelectorAll("canvas").length);
   check(
-    "at most one canvas, and none before the band is reached",
-    canvasAtTop === 0 && canvasLater <= (webgl ? 1 : 0),
-    `top ${canvasAtTop}, later ${canvasLater}, webgl ${webgl ? "yes" : "no"}`,
+    "at most one canvas, and nothing allocated before the band is on screen",
+    (canvasBefore.onScreen ? canvasBefore.count <= 1 : canvasBefore.count === 0) &&
+      canvasLater <= (webgl ? 1 : 0),
+    `at scroll 0: ${canvasBefore.count} (band on screen: ${canvasBefore.onScreen}) · after the band: ${canvasLater} · webgl ${webgl ? "yes" : "no"}`,
   );
   if (!webgl) {
     check(
@@ -545,7 +565,7 @@ try {
     await toggle.click();
     await sleep(900);
     const verso = await pressProof.evaluate(() => {
-      const sheet = document.querySelector('[role="dialog"][aria-label^="Sisi belakang"]');
+      const sheet = document.querySelector('[role="dialog"][aria-label^="Indeks"]');
       if (!sheet) return { found: false };
       const box = sheet.getBoundingClientRect();
       return {

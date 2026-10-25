@@ -18,8 +18,8 @@
   gap: var(--space-2);
   align-content: start;
   padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
+  border: 1px solid var(--color-hairline);
+  background: none;
 }
 
 .noteLabel {
@@ -28,13 +28,13 @@
   font-size: 0.5625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-signal-blue);
+  color: var(--color-text-primary);
 }
 
 .noteLabel:not(:first-child) {
   margin-top: var(--space-8);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .uses {
@@ -56,10 +56,12 @@
 }
 
 .uses span {
+  display: block;
   font-family: var(--font-display-stack);
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 1.0625rem;
+  font-weight: 700;
   letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
   color: var(--color-text-primary);
 }
 

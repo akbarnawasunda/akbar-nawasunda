@@ -28,19 +28,13 @@ export default function ContactPage() {
         <div className={styles.headInner}>
           <p className={styles.eyebrow}>05 — Kontak</p>
           <h1 className={`${styles.title} ink`}>Kontak</h1>
-          <p className={styles.lead}>
-            Booking, permintaan remix, kolaborasi, lisensi, dan materi pers. Satu alamat, dijawab
-            langsung.
-          </p>
+          <p className={styles.lead}>Booking, remix, kolaborasi, lisensi, dan materi pers.</p>
 
           <a className={styles.mail} href={contactHref}>
             {contactEmail}
           </a>
 
-          <p className={styles.mailNote}>
-            Sebutkan jenis pekerjaan, tenggat, dan referensi. Permintaan remix dengan brief yang jelas
-            dijawab paling cepat.
-          </p>
+          <p className={styles.mailNote}>Sertakan jenis pekerjaan, tenggat, dan referensi.</p>
         </div>
 
       </header>
@@ -61,10 +55,7 @@ export default function ContactPage() {
           <h2 id="contact-links-title" className={styles.sectionTitle}>
             Semua kanal resmi
           </h2>
-          <p className={styles.note}>
-            Akun-akun ini dikelola sendiri oleh Akbar. Selain yang tercantum di sini, bukan kanal
-            resmi.
-          </p>
+          <p className={styles.note}>Dikelola sendiri. Di luar daftar ini bukan kanal resmi.</p>
 
           <div className={styles.groups}>
             <div>

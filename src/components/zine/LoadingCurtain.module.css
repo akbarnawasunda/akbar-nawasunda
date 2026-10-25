@@ -62,9 +62,7 @@
 .live {
   width: 5px;
   height: 5px;
-  border-radius: 50%;
-  background: var(--color-signal-blue);
-  box-shadow: 0 0 10px var(--color-signal-blue);
+  background: var(--color-text-primary);
   flex: none;
 }
 
@@ -78,11 +76,11 @@
   justify-self: center;
   display: grid;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-weight: 500;
+  font-weight: 700;
   font-size: clamp(2.5rem, 11vw, 9rem);
-  line-height: 0.92;
-  letter-spacing: -0.03em;
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
   text-align: center;
 }
 
@@ -102,13 +100,12 @@
 }
 
 .lineItalic {
-  font-style: italic;
+  font-style: normal;
 }
 
 /* The full stop is the one blue glyph on the sheet. */
 .lineItalic::after {
   content: ".";
-  font-style: normal;
   color: var(--color-signal-blue);
 }
 
@@ -142,8 +139,7 @@
   display: block;
   height: 100%;
   width: 100%;
-  background: var(--color-signal-blue);
-  box-shadow: 0 0 12px var(--color-signal-blue);
+  background: var(--color-text-primary);
   transform: scaleX(0);
   transform-origin: left;
 }

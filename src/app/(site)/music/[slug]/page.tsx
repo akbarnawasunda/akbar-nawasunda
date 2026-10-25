@@ -128,7 +128,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       artwork={resolveArtwork(release.slug)}
       links={release.links}
       facts={[
-        // Type and year always print: an unconfirmed one shows [NEEDS OWNER] rather than vanishing.
+        // Type and year always print: an unconfirmed one shows an em dash rather than vanishing.
         { label: "Jenis", value: release.type ? releaseTypeLabel[release.type] : null },
         { label: "Tahun", value: release.year ? String(release.year) : null },
         // These two only exist when the owner supplied them, so they are absent, not empty.

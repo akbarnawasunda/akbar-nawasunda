@@ -1,81 +1,148 @@
 /*
-  Footer: the system's last panel. Same ground as the page, a hairline to close the content, four
-  columns of plain links, one contact action and a colophon. The oversized monogram is still there
-  as a watermark, at 2.5 % — visible as a shape, never as something you read through.
-*/
+ * The footer is the page's bottom rule: a Follow row, four columns, the email as a bar, and the name
+ * at 11.5vw. Every line in it is a hairline; nothing in it has a fill except the social cells on
+ * hover, which invert to white.
+ */
 .footer {
   position: relative;
-  isolation: isolate;
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-bg);
   overflow: hidden;
-  padding-top: var(--space-24);
-  background: var(--color-ink-black);
-  border-top: 1px solid var(--color-border);
-}
-
-/* Oversized monogram, cropped by the page edge — the last thing the eye lands on. */
-.ghost {
-  position: absolute;
-  z-index: 0;
-  bottom: -18%;
-  left: 50%;
-  translate: -50% 0;
-  width: min(120vw, 1500px);
-  height: auto;
-  opacity: 0.025;
-  pointer-events: none;
-  user-select: none;
 }
 
 .inner {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) repeat(4, minmax(0, 1fr));
-  gap: var(--space-8);
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
 
+/* ------------------------------------------------------------------------------- follow row */
+
+.follow {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: center;
+  text-align: center;
+}
+
+.followLabel {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/*
+ * Cells, not pills.
+ *
+ * The reference sets the platforms as a single row of bordered squares with an icon in each. Ours
+ * carries the platform's name instead of an icon — the archive of icons is already used once above,
+ * and a word is legible at 9px where a 16px glyph is not.
+ */
+.socialRow {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-hairline);
+}
+
+.socialRow li {
+  border-right: 1px solid var(--color-hairline);
+}
+
+.socialRow li:last-child {
+  border-right: 0;
+}
+
+.socialRow a {
+  display: grid;
+  place-items: center;
+  min-width: 6.5rem;
+  min-height: 3.5rem;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.socialRow a:hover,
+.socialRow a:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+}
+
+/* --------------------------------------------------------------------------------- columns */
+
+.columns {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.4fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  margin-top: var(--space-24);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.brand {
+  min-width: 0;
+}
+
 .mark {
-  height: 40px;
+  height: 30px;
   width: auto;
-  margin-bottom: var(--space-3);
 }
 
 .name {
+  margin-top: var(--space-3);
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: 1.375rem;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
 }
 
 .mono {
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
-  line-height: 1.7;
+  color: var(--color-text-muted);
 }
 
-.stamp {
-  margin-top: var(--space-4);
+.brand .mono {
+  margin-top: var(--space-2);
+}
+
+.column {
+  min-width: 0;
+}
+
+.heading {
+  margin-bottom: var(--space-3);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  line-height: 1.7;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   gap: var(--space-2);
-  margin: var(--space-3) 0 0;
-  padding: 0;
-  list-style: none;
 }
 
 .column li {
@@ -83,12 +150,14 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .column a {
-  font-size: 0.875rem;
-  text-decoration: none;
+  font-size: var(--text-small);
   color: var(--color-text-secondary);
+  text-decoration: none;
+  overflow-wrap: anywhere;
   transition: color var(--duration-fast) var(--ease);
 }
 
@@ -97,178 +166,115 @@
   color: var(--color-text-primary);
 }
 
-/* Column headings are labels, not headlines: mono, so the serif stays reserved for real headings. */
-.heading {
-  font-family: var(--font-mono-stack);
-  font-size: 0.625rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.address {
-  margin-top: var(--space-3);
-  font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
-  overflow-wrap: anywhere;
-}
-
 .year {
+  flex-shrink: 0;
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.12em;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
 }
 
-.external {
-  margin-left: 4px;
-  font-size: 0.75em;
-}
+/* ------------------------------------------------------------------------------ contact bar */
 
-.pending {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.needs {
-  font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.1em;
-  color: var(--color-stamp);
-  white-space: nowrap;
-}
-
-.meta {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-4);
-  max-width: var(--container-max);
-  margin: var(--space-12) auto 0;
-  padding: var(--space-4) var(--gutter);
-  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
-}
-
-.smallprint {
-  position: relative;
-  z-index: 1;
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 0 var(--gutter) var(--space-8);
-  font-family: var(--font-mono-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.14em;
-  line-height: 1.8;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  opacity: 0.75;
-}
-
-/* The rule that closes the page: two pixels of the accent, the thinnest possible full stop. */
-.strip {
-  position: relative;
-  z-index: 1;
-  height: 2px;
-  background: var(--color-signal-blue);
-}
-
-@media (max-width: 1023px) {
-  .inner {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-8) var(--space-6);
-  }
-
-  .brand {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 560px) {
-  .footer {
-    padding-top: var(--space-16);
-  }
-
-  .inner {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* Wrapper for the contact bar, aligned to the same column grid as the footer body. */
 .contactBar {
-  position: relative;
-  z-index: 1;
-  max-width: var(--container-max);
-  margin: var(--space-16) auto 0;
-  padding-inline: var(--gutter);
-}
-
-/*
-  The contact bar is the last printed object on the page (D-119): a paper slip laid over the ink, the
-  email set in display type at the right edge. It used to be a solid #0087FF strip, which was the
-  one place on the site where the accent became furniture — a large blue block reads as a banner
-  ad, and it fought the hero's blue full stop for the same job.
-
-  Paper, not blue: the sheet is the loudest thing a printed page has, and it leaves the accent to
-  mean "link" everywhere else.
-*/
-.contactLink {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-2) var(--space-6);
-  padding: var(--space-4) var(--space-6);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-primary);
+  gap: var(--space-3);
+  max-width: var(--container-max);
+  margin: var(--space-12) auto 0;
+  padding: var(--space-6) var(--gutter);
+  border-top: 1px solid var(--color-hairline);
+  border-bottom: 1px solid var(--color-hairline);
   text-decoration: none;
   transition:
-    background 240ms var(--ease),
-    border-color 240ms var(--ease),
-    translate 240ms var(--ease-out);
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 }
 
-.contactLink:hover,
-.contactLink:focus-visible {
-  border-color: var(--color-hairline-strong);
-  background: color-mix(in srgb, var(--color-signal-blue) 8%, transparent);
-  translate: 0 -2px;
-}
-
-.contactLink:hover .contactValue,
-.contactLink:focus-visible .contactValue {
-  color: var(--color-signal-blue);
+.contactBar:hover,
+.contactBar:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
 }
 
 .contactLabel {
   font-family: var(--font-mono-stack);
   font-size: 0.625rem;
-  letter-spacing: 0.22em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 
 .contactValue {
   font-family: var(--font-display-stack);
-  font-size: clamp(1.25rem, 2.6vw, 1.875rem);
+  font-weight: 700;
+  font-size: clamp(1.25rem, 2.6vw, 2rem);
+  line-height: 1;
   letter-spacing: var(--tracking-tight);
-  transition: color 240ms var(--ease);
+  overflow-wrap: anywhere;
 }
 
-@media (max-width: 720px) {
-  .contactLink {
-    padding: var(--space-4);
+/* -------------------------------------------------------------------------------- wordmark */
+
+/*
+ * The name at 11.5vw, cropped by the viewport edge on purpose: it is a graphic, not a heading, and
+ * a graphic that exactly fits its box looks like a logo lockup rather than a wall.
+ */
+.wordmark {
+  margin: var(--space-8) 0 0;
+  padding-inline: var(--gutter);
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: 11.5vw;
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  text-align: center;
+  overflow-wrap: anywhere;
+  user-select: none;
+}
+
+/* ------------------------------------------------------------------------------------ meta */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-6);
+  margin-top: var(--space-8);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* Full strength. The stamp was set at 60% opacity, which put 9px mono at 4.1:1 on black — below AA
+   for small text, and axe was right to fail it on every route. */
+.build {
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* The build stamp: same mono as the colophon. Secondary ink, because it is 9 px type and muted grey
-   is 3.8:1 on ink — a stamp nobody can read answers no questions. */
-.build {
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
+@media (max-width: 560px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+
+  .socialRow a {
+    min-width: 5rem;
+    min-height: 3rem;
+    letter-spacing: 0.12em;
+  }
+
+  .contactBar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

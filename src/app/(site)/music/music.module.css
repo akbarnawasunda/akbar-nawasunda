@@ -12,14 +12,13 @@
   padding-block: var(--space-12);
 }
 
-/* Same honest footnote as the homepage index. */
 .note {
   padding-block: var(--space-8) var(--space-12);
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
-  letter-spacing: 0.12em;
-  line-height: 1.7;
-  color: var(--color-text-secondary);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .placeholder {

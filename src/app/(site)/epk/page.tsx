@@ -4,7 +4,7 @@ import Link from "next/link";
 import { anMark, portraitAlt, portraitSources } from "@/assets/web";
 import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { artistFacts, artistLine, artistLongBio, artistServices, licensingNote } from "@/content/artist";
+import { artistFacts, artistLine, artistLongBio } from "@/content/artist";
 import { siteConfig } from "@/config/site";
 import { contactEmail, contactHref, listenLinks, listenUrl, socialLinks } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
@@ -42,22 +42,11 @@ export default function EpkPage() {
       <header className={styles.head}>
         <div className={styles.headCopy}>
           <p className={styles.eyebrow}>04 — Press kit</p>
-          <h1 className={`${styles.title} ink`}>Electronic press kit</h1>
+          <h1 className={`${styles.title} ink`}>Press kit</h1>
           <p className={styles.lead}>
-            Semua yang dibutuhkan untuk menulis tentang Akbar Nawasunda: potret resmi, logo transparan,
-            fakta terverifikasi, dan tautan platform. Satu unduhan, tanpa akun.
+            Potret resmi, logo transparan, fakta terverifikasi, dan tautan platform. Satu unduhan.
           </p>
         </div>
-
-        {/* The one place the red from the owner's own poster series is used (D-121): a rubber stamp,
-            because a press kit is a document you stamp. It is decorative — the same facts are set
-            at full size directly underneath. */}
-        <p className={styles.stamp} aria-hidden="true">
-          <span className={styles.stampTop}>Press</span>
-          <span className={styles.stampLine}>Bandung Barat</span>
-          <span className={styles.stampLine}>Untuk kutipan</span>
-          <span className={styles.stampBottom}>AN</span>
-        </p>
 
         <div className={styles.actions}>
           <ButtonLink href={PACK_URL} variant="primary" external>
@@ -85,8 +74,6 @@ export default function EpkPage() {
           </ul>
           <p className={styles.terms}>
             Foto dan logo boleh dipakai untuk pemberitaan dan promosi yang menyebut Akbar Nawasunda.
-            Jangan menambahkan angka pendengar, penghargaan, atau tautan platform di luar daftar di
-            halaman ini.
           </p>
         </section>
 
@@ -120,7 +107,7 @@ export default function EpkPage() {
           <h2 id="sheet-title" className={styles.sectionTitle}>
             Fakta terverifikasi
           </h2>
-          <p className={styles.sheetNote}>Dipakai apa adanya di siaran pers. Tanpa tambahan.</p>
+
           <p className={styles.bio}>{artistLongBio}</p>
         </div>
 
@@ -128,7 +115,7 @@ export default function EpkPage() {
           {artistFacts.map((fact) => (
             <div key={fact.label} className={styles.fact}>
               <dt>{fact.label}</dt>
-              <dd>{fact.value ?? <span className={styles.needs}>[NEEDS OWNER]</span>}</dd>
+              <dd>{fact.value ?? "—"}</dd>
             </div>
           ))}
           <div className={styles.fact}>
@@ -142,10 +129,7 @@ export default function EpkPage() {
         <h2 id="contact-title" className={styles.sectionTitle}>
           Kontak pers
         </h2>
-        <p className={styles.sheetNote}>
-          Satu alamat untuk booking, pers, remix, dan lisensi. Dijawab langsung oleh Akbar; tidak
-          ada formulir perantara.
-        </p>
+        <p className={styles.sheetNote}>Booking, pers, remix, dan lisensi.</p>
         <p className={styles.contactMail}>
           <a href={contactHref}>{contactEmail}</a>
         </p>
@@ -174,9 +158,6 @@ export default function EpkPage() {
             </Link>
           </li>
         </ul>
-        <p className={styles.sheetNote}>
-          Format kerja: {artistServices.map((item) => item.toLowerCase()).join(", ")}. {licensingNote}
-        </p>
       </section>
 
       <div className={styles.markStrip} aria-hidden="true">

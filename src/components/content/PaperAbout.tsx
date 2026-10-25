@@ -53,17 +53,17 @@ export function PaperAbout() {
             />
           </svg>
 
-          {artistTimeline.map((entry) => (
-            <li
-              key={entry.marker}
-              className={entry.pending ? `${styles.stop} ${styles.pending}` : styles.stop}
-            >
-              <span className={styles.year}>{entry.marker}</span>
-              <span className={styles.title}>{entry.title}</span>
-              <span className={styles.detail}>{entry.detail}</span>
-              {entry.pending ? <span className={styles.flag}>[NEEDS OWNER]</span> : null}
-            </li>
-          ))}
+          {artistTimeline
+            /* Only documented milestones: an undocumented year is not a row on a premium page, it
+               is a note in the Studio. */
+            .filter((entry) => !entry.pending)
+            .map((entry) => (
+              <li key={entry.marker} className={styles.stop}>
+                <span className={styles.year}>{entry.marker}</span>
+                <span className={styles.title}>{entry.title}</span>
+                <span className={styles.detail}>{entry.detail}</span>
+              </li>
+            ))}
         </DrawOnView>
       </div>
     </section>

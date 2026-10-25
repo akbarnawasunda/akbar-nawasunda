@@ -59,7 +59,7 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 24%;
-  filter: grayscale(1) contrast(1.06) brightness(0.92) sepia(0.32) hue-rotate(178deg) saturate(2.6);
+  filter: grayscale(1) contrast(1.18) brightness(0.92);
   transition:
     filter var(--duration-base) var(--ease),
     scale var(--duration-slow) var(--ease-out);
@@ -84,7 +84,7 @@
 .surfaceTile .frame img {
   object-fit: contain;
   padding: 16%;
-  filter: grayscale(1) contrast(1.02) brightness(1.04) sepia(0.16) hue-rotate(178deg) saturate(1.9);
+  filter: grayscale(1) contrast(1.1) brightness(1.02);
 }
 
 /* Crop anchors, alternating by position so no two neighbours keep the same part of the frame. */
@@ -112,7 +112,7 @@
   font-family: var(--font-mono-stack);
   font-size: 0.5625rem;
   letter-spacing: 0.12em;
-  color: var(--color-signal-blue);
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -154,13 +154,13 @@
 
 .trigger:hover .frame,
 .trigger:focus-visible .frame {
-  border-color: var(--color-signal-blue);
+  border-color: var(--color-text-primary);
 }
 
 .trigger:hover .frame img,
 .trigger:focus-visible .frame img {
   /* The hover is a change of exposure, not of position: nothing on this page moves off the grid. */
-  filter: grayscale(0.35) contrast(1.08) brightness(1) sepia(0.18) hue-rotate(178deg) saturate(1.8);
+  filter: grayscale(1) contrast(1.12) brightness(0.95);
   scale: 1.02;
 }
 
@@ -168,7 +168,7 @@
 .trigger:focus-visible .caption,
 .trigger:hover .expand,
 .trigger:focus-visible .expand {
-  color: var(--color-signal-blue);
+  color: var(--color-text-primary);
 }
 
 /* The homepage block: same object, two columns, no size change. */

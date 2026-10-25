@@ -1,166 +1,148 @@
 /*
-  /contact (round 15).
-
-  The zine made this head a "flyer": a navy field with press rules, a barcode and a running strip
-  down the right margin. Three decorations whose only job was to fill the empty half — and all three
-  were print artefacts the owner has since rejected by name.
-
-  The empty half is now the point. One address at display size, a hairline under the header, and an
-  unbroken measure to the right of it. On a contact page the address *is* the design, and the fastest
-  way to look expensive is to leave it alone.
-*/
-
+ * /contact — the address, at the size the address deserves.
+ *
+ * The page has two jobs and they are both done above the fold: print the email so it can be copied,
+ * and list the channels so a visitor can tell an official account from a fake. The address is set at
+ * 6vw in the display face — bigger than any heading on the page, because on this page it *is* the
+ * heading.
+ */
 .head {
-  position: relative;
-  background: var(--color-bg-base);
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border);
-  overflow: hidden;
+  padding-block: var(--section-padding);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .headInner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: end;
-  gap: var(--space-4);
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: calc(var(--header-height) + var(--space-16)) var(--gutter) var(--space-16);
+  padding-inline: var(--gutter);
 }
 
 .eyebrow {
-  margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 0.6875rem;
-  font-weight: 500;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-signal-blue);
+  color: var(--color-text-muted);
 }
 
 .title {
-  margin: 0;
-  text-transform: uppercase;
-  font-family: var(--font-display-stack);
-  font-weight: 500;
-  font-size: clamp(2.75rem, 8vw, 6rem);
+  margin-top: var(--space-4);
+  font-size: var(--text-hero);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
 }
 
 .lead {
-  max-width: 46ch;
-  margin: var(--space-2) 0 0;
-  font-size: clamp(1rem, 1.1vw, 1.125rem);
-  line-height: var(--leading-body);
+  max-width: 44ch;
+  margin-top: var(--space-6);
   color: var(--color-text-secondary);
 }
 
 .mail {
+  display: inline-block;
   margin-top: var(--space-8);
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(1.375rem, 5.2vw, 4rem);
-  line-height: 1.05;
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-text-primary);
-  text-decoration: none;
+  font-weight: 700;
+  font-size: clamp(1.35rem, 5.4vw, 5rem);
+  line-height: 1.02;
+  letter-spacing: var(--tracking-hero);
   overflow-wrap: anywhere;
-  width: fit-content;
-  border-bottom: 1px solid var(--color-hairline-strong);
-  /* 0.08em put the rule through the descender of the g and the tail of the @ (measured in the page
-     review: 5.12px of padding against ~14px of descender at 64px). 0.2em cleared it, but at 64px
-     that is a 12.8 px gap — the rule floats away from the word. 0.12em clears the descender and
-     still sits on the baseline like a ruled line under a headline. */
-  padding-bottom: 0.12em;
-  transition:
-    border-color 220ms var(--ease),
-    color 220ms var(--ease);
+  text-decoration: none;
+  border-bottom: 2px solid var(--color-text-primary);
+  transition: color var(--duration-base) var(--ease);
 }
 
 .mail:hover,
 .mail:focus-visible {
-  border-color: var(--color-signal-blue);
   color: var(--color-signal-blue);
+  border-bottom-color: var(--color-signal-blue);
 }
 
 .mailNote {
-  max-width: 52ch;
-  margin: var(--space-6) 0 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  max-width: 44ch;
+  margin-top: var(--space-6);
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
-/* ------------------------------------------------------------------- below */
-
 .block {
-  display: grid;
-  gap: var(--space-4);
-  padding-block: var(--space-12);
-  border-top: 1px solid var(--color-border);
-}
-
-.block:first-of-type {
-  border-top: 0;
+  padding-block: var(--section-padding);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .sectionTitle {
-  margin: 0;
-  font-family: var(--font-display-stack);
-  font-weight: 500;
-  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-}
-
-.label {
-  font-family: var(--font-mono-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
 }
 
-.note {
-  max-width: 56ch;
-  color: var(--color-text-secondary);
-  font-size: 0.9375rem;
-  line-height: 1.6;
-}
-
+/* The services as a ruled list of four, two columns on a wide screen. */
 .services {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0 var(--space-8);
-  margin: 0;
-  padding: 0;
   list-style: none;
-  color: var(--color-text-secondary);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-8);
 }
 
 .services li {
   padding-block: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: var(--text-title);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+.note {
+  max-width: 52ch;
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
 }
 
 .groups {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-8);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 5vw, 4rem);
+  margin-top: var(--space-8);
+}
+
+.label {
+  margin-bottom: var(--space-3);
+  font-family: var(--font-mono-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .links {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--space-2) var(--space-6);
-  margin: var(--space-3) 0 0;
-  padding: 0;
   list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.links li {
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .links a {
-  font-size: 0.9375rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  font-size: var(--text-small);
   color: var(--color-text-secondary);
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease);
@@ -168,5 +150,12 @@
 
 .links a:hover,
 .links a:focus-visible {
-  color: var(--color-signal-blue);
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 760px) {
+  .services,
+  .groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

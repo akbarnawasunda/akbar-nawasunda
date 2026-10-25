@@ -50,10 +50,27 @@ body {
 }
 
 /*
- * One panel material. Round 15 removed the printed sheet: there is no light surface anywhere on the
- * site now. `--color-paper` is still the name every component uses, but it resolves to a surface a
- * few percent above the ground, edged with a hairline. Structure comes from that line, not from a
- * fill — which is what keeps a 10-section page from looking like ten cards.
+ * Display type: the whole design in three declarations.
+ *
+ * Only Space Grotesk 700 survives at headline sizes. It is the face the reference uses, it has a
+ * genuine 700 rather than a synthesised one, and its uppercase is wide and square, which is what
+ * lets a word span the viewport without looking stretched. Leading 0.86 and −0.045em tracking are
+ * the two numbers that matter: at 12vw the default leading leaves a gap you could park a car in.
+ */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  letter-spacing: var(--tracking-hero);
+  line-height: var(--leading-hero);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/*
+ * One panel material. `--color-paper` is the same black as the page; a panel is marked by its
+ * hairlines, not by a fill. That is what keeps a ten-section page from looking like ten cards.
  */
 .paper {
   background: var(--color-paper);
@@ -61,9 +78,7 @@ body {
   border-block: 1px solid var(--color-border);
 }
 
-/* Atmospheric texture: 1.5% noise, never a gradient wash. Fixed so it does not scroll with content
-   and cannot be mistaken for an image. Round 15 pulled this back from the zine's 6.5% — at 6.5% it
-   read as photocopier dirt on top of a premium object. */
+/* Atmospheric texture: 1.5% noise, never a gradient wash. */
 body::after {
   content: "";
   position: fixed;
@@ -85,46 +100,25 @@ picture {
 /*
  * Photograph treatment — one rule, every photo.
  *
- * The archive is six owner files and a handful of release sleeves, reused across five routes. Left
- * plain, the same portrait appears three times in one scroll and the page reads as thin. Duotone
- * fixes that at the source: grayscale first (so every photo shares one tonal ramp regardless of what
- * colour it was shot under), then a sepia pass rotated into the accent's hue, which maps that ramp
- * onto ink → neon instead of ink → brown.
+ * The archive is six owner files and a handful of release sleeves, reused across five routes, and
+ * they were shot in six different rooms under six different lamps. Round 15 unified them with a
+ * duotone (grayscale → sepia → hue-rotate into the accent), which is a strong look and the wrong
+ * one here: the reference is monochrome photography, full stop, and a blue photograph next to a
+ * blue 3D object competes with the one thing on the page that is supposed to be the light.
  *
- * Verified against the actual files: the night street frame, the studio portrait and the empty stage
- * all land on the same blue, which is what stops them looking like three different photographers.
+ * So: grayscale, +18% contrast, and a stop darker. Contrast is doing the work colour used to do —
+ * at these levels the faces in the archive still separate from the ground, which a plain
+ * `grayscale(1)` on a dark frame does not manage.
  */
 .site-main img,
 .stage img {
-  filter: grayscale(1) contrast(1.08) brightness(0.9) sepia(0.34) hue-rotate(178deg) saturate(2.7);
+  filter: grayscale(1) contrast(1.18) brightness(0.92);
 }
 
-/* Sleeve artwork is typography, not photography: it is duotoned one step lighter, because a sleeve's
-   own title has to stay readable at 320 px. */
+/* Sleeve artwork is typography, not photography: one step lighter, so a sleeve's own title stays
+   readable at 320px. */
 .cover img {
-  filter: grayscale(1) contrast(1.02) brightness(0.96) sepia(0.22) hue-rotate(178deg) saturate(2.1);
-}
-
-/*
- * Scanlines. A two-pixel raster laid over a photo, the way a monitor in a 1980s control room shows
- * one. Applied as an overlay element rather than a filter so it never touches the image's own
- * contrast, and at 4% white so it reads as the glass in front of the photo, not as a pattern on it.
- */
-.scan {
-  position: relative;
-}
-
-.scan::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.04) 0 1px,
-    transparent 1px 3px
-  );
+  filter: grayscale(1) contrast(1.06) brightness(0.98);
 }
 
 h1,
@@ -142,8 +136,8 @@ a {
 }
 
 ::selection {
-  background: var(--color-signal-blue);
-  color: var(--color-on-brand);
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
 }
 
 :focus-visible {
@@ -155,27 +149,24 @@ a {
 /*
  * Display type, lit.
  *
- * The zine pass printed every heading twice — a red plate and a cyan plate a couple of pixels out of
- * register, moving under the pointer. It was the most distinctive thing on the site and it is also
- * the thing the owner called cheap: at 40 px it reads as a printing accident, and a printing
- * accident next to a black chrome 3D object reads as a mistake, not a style.
- *
- * `.ink` is now what a neon interface does to type instead: a soft bloom of the accent under the
- * glyphs, plus a 1 px core so the edges stay crisp at small sizes. `--ink-x` / `--ink-y` are still
- * written by <InkPress /> from the pointer, but they modulate the *bloom radius*, not a duplicate
- * plate — the type never leaves its position, which is the whole point of a precise layout.
+ * Rounds 9–13 printed every heading twice — two plates a couple of pixels out of register, moving
+ * under the pointer. Round 15 replaced that with a blue bloom, which the new direction does not
+ * want on body-sized headings but does want on the hero's name: it sits directly over a photograph,
+ * and a white word at 12vw on a dark frame needs a little light behind it to separate from the
+ * grain. `--ink-x` / `--ink-y` are still written by <InkPress /> from the pointer and still modulate
+ * the bloom radius, so the type never leaves its position — which is the point of a precise layout.
  */
 :root {
   --ink-x: 0;
   --ink-y: 0;
-  --ink-glow: 18px;
-  --ink-glow-tight: 3px;
+  --ink-glow: 16px;
+  --ink-glow-tight: 2px;
 }
 
 .ink {
   text-shadow:
-    0 0 calc(var(--ink-glow-tight) + (var(--ink-x) + var(--ink-y)) * 1.5px) rgb(0 135 255 / 0.55),
-    0 0 calc(var(--ink-glow) + (var(--ink-x) + var(--ink-y)) * 6px) rgb(0 135 255 / 0.22);
+    0 0 calc(var(--ink-glow-tight) + (var(--ink-x) + var(--ink-y)) * 1.2px) rgb(255 255 255 / 0.22),
+    0 0 calc(var(--ink-glow) + (var(--ink-x) + var(--ink-y)) * 5px) rgb(0 135 255 / 0.16);
 }
 
 /*

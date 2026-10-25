@@ -322,7 +322,7 @@
 .neighbour:hover .neighbourSleeve,
 .neighbour:focus-visible .neighbourSleeve {
   translate: -3px -3px;
-  box-shadow: 6px 6px 0 var(--color-brand);
+  box-shadow: 6px 6px 0 var(--color-border-strong);
 }
 
 .neighbourTitle {
@@ -342,7 +342,7 @@
   text-transform: uppercase;
   color: var(--color-text-secondary);
   text-decoration: none;
-  border-bottom: 2px solid var(--color-brand);
+  border-bottom: 2px solid var(--color-hairline-strong);
   padding-bottom: 2px;
 }
 

@@ -22,7 +22,7 @@ import styles from "./ReleasePlate.module.css";
  *
  * Honesty rules are unchanged: `ordinal` is a position in the owner's own list (printed as
  * "Katalog 03 / 10", never as an invented catalogue number), every fact comes from the owner's data,
- * and anything unconfirmed prints `[NEEDS OWNER]` instead of being guessed.
+ * and anything unconfirmed prints an em dash instead of being guessed.
  */
 export interface ReleaseNeighbour {
   slug: string;
@@ -156,7 +156,7 @@ export function ReleasePlate({
             {facts.map((fact) => (
               <div key={fact.label} className={styles.fact}>
                 <dt>{fact.label}</dt>
-                <dd>{fact.value ?? <span className={styles.needs}>[NEEDS OWNER]</span>}</dd>
+                <dd>{fact.value ?? "—"}</dd>
               </div>
             ))}
           </dl>

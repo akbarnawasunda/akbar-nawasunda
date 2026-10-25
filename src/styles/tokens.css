@@ -1,36 +1,37 @@
 /*
- * Design tokens — "NEON GRID" (round 15).
+ * Design tokens — "HUD" (round 16).
  *
- * The two rounds before this one were a zine: press cyan, paper stock, misregistered plates,
- * rotated stickers, barcodes. The owner's verdict killed it — "Zine/Brutalist has destroyed the
- * layout, made the type look cheap, the text hard to read, and the photos boring". This file is the
- * replacement, and it is a different system, not a re-skin:
+ * Round 15 was a neon editorial page: near-black ground, hairline blue, generous air. The owner
+ * then handed over a set of screenshots from a world-class artist site and asked for *that* class of
+ * object: pure black, pure white, type at 12vw in uppercase, thin cross marks, nothing decorative
+ * that is not structural. This file is the replacement, and the values below are the whole visual
+ * idea in one place:
  *
- *   - one ground (#050507), one ink (pure white), one accent (neon blue #0087FF);
- *   - hairline structure instead of heavy rules; quiet geometry instead of print artefacts;
- *   - generous vertical rhythm — the whitespace *is* the luxury;
- *   - a geometric display face with a real weight range, and Inter underneath for reading.
+ *   - one ground (#000000) and one ink (white). There is no second surface colour: separation comes
+ *     from a 1px white line at 16% and from space;
+ *   - the accent (#0087FF) is no longer a page colour. It survives as the light inside the 3D
+ *     monogram, the focus ring, and the single active mark — a light, never a field;
+ *   - type is the design: Space Grotesk in uppercase at 10–13vw with 0.86 leading for display, and
+ *     Inter for anything longer than a sentence;
+ *   - photography is high-contrast monochrome (globals.css), because a duotone treatment was how
+ *     the previous round tried to unify six files from different shoots.
  *
- * Values come from docs/02-DESIGN-SYSTEM/DESIGN_TOKENS.md, which wins over prose when the two
- * disagree (AGENTS.md §4). Every colour, spacing step, type size, motion curve and z-layer used by
- * the app is defined here; components reference these variables and never hard-code values.
+ * docs/02-DESIGN-SYSTEM/DESIGN_TOKENS.md wins over prose when the two disagree (AGENTS.md §4).
  */
 :root {
-  /* --- Colour: ink ground, one neon ------------------------------------------------ */
-  --color-bg-base: #050507;
-  --color-bg-surface: #0a0a12;
-  --color-bg-surface-2: #101019;
+  /* --- Colour: black ground, white ink --------------------------------------------- */
+  --color-bg-base: #000000;
+  --color-bg-surface: #050505;
+  --color-bg-surface-2: #0b0b0b;
 
   --color-text-primary: #ffffff;
-  --color-text-secondary: #a8b0c2;
-  --color-text-muted: #8a93a6;
+  --color-text-secondary: #b8b8b8;
+  --color-text-muted: #8f8f8f;
 
   /*
-   * The neon. This is the owner's own #0087FF — the colour of the AN mark, the rim light on the 3D
-   * monogram, and the accent in every interaction on this site. It is a *light*, not an ink: it is
-   * used at full strength for lines, focus, hover and small type, and never as a large flat field
-   * behind body copy (white on it is 3.36:1; near-black on it is 5.7:1, which is why
-   * --color-on-brand is the ink).
+   * The neon. It is the owner's own #0087FF — the colour of the AN mark and of the light coming off
+   * the 3D monogram. On a page that is now black-and-white, this is the only chromatic value left,
+   * so it is spent carefully: the monogram's bloom, the focus ring, and the one live dot.
    */
   --color-signal-blue: #0087ff;
   --color-signal-blue-hover: #38a7ff;
@@ -38,43 +39,34 @@
   --color-signal-purple: #6d4a7c;
 
   --color-brand: var(--color-signal-blue);
-  --color-brand-deep: #04121f;
-  --color-on-brand: #050507;
+  --color-on-brand: #000000;
 
-  /* A dark panel — the only "field" left. Section bands and the press sheet sit on it. */
-  --color-field: #070710;
+  /* The monogram band is pure black: the object is the only light on it. */
+  --color-field: #000000;
 
   /*
-   * Structure is a hairline, not a rule. Two weights: a resting grid line you should barely see, and
-   * a hover/active line. Colour lives in the tokens because a neon line is a palette decision.
+   * Structure is one hairline in white. At 16% it is invisible until you look for it, which is
+   * exactly the job a HUD grid does; the strong step is for a hovered or active rule.
    */
-  --color-hairline: rgb(0 135 255 / 0.18);
-  --color-hairline-strong: rgb(0 135 255 / 0.52);
-  --color-border: #1b1f2a;
-  --color-border-strong: #2a3244;
+  --color-hairline: rgb(255 255 255 / 0.16);
+  --color-hairline-strong: rgb(255 255 255 / 0.5);
+  --color-border: #1f1f1f;
+  --color-border-strong: #4a4a4a;
 
-  /* Panels: a surface that is almost the ground, so structure comes from the hairline. */
-  --color-paper: #0a0a12;
+  /* Panels. `paper` is a name the components still use; it resolves to the ground plus a rule. */
+  --color-paper: #050505;
   --color-paper-ink: #ffffff;
-  --color-paper-muted: #8a93a6;
-  --color-ink-black: #050507;
-  /* The monogram band is the one place allowed a cold step, because the 3D object needs a stage. */
-  --color-band-monogram: #04070d;
+  --color-paper-muted: #8f8f8f;
+  --color-ink-black: #000000;
+  --color-band-monogram: #000000;
 
-  /*
-   * Content markers. [NEEDS OWNER] has to be unmissable on ink and it is the only red left in the
-   * system: it marks a hole in the content, not a mood. --color-poster-red follows the accent now —
-   * the "poster" it was named after does not exist in this design.
-   */
+  /* Content markers kept for the Studio's own status rows; the public pages no longer print them. */
   --color-stamp: #ff3b30;
   --color-stamp-ink: #ff6b62;
   --color-poster-red: var(--color-signal-blue);
   --color-poster-yellow: #ffd60a;
 
-  /*
-   * Studio status colours (D-114). Three states have to be readable at a glance in a dense admin
-   * table; the public site never shows them.
-   */
+  /* Studio status colours (D-114). The public site never shows them. */
   --color-status-ok: #7bd389;
   --color-status-warn: #f2b84b;
   --color-status-bad: var(--color-stamp);
@@ -101,23 +93,24 @@
   --font-mono-stack: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /*
-   * Interface metrics, not poster metrics.
+   * Poster metrics, on purpose.
    *
-   * A geometric sans at display size wants air: 0.96 on the hero (the two lines read as one block
-   * without touching), 1.02 on section heads, and negative tracking only where the type is large
-   * enough that the default sidebearings look loose. Body copy runs at 1.65 — the old 1.6 was set for
-   * 15 px paragraphs; at 17 px with a wider face it reads tight.
+   * The display sizes are viewport-relative and uncapped at the top: a headline on this site is
+   * supposed to own the width of the window, the way the reference does. The clamps exist so a
+   * 320px phone still gets a readable 40px and a 2560px monitor does not get a 330px word.
+   * 0.86 leading is below the point where ascenders and descenders collide in Space Grotesk at
+   * these weights; 0.8 is where they start to.
    */
-  --leading-hero: 0.96;
-  --leading-tight: 1.04;
-  --leading-body: 1.65;
-  --tracking-hero: -0.03em;
+  --leading-hero: 0.86;
+  --leading-tight: 1.02;
+  --leading-body: 1.6;
+  --tracking-hero: -0.045em;
   --tracking-tight: -0.02em;
-  --tracking-label: 0.18em;
+  --tracking-label: 0.2em;
 
-  --text-hero: clamp(2.75rem, 7.2vw, 6.5rem);
-  --text-display: clamp(2rem, 1.1rem + 3vw, 4rem);
-  --text-title: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+  --text-hero: clamp(2.75rem, 12.5vw, 11.5rem);
+  --text-display: clamp(2rem, 6.2vw, 5rem);
+  --text-title: clamp(1.35rem, 2.2vw, 1.9rem);
   --text-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
   --text-small: 0.875rem;
   --text-label: 0.75rem;
@@ -133,21 +126,19 @@
   --space-16: 4rem;
   --space-24: 6rem;
   --space-32: 8rem;
-  --space-40: 10rem;
 
   /* --- Layout ----------------------------------------------------------------------- */
-  --container-max: 1240px;
-  --gutter: 1.5rem;
-  --header-height: 4.5rem; /* 72px at rest, 56px once the page is scrolled (D-096) */
-  --header-height-compact: 3.5rem;
-  --section-padding: var(--space-16);
+  --container-max: 1440px;
+  --gutter: clamp(1.25rem, 3vw, 3rem);
+  --header-height: 5rem;
+  --header-height-compact: 3.75rem;
+  --section-padding: clamp(3.5rem, 7vw, 7rem);
   /*
-   * Corners. The premium register is *sharp*: 2 px on chrome (buttons, chips), 4 px on panels, and
-   * nothing rounder. A pill is reserved for the one status dot in the Studio.
+   * Corners. A HUD is built from right angles: nothing on this site is rounded. The pill step is
+   * kept for the Studio's one status dot.
    */
-  --radius-sm: 2px;
-  --radius-2xl: 4px;
-  --radius-xl: 4px;
+  --radius-sm: 0;
+  --radius-xl: 0;
   --radius-pill: 9999px;
 
   /* --- Motion ----------------------------------------------------------------------- */
@@ -167,13 +158,6 @@
 
 @media (max-width: 719px) {
   :root {
-    --gutter: 1.25rem;
-    --section-padding: var(--space-12);
-  }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --section-padding: var(--space-32);
+    --section-padding: clamp(2.5rem, 9vw, 4rem);
   }
 }

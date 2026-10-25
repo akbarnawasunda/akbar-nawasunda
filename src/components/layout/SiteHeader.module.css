@@ -4,30 +4,21 @@
   z-index: var(--z-chrome);
   /* The bar's current height, so the drawer below it can sit flush against it in both states. */
   --bar-h: var(--header-height);
-  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
   /*
-    No `backdrop-filter`, and here is the bill it used to charge (R11).
+   * Solid black, not a translucent scrim.
 
-    A sticky bar with a backdrop blur asks the compositor to re-capture and re-blur everything
-    behind it **whenever that backdrop changes**, not once when it is laid out. This bar sits
-    directly on top of the hero — the one band on the site where something is always moving — so the
-    blur was being re-run for the full width of the viewport (1440 × 73 px, radius 12, plus a
-    saturate pass) on every frame of every pointer move over the hero, and again on every scroll
-    frame for the rest of the page. That is the most expensive thing on the screen during exactly
-    the interaction the owner described as heavy.
-
-    What it was buying: almost nothing. The bar is already 80% opaque over a hero whose top edge
-    carries an 82% ink scrim, so the blurred content behind it was within a few percent of the
-    unblurred content. A blur you cannot see is not a style decision, it is a per-frame cost.
-
-    If the owner wants the frosted look back, the honest version is a `backdrop-filter` on a bar
-    that is *not* over moving content, or a solid panel — not this line in this position.
-  */
-  border-bottom: 1px solid var(--color-border);
+   * The bar sits on top of the hero, which is a photograph and the one band where something is
+   * always moving. Round 11 deleted its `backdrop-filter` because re-blurring that backdrop cost a
+   * full-width re-composite on every frame; the honest successor is not a lighter blur but no blur
+   * and no transparency at all. A black bar with a hairline under it is also what the reference
+   * does, and it means the header looks identical over the hero, over a photo band, and over the
+   * monogram's glow.
+   */
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-hairline);
   transition:
     height 320ms var(--ease),
-    translate 420ms var(--ease),
-    background-color 320ms var(--ease);
+    translate 420ms var(--ease);
 }
 
 /* Compact once the page has moved; off-canvas while the reader is going down, back on the way up. */
@@ -38,15 +29,14 @@
   frame that content moves, and the bar sits on top of the site's only continuously moving band. The
   claim that removal was worth something is only worth as much as the measurement behind it — so the
   declaration is kept here, behind a switch, to be put back in one URL and measured against the
-  baseline in the same build. If the ablation shows the blur costs nothing on real hardware, this
-  rule is the one line that restores it: move it back into `.header` and delete the switch.
+  baseline in the same build.
 */
 :global(html[data-perf~="blur"]) .header {
   backdrop-filter: blur(12px) saturate(120%);
+  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
 }
 
 .header[data-state="compact"] {
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   --bar-h: var(--header-height-compact);
 }
 
@@ -54,12 +44,10 @@
  * No `will-change` here, and that is load-bearing rather than a preference.
  *
  * `will-change: transform` makes the header a containing block for its fixed-position children, so
- * the mobile drawer — `position: fixed; inset: 72px 0 0 0` — was being laid out against a 72 px
- * tall header instead of the viewport. It rendered as a 81 px sliver that the page scrolled over:
- * tapping the hamburger looked like nothing happened at all, on every phone, for four rounds. The
- * `translate` transition below is composited on its own; the hint bought nothing and cost the menu.
+ * the drawer — `position: fixed; inset: var(--drawer-top) 0 0 0` — was being laid out against a
+ * 72 px tall header instead of the viewport. It rendered as an 81 px sliver that the page scrolled
+ * over: tapping the hamburger looked like nothing happened at all, on every phone, for four rounds.
  */
-
 .header[data-hidden="true"] {
   translate: 0 -100%;
 }
@@ -82,23 +70,22 @@
   padding-inline: var(--gutter);
 }
 
+.header[data-state="compact"] .bar {
+  height: var(--header-height-compact);
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
-  /* 8px clear space around the mark (CONTENT_GUIDELINES.md). */
-  gap: var(--space-2);
+  gap: var(--space-3);
   text-decoration: none;
   color: var(--color-fg);
   min-width: 0;
 }
 
-.header[data-state="compact"] .bar {
-  height: var(--header-height-compact);
-}
-
-/* AN mark at 32px tall. The file is 174x112, so the ratio is preserved. */
+/* AN mark at 34px tall. The file is 174x112, so the ratio is preserved. */
 .mark {
-  height: 32px;
+  height: 34px;
   width: auto;
   transition: height 320ms var(--ease);
 }
@@ -114,15 +101,21 @@
   min-width: 0;
 }
 
+/*
+ * The wordmark is set in the mono face at label size, uppercase, tracked out — it reads as a
+ * product code next to the mark rather than as a second logo competing with the 12vw name below.
+ */
 .wordmark {
-  font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: 1.0625rem;
-  letter-spacing: -0.01em;
+  font-family: var(--font-mono-stack);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   white-space: nowrap;
+  color: var(--color-text-secondary);
 }
 
-/* RMX tag: a printed stamp, not a second logo, and not a blue chip (D-115). */
+/* RMX tag: a bordered stamp, not a chip. */
 .rmx {
   padding: 1px 5px;
   border: 1px solid var(--color-border-strong);
@@ -134,87 +127,39 @@
   letter-spacing: 0.18em;
 }
 
-/*
- * The bar's compact state is driven by `data-state` from the header's own scroll effect, in every
- * engine. It used to *also* have an `animation-timeline: scroll()` rule shrinking the bar and the
- * mark; that rule only applied in Chromium and, where it did apply, overrode the height the JS had
- * just set — two sources of truth for one number (D-116). Removed, along with its keyframes.
- */
-.header[data-state="compact"] .mark {
-  height: 26px;
-}
-
-.desktopNav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  gap: var(--space-8);
-}
-
-.desktopNav a {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono-stack);
-  font-size: 0.6875rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--color-text-secondary);
-  transition:
-    color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease),
-    background var(--duration-fast) var(--ease);
-}
-
-.desktopNav a:hover,
-.desktopNav a:focus-visible {
-  color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
-}
-
-/*
- * Current page is marked with a rule under the word, not a filled chip (D-115). A blue block in the
- * nav competed with the paper primary button at the other end of the same bar; an underline is how a
- * printed index says "you are here", and it leaves the blue to mean "action".
- */
-.desktopNav a[aria-current="page"] {
-  color: var(--color-text-primary);
-  border-color: transparent;
-  box-shadow: inset 0 -2px 0 var(--color-signal-blue);
-}
-
 .actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-/* The one filled element in the chrome, and it is paper — see ButtonLink's `.primary` (D-115). */
+/*
+ * "Listen ↗" is a right-angled box, not a pill. The reference's call to action is a thin white
+ * rectangle with the label inside it, and that is the only shape on this page that means "leave".
+ */
 .listen {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: 40px;
-  padding: 10px 18px;
-  border-radius: var(--radius-sm);
-  background: var(--color-paper);
-  /* Near-black ink on paper is 15.6:1; the same pairing as the hero's primary action. */
-  color: var(--color-paper-ink);
-  font-weight: 600;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+  font-weight: 500;
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   text-decoration: none;
-  transition: background var(--duration-fast) var(--ease);
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 }
 
-.listen:hover {
-  background: var(--color-signal-blue);
+.listen:hover,
+.listen:focus-visible {
+  background: var(--color-text-primary);
   color: var(--color-ink-black);
 }
 
@@ -222,28 +167,64 @@
   font-size: 0.85em;
 }
 
+/*
+ * MENU. Word + two rules, no border: it has to sit in the corner as type, the way the reference's
+ * does, and it must not look like one of the outlined buttons because it opens a surface rather
+ * than going anywhere.
+ */
 .toggle {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-3);
   min-height: 40px;
-  min-width: 40px;
   padding: 0;
   background: none;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border: 0;
   color: var(--color-fg);
   cursor: pointer;
+  font-family: var(--font-display-stack);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-/* ------------------------------------------------------------- mobile drawer */
+.toggle:hover .burger span,
+.toggle:focus-visible .burger span {
+  transform: scaleX(0.72);
+  transform-origin: left center;
+}
+
+.menuWord {
+  font-family: var(--font-display-stack);
+  text-transform: uppercase;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.burger {
+  display: inline-grid;
+  gap: 5px;
+  width: 26px;
+}
+
+.burger span {
+  display: block;
+  height: 2px;
+  background: currentColor;
+  transition: transform 200ms var(--ease);
+}
+
+/* ------------------------------------------------------------- the menu */
 
 /*
- * The phone menu is not a list of links — on a phone it is the only navigation there is, so it is
- * set like the cover of the zine: numbered mono indices, display type at 11vw, and a hairline that
- * walks down the list. It covers the screen edge to edge, the page behind it cannot scroll
- * (html[data-menu="open"] in globals.css), and it is rendered in a portal rather than inside the
- * header — see the note in SiteHeader.tsx.
+ * A full-screen index, at every width.
+ *
+ * The reference's phone menu is a numbered list of words at 11vw with a hairline under each —
+ * exactly the shape the catalogue index already uses, which is why it survives the redesign
+ * untouched in structure and only changes its type. It covers the screen edge to edge, the page
+ * behind it cannot scroll (html[data-menu="open"] in globals.css), and it is rendered in a portal
+ * rather than inside the header — see the note in SiteHeader.tsx.
  */
 .drawer {
   /* Default for the inline value the header writes when it opens; declared so the token audit can
@@ -258,9 +239,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  padding: var(--space-8) var(--gutter) var(--space-8);
+  padding: var(--space-6) var(--gutter) var(--space-8);
   background: var(--color-bg);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-hairline);
   overflow-y: auto;
   overscroll-behavior: contain;
   animation: drawerIn 260ms var(--ease-out) both;
@@ -277,14 +258,13 @@
   margin: 0;
   padding: 0;
   display: grid;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-hairline);
 }
 
-/* Each line rises out of its own hairline, 55 ms after the one above it. `--i` is the index written
-   inline by the header; 0 is the fallback a list without it would need. */
+/* Each line rises out of its own hairline, 55 ms after the one above it. */
 .drawerList li {
   --i: 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-hairline);
   animation: drawerLine 460ms var(--ease-out) both;
   animation-delay: calc(40ms + var(--i) * 55ms);
 }
@@ -298,37 +278,34 @@
 
 .drawerList a {
   display: grid;
-  grid-template-columns: 2.5rem minmax(0, 1fr);
+  grid-template-columns: 2.75rem minmax(0, 1fr);
   align-items: baseline;
   gap: var(--space-2);
-  padding-block: var(--space-3);
+  padding-block: var(--space-2);
   text-decoration: none;
   color: var(--color-fg);
 }
 
 .drawerIndex {
   font-family: var(--font-mono-stack);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.18em;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .drawerLabel {
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2rem, 11vw, 3rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-size: clamp(2.5rem, 9.5vw, 5rem);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
   transition: color 200ms var(--ease);
 }
 
-/* The current page keeps the identity colour — 5.6:1 on the ink ground. */
+/* The current page keeps the accent: it is a live marker, not a fill. */
 .drawerList a[aria-current="page"] .drawerLabel,
 .drawerList a[aria-current="page"] .drawerIndex {
-  color: var(--color-accent);
-}
-
-.drawerList a:active .drawerLabel {
   color: var(--color-accent);
 }
 
@@ -336,7 +313,7 @@
   display: grid;
   gap: var(--space-2);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .drawerLatestLabel {
@@ -345,34 +322,31 @@
   font-size: 0.5625rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .drawerLatestLink {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
   align-items: center;
   gap: var(--space-4);
   text-decoration: none;
   color: var(--color-fg);
 }
 
-/* A sleeve, not a card: square, unrounded, with the blue plate on press. */
+/* A sleeve, not a card: square, unrounded. */
 .drawerLatestCover {
   display: block;
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   object-fit: cover;
   background: var(--color-bg-surface);
-  transition:
-    translate 260ms var(--ease-out),
-    box-shadow 260ms var(--ease-out);
+  transition: translate 260ms var(--ease-out);
 }
 
 .drawerLatestLink:hover .drawerLatestCover,
 .drawerLatestLink:focus-visible .drawerLatestCover {
-  translate: -3px -3px;
-  box-shadow: 6px 6px 0 var(--color-brand);
+  translate: 4px 0;
 }
 
 .drawerLatestText {
@@ -383,9 +357,11 @@
 
 .drawerLatestTitle {
   font-family: var(--font-display-stack);
-  font-size: 1.375rem;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
 }
 
 .drawerLatestMeta {
@@ -393,21 +369,30 @@
   font-size: 0.5625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
+/* Outlined, right-angled, uppercase — the same box as the header's Listen. */
 .drawerCta {
   align-self: start;
   justify-self: start;
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-sm);
-  background: var(--color-paper);
-  color: var(--color-paper-ink);
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.drawerCta:hover,
+.drawerCta:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
 }
 
 .drawerMeta {
@@ -417,7 +402,7 @@
   font-size: 0.625rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -431,36 +416,19 @@
   }
 }
 
-@media (max-width: 719px) {
-  .desktopNav {
-    display: none;
-  }
-}
-
-@media (min-width: 720px) {
-  .toggle,
-  .drawer {
-    display: none;
-  }
-}
-
-@media (max-width: 419px) {
-  .wordmark {
-    display: none;
-  }
-}
-
 /*
- * At 390 px the bar has three things to fit: mark + wordmark + tag, the listen button, and the menu
- * toggle. The wordmark used to be clipped by the button rather than truncated, which looked like a
- * rendering bug. The mark is the logo; the wordmark goes first, and the bar breathes.
+ * At 390px the bar has three things to fit: mark + wordmark + tag, Listen, and MENU. The wordmark
+ * goes first — the mark is the logo — and MENU keeps its word, because a hamburger with no label is
+ * the one control on the page a first-time visitor has to guess at.
  */
-@media (max-width: 430px) {
+@media (max-width: 560px) {
   /*
-   * Visually hidden, not removed. `display: none` took the artist's name out of the accessibility
-   * tree entirely — the mark is `alt=""`, so the home link had no name at all below 430 px, which is
-   * what axe's link-name rule reported as the only issue on seven routes. Clipping keeps it
-   * announced and still gives the bar room for the menu and the listen button.
+   * Visually hidden, not removed.
+   *
+   * `display: none` took the artist's name out of the accessibility tree, and the link's only
+   * remaining content was a decorative mark (`alt=""`) — axe flags that as `link-name`, correctly:
+   * a screen reader on a phone heard "link" with no name. The words stay in the document and are
+   * clipped to a pixel, which is the standard trade for a logo-only bar.
    */
   .wordmarkWrap {
     position: absolute;
@@ -469,7 +437,23 @@
     margin: -1px;
     padding: 0;
     overflow: hidden;
-    clip-path: inset(50%);
+    clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+    border: 0;
+  }
+
+  .listen {
+    padding: 10px 12px;
+    letter-spacing: 0.14em;
+  }
+
+  .menuWord {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .listen {
+    display: none;
   }
 }

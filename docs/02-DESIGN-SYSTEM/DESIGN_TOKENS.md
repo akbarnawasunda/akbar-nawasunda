@@ -3,69 +3,65 @@
 The single source of truth is `src/styles/tokens.css`. This file is the summary a reviewer reads
 before opening it; where the two disagree, the stylesheet wins.
 
+Round 16 replaced the "neon grid" palette with a two-value one: **black and white**, with the neon
+demoted from a page colour to the light inside the monogram and the focus ring.
+
 ```json
 {
   "color": {
-    "bg": {"base": "#050507", "surface": "#0A0A12"},
-    "field": "#070710",
-    "text": {"primary": "#FFFFFF", "secondary": "#A8B0C2", "muted": "#8A93A6"},
+    "bg": {"base": "#000000", "surface": "#050505", "surface2": "#0B0B0B"},
+    "field": "#000000",
+    "text": {"primary": "#FFFFFF", "secondary": "#B8B8B8", "muted": "#8F8F8F"},
     "signal": {"blue": "#0087FF", "blueHover": "#38A7FF", "icy": "#7FC4FF"},
-    "hairline": {"default": "rgb(0 135 255 / 0.18)", "strong": "rgb(0 135 255 / 0.52)"},
-    "border": {"default": "#141824", "strong": "#242B3A"},
+    "hairline": {"default": "rgb(255 255 255 / 0.16)", "strong": "rgb(255 255 255 / 0.5)"},
+    "border": {"default": "#1F1F1F", "strong": "#4A4A4A"},
     "stamp": {"default": "#FF3B30", "ink": "#FF6B62"}
   },
   "font": {
-    "display": "Space Grotesk (variable 300–700)",
-    "body": "Inter (variable 100–900)",
-    "mono": "JetBrains Mono (labels, counters, every number)"
+    "display": "Space Grotesk 700 (uppercase, every h1/h2/h3)",
+    "body": "Inter (running text only)",
+    "mono": "JetBrains Mono (labels, counters, every number, every button)"
   },
   "metric": {
-    "leading": {"hero": "0.96", "tight": "1.1", "body": "1.65"},
-    "tracking": {"hero": "-0.03em", "tight": "-0.02em", "label": "0.18em"}
+    "leading": {"hero": "0.86", "tight": "1.02", "body": "1.6"},
+    "tracking": {"hero": "-0.045em", "tight": "-0.02em", "label": "0.2em"}
   },
   "size": {
     "text": {
-      "hero": "clamp(2.75rem, 7.2vw, 6.5rem)",
-      "display": "clamp(1.75rem, 3.6vw, 3rem)",
-      "title": "clamp(1.5rem, 2.6vw, 2.25rem)",
+      "hero": "clamp(2.75rem, 12.5vw, 11.5rem)",
+      "display": "clamp(2rem, 6.2vw, 5rem)",
+      "title": "clamp(1.35rem, 2.2vw, 1.9rem)",
       "body": "clamp(1rem, 0.96rem + 0.2vw, 1.0625rem)",
       "small": "0.875rem"
     },
-    "spacing": {"0": "0", "1": "4px", "2": "8px", "3": "12px", "4": "16px", "6": "24px", "8": "32px", "12": "48px", "16": "64px", "24": "96px", "32": "128px", "40": "160px"},
-    "container": "1240px",
-    "gutter": "clamp(1.25rem, 5vw, 4rem)"
+    "spacing": {"1": "4px", "2": "8px", "3": "12px", "4": "16px", "6": "24px", "8": "32px", "12": "48px", "16": "64px", "24": "96px", "32": "128px"},
+    "container": "1440px",
+    "gutter": "clamp(1.25rem, 3vw, 3rem)",
+    "sectionPadding": "clamp(3.5rem, 7vw, 7rem)"
   },
-  "radius": {"sm": "2px", "xl": "4px", "2xl": "4px", "pill": "9999px (dots and the live light only)"},
+  "radius": {"sm": "0", "xl": "0", "2xl": "0", "pill": "9999px (the Studio's status dot only)"},
   "motion": {"fast": "150ms", "base": "250ms", "slow": "400ms", "ease": "cubic-bezier(0.4,0,0.2,1)", "easeOut": "cubic-bezier(0.16,1,0.08,1)"},
-  "z": {"effects": "0", "content": "10", "chrome": "50", "overlay": "100", "modal": "200"}
+  "z": {"effects": "0", "content": "10", "chrome": "50", "overlay": "100"}
 }
 ```
 
-## Round 15 — the accent is a light, not a surface
+## Rules that come with these values
 
-The round-13/14 rule ("`#0087FF` belongs to the monogram band and nowhere else") is superseded. The
-owner's round-15 brief asks for one accent applied consistently across buttons, rules and hovers, and
-that is now what the system does — with one hard constraint that survives from round 14:
+1. **Type is the design.** A page states its name in uppercase at `--text-hero`. Nothing else on the
+   band is allowed to be large; the copy under it is 1rem and the controls are 0.6875rem mono.
+2. **No fill except white.** Panels are the ground plus a hairline. The only filled objects on the
+   site are the primary button, the hovered index row, and a hovered social cell — all white.
+3. **The accent is not paint.** `#0087FF` appears as: the full stop after the hero name, the "AN" in
+   the monogram heading, the monogram's own bloom, and the focus ring. Nowhere else.
+4. **No radius.** Every panel, button, input and frame is a right angle. The one pill left is the
+   Studio's status dot.
+5. **Photography is monochrome, high contrast.** `grayscale(1) contrast(1.18) brightness(0.92)` on
+   every photograph; sleeve artwork one step lighter so its own type stays legible.
+6. **`[NEEDS OWNER]` is not printed.** Missing facts are an em dash or absent. The Studio still
+   tracks them; the public page does not annotate itself.
 
-- **Never a large field of the accent.** No full-bleed `#0087FF` bands, no accent page heads, no accent
-  panels. The accent appears as type, as a 1 px rule, as a 2 px closing line, as a focus ring, as a
-  fill on the primary action, and as bloom on the 3D object. If a surface would be larger than a
-  button, it is `--color-bg-base` or `--color-bg-surface`.
-- **Hairlines are the structure.** Sections are separated by `--color-border`; the seam under the hero
-  and the frame around an object use `--color-hairline` / `-strong`.
-- **One photonic treatment, every photograph.** `grayscale → sepia → hue-rotate(178deg) → saturate`,
-  plus a 3 px `repeating-linear-gradient` screen. Implemented as `filter` + an overlay pseudo-element
-  because `mix-blend-mode` and `filter: blur(` are banned by `tests/fixtures/anti-ai.ts`.
-- **Radii stay at 2–4 px.** A pill is reserved for the live dot.
+## Superseded
 
-## Usage MUST
-
-- `bg.base` for the page, `bg.surface` for a panel that needs to sit above it.
-- `signal.blue` for the primary action, the active nav underline, hover text, focus, and the small
-  live dot. Never for a surface larger than a control.
-- Text on `signal.blue` is `--color-on-brand` (`#050507`, 5.7:1). White on the accent is 3.4:1 and is
-  a defect.
-- `text.muted` is the lightest grey allowed at label sizes; it measures 6.6:1 on `bg.base`. A token
-  that fails 4.5:1 at 9 px is not a "quiet" tone, it is an unreadable one.
-- Focus ring: 2 px solid `signal.blue`, 3 px offset.
-- Numbers are mono and tabular; prose is Inter; anything above 24 px is Space Grotesk.
+Round 15's `#050507` ground, blue hairline (`rgb(0 135 255 / 0.18)`), 1240px container, 0.96 leading
+and duotone photography are all gone. Round 13's zine (Anton, red/cyan misregistration, paper stock)
+was rejected by the owner before that.

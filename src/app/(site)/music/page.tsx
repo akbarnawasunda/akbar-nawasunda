@@ -29,10 +29,6 @@ export const metadata = pageMetadata({
  */
 export default async function MusicPage() {
   const published = await getPublishedReleases();
-  // Counted, not asserted: the catalogue is partly filled, and the page says how much.
-  const missingYear = staticReleases.filter((release) => !release.year).length;
-  const missingLink = staticReleases.filter((release) => release.links.length === 0).length;
-
   const items: ReleaseView[] =
     published.length > 0
       ? published.map(({ slug, doc }) => fromReleaseDocument(slug, doc, resolveCover(slug)))
@@ -51,8 +47,8 @@ export default async function MusicPage() {
         index="01 — Katalog"
         title="Musik"
         figure={items.length > 0 ? count : undefined}
-        lead="Rilis, remix, dan mix Akbar Nawasunda. Tahun dan tautan per rilis terisi bila pemilik katalog sudah mengonfirmasinya."
-        note={items.length > 0 ? `${count} rilis terverifikasi · sorot sampul` : undefined}
+        lead="Rilis, remix, dan mix Akbar Nawasunda."
+        note={items.length > 0 ? `${count} rilis` : undefined}
       />
 
       <Container>
@@ -61,25 +57,15 @@ export default async function MusicPage() {
           <>
             <CatalogueWall items={wallItems} />
             <p className={styles.note}>
-              {missingYear > 0 ? `${missingYear} rilis belum bertahun` : "Semua rilis bertahun"}
-              {" · "}
-              {missingLink > 0
-                ? `${missingLink} rilis belum punya tautan dengar`
-                : "Semua rilis punya tautan dengar"}
-              {" — sisanya menunggu pemilik katalog. "}
-              <span className={styles.placeholder}>[NEEDS OWNER]</span>
+              {count} rilis · sorot sampul untuk membuka
             </p>
           </>
         ) : (
           <div className={styles.empty}>
             <ContentRequirement
               title="Katalog menyusul"
-              description="Daftar rilis resmi belum terbit. Rilis tampil di sini setelah detailnya dikonfirmasi."
-              items={[
-                "Daftar rilis yang dikonfirmasi: judul, jenis, dan tahun",
-                "Tautan streaming atau pembelian resmi per rilis",
-                "Artwork yang izin pemakaiannya jelas",
-              ]}
+              description="Daftar rilis resmi belum terbit."
+              items={[]}
             />
           </div>
         )}

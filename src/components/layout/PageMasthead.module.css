@@ -1,107 +1,88 @@
 /*
-  The page head (round 15).
-
-  Four routes share this component, so it is the site's clearest statement of what a section is. The
-  zine pass made it a "printed sleeve": a navy field, a halftone band along the trim edge, a heavy
-  frame, a misregistered title. All of that read as print artefacts — ink, roller marks, crop edges —
-  and the owner's verdict on that vocabulary was blunt.
-
-  The replacement is the interface's own head:
-
-  - **one ground** (`--color-bg-base`), separated from the page by a single hairline;
-  - **a numbered eyebrow** in mono, in the accent, so the section is labelled the way a system labels
-    a panel;
-  - **the title** at display size, tight tracking, uppercase — the only large object above the fold;
-  - **the figure** as a quiet mono count in the accent, not a boxed slab;
-  - **an air gap** of a full section step below it before any content starts.
-
-  Everything sits on the shared container measure, so /music, /artist, /visuals and /contact all
-  begin on the same left edge as the homepage.
-*/
-
+ * The head of an inner page.
+ *
+ * Four routes share it, so it carries the whole "where am I" job: a mono index in the corner, the
+ * page name at 12vw uppercase, one line of lead, and a ruled row holding the count. Nothing is a
+ * card, a sheet or a sticker — the archive below it is the content.
+ *
+ * The type is the layout. The name spans the full container at --text-hero, which means the head's
+ * height is decided by the word: "MUSIK" is one line, "ELECTRONIC PRESS KIT" is three, and both look
+ * deliberate because the leading is 0.86 and the tracking is tight enough that the letters read as
+ * one block rather than as a row of separate glyphs.
+ */
 .head {
+  padding-top: var(--section-padding);
+  padding-bottom: var(--space-8);
   border-bottom: 1px solid var(--color-hairline);
-  background: var(--color-bg-base);
-  color: var(--color-text-primary);
 }
 
 .inner {
-  display: grid;
-  gap: var(--space-6);
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: calc(var(--header-height) + var(--space-16)) var(--gutter) var(--space-12);
+  padding-inline: var(--gutter);
 }
 
 .eyebrow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: 0;
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
-  font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-signal-blue);
-}
-
-/* A short lit rule after the eyebrow. It fills the otherwise empty top-right corner without adding
-   an object: the head is a heading, a label and a line. */
-.eyebrow::after {
-  content: "";
-  width: 64px;
-  height: 1px;
-  background: linear-gradient(90deg, var(--color-signal-blue), transparent);
+  color: var(--color-text-muted);
 }
 
 .title {
-  margin: 0;
-  font-family: var(--font-display-stack);
-  font-weight: 500;
-  font-size: clamp(2.75rem, 8vw, 6rem);
+  margin-top: var(--space-4);
+  /* The name is allowed to break a long word rather than overflow the viewport at 320px. */
+  overflow-wrap: anywhere;
+  font-size: var(--text-hero);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
-  text-wrap: balance;
 }
 
 .lead {
-  max-width: 52ch;
-  margin: 0;
-  font-size: clamp(1rem, 1.1vw, 1.125rem);
-  line-height: var(--leading-body);
+  max-width: 46ch;
+  margin-top: var(--space-6);
   color: var(--color-text-secondary);
-  text-wrap: pretty;
+  font-size: var(--text-body);
 }
 
-/* The count sits on the same line as the note, right-aligned on a wide screen: two mono facts, one
-   row, no boxes. */
 .noteBar {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  margin-top: var(--space-8);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-hairline);
 }
 
-.figure,
-.note {
-  margin: 0;
+/* The count is the one number on the page, so it is set as display type, not as a statistic. */
+.figure {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+}
+
+.figure span {
+  display: block;
+  margin-top: var(--space-2);
   font-family: var(--font-mono-stack);
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
+  font-weight: 400;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
-.figure {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-signal-blue);
-}
-
-.figure span {
+.note {
+  font-family: var(--font-mono-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
+  text-align: right;
 }

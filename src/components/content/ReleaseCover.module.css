@@ -64,17 +64,18 @@
   content: "";
   position: absolute;
   inset: auto 0 0;
-  height: 4px;
-  background: var(--color-signal-blue);
+  height: 2px;
+  background: var(--color-text-primary);
 }
 
 .generated .title {
   position: relative;
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: 1.75rem;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.02;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
   color: var(--color-text-primary);
   text-wrap: balance;
 }
@@ -88,8 +89,8 @@
   content: "";
   position: absolute;
   inset: auto 0 0;
-  height: 4px;
-  background: var(--color-signal-blue);
+  height: 2px;
+  background: var(--color-text-primary);
 }
 
 .generated .title {

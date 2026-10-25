@@ -30,8 +30,8 @@ export default function VisualsPage() {
         index="02 — Visual"
         title="Arsip"
         figure={count}
-        lead="Potret, panggung, jalan malam, maskot, monogram, dan lockup. Semua berkas milik pemilik."
-        note={`${count} aset · tanpa stok`}
+        lead="Potret, panggung, jalan malam, maskot, monogram, dan lockup."
+        note={`${count} aset`}
       />
 
       <Container>
@@ -55,11 +55,7 @@ export default function VisualsPage() {
               </li>
             </ul>
 
-            <p className={styles.noteLabel}>Menyusul</p>
-            <p className={styles.noteText}>
-              Foto panggung lain, still video, artwork rilis. Kirim lewat Studio atau letakkan di{" "}
-              <code>public/assets/covers/</code>. <span className={styles.needs}>[NEEDS OWNER]</span>
-            </p>
+
           </aside>
         </div>
       </Container>

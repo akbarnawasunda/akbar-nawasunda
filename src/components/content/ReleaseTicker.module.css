@@ -35,18 +35,16 @@
   font-size: 0.5625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-signal-blue);
+  color: var(--color-text-primary);
   white-space: nowrap;
 }
 
-/* The record light, in ink now that the band is blue: a warm dot on a blue field reads as a
-   printing error, and there is no amber left anywhere in the chrome. */
+/* The record light: one white pixel cluster, no glow. A glowing dot on a monochrome band reads as a
+   notification rather than as instrumentation. */
 .dot {
   width: 5px;
   height: 5px;
-  background: var(--color-signal-blue);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--color-signal-blue);
+  background: var(--color-text-primary);
   flex: none;
 }
 
@@ -90,10 +88,11 @@
 
 .title {
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(1.125rem, 1.7vw, 1.5rem);
+  font-weight: 700;
+  font-size: clamp(1.25rem, 2.4vw, 2.125rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
   color: var(--color-text-primary);
   transition: color var(--duration-fast) var(--ease);
 }
@@ -106,10 +105,13 @@
   color: var(--color-text-muted);
 }
 
-/* On a dark band the emphasis is the accent: the title lights up and nothing moves. */
+/* On a monochrome band the emphasis is a rule: the title stays white and gains an underline, which
+   is the only hover treatment the rest of the page uses for inline links. */
 .link:hover .title,
 .link:focus-visible .title {
-  color: var(--color-signal-blue);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
 }
 
 .link:hover .meta,
@@ -117,11 +119,11 @@
   color: var(--color-text-secondary);
 }
 
-/* A 3 px square, not a bullet: typewriter, not list. */
+/* A 3px square, not a bullet: typewriter, not list. */
 .sep {
   width: 3px;
   height: 3px;
-  background: color-mix(in srgb, var(--color-signal-blue) 70%, transparent);
+  background: var(--color-text-muted);
   translate: 0 -0.25em;
 }
 
@@ -139,6 +141,6 @@
   }
 
   .title {
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
   }
 }

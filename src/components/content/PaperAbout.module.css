@@ -1,13 +1,14 @@
-/* Paper band. The only light surface on the homepage; everything else is ink. */
+/* The about band. Round 16 removed the light sheet: it is the same black as everything else, ruled
+   top and bottom, and the owner's biography is the only long text on the site. */
 .paper {
   position: relative;
   isolation: isolate;
   padding-block: clamp(4rem, 9vw, 8rem);
-  background: var(--color-paper);
+  background: var(--color-bg);
   color: var(--color-paper-ink);
   /* A straight edge. The torn top and bottom were the most conspicuous piece of applied texture on
      the page — a sheet is already readable as a sheet from its colour and its straight seam (D-108). */
-  border-block: 1px solid color-mix(in srgb, var(--color-paper-ink) 12%, transparent);
+  border-block: 1px solid var(--color-hairline);
 }
 
 .inner {
@@ -36,10 +37,11 @@
 
 .heading {
   font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: clamp(2.25rem, 5vw, 4rem);
-  line-height: 1;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
   text-wrap: balance;
 }
 
@@ -129,16 +131,15 @@
   padding-top: var(--space-6);
 }
 
+/* A 7px square on the rail: the HUD's mark, not a printed bullet. */
 .stop::before {
   content: "";
   position: absolute;
-  top: -3px;
+  top: -2px;
   left: 0;
-  width: 9px;
-  height: 9px;
-  background: var(--color-paper);
-  border: 2px solid var(--color-signal-blue);
-  border-radius: 50%;
+  width: 7px;
+  height: 7px;
+  background: var(--color-text-primary);
 }
 
 .pending::before {
@@ -154,11 +155,12 @@
 }
 
 .title {
-  font-family: var(--font-body-stack);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  line-height: 1.25;
+  font-family: var(--font-display-stack);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+  text-transform: uppercase;
 }
 
 .detail {

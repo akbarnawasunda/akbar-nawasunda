@@ -83,7 +83,7 @@ export function BackSide({ data }: { data: SheetData }) {
         onClick={() => setOpen((value) => !value)}
         data-sheet-toggle
       >
-        <span className={styles.tabWord}>Balik lembar</span>
+        <span className={styles.tabWord}>Indeks</span>
         <span className={styles.tabMark} aria-hidden="true" />
       </button>
 
@@ -94,7 +94,7 @@ export function BackSide({ data }: { data: SheetData }) {
         data-open={open ? "true" : "false"}
         role="dialog"
         aria-modal="true"
-        aria-label="Sisi belakang lembar — lembar data"
+        aria-label="Indeks — katalog dan lembar data"
         inert={!open}
       >
         <div className={styles.sheetInner}>
@@ -103,7 +103,7 @@ export function BackSide({ data }: { data: SheetData }) {
           <div className={styles.head}>
             <div className={styles.headBar}>
               <p className={styles.kicker}>
-                <span>Sisi belakang</span>
+                <span>Indeks</span>
                 <span className={styles.kickerRule} aria-hidden="true" />
                 <span>lembar data</span>
               </p>
@@ -112,11 +112,10 @@ export function BackSide({ data }: { data: SheetData }) {
               </button>
             </div>
             <h2 className={`${styles.title} ink`}>
-              Cetak ganda<span aria-hidden="true">.</span>
+              Indeks<span aria-hidden="true">.</span>
             </h2>
             <p className={styles.lead}>
-              Sisi ini dicetak dari gulungan yang sama: seluruh katalog dengan tautan aslinya, tinta
-              yang dipakai, nomor cetakan, dan hal-hal yang masih menunggu pemilik.
+              Seluruh katalog dengan tautan aslinya, daftar platform, dan nomor edisi situs ini.
             </p>
             <p className={styles.run}>{data.run}</p>
           </div>

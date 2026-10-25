@@ -2,7 +2,7 @@
    on hover and on focus, and switched off entirely for reduced motion. */
 .tape {
   overflow: hidden;
-  border-block: 1px solid var(--color-border);
+  border-block: 1px solid var(--color-hairline);
   background: var(--color-bg);
 }
 
@@ -20,9 +20,11 @@
   margin: 0;
   padding: 0 var(--space-4) 0 0;
   list-style: none;
-  font-family: var(--font-mono-stack);
-  font-size: 0.75rem;
-  letter-spacing: 0.22em;
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.6vw, 3rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
   /* #A1A1B5 (7.8:1), not the #6A6A80 in the reference (3.5:1): this is real text (D-030). */
   color: var(--color-text-secondary);
@@ -42,7 +44,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--color-signal-blue);
+  background: var(--color-text-primary);
 }
 
 @keyframes tape-scroll {

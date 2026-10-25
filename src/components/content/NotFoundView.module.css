@@ -94,10 +94,10 @@
   gap: var(--space-2);
   min-height: 44px;
   padding: 12px 22px;
-  border-radius: var(--radius-pill);
-  background: var(--color-signal-blue);
-  /* Near-black on the brand blue: 5.56:1 (D-071). */
-  color: var(--color-bg);
+  border: 1px solid var(--color-text-primary);
+  background: var(--color-text-primary);
+  /* Black on white is the highest-contrast pairing in the palette. */
+  color: var(--color-ink-black);
   font-family: var(--font-mono-stack);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
@@ -106,7 +106,8 @@
 }
 
 .primary:hover {
-  background: var(--color-signal-blue-hover);
+  background: var(--color-ink-black);
+  color: var(--color-text-primary);
 }
 
 .links ul {
@@ -131,8 +132,8 @@
   color: var(--color-text-primary);
 }
 
-/* The same 5px signal strip that closes the footer, so a dead end still ends on the brand. */
+/* A 2px rule, not a colour strip: the page ends on the same hairline as every other band. */
 .strip {
-  height: 5px;
-  background: var(--color-signal-blue);
+  height: 2px;
+  background: var(--color-hairline-strong);
 }

@@ -66,9 +66,9 @@
 
 .tab:hover,
 .tab:focus-visible {
-  background: var(--color-signal-blue);
+  background: var(--color-text-primary);
   color: var(--color-on-brand);
-  border-color: var(--color-signal-blue);
+  border-color: var(--color-text-primary);
 }
 
 /* ------------------------------------------------------------------ the sheet */
@@ -92,7 +92,7 @@
 
   /* The ink plates on this side are printed in the brand blue: red on paper reads as a mistake,
      blue reads as a second run. */
-  --ink-ghost: var(--color-brand);
+  --ink-ghost: var(--color-border-strong);
   --ink-shift: 3px;
 }
 
@@ -292,12 +292,12 @@
   text-transform: uppercase;
   color: var(--color-paper-ink);
   text-decoration: none;
-  border-bottom: 1px solid var(--color-brand);
+  border-bottom: 1px solid var(--color-hairline-strong);
 }
 
 .releaseLinks a:hover,
 .releaseLinks a:focus-visible {
-  background: var(--color-brand);
+  background: var(--color-text-primary);
   color: var(--color-on-brand);
 }
 
@@ -337,7 +337,7 @@
 
 .list a:hover,
 .list a:focus-visible {
-  color: var(--color-brand-deep);
+  color: var(--color-text-primary);
 }
 
 .listArrow {
@@ -409,7 +409,7 @@
 }
 
 .swatch[data-ink="brand"] {
-  background: var(--color-brand);
+  background: var(--color-text-primary);
 }
 
 .swatch[data-ink="red"] {

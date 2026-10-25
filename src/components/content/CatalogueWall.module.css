@@ -72,7 +72,7 @@
   .card:focus-visible .sleeve {
     /* 14 px of the identity colour, down and to the right, under the sleeve's own dark shadow. */
     box-shadow:
-      10px 12px 0 var(--color-brand),
+      10px 12px 0 var(--color-border-strong),
       0 30px 70px rgb(0 0 0 / 55%);
   }
 }
