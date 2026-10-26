@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { anMark } from "@/assets/web";
@@ -18,8 +19,14 @@ export function NotFoundView() {
   return (
     <Container>
       <div className={styles.wrap}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, decorative */}
-        <img className={styles.ghost} src={anMark.src} alt="" width={anMark.width} height={anMark.height} />
+        <Image
+          className={styles.ghost}
+          src={anMark.src}
+          alt=""
+          width={anMark.width}
+          height={anMark.height}
+          sizes="(min-width: 768px) 30vw, 70vw"
+        />
 
         <div className={styles.copy}>
           <p className={styles.code}>Error 404</p>

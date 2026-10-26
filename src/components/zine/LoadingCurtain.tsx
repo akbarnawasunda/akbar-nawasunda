@@ -2,40 +2,28 @@
 
 import { useEffect, useRef } from "react";
 
-import { siteConfig } from "@/config/site";
-
 import styles from "./LoadingCurtain.module.css";
 
 /**
- * The title sequence.
+ * The entry reel — round 30, on the owner's spec: the AN monogram draws itself.
  *
- * A record label does not open a page, it opens a *reel*: leader, a count, the name, then the
- * picture. That is the shape of this curtain, and the count is real — it runs from 000 to 100 over
- * the same 1.3 s the bar takes to fill, driven by one rAF loop, so the number can never disagree
- * with the line under it.
+ * One inline SVG, three strokes and the blue full stop. `pathLength={1}` makes every path the same
+ * unit length, so one `stroke-dasharray: 1` and one `stroke-dashoffset` keyframe draw all of them;
+ * the offsets stagger by a token each, the stop pops as the last stroke lands, and the whole sheet
+ * fades out — draw 520 ms, stop at 560 ms, fade from 700 ms to 1000 ms. One second, ceiling included:
+ * a loading animation is a greeting, not a toll booth.
  *
- * Four rules still keep it a flourish rather than a tax (unchanged from round 5, and they are the
- * reason it is allowed to exist at all):
- * - it never waits on the network. The timer starts the animation, not the fetch;
- * - it is shown once per session, so a reader coming back to the catalogue does not sit through it;
- * - `prefers-reduced-motion: reduce` removes it before it ever paints;
- * - the hero is already in the DOM underneath, so its photograph is decoding during the sequence
- *   rather than after it.
+ * The three rules that have always kept this component honest are unchanged:
+ * - it never waits on the network — the hero is decoding underneath it from the first byte;
+ * - it plays once per session (`an-curtain`), so a returning reader is never greeted twice;
+ * - `prefers-reduced-motion: reduce` removes it before it paints, in CSS and in JS both.
  *
- * The exit is two sheets, ink then blue, 80 ms apart. That is where the identity colour enters the
- * site: the first thing a visitor sees of the brand is a full screen of it leaving the frame.
- *
- * State is written to the DOM, not to React: this node is removed when it ends, and a `setState`
- * for an `aria-hidden` decoration would re-render the whole route for nothing.
+ * State is still written to the DOM, not to React: the node removes itself when the fade ends and
+ * a `setState` for an `aria-hidden` decoration would re-render the whole route for nothing.
  */
 const SHOWN_KEY = "an-curtain";
-/** How long the sheet stays up before it starts to lift. */
-const HOLD_MS = 900;
-/** How long the lift takes, and the gap between the ink sheet and the blue one. */
-const LIFT_MS = 480;
-const GAP_MS = 80;
-/** The count runs slightly shorter than the hold, so it lands on 100 and is read for a moment. */
-const COUNT_MS = 800;
+/** draw 520 + the last delay 140 lands at 660; the fade runs 700→1000. Removal sits just after. */
+const TOTAL_MS = 1000;
 
 export function LoadingCurtain() {
   const boot = useRef<HTMLDivElement | null>(null);
@@ -60,20 +48,6 @@ export function LoadingCurtain() {
     node.dataset.state = "playing";
     document.documentElement.dataset.curtain = "on";
 
-    // The count. `textContent` on a node that is already aria-hidden costs one style
-    // invalidation on a 3-glyph box, so it is cheaper than any state that triggers React.
-    const counter = node.querySelector<HTMLElement>("[data-count]");
-    const start = performance.now();
-    let raf = 0;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / COUNT_MS);
-      // Ease-out: the count races to the eighties and then slows, which is how a real leader runs.
-      const eased = 1 - (1 - t) ** 2.2;
-      if (counter) counter.textContent = String(Math.round(eased * 100)).padStart(3, "0");
-      if (t < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-
     const timer = window.setTimeout(() => {
       node.remove();
       delete document.documentElement.dataset.curtain;
@@ -82,48 +56,27 @@ export function LoadingCurtain() {
       } catch {
         /* ignore */
       }
-    }, HOLD_MS + GAP_MS + LIFT_MS + 60);
+    }, TOTAL_MS + 60);
 
     return () => {
       window.clearTimeout(timer);
-      cancelAnimationFrame(raf);
       delete document.documentElement.dataset.curtain;
     };
   }, []);
 
   return (
     <div ref={boot} className={styles.boot} data-state="idle" aria-hidden="true">
-      {/* The blue sheet sits under the ink one and leaves one frame later. */}
-      <div className={styles.sheet} />
-
-      <div className={styles.curtain}>
-        <p className={styles.kicker}>
-          <span className={styles.live} />
-          {siteConfig.origin.replace(", Indonesia", "")} · {siteConfig.since}
-        </p>
-
-        <div className={styles.name}>
-          <span className={styles.mask}>
-            <span className={styles.line}>Akbar</span>
-          </span>
-          <span className={`${styles.mask} ${styles.maskItalic}`}>
-            <span className={`${styles.line} ${styles.lineItalic}`}>Nawasunda</span>
-          </span>
-        </div>
-
-        <p className={styles.roles}>Produser · Remixer · DJ</p>
-
-        <div className={styles.readout}>
-          <span className={styles.readoutLabel}>Memuat</span>
-          <span className={styles.count} data-count>
-            000
-          </span>
-        </div>
-
-        <span className={styles.bar}>
-          <span className={styles.barFill} />
-        </span>
-      </div>
+      {/*
+        The monogram as line work: the A as two legs and a crossbar, the N as one continuous
+        stroke, the stop as the brand's only blue. `pathLength={1}` is what lets a single
+        dasharray/dashoffset pair draw paths of very different real lengths in the same breath.
+      */}
+      <svg className={styles.mark} viewBox="0 0 174 112" fill="none" focusable="false">
+        <path className={styles.stroke} pathLength={1} d="M14 102 L52 10 L90 102" />
+        <path className={styles.stroke} pathLength={1} d="M31 68 H73" />
+        <path className={styles.stroke} pathLength={1} d="M104 102 V10 L160 102 V10" />
+        <circle className={styles.dot} cx="166" cy="102" r="7" />
+      </svg>
     </div>
   );
 }

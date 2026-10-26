@@ -29,8 +29,14 @@ export function ReleaseView({ doc, preview = false, coverUrl = null }: ReleaseVi
       <h1 className={styles.title}>{doc.title}</h1>
       {coverUrl ? (
         <figure className={styles.artwork}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- owner-uploaded 1:1 file, served as-is */}
-          <img src={coverUrl} alt="" width={800} height={800} className={styles.artworkImage} />
+          <Image
+            src={coverUrl}
+            alt=""
+            width={800}
+            height={800}
+            sizes="(min-width: 720px) 420px, 90vw"
+            className={styles.artworkImage}
+          />
         </figure>
       ) : artwork ? (
         <figure className={styles.artwork}>

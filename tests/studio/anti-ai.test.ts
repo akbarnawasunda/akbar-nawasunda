@@ -83,7 +83,11 @@ describe("no generated visual effects ship", () => {
     assert.deepEqual(importers, [LIQUID_CHUNK], `these files import the 3D stack: ${importers.join(", ")}`);
 
     const orchestrator = readFileSync(join(root, "src/components/three/AnMonogram.tsx"), "utf8");
-    assert.match(orchestrator, /lazy\(\(\) => import\("\.\/AnMonogramLiquid"\)\)/, "the chunk is not lazily imported");
+    assert.match(
+      orchestrator,
+      /dynamic\(\(\) => import\("\.\/AnMonogramLiquid"\), \{\s*ssr: false,/,
+      "the chunk is not lazily imported with ssr disabled",
+    );
     assert.match(orchestrator, /loading="lazy"/, "the baked still fallback is gone");
 
     const chunk = readFileSync(join(root, LIQUID_CHUNK), "utf8");

@@ -1,6 +1,9 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+
+import Image from "next/image";
+import dynamic from "next/dynamic";
 
 import styles from "./AnMonogram.module.css";
 import { Depth } from "../zine/Depth";
@@ -26,17 +29,17 @@ import { Depth } from "../zine/Depth";
  * reads a ref and nothing frozen is ever mutated.
  */
 
-const Liquid = lazy(() => import("./AnMonogramLiquid"));
+/* Round 30, owner's instruction: `next/dynamic` with `ssr: false`, so the shader chunk is never
+   even considered server-side and only ever arrives in the browser, when the band approaches. */
+const Liquid = dynamic(() => import("./AnMonogramLiquid"), {
+  ssr: false,
+  loading: () => null,
+});
 
 const WIDE = {
   src: "/assets/monogram/liquid-metal-wide.webp",
   width: 2160,
   height: 1242,
-};
-const NARROW = {
-  src: "/assets/monogram/liquid-metal-narrow.webp",
-  width: 1350,
-  height: 1104,
 };
 
 export function AnMonogram() {
@@ -91,19 +94,15 @@ export function AnMonogram() {
     <div ref={hostRef} className={styles.canvas} aria-hidden="true">
       <Depth className={styles.drift} y={-26} scale={0.07} data-layer="monogram-still">
         <div className={styles.liquid}>
-          <picture>
-            <source media="(max-width: 1023px)" srcSet={NARROW.src} type="image/webp" />
-            <img
-              className={styles.still}
-              src={WIDE.src}
-              alt=""
-              width={WIDE.width}
-              height={WIDE.height}
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
-            />
-          </picture>
+          <Image
+            className={styles.still}
+            src={WIDE.src}
+            alt=""
+            width={WIDE.width}
+            height={WIDE.height}
+            sizes="100vw"
+            loading="lazy"
+          />
           {liquid ? (
             <Suspense fallback={null}>
               <Liquid />

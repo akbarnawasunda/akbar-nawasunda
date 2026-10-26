@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
@@ -46,6 +47,12 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
       firstRoute.current = false;
       return;
     }
+    /* Round 30, owner's bug, root cause: the drawer is a state, and any navigation that does not
+       go through a drawer link (the brand mark, back/forward, a programmatic push) left it open on
+       the new page — a full-screen dialog with the page already changed underneath, which reads as
+       "the menu button disappeared". The route commit is the one cue every navigation shares, so
+       the state resets here, unconditionally. */
+    setOpen(false);
     const header = headerRef.current;
     if (header) {
       header.dataset.hidden = "false";
@@ -155,15 +162,13 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
       <div className={styles.bar}>
         {/* The accessible name is the visible text (mark + wordmark + RMX tag), so aria-label would
             make axe's label-content-name-mismatch fail. The link target is obvious from the mark. */}
-        <Link href="/" className={styles.brand}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- 13 KB static mark, exact bytes */}
-          <img
+        <Link href="/" className={styles.brand} onClick={() => setOpen(false)}>
+          <Image
             src={anMark.src}
             alt=""
             width={anMark.width}
             height={anMark.height}
             className={styles.mark}
-            decoding="async"
           />
           <span className={styles.wordmarkWrap}>
             <span className={styles.wordmark}>{siteConfig.name}</span>
@@ -255,8 +260,7 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
                     onClick={() => setOpen(false)}
                   >
                     {latest.cover ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- 96px thumbnail, already a file on disk
-                      <img
+                      <Image
                         src={latest.cover}
                         alt=""
                         width={96}

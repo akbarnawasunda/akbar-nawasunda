@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -79,8 +80,14 @@ export function RouteCurtain() {
         if (phase === "lift" && event.animationName.includes("route-lift")) setPhase("idle");
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- the mark is the cut; it must paint inside the sheet, not as a next/image slot */}
-      <img className={styles.mark} src={anMark.src} alt="" width={anMark.width} height={anMark.height} />
+      <Image
+        className={styles.mark}
+        src={anMark.src}
+        alt=""
+        width={anMark.width}
+        height={anMark.height}
+        loading="eager"
+      />
     </div>
   );
 }

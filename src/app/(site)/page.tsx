@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
@@ -130,15 +131,13 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
         <Depth className={styles.heroMedia} y={-70} scale={0.05} perspective={1400} data-layer="hero-photo">
-          {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed art direction, exact crop */}
-          <img
+          <Image
             className={styles.heroImage}
             src={photos.latar ?? editorialFrame.webp}
             alt=""
-            width={editorialFrame.width}
-            height={editorialFrame.height}
-            fetchPriority="high"
-            decoding="async"
+            fill
+            sizes="100vw"
+            priority
           />
         </Depth>
         <div className={styles.heroScrim} aria-hidden="true" />
@@ -230,8 +229,7 @@ export default async function HomePage() {
           same file the header and the footer use — set at the size the object would have occupied.
         */}
         <span className={styles.signatureFallback} aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, exact bytes */}
-          <img src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" decoding="async" />
+          <Image src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
         </span>
       </section>
 
@@ -242,15 +240,14 @@ export default async function HomePage() {
       <section className={styles.transmission} id="music" aria-labelledby="music-title">
         {/* Round 28: the label's mark ghosts behind the campaign poster — artwork, portrait and
             monogram share one identity, so the poster carries the mark at 5%, not as a logo box. */}
-        {/* eslint-disable-next-line @next/next/no-img-element -- identity ghost, cached bake */}
-        <img
+        <Image
           className={styles.transmissionGhost}
           src={anMark.src}
           alt=""
           width={anMark.width}
           height={anMark.height}
+          sizes="(min-width: 768px) 30vw, 60vw"
           loading="lazy"
-          decoding="async"
           aria-hidden="true"
         />
         <Container>
@@ -330,14 +327,12 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------------- night */}
       <section className={styles.night} aria-label="Malam" data-section="night">
         <Depth className={styles.nightMedia} y={-90} perspective={1200}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame */}
-          <img
+          <Image
             src={photos.malam ?? "/media/stage-700.webp"}
             alt=""
-            width={700}
-            height={700}
+            fill
+            sizes="100vw"
             loading="lazy"
-            decoding="async"
             className={styles.nightImage}
           />
         </Depth>
@@ -402,26 +397,14 @@ export default async function HomePage() {
             </div>
 
             <figure className={styles.pressPhoto}>
-              <picture>
-                <source
-                  type="image/avif"
-                  srcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-                  sizes="(min-width: 1024px) 32vw, 86vw"
-                />
-                <source
-                  type="image/webp"
-                  srcSet={portraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-                  sizes="(min-width: 1024px) 32vw, 86vw"
-                />
-                <img
-                  src={portraitSources[1].webp}
-                  alt={portraitAlt}
-                  width={portraitSize.width}
-                  height={portraitSize.height}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </picture>
+              <Image
+                src={portraitSources[1].webp}
+                alt={portraitAlt}
+                width={portraitSize.width}
+                height={portraitSize.height}
+                sizes="(min-width: 1024px) 32vw, 86vw"
+                loading="lazy"
+              />
               <figcaption className={styles.pressPhotoCaption}>Potret resmi</figcaption>
             </figure>
           </div>

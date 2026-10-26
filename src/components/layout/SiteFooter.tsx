@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { anMark } from "@/assets/web";
@@ -62,8 +63,7 @@ export function SiteFooter() {
 
         <div className={styles.columns}>
           <div className={styles.brand}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
-            <img
+            <Image
               src={anMark.src}
               alt=""
               width={anMark.width}

@@ -552,27 +552,54 @@ try {
    * perfectly. Waiting for the condition tests the behaviour; sleeping tests the hardware.
    */
   await fresh
-    .waitForFunction(() => document.querySelector("[data-count]")?.closest('[data-state="playing"]') ?? false, {
+    .waitForFunction(() => document.querySelector('[data-state="playing"] svg path') !== null, {
       timeout: 5000,
       polling: 50,
     })
     .catch(() => undefined);
+  /* Round 30: the reel is the monogram drawing itself. Three assertions, none of them a vibe:
+     the sheet plays with three strokes, the first stroke's dashoffset is actually shrinking
+     300 ms in (a drawn line, not a pasted logo), and by 1.6 s the node, the html flag and the
+     session key have all moved on — the owner's ceiling is one second, removal sits at 1.06. */
   const opening = await fresh.evaluate(() => {
-    const count = document.querySelector("[data-count]");
+    /* `data-state` alone would match the header (rest/compact): the curtain is the only node
+       whose state is idle or playing. */
+    const boot = document.querySelector('[data-state="playing"], [data-state="idle"]');
+    const path = boot?.querySelector("svg path") ?? null;
     return {
-      present: Boolean(count),
-      digits: count?.textContent?.trim().length ?? 0,
-      state: count?.closest("[data-state]")?.getAttribute("data-state") ?? "",
+      present: Boolean(boot && path),
+      strokes: boot?.querySelectorAll("svg path").length ?? 0,
+      state: boot?.getAttribute("data-state") ?? "",
+      offset: path ? getComputedStyle(path).strokeDashoffset : "",
     };
   });
-  await sleep(3000);
-  const cleared = await fresh.evaluate(
-    () => !document.documentElement.dataset.curtain && document.querySelector("[data-count]") === null,
-  );
+  await sleep(300);
+  const midOffset = await fresh.evaluate(() => {
+    const path = document.querySelector('[data-state="playing"], [data-state="idle"] svg path');
+    return path ? getComputedStyle(path).strokeDashoffset : "";
+  });
+  await sleep(1300);
+  const cleared = await fresh.evaluate(() => {
+    let seen = false;
+    try {
+      seen = window.sessionStorage.getItem("an-curtain") === "1";
+    } catch {
+      seen = false;
+    }
+    return (
+      !document.documentElement.dataset.curtain &&
+      document.querySelector('[data-state="playing"], [data-state="idle"]') === null &&
+      seen
+    );
+  });
   check(
-    "the title sequence counts, then gets out of the way",
-    opening.present && opening.digits === 3 && opening.state === "playing" && cleared,
-    JSON.stringify({ ...opening, cleared }),
+    "the monogram draws itself, and the sheet is gone inside a second",
+    opening.present &&
+      opening.strokes === 3 &&
+      opening.state === "playing" &&
+      Number.parseFloat(opening.offset) > Number.parseFloat(midOffset) &&
+      cleared,
+    JSON.stringify({ ...opening, midOffset, cleared }),
   );
   await fresh.close();
 

@@ -45,7 +45,9 @@ mkdirSync(out, { recursive: true });
 /** Named reviews: one page state each, all of them claims the design makes. */
 const R8_SHOTS = [
   /* R8: the title sequence, on a tab that has never seen it. */
-  { name: "01-home-loader-1280", route: "/", width: 1280, height: 900, curtain: true, wait: 700 },
+  /* 350 ms: mid-draw. The reel fades from 700 ms, so a later wait photographs an almost-empty
+     sheet and reads as "no animation". */
+  { name: "01-home-loader-1280", route: "/", width: 1280, height: 900, curtain: true, wait: 350 },
   { name: "02-home-hero-1280", route: "/", width: 1280, height: 900 },
   { name: "03-home-hero-3d-1280", route: "/", width: 1280, height: 900, pointer: [1080, 760] },
   { name: "04-home-ticker-1280", route: "/", width: 1280, height: 900, selector: "[data-ticker]" },
@@ -331,16 +333,23 @@ try {
 
       if (shot.pinMid) {
         /* Marked after the settle, never before: with smooth scrolling the cards are still a
-           viewport away at write time, and a mark made then names the wrong sleeve. */
-        await page.evaluate(() => {
-          for (const link of document.querySelectorAll("[data-pin-card] a")) {
-            const r = link.getBoundingClientRect();
-            if (r.left > 24 && r.right < window.innerWidth - 24 && r.top > 24 && r.bottom < window.innerHeight - 24) {
-              link.setAttribute("data-qa-hover", "");
-              break;
+           viewport away at write time, and a mark made then names the wrong sleeve. Retried,
+           because `settle` can return on the frame before a smooth scroll actually starts. */
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          const marked = await page.evaluate(() => {
+            if (document.querySelector("[data-qa-hover]")) return true;
+            for (const link of document.querySelectorAll("[data-pin-card] a")) {
+              const r = link.getBoundingClientRect();
+              if (r.left > 24 && r.right < window.innerWidth - 24 && r.top > 24 && r.bottom < window.innerHeight - 24) {
+                link.setAttribute("data-qa-hover", "");
+                return true;
+              }
             }
-          }
-        });
+            return false;
+          });
+          if (marked) break;
+          await new Promise((r) => setTimeout(r, 300));
+        }
       }
 
       if (shot.sheet) {
@@ -360,9 +369,19 @@ try {
       }
 
       if (shot.hover) {
-        const target = await page.$(shot.hover);
-        if (target) {
-          await target.hover();
+        /* Coordinates, not ElementHandle.hover(): a sleeve inside the translated, clipped reel
+           has a perfectly good rect and a clickablePoint() puppeteer refuses to compute. The
+           pointer lands on the centre of whatever the selector names — same hover, no exception
+           path. */
+        const box = await page.evaluate((selector) => {
+          const node = document.querySelector(selector);
+          if (!node) return null;
+          const r = node.getBoundingClientRect();
+          if (r.width < 1 || r.height < 1) return null;
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        }, shot.hover);
+        if (box) {
+          await page.mouse.move(box.x, box.y, { steps: 6 });
           await new Promise((r) => setTimeout(r, 500));
         }
       }

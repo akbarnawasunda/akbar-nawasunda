@@ -201,6 +201,15 @@
   --duration-slow: 400ms;
   --duration-breath: 6s;
 
+  /* --- Entry reel: the monogram draws itself inside one second, ceiling included ------------- */
+  --duration-curtain-draw: 520ms;
+  --duration-curtain-dot: 140ms;
+  --duration-curtain-fade: 300ms;
+  --delay-curtain-stroke-2: 80ms;
+  --delay-curtain-stroke-3: 140ms;
+  --delay-curtain-dot: 560ms;
+  --delay-curtain-fade: 700ms;
+
   /* --- Layers: effects sit beneath content so text is never obscured ---------------- */
   --z-effects: 0;
   --z-content: 10;

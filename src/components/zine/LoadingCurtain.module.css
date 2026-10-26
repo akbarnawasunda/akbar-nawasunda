@@ -1,199 +1,89 @@
 /*
-  The title sequence (round 15).
+  The entry reel (round 30): the monogram draws itself, then the sheet steps back.
 
-  It used to be a full-screen sheet of #0087FF that the ink curtain slid off. That is a full-bleed
-  colour field as the *first* thing a visitor sees, which is the one place the accent must not go: a
-  brief that keeps the accent for hairlines and hover states cannot open on two screens of paint.
+  The old sequence was a count to 100 over 1.3 s plus two lifting sheets — over two seconds of
+  toll booth before the catalogue. The owner's spec is a drawn AN and a slow fade, one second
+  ceiling. Everything here is stroke geometry and two keyframes:
 
-  It is now two sheets of the page's own ground and a single lit hairline that sweeps across as the
-  counter runs. The mechanism is unchanged — `data-state`, the count, the two transforms — only the
-  paint moved.
+  - `pathLength={1}` on every path makes one `stroke-dasharray: 1` fit all of them, so the draw is
+    one keyframe on `stroke-dashoffset`, staggered by tokens;
+  - the blue stop pops as the last stroke lands;
+  - the sheet fades on opacity from 700 ms and is gone at 1000 ms — the fade is the exit, not a
+    third act;
+  - no text on the sheet at all, so there is nothing unreadable to audit while it is up.
 */
 .boot {
   position: fixed;
   inset: 0;
   z-index: 200;
   pointer-events: none;
+  display: grid;
+  place-items: center;
+  background: var(--color-ink-black);
 }
 
 .boot[data-state="idle"] {
   display: none;
 }
 
-.sheet,
-.curtain {
-  position: absolute;
-  inset: 0;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
+.mark {
+  width: clamp(8rem, 26vw, 14rem);
+  height: auto;
+  overflow: visible;
 }
 
-/* The second ground. One step off black, so the hand-off at the end of the count is still a wipe
-   rather than nothing happening. */
-.sheet {
-  background: var(--color-bg-surface);
+.stroke {
+  fill: none;
+  stroke: var(--color-text-primary);
+  stroke-width: 10;
+  stroke-linecap: square;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
 }
 
-.curtain {
-  display: grid;
-  align-content: space-between;
-  padding: clamp(1.25rem, 4vh, 2.5rem) var(--gutter);
-  background: var(--color-ink-black);
-  color: var(--color-text-primary);
-  overflow: hidden;
-}
-
-.kicker,
-.roles,
-.readout {
-  font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.kicker {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.live {
-  width: 5px;
-  height: 5px;
-  background: var(--color-text-primary);
-  flex: none;
-}
-
-/*
-  The name. Each line is a mask with `overflow: hidden`; the line inside starts 110% below its own
-  box and rises into it. That is a press reveal, and it costs two transforms instead of animating
-  thirty letters.
-*/
-.name {
-  align-self: center;
-  justify-self: center;
-  display: grid;
-  font-family: var(--font-body-stack);
-  font-weight: 400;
-  font-size: clamp(1.7rem, 7.6vw, 7rem);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.mask {
-  display: block;
-  overflow: hidden;
-  padding-block: 0.02em;
-}
-
-.maskItalic {
-  padding-right: 0.08em;
-}
-
-.line {
-  display: block;
-  transform: translate3d(0, 110%, 0);
-}
-
-.lineItalic {
-  font-style: normal;
-}
-
-/* The full stop is the one blue glyph on the sheet. */
-.lineItalic::after {
-  content: ".";
-  color: var(--color-signal-blue);
-}
-
-.roles {
-  justify-self: center;
-  margin-bottom: var(--space-6);
-}
-
-.readout {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.count {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
-  color: var(--color-text-primary);
-}
-
-/* The progress line is the full width of the sheet: it is a leader, not a loading bar in a box. */
-.bar {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 2px;
-  background: color-mix(in srgb, var(--color-text-primary) 14%, transparent);
-}
-
-.barFill {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: var(--color-text-primary);
-  transform: scaleX(0);
-  transform-origin: left;
+.dot {
+  fill: var(--color-signal-blue);
+  opacity: 0;
 }
 
 /* ---------------------------------------------------------------- the sequence */
 
-/*
-  No opacity animation on the labels, on purpose.
-  The audit runs while this sheet is still up, and a fade starts at opacity 0 — nine-pixel mono at
-  0 % over near-black is a contrast violation for as long as the fade lasts. That is a real defect
-  and not only a test artefact: for the first 400 ms the sheet showed text nobody could read. The
-  labels are simply there from the first frame now; the movement in this sequence is the count, the
-  bar, the two masked name lines and the two sheets leaving.
-*/
-.boot[data-state="playing"] .line {
-  animation: reveal-line 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.boot[data-state="playing"] {
+  animation: curtain-fade var(--duration-curtain-fade) var(--ease) var(--delay-curtain-fade) forwards;
 }
 
-.boot[data-state="playing"] .mask:nth-child(1) .line {
-  animation-delay: 120ms;
+.boot[data-state="playing"] .stroke {
+  animation: curtain-draw var(--duration-curtain-draw) var(--ease-out) forwards;
 }
 
-.boot[data-state="playing"] .mask:nth-child(2) .line {
-  animation-delay: 240ms;
+.boot[data-state="playing"] .stroke:nth-of-type(2) {
+  animation-delay: var(--delay-curtain-stroke-2);
 }
 
-.boot[data-state="playing"] .barFill {
-  animation: fill 1250ms cubic-bezier(0.3, 0, 0.1, 1) 60ms forwards;
+.boot[data-state="playing"] .stroke:nth-of-type(3) {
+  animation-delay: var(--delay-curtain-stroke-3);
 }
 
-/* The exit: ink first, blue 80 ms behind it. */
-.boot[data-state="playing"] .curtain {
-  animation: lift 640ms cubic-bezier(0.76, 0, 0.24, 1) 1500ms forwards;
+.boot[data-state="playing"] .dot {
+  animation: curtain-dot var(--duration-curtain-dot) var(--ease-out) var(--delay-curtain-dot) forwards;
 }
 
-.boot[data-state="playing"] .sheet {
-  animation: lift 640ms cubic-bezier(0.76, 0, 0.24, 1) 1580ms forwards;
-}
-
-@keyframes reveal-line {
+@keyframes curtain-draw {
   to {
-    transform: translate3d(0, 0, 0);
+    stroke-dashoffset: 0;
   }
 }
 
-@keyframes fill {
+@keyframes curtain-dot {
   to {
-    transform: scaleX(1);
+    opacity: 1;
   }
 }
 
-@keyframes lift {
+@keyframes curtain-fade {
   to {
-    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+    visibility: hidden;
   }
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import styles from "./VisualGrid.module.css";
@@ -81,15 +83,13 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
                 position (`VisualGrid.module.css`) so six reused files still read as six slides.
               */}
               <span className={styles.frame}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- fixed local assets, exact bytes */}
-                <img
+                <Image
                   src={item.src}
                   alt={item.alt}
                   width={480}
                   height={480}
-                  loading="eager"
-                  fetchPriority="low"
-                  decoding="async"
+                  sizes="(min-width: 1024px) 30vw, 80vw"
+                  loading="lazy"
                 />
               </span>
               {/* A caption row, not a floating chip: the number is the set's order, and it is the
@@ -115,8 +115,13 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
         <div className={styles.overlay} role="dialog" aria-modal="true" aria-label={open.caption}>
           <button type="button" className={styles.backdrop} onClick={close} aria-label="Tutup" tabIndex={-1} />
           <figure className={styles.lightbox}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- fixed local assets, exact bytes */}
-            <img src={open.full ?? open.src} alt={open.alt} width={1200} height={1200} />
+            <Image
+              src={open.full ?? open.src}
+              alt={open.alt}
+              width={1200}
+              height={1200}
+              sizes="(min-width: 1024px) 70vw, 92vw"
+            />
             <figcaption className={styles.lightboxCaption}>{open.caption}</figcaption>
           </figure>
           <button ref={closeRef} type="button" className={styles.close} onClick={close}>

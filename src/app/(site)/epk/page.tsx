@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { anMark, portraitAlt, portraitSources } from "@/assets/web";
@@ -78,26 +79,14 @@ export default function EpkPage() {
         </section>
 
         <aside className={styles.preview} aria-label="Potret resmi">
-          <picture>
-            <source
-              type="image/avif"
-              srcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-              sizes="(min-width: 1024px) 320px, 92vw"
-            />
-            <source
-              type="image/webp"
-              srcSet={portraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-              sizes="(min-width: 1024px) 320px, 92vw"
-            />
-            <img
-              src={portraitSources[0].webp}
-              alt={portraitAlt}
-              width={portraitSources[0].width}
-              height={portraitSources[0].height}
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
+          <Image
+            src={portraitSources[0].webp}
+            alt={portraitAlt}
+            width={portraitSources[0].width}
+            height={portraitSources[0].height}
+            sizes="(min-width: 1024px) 320px, 92vw"
+            loading="lazy"
+          />
           <p className={styles.previewCaption}>Potret resmi · press-photo-print.jpg</p>
         </aside>
       </div>
@@ -161,8 +150,7 @@ export default function EpkPage() {
       </section>
 
       <div className={styles.markStrip} aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
-        <img src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
+        <Image src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
         <span>{artistLine}</span>
       </div>
     </Container>

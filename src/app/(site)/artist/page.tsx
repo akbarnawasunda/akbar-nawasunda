@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 
 import { anMark, lockup, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
@@ -98,26 +99,14 @@ export default async function ArtistPage() {
           <Plate3D className={styles.portraitStage} data-plate="artist-portrait" tiltY={9} tiltX={6} shift={12}>
           <div className={styles.portraitFrame}>
             <span className={styles.portraitPlate} aria-hidden="true" />
-            <picture>
-              <source
-                type="image/avif"
-                srcSet={portraitSources.map((source) => `${source.avif} ${source.width}w`).join(", ")}
-                sizes="(min-width: 1024px) 40vw, 92vw"
-              />
-              <source
-                type="image/webp"
-                srcSet={portraitSources.map((source) => `${source.webp} ${source.width}w`).join(", ")}
-                sizes="(min-width: 1024px) 40vw, 92vw"
-              />
-              <img
-                src={portraitSources[1].webp}
-                alt={portraitAlt}
-                width={portraitSize.width}
-                height={portraitSize.height}
-                loading="lazy"
-                decoding="async"
-              />
-            </picture>
+            <Image
+            src={portraitSources[1].webp}
+            alt={portraitAlt}
+            width={portraitSize.width}
+            height={portraitSize.height}
+            sizes="(min-width: 1024px) 40vw, 92vw"
+            loading="lazy"
+          />
           </div>
           </Plate3D>
           <figcaption className={styles.caption}>
@@ -136,26 +125,25 @@ export default async function ArtistPage() {
       <section className={styles.stageBand} aria-label="Panggung">
         <Depth className={styles.stageMedia} y={-64} perspective={1200}>
           {photos.panggung ? (
-            // eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame
-            <img
+            <Image
               src={photos.panggung}
               alt=""
+              fill
+              sizes="100vw"
               loading="lazy"
-              decoding="async"
               className={styles.stageImage}
             />
           ) : (
             <div className={styles.stageEmpty}>
               {/* A designed placeholder, not a message: the label's own mark, ghosted, holds the
                   frame until the owner fills the slot from NAWA Studio. */}
-              {/* eslint-disable-next-line @next/next/no-img-element -- designed placeholder ghost, same bake as the band */}
-              <img
+              <Image
                 src={anMark.src}
                 alt=""
                 width={anMark.width}
                 height={anMark.height}
+                sizes="(min-width: 768px) 24vw, 48vw"
                 loading="lazy"
-                decoding="async"
                 className={styles.stageEmptyMark}
               />
             </div>
@@ -231,13 +219,17 @@ export default async function ArtistPage() {
 
         <div className={styles.marks}>
           <div className={styles.markPanel}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
-            <img src={anMark.src} alt="Monogram AN" width={anMark.width} height={anMark.height} loading="lazy" />
+            <Image src={anMark.src} alt="Monogram AN" width={anMark.width} height={anMark.height} loading="lazy" />
             <span className={styles.markLabel}>Monogram</span>
           </div>
           <div className={styles.markPanel}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
-            <img src={lockup.src} alt="Lockup Akbar Nawasunda RMX" width={lockup.width} height={lockup.height} loading="lazy" />
+            <Image
+              src={lockup.src}
+              alt="Lockup Akbar Nawasunda RMX"
+              width={lockup.width}
+              height={lockup.height}
+              loading="lazy"
+            />
             <span className={styles.markLabel}>Lockup</span>
           </div>
         </div>

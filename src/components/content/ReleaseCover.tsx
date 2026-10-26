@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { anMark } from "@/assets/web";
 import type { CoverArtwork } from "@/content/covers";
 import styles from "./ReleaseCover.module.css";
@@ -36,15 +37,14 @@ export function ReleaseCover({
   if (artwork.kind !== "generated") {
     return (
       <span className={`${styles.cover} ${shape === "wide" ? styles.wide : styles.square}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- local file, exact bytes */}
-        <img
+        <Image
           src={artwork.src}
           /* A sleeve carries no type at all (round 19), so every alt names the release. */
           alt={`Artwork ${title}`}
           width={shape === "wide" ? 1200 : 600}
           height={shape === "wide" ? 675 : 600}
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
+          sizes="(min-width: 1024px) 30vw, 80vw"
+          priority={priority}
         />
       </span>
     );
@@ -56,8 +56,14 @@ export function ReleaseCover({
       data-cover="generated"
       aria-hidden="true"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- 13 KB brand mark used as texture */}
-      <img className={styles.ghost} src={anMark.src} alt="" width={anMark.width} height={anMark.height} />
+      <Image
+        className={styles.ghost}
+        src={anMark.src}
+        alt=""
+        width={anMark.width}
+        height={anMark.height}
+        sizes="(min-width: 1024px) 12vw, 30vw"
+      />
       {showTitle ? <span className={styles.title}>{title}</span> : null}
     </span>
   );
