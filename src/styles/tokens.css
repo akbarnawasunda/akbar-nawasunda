@@ -209,12 +209,18 @@
   --delay-curtain-stroke-3: 140ms;
   --delay-curtain-dot: 560ms;
   --delay-curtain-fade: 700ms;
+  --duration-eq: 850ms;
+  --duration-cursor-dot: 50ms;
+  --duration-cursor-ring: 180ms;
+  --cursor-dot: 6px;
+  --cursor-ring: 36px;
 
   /* --- Layers: effects sit beneath content so text is never obscured ---------------- */
   --z-effects: 0;
   --z-content: 10;
   --z-chrome: 50;
   --z-overlay: 100;
+  --z-cursor: 300;
 }
 
 @media (max-width: 719px) {

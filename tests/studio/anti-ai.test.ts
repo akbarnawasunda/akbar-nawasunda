@@ -65,13 +65,15 @@ describe("no generated visual effects ship", () => {
    * the fallback, the owner's "no rigid 3D" rules out extruded/box geometry, and drei/babylon/gsap
    * stay banned outright — a dependency that arrives "just for the signal" is how this started.
    */
-  it("keeps the 3D stack quarantined in the lazy liquid chunk, with no rigid geometry", () => {
+  it("keeps the 3D stack quarantined in the lazy liquid chunk, solid and reflective per spec", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
     const all = { ...pkg.dependencies, ...pkg.devDependencies };
-    for (const name of ["@react-three/drei", "babylonjs", "gsap"]) {
+    /* Round 31 sanctions drei (Environment/Lightformer) alongside three and fiber — the owner's
+       spec names it. babylon and gsap stay banned outright. */
+    for (const name of ["babylonjs", "gsap"]) {
       assert.equal(all[name], undefined, `${name} is installed again`);
     }
 
@@ -90,9 +92,21 @@ describe("no generated visual effects ship", () => {
     );
     assert.match(orchestrator, /loading="lazy"/, "the baked still fallback is gone");
 
+    /* Round 31 reversed round 29's flat-quad rule: the mark must be SOLID — extruded strokes in a
+       mercury physical material, melted in the vertex stage, lit by an in-scene environment that
+       fetches nothing. These are the assertions that the object stays an object. */
     const chunk = readFileSync(join(root, LIQUID_CHUNK), "utf8");
-    for (const rigid of [/BoxGeometry/, /ExtrudeGeometry/, /TextGeometry/, /TubeGeometry/]) {
-      assert.ok(!rigid.test(chunk), `${rigid.source}: the owner's spec is a shader quad, not rigid 3D`);
+    assert.match(chunk, /ExtrudeGeometry/, "the monogram is no longer solid geometry");
+    assert.match(chunk, /MeshPhysicalMaterial/, "the mercury material is gone");
+    assert.match(chunk, /metalness: 1/, "metalness is not 1");
+    assert.match(chunk, /roughness: 0.05/, "roughness is not 0.05");
+    assert.match(chunk, /onBeforeCompile/, "the melt no longer runs in the vertex stage");
+    assert.match(chunk, /<Environment/, "the drei environment is gone");
+    assert.match(chunk, /onPointerMove/, "the raycaster ripple is gone");
+    assert.match(chunk, /dpr=\{\[1, 1.5\]\}/, "DPR is not capped at 1.5");
+    assert.match(chunk, /frameloop=\{inView \? "always" : "demand"\}/, "the loop is not parked off screen");
+    for (const banned of [/BoxGeometry/, /TextGeometry/, /TubeGeometry/]) {
+      assert.ok(!banned.test(chunk), `${banned.source}: the spec is extruded strokes, not primitives`);
     }
   });
 

@@ -1,0 +1,44 @@
+/*
+  The replacement pointer: a 6px dot that owns the exact coordinate and a 36px ring that trails it
+  by one transition. Both are `position: fixed` at the origin and live entirely in `transform` —
+  no top/left writes, no layout, one composite layer each.
+
+  The magnetic read is the ring's transition: 180 ms is long enough that the hand notices the ring
+  *arrive* at a button, which is the whole trick. Locked, it also takes the brand blue.
+*/
+.cursor {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+}
+
+.dot,
+.ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.dot {
+  width: var(--cursor-dot);
+  height: var(--cursor-dot);
+  margin: calc(var(--cursor-dot) / -2) 0 0 calc(var(--cursor-dot) / -2);
+  background: var(--color-text-primary);
+  transition: transform var(--duration-cursor-dot) linear;
+}
+
+.ring {
+  width: var(--cursor-ring);
+  height: var(--cursor-ring);
+  border: 1px solid var(--color-border-strong);
+  transition:
+    transform var(--duration-cursor-ring) var(--ease-out),
+    border-color var(--duration-cursor-ring) var(--ease-out);
+}
+
+.ring[data-state="lock"] {
+  border-color: var(--color-signal-blue);
+}

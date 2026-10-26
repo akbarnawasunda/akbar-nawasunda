@@ -22,7 +22,7 @@ export function PaperAbout() {
     <section className={styles.paper} aria-labelledby="about-title" id="about">
 
       <div className={styles.inner}>
-        <p className={styles.kicker}>01 — Tentang</p>
+        <p className={styles.kicker}>Tentang</p>
 
         <div className={styles.grid}>
           <h2 id="about-title" className={styles.heading}>

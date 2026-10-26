@@ -1,120 +1,308 @@
 "use client";
 
 /**
- * The liquid AN — round 29, owner's absolute spec: a full-screen shader quad, not a 3D object.
+ * The liquid AN — round 31: real 3D mercury, on the owner's absolute spec.
  *
- * This file is the lazy split chunk of `AnMonogram.tsx` (the contract's sanctioned surface for the
- * mark): it is the only module that imports three/@react-three/fiber, it is imported dynamically
- * the first time the band approaches the viewport, and it renders nothing at all when WebGL is
- * unavailable — the baked WebP still underneath stays the fallback, exactly as round 20 promised
- * phones and reduced-motion users.
+ * Round 29 shipped a displaced texture on a flat quad; read against a scrolling page it looked
+ * like a sticker, and the frozen frame under a parallax transform left a trail. This is the object
+ * itself now:
  *
- * What the shader does, per spec:
- * - one orthographic 2×2 plane (drei's `Plane` is this mesh; the dependency is skipped, the quad
- *   is identical and the bundle stays three-only);
- * - the AN mark as `uTexture`, used as an alpha mask — the silhouette is the label's own asset;
- * - simplex noise displacing the sample coordinates so the mark ripples and melts;
- * - `uMouse` + `uStrength`: a decaying radial ripple around the cursor, written from pointer
- *   events against a rect that is read once per mount/resize/scroll-burst — never in the loop;
- * - chrome: #0087FF against black, banded by a second noise field, with a moving specular;
- * - `useFrame` advances `uTime`; the material lives in a ref and every per-frame write goes
- *   through it (the React Compiler treats memoised values as frozen, and it is right to);
- * - the Canvas runs `frameloop="always"` only while the band is in view and `"never"` once it
- *   scrolls away.
+ * - the monogram is solid geometry — every stroke of the A and the N is an extruded shape with a
+ *   bevel (`ExtrudeGeometry`), one mesh, one material;
+ * - the material is `MeshPhysicalMaterial` at metalness 1 / roughness 0.05, lit by a drei
+ *   `<Environment>` built from in-scene Lightformers (a cube-camera bake at mount, no network
+ *   fetch, no HDR download), so it reflects like mercury under studio strips;
+ * - the melt is a vertex-stage simplex field injected with `onBeforeCompile`: vertices slide along
+ *   their normals and the object normal is perturbed by the noise gradient, so the *reflections*
+ *   ripple even across the flat caps — liquid metal, not a moving picture;
+ * - the cursor is a raycaster: R3F's pointer events carry the hit point in 3D, and a decaying
+ *   radial wave pushes the surface away from it;
+ * - memory and trails: `frameloop` drops to "demand" the moment the band leaves the viewport (no
+ *   frame is rendered off screen, so nothing stale can smear), DPR is capped at 1.5, and the
+ *   geometry, material and environment dispose on unmount.
+ *
+ * This file remains the quarantine: the only module importing three / fiber / drei, loaded through
+ * `next/dynamic(ssr:false)` when the band approaches, never on phones, never under reduced motion,
+ * never without WebGL.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
-const VERTEX = /* glsl */ `
-uniform float uTime;
-varying vec2 vUv;
+/* ------------------------------------------------------------------ the mark as solid strokes */
 
-void main() {
-  vUv = uv;
-  vec3 pos = position;
-  /* A breath in the vertex stage: half a percent of sway, enough to read as a surface, not as
-     geometry moving. */
-  pos.x += sin(uv.y * 5.0 + uTime * 0.6) * 0.004;
-  pos.y += cos(uv.x * 4.0 + uTime * 0.5) * 0.004;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+type Quad = [number, number, number, number, number, number, number, number];
+
+/**
+ * The monogram as stroke quads in a 0..1 box per letter (N offset by 1.28): two legs and a crossbar
+ * for the A, two uprights and a diagonal for the N. Extruding strokes instead of outlining glyphs
+ * keeps the silhouette exactly the label's angular mark — and overlapping quads share one
+ * position-based displacement field, so the unions stay seamless while the metal melts.
+ */
+const STROKES: Quad[] = [
+  // A — left leg, right leg, crossbar
+  [0.0, 0.0, 0.17, 0.0, 0.57, 1.0, 0.4, 1.0],
+  [0.83, 0.0, 1.0, 0.0, 0.6, 1.0, 0.43, 1.0],
+  [0.24, 0.34, 0.76, 0.34, 0.7, 0.5, 0.3, 0.5],
+  // N — left upright, diagonal, right upright
+  [1.28, 0.0, 1.45, 0.0, 1.45, 1.0, 1.28, 1.0],
+  [1.28, 1.0, 1.46, 1.0, 2.28, 0.0, 2.1, 0.0],
+  [2.11, 0.0, 2.28, 0.0, 2.28, 1.0, 2.11, 1.0],
+];
+
+function buildMonogramGeometry() {
+  const shapes = STROKES.map(([x1, y1, x2, y2, x3, y3, x4, y4]) => {
+    const shape = new THREE.Shape();
+    shape.moveTo(x1, y1);
+    shape.lineTo(x2, y2);
+    shape.lineTo(x3, y3);
+    shape.lineTo(x4, y4);
+    shape.closePath();
+    return shape;
+  });
+  const geometry = new THREE.ExtrudeGeometry(shapes, {
+    depth: 0.34,
+    steps: 8,
+    bevelEnabled: true,
+    bevelThickness: 0.07,
+    bevelSize: 0.055,
+    bevelSegments: 5,
+    curveSegments: 2,
+  });
+  geometry.center();
+  /* The band is wide and short: the mark stands at ~1.9 world units tall and reads against the
+     perspective camera at z 4.6. */
+  geometry.scale(1.9, 1.9, 1.9);
+  return geometry;
+}
+
+/* ------------------------------------------------------------------ the melt, in the vertex stage */
+
+const SIMPLEX = /* glsl */ `
+vec3 mod289v3(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289v4(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289v4(((x * 34.0) + 1.0) * x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+float snoise3(vec3 v) {
+  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289v3(i);
+  vec4 p = permute(permute(permute(
+        i.z + vec4(0.0, i1.z, i2.z, 1.0))
+      + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
 }
 `;
 
-const FRAGMENT = /* glsl */ `
-precision highp float;
-
-uniform sampler2D uTexture;
-uniform float uTime;
-uniform vec2 uMouse;
-uniform float uStrength;
-uniform float uSpread;
-varying vec2 vUv;
-
-/* Ashima simplex 2D — the standard public-domain implementation. */
-vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec3 permute(vec3 x) { return mod289(((x * 34.0) + 1.0) * x); }
-float snoise(vec2 v) {
-  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-  vec2 i = floor(v + dot(v, C.yy));
-  vec2 x0 = v - i + dot(i, C.xx);
-  vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-  vec4 x12 = x0.xyxy + C.xxzz;
-  x12.xy -= i1;
-  i = mod289(i);
-  vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
-  vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
-  m = m * m;
-  m = m * m;
-  vec3 x = 2.0 * fract(p * C.www) - 1.0;
-  vec3 h = abs(x) - 0.5;
-  vec3 ox = floor(x + 0.5);
-  vec3 a0 = x - ox;
-  m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
-  vec3 g;
-  g.x = a0.x * x0.x + h.x * x0.y;
-  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-  return 130.0 * dot(m, g);
+interface MeltUniforms {
+  uTime: { value: number };
+  uHit: { value: THREE.Vector3 };
+  uHitStrength: { value: number };
 }
 
-void main() {
-  /* uSpread is the slice of the quad the mark occupies (its aspect ÷ the band's). */
-  vec2 p = vec2((vUv.x - 0.5) * uSpread + 0.5, vUv.y);
-  float t = uTime * 0.32;
+/**
+ * Injected into MeshPhysicalMaterial: the surface breathes along its normals, the cursor's hit
+ * point raises a decaying radial wave, and the object normal is bent by the noise gradient so the
+ * environment reflection shivers like mercury even where the tessellation is coarse.
+ */
+function applyMelt(material: THREE.MeshPhysicalMaterial) {
+  /* The uniform cells live on the material's userData, created here in the factory: the frame
+     loop reaches them through `meshRef.current.material`, a ref chain, which is the only mutation
+     path the React Compiler allows. */
+  const uniforms: MeltUniforms = {
+    uTime: { value: 0 },
+    uHit: { value: new THREE.Vector3(99, 99, 99) },
+    uHitStrength: { value: 0 },
+  };
+  material.userData.melt = uniforms;
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = uniforms.uTime;
+    shader.uniforms.uHit = uniforms.uHit;
+    shader.uniforms.uHitStrength = uniforms.uHitStrength;
 
-  float n1 = snoise(p * 2.3 + vec2(t * 0.7, -t * 0.45));
-  float n2 = snoise(p * 5.2 - vec2(t * 0.9, t * 0.55));
-  /* Melt enough to read as liquid metal, never enough to lose the mark: the silhouette has to
-     survive the warp, so the amplitude stays under a sixth of the thinnest stroke. */
-  vec2 warp = vec2(n1, n2) * (0.016 + 0.014 * n2);
+    shader.vertexShader =
+      /* glsl */ `
+      uniform float uTime;
+      uniform vec3 uHit;
+      uniform float uHitStrength;
+      ${SIMPLEX}
+      float meltAt(vec3 p) {
+        float t = uTime * 0.32;
+        float n = snoise3(p * 0.62 + vec3(0.0, t * 0.8, t * 0.55));
+        float n2 = snoise3(p * 1.45 - vec3(t * 0.7, 0.0, t * 0.5));
+        return n * 0.075 + n2 * 0.035;
+      }
+      ` + shader.vertexShader;
 
-  /* Cursor ripple: a decaying radial wave, strongest under the hand. */
-  vec2 toMouse = vUv - uMouse;
-  float d = length(toMouse);
-  float ripple = sin(d * 34.0 - uTime * 5.5) * exp(-d * 5.0) * uStrength;
-  warp += (toMouse / max(d, 0.0001)) * ripple * 0.028;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <beginnormal_vertex>",
+      /* glsl */ `
+      #include <beginnormal_vertex>
+      {
+        float e = 0.09;
+        float base = meltAt(position);
+        vec3 grad = vec3(
+          meltAt(position + vec3(e, 0.0, 0.0)) - base,
+          meltAt(position + vec3(0.0, e, 0.0)) - base,
+          meltAt(position + vec3(0.0, 0.0, e)) - base
+        ) / e;
+        objectNormal = normalize(objectNormal - grad * 0.5);
+      }
+      `,
+    );
 
-  /* The source mark is 174×112 stretched over a 700px band: its bilinear alpha is a wide soft
-     ramp, which reads as melt no matter how small the warp is. A tight window re-cuts the edge. */
-  float a = texture2D(uTexture, p + warp).a;
-  a = smoothstep(0.42, 0.58, a);
-
-  /* Liquid chrome: #0087FF banded against black by a slow second field, plus a travelling
-     specular and a blue flare where the ripple is. */
-  float band = snoise(vec2((p.x + p.y) * 2.6 + uTime * 0.22, p.y * 3.4 - uTime * 0.18));
-  vec3 blue = vec3(0.0, 0.529, 1.0);
-  vec3 col = mix(vec3(0.008), blue, smoothstep(-0.3, 0.7, band));
-  float spec = pow(max(0.0, sin((p.x + p.y) * 9.0 + uTime * 1.3 + band * 3.0)), 14.0);
-  col += vec3(0.55, 0.78, 1.0) * spec * 0.85;
-  col += blue * max(ripple, 0.0) * 1.6;
-
-  gl_FragColor = vec4(col, a * 0.96);
-  if (gl_FragColor.a < 0.01) discard;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <begin_vertex>",
+      /* glsl */ `
+      #include <begin_vertex>
+      {
+        float melt = meltAt(position);
+        vec3 toHit = position - uHit;
+        float d = length(toHit);
+        float ripple = sin(d * 5.5 - uTime * 6.5) * exp(-d * 1.5) * uHitStrength;
+        transformed += normal * (melt + ripple * 0.22);
+        /* The whole mark recoils a little from the hand, in 3D. */
+        transformed += normalize(toHit + vec3(0.0001)) * ripple * 0.12;
+      }
+      `,
+    );
+  };
+  material.customProgramCacheKey = () => "an-melt-v1";
+  return uniforms;
 }
-`;
 
-const WRAP_STYLE = { position: "absolute", inset: 0 } as const;
+/* ------------------------------------------------------------------ the scene */
+
+function meltOf(mesh: THREE.Mesh | null): MeltUniforms | null {
+  const material = mesh?.material as THREE.MeshPhysicalMaterial | undefined;
+  return (material?.userData.melt as MeltUniforms | undefined) ?? null;
+}
+
+function MercuryMonogram() {
+  const geometry = useMemo(() => buildMonogramGeometry(), []);
+  const material = useMemo(() => {
+    const metal = new THREE.MeshPhysicalMaterial({
+      color: "#0b0e13",
+      metalness: 1,
+      roughness: 0.05,
+      envMapIntensity: 1.9,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.12,
+    });
+    applyMelt(metal);
+    return metal;
+  }, []);
+
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
+
+  const meshRef = useRef<THREE.Mesh | null>(null);
+  const hitTarget = useRef(0);
+
+  useFrame((state, delta) => {
+    const mesh = meshRef.current;
+    const uniforms = meltOf(mesh);
+    if (!uniforms) return;
+    uniforms.uTime.value += Math.min(delta, 0.05);
+    uniforms.uHitStrength.value += (hitTarget.current - uniforms.uHitStrength.value) * 0.1;
+    if (mesh) {
+      /* A slow turn so the metal catches different strips of the environment — the read that
+         separates an object from a decal. */
+      mesh.rotation.y = Math.sin(state.clock.elapsedTime * 0.16) * 0.22;
+      mesh.rotation.x = Math.cos(state.clock.elapsedTime * 0.12) * 0.07;
+    }
+  });
+
+  const onMove = (event: ThreeEvent<PointerEvent>) => {
+    const uniforms = meltOf(meshRef.current);
+    if (!uniforms) return;
+    uniforms.uHit.value.copy(event.point);
+    hitTarget.current = 1;
+  };
+  const onOut = () => {
+    hitTarget.current = 0;
+  };
+
+  return (
+    <mesh
+      ref={meshRef}
+      geometry={geometry}
+      material={material}
+      onPointerMove={onMove}
+      onPointerOut={onOut}
+    />
+  );
+}
+
+/**
+ * The environment is baked in-scene: three light strips and one blue edge, rendered once into a
+ * cube map by drei. Mercury needs something to reflect — and this needs no download.
+ */
+function StudioEnvironment() {
+  return (
+    <Environment resolution={96} frames={1}>
+      {/*
+        A metal with metalness 1 has no diffuse term at all: it shows ONLY what the cube sees.
+        Round 31's first bake had four strips in a void, so the faces pointing at the camera
+        reflected the void — black on black. Now the cube has a floor-to-ceiling studio: a dim
+        gradient wall behind the camera for the front faces to catch, a hot key above, cool and
+        signal-blue strips on the flanks for the mercury edges, and a near-black floor so the
+        undersides stay heavy. Every Lightformer aims at the origin.
+      */}
+      <color attach="background" args={["#1a212c"]} />
+      <Lightformer intensity={3} position={[0, 0.6, 8]} target={[0, 0, 0]} scale={[14, 9, 1]} color="#98a5b8" />
+      {/* the horizon streak: one thin hot line behind the camera that every front face drags
+          across itself as the mark turns — the signature read of liquid chrome */}
+      <Lightformer intensity={4} position={[0, -1.4, 7.5]} target={[0, 0, 0]} scale={[13, 0.9, 1]} color="#eaf3ff" />
+      <Lightformer intensity={3.4} position={[0, 4, 3]} target={[0, 0, 0]} scale={[9, 3.4, 1]} color="#ffffff" />
+      <Lightformer intensity={2.4} position={[-6, 0.4, 1]} target={[0, 0, 0]} scale={[7, 2.6, 1]} color="#dff9ff" />
+      <Lightformer intensity={2.1} position={[6, -0.6, 1]} target={[0, 0, 0]} scale={[7, 2.6, 1]} color="#0087FF" />
+      <Lightformer intensity={0.8} position={[0, -5, -2]} target={[0, 0, 0]} scale={[10, 4, 1]} color="#0a0a0c" />
+    </Environment>
+  );
+}
 
 function webglAvailable(): boolean {
   try {
@@ -125,133 +313,7 @@ function webglAvailable(): boolean {
   }
 }
 
-/* The mark is 174×112 — it fits the band's full height and keeps that aspect on screen. */
-const MARK_ASPECT = 174 / 112;
-
-/**
- * R3F sizes an orthographic frustum in pixels, which would make a 2×2 quad a two-pixel speck, and
- * it re-derives that frustum on resize. The shader thinks in NDC — the quad is the whole band, the
- * mark is a slice of u — so the frame loop re-pins the frustum to [-1, 1]² whenever anything moves
- * it: four comparisons per frame, resolution-independent, self-healing after every resize.
- */
-function pinFrustum(camera: THREE.Camera) {
-  const ortho = camera as THREE.OrthographicCamera;
-  if (ortho.left === -1 && ortho.right === 1 && ortho.top === 1 && ortho.bottom === -1) return;
-  ortho.left = -1;
-  ortho.right = 1;
-  ortho.top = 1;
-  ortho.bottom = -1;
-  ortho.zoom = 1;
-  ortho.updateProjectionMatrix();
-}
-
-function LiquidPlane() {
-  /* The canvas fills the band's wrapper, so the element R3F already owns *is* the geometry this
-     plane needs — measured from its parent, never from a prop thread. */
-  const gl = useThree((state) => state.gl);
-  const host = gl.domElement.parentElement ?? gl.domElement;
-  const texture = useMemo(() => {
-    const loader = new THREE.TextureLoader();
-    const tex = loader.load("/brand/an-mark.webp");
-    tex.wrapS = THREE.ClampToEdgeWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    return tex;
-  }, []);
-
-  /* Seed uniforms, handed to the material once at construction. Every write after that goes
-     through `materialRef.current.uniforms` — the memoised seed stays frozen, as the React
-     Compiler requires. */
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-      uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-      uStrength: { value: 0 },
-      uSpread: { value: MARK_ASPECT },
-      uTexture: { value: texture },
-    }),
-    [texture],
-  );
-
-  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
-
-  /* Geometry is read here — once per mount/resize/scroll-burst — and never inside the frame loop.
-     The loop only touches the material and the targets the handlers below have already written. */
-  const target = useRef({ strength: 0, mx: 0.5, my: 0.5, spread: MARK_ASPECT });
-  useEffect(() => {
-    let rect = host.getBoundingClientRect();
-    let dirty = false;
-    const measure = () => {
-      rect = host.getBoundingClientRect();
-      /* The quad covers the band, so the slice of u the mark may occupy is its own aspect
-         divided by the band's: at 1440×670 the mark keeps its 174:112 shape instead of
-         stretching across the screen. */
-      const bandAspect = rect.width / Math.max(1, rect.height);
-      target.current.spread = Math.min(1.1, Math.max(0.2, MARK_ASPECT / bandAspect));
-    };
-    measure();
-    const onScroll = () => {
-      dirty = true;
-    };
-    const onResize = () => measure();
-    const onMove = (event: PointerEvent) => {
-      if (dirty) {
-        measure();
-        dirty = false;
-      }
-      const inside =
-        event.clientX >= rect.left &&
-        event.clientX <= rect.right &&
-        event.clientY >= rect.top &&
-        event.clientY <= rect.bottom;
-      if (!inside) {
-        target.current.strength = 0;
-        return;
-      }
-      target.current.strength = 1;
-      target.current.mx = (event.clientX - rect.left) / Math.max(1, rect.width);
-      target.current.my = 1 - (event.clientY - rect.top) / Math.max(1, rect.height);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("pointerdown", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerdown", onMove);
-      texture.dispose();
-    };
-  }, [host, texture]);
-
-  useFrame((state, delta) => {
-    pinFrustum(state.camera);
-    const material = materialRef.current;
-    if (!material) return;
-    const { uTime, uMouse, uStrength, uSpread } = material.uniforms;
-    if (!uTime || !uMouse || !uStrength || !uSpread) return;
-    uTime.value += Math.min(delta, 0.05);
-    uSpread.value = target.current.spread;
-    /* Ease toward what the handlers wrote. */
-    uStrength.value += (target.current.strength - uStrength.value) * 0.12;
-    uMouse.value.x += (target.current.mx - uMouse.value.x) * 0.2;
-    uMouse.value.y += (target.current.my - uMouse.value.y) * 0.2;
-  });
-
-  return (
-    <mesh>
-      <planeGeometry args={[2, 2]} />
-      <shaderMaterial
-        ref={materialRef}
-        transparent
-        depthTest={false}
-        vertexShader={VERTEX}
-        fragmentShader={FRAGMENT}
-        uniforms={uniforms}
-      />
-    </mesh>
-  );
-}
+const WRAP_STYLE = { position: "absolute", inset: 0 } as const;
 
 export default function AnMonogramLiquid() {
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -262,9 +324,15 @@ export default function AnMonogramLiquid() {
     if (!supported) return;
     const wrap = wrapRef.current;
     if (!wrap) return;
+    /*
+     * Strict edges, no margin: this gate drives the render loop, not the chunk fetch (the fetch
+     * has its own observer one section up). A margin here would keep a software rasteriser burning
+     * full tilt for a band that is still a viewport away — round 31 measured the whole page dropping
+     * to 3 fps under SwiftShader with a 15% margin, because "almost in view" still renders.
+     */
     const observer = new IntersectionObserver(
       (entries) => setInView(entries[0]?.isIntersecting ?? false),
-      { rootMargin: "15% 0px" },
+      { rootMargin: "0px 0px" },
     );
     observer.observe(wrap);
     return () => observer.disconnect();
@@ -274,19 +342,24 @@ export default function AnMonogramLiquid() {
 
   return (
     <div ref={wrapRef} style={WRAP_STYLE}>
-    <Canvas
-      /* The loop runs only while the band is on screen; scrolled away it is "never" — zero GPU
-         work for a band nobody sees. */
-      frameloop={inView ? "always" : "never"}
-      orthographic
-      camera={{ zoom: 1, position: [0, 0, 1] }}
-      dpr={[1, 1.75]}
-      gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-      onCreated={({ gl }) => gl.setClearAlpha(0)}
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-    >
-      <LiquidPlane />
-    </Canvas>
+      <Canvas
+        /* "demand" off screen: the loop is parked, no frame is drawn, nothing stale can trail
+           across the band while the reader scrolls. Back in view it runs again. */
+        frameloop={inView ? "always" : "demand"}
+        dpr={[1, 1.5]}
+        camera={{ position: [0, 0, 4.6], fov: 38 }}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => {
+          gl.setClearAlpha(0);
+          /* ACES eats mid-tones hard; the mercury needs its greys pushed back up or every face
+             that is not a strip highlight collapses to ink. */
+          gl.toneMappingExposure = 1.25;
+        }}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+      >
+        <MercuryMonogram />
+        <StudioEnvironment />
+      </Canvas>
     </div>
   );
 }

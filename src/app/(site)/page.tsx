@@ -251,12 +251,6 @@ export default async function HomePage() {
           aria-hidden="true"
         />
         <Container>
-          <div className={styles.transmissionHead}>
-            <p className={styles.sectionNumber}>Rilis terbaru</p>
-            <Link className={styles.sectionLink} href="/music">
-              Semua rilis <span aria-hidden="true">→</span>
-            </Link>
-          </div>
 
           <p className={styles.transmissionFlag}>
               <span className={styles.live} aria-hidden="true" />
@@ -295,10 +289,6 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------------ index */}
       <section className={styles.indexBand} aria-labelledby="catalogue-title">
         <Container>
-          <div className={styles.transmissionHead}>
-            <p className={styles.sectionNumber}>Katalog</p>
-            <p className={styles.sectionNote}>{String(stats.releaseCount).padStart(2, "0")} rilis</p>
-          </div>
           <h2 id="catalogue-title" className={styles.indexTitle}>
             Indeks
           </h2>

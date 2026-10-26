@@ -103,13 +103,22 @@ export function AnMonogram() {
             sizes="100vw"
             loading="lazy"
           />
-          {liquid ? (
-            <Suspense fallback={null}>
-              <Liquid />
-            </Suspense>
-          ) : null}
         </div>
       </Depth>
+      {/*
+        Round 31: the shader lives in its own layer, OUTSIDE the parallax transform. Round 29 put
+        the canvas under the depth drift, so a frozen frame travelled while the reader scrolled —
+        the "trail" the owner saw. The object is solid 3D now; it gets its motion from its own
+        vertex stage and its own slow turn, and it owns its pointer events so the raycaster can
+        feel the hand.
+      */}
+      {liquid ? (
+        <div className={styles.liquidLayer}>
+          <Suspense fallback={null}>
+            <Liquid />
+          </Suspense>
+        </div>
+      ) : null}
     </div>
   );
 }

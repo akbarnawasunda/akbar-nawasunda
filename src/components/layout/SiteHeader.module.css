@@ -116,16 +116,6 @@
 }
 
 /* RMX tag: a bordered stamp, not a chip. */
-.rmx {
-  padding: 1px 5px;
-  border: 1px solid var(--color-border-strong);
-  background: none;
-  color: var(--color-text-secondary);
-  font-family: var(--font-body-stack);
-  font-size: 0.5rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-}
 
 .actions {
   display: flex;
@@ -296,8 +286,7 @@
 }
 
 .drawerList a {
-  display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr);
+  display: block;
   align-items: baseline;
   gap: var(--space-2);
   padding-block: var(--space-2);
@@ -305,12 +294,6 @@
   color: var(--color-fg);
 }
 
-.drawerIndex {
-  font-family: var(--font-body-stack);
-  font-size: 0.625rem;
-  letter-spacing: var(--tracking-nav);
-  color: var(--color-text-muted);
-}
 
 .drawerLabel {
   font-family: var(--font-body-stack);
@@ -324,9 +307,6 @@
 
 /* The current page keeps the accent: it is a live marker, not a fill. */
 .drawerList a[aria-current="page"] .drawerLabel,
-.drawerList a[aria-current="page"] .drawerIndex {
-  color: var(--color-accent);
-}
 
 .drawerLatest {
   display: grid;

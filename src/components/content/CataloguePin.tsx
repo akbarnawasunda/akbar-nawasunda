@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 import type { CoverArtwork } from "@/content/covers";
 import { registerPin } from "@/components/zine/scroll-engine";
 
+import { Scramble } from "@/components/zine/Scramble";
+
 import { ReleaseCover } from "./ReleaseCover";
 import styles from "./CataloguePin.module.css";
 
@@ -46,7 +48,9 @@ export function CataloguePin({ items }: { items: CataloguePinItem[] }) {
             <Link className={styles.pinLink} href={item.href} aria-label={`Buka rilis ${item.title}`}>
               <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             </Link>
-            <p className={styles.pinTitle}>{item.title}</p>
+            <p className={styles.pinTitle}>
+              <Scramble text={item.title} />
+            </p>
             <p className={styles.pinMeta}>{item.meta}</p>
           </article>
         ))}

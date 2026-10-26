@@ -57,6 +57,18 @@
 }
 
 /*
+ * The 3D layer: above the still, flush with the band, and the one surface in the band that takes
+ * pointer events — the raycaster inside the chunk needs the hand. Everything above and below the
+ * band keeps its own clicks; the layer is exactly the band's box.
+ */
+.liquidLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/*
  * Two classes deep on purpose, same trick as `.signature .signatureFallback img` in the page
  * module: `globals.css` grayscales every photograph under `.site-main img`, which is right for
  * the archive and wrong for the one object that is the page's only light source.

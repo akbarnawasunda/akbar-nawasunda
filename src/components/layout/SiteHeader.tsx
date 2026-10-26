@@ -10,6 +10,8 @@ import { anMark } from "@/assets/web";
 import { drawerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { listenUrl } from "@/config/socials";
+import { Equalizer } from "@/components/ui/Equalizer";
+import { Scramble } from "@/components/zine/Scramble";
 import styles from "./SiteHeader.module.css";
 
 /** The newest release, so the phone menu can show the catalogue rather than only link to it. */
@@ -172,12 +174,13 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
           />
           <span className={styles.wordmarkWrap}>
             <span className={styles.wordmark}>{siteConfig.name}</span>
-            <span className={styles.rmx}>RMX</span>
           </span>
         </Link>
 
         <div className={styles.actions}>
           <a className={styles.listen} href={listenUrl} target="_blank" rel="noopener noreferrer">
+            {/* Round 31: the bar breathes beside the word — the site sounds like it is playing. */}
+            <Equalizer />
             Listen
             <span className="sr-only"> di Spotify (membuka tab baru)</span>
             <span aria-hidden="true" className={styles.listenArrow}>
@@ -241,10 +244,9 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
                         aria-current={isActive(item.href) ? "page" : undefined}
                         onClick={() => setOpen(false)}
                       >
-                        <span className={styles.drawerIndex} aria-hidden="true">
-                          {String(index + 1).padStart(2, "0")}
+                        <span className={styles.drawerLabel}>
+                          <Scramble text={item.label} />
                         </span>
-                        <span className={styles.drawerLabel}>{item.label}</span>
                       </Link>
                     </li>
                   ))}

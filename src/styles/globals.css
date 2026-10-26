@@ -233,6 +233,18 @@ html[data-menu="open"] body {
   border: 0;
 }
 
+/*
+ * Round 31: while the magnetic cursor is armed (mouse input only, set by MagneticCursor) the
+ * system pointer steps back — the dot and ring ARE the cursor. Touch and reduced motion never set
+ * the flag, so they keep the pointer they have.
+ */
+html[data-cursor="on"],
+html[data-cursor="on"] a,
+html[data-cursor="on"] button,
+html[data-cursor="on"] [role="button"] {
+  cursor: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

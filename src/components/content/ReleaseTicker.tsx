@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+import { Scramble } from "@/components/zine/Scramble";
+
 import { registerPin } from "@/components/zine/scroll-engine";
 
 import styles from "./ReleaseTicker.module.css";
@@ -44,7 +46,7 @@ export function ReleaseTicker({ items }: { items: readonly TickerItem[] }) {
       {items.map((item, index) => (
         <li key={`${copy}-${item.slug}`} className={styles.item}>
           <Link href={`/music/${item.slug}`} tabIndex={copy === 1 ? -1 : undefined} className={styles.link}>
-            <span className={styles.title}>{item.title}</span>
+            <Scramble className={styles.title} text={item.title} />
             <span className={styles.meta}>{item.meta}</span>
           </Link>
           {index < items.length - 1 ? (

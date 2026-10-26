@@ -338,13 +338,6 @@
   }
 }
 
-.sectionNumber {
-  font-family: var(--font-body-stack);
-  font-size: 0.625rem;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
 
 /* ----------------------------------------------------------------------------- transmission */
 
@@ -391,25 +384,8 @@
   pointer-events: none;
 }
 
-.transmissionHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-hairline);
-}
 
 .sectionLink,
-.sectionNote {
-  font-family: var(--font-body-stack);
-  font-size: 0.625rem;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  text-decoration: none;
-}
 
 .sectionLink:hover,
 .sectionLink:focus-visible {

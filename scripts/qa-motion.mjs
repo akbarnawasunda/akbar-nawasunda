@@ -260,6 +260,28 @@ try {
    */
   await page.evaluate(() => window.scrollTo(0, 0));
   await settleScroll(page);
+  /*
+   * R31 — the catalogue band above mounts a real WebGL object when it is seen, and compiling its
+   * physical material plus the environment bake blocks the main thread for a beat afterwards (long
+   * on software GL). Measuring the tilt inside that beat reads a half-finished lerp and fails a
+   * component that works, so the gesture waits until ten consecutive frames arrive on time again.
+   * The assertion below is untouched: it still demands a real rotation.
+   */
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        let good = 0;
+        let prev = performance.now();
+        const loop = (now) => {
+          good = now - prev < 50 ? good + 1 : 0;
+          prev = now;
+          if (good >= 10) return resolve(null);
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+        setTimeout(() => resolve(null), 8000);
+      }),
+  );
   await page.mouse.move(320, 260);
   await sleep(120);
   await page.mouse.move(980, 700, { steps: 10 });
