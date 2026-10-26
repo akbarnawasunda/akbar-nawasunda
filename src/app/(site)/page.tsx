@@ -167,9 +167,13 @@ export default async function HomePage() {
             <Depth className={styles.heroText} y={-26} data-layer="hero-type">
               <div className={styles.heroBody}>
                 <h1 id="hero-title" className={`${styles.name} ink`} data-depth="hero-name">
-                  <span className={styles.nameLine}>Akbar</span>
                   <span className={styles.nameLine}>
-                    Nawasunda<span className={styles.stop} aria-hidden="true">.</span>
+                    <span className={styles.nameRise}>Akbar</span>
+                  </span>
+                  <span className={styles.nameLine}>
+                    <span className={styles.nameRise}>
+                      Nawasunda<span className={styles.stop} aria-hidden="true">.</span>
+                    </span>
                   </span>
                 </h1>
 
@@ -262,12 +266,17 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className={styles.transmissionBody}>
-            <div className={styles.transmissionCopy}>
-              <h2 id="music-title" className={styles.transmissionTitle}>
-                {featured.title}
-              </h2>
-              <p className={styles.transmissionMeta}>{featured.meta}</p>
+          <p className={styles.transmissionFlag}>
+              <span className={styles.live} aria-hidden="true" />
+              Sedang beredar
+            </p>
+            <h2 id="music-title" className={styles.transmissionTitle}>
+              {featured.title}
+            </h2>
+
+            <div className={styles.transmissionBody}>
+              <div className={styles.transmissionCopy}>
+                <p className={styles.transmissionMeta}>{featured.meta}</p>
               <div className={styles.transmissionActions}>
                 <Magnetic>
                   <ButtonLink href={featured.href} variant="primary">

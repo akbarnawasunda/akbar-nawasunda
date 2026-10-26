@@ -146,6 +146,10 @@
    * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
    */
   --text-hero: clamp(1.9rem, 10.2vw, 10.5rem);
+  /* Round 22: the takeover voice — one step under the hero name, for the release that owns the
+     screen right now (home transmission band, catalogue featured block). A major-label site gives
+     the current release almost the same type as the artist's own name; this is that move. */
+  --text-takeover: clamp(2.2rem, 8.4vw, 8rem);
   --text-display: clamp(2rem, 6.2vw, 5rem);
   --text-title: clamp(1.35rem, 2.2vw, 1.9rem);
   --text-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);

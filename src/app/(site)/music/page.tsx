@@ -1,5 +1,9 @@
+import Link from "next/link";
+
 import { CatalogueWall, type WallItem } from "@/components/content/CatalogueWall";
 import { ContentRequirement } from "@/components/content/ContentRequirement";
+import { ReleaseCover } from "@/components/content/ReleaseCover";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/layout/Container";
 import { PageMasthead } from "@/components/layout/PageMasthead";
 import { coverArtwork, resolveCover } from "@/content/covers";
@@ -40,6 +44,8 @@ export default async function MusicPage() {
     artwork: item.coverUrl ? { kind: "image", src: item.coverUrl } : coverArtwork(item.slug),
   }));
   const count = String(items.length).padStart(2, "0");
+  /* The takeover needs a first release; `?? null` keeps noUncheckedIndexedAccess honest. */
+  const lead = wallItems[0] ?? null;
 
   return (
     <>
@@ -51,8 +57,46 @@ export default async function MusicPage() {
         note={items.length > 0 ? `${count} rilis` : undefined}
       />
 
+      {/*
+        Round 22: the catalogue opens the way a major label's does — the release that owns the
+        moment gets the screen first, at takeover scale, and the wall of ten reads as the body of
+        work behind it instead of opening cold on a grid.
+      */}
+      {lead ? (
+        <section className={styles.featured} aria-labelledby="featured-title">
+          <Container>
+            <div className={styles.featuredHead}>
+              <p className={styles.featuredFlag}>Rilis unggulan</p>
+              <h2 id="featured-title" className={styles.featuredTitle}>
+                <Link href={lead.href}>{lead.title}</Link>
+              </h2>
+            </div>
+            <div className={styles.featuredBody}>
+              <Link
+                className={styles.featuredSleeve}
+                href={lead.href}
+                aria-label={`Buka rilis ${lead.title}`}
+              >
+                <ReleaseCover artwork={lead.artwork} title={lead.title} showTitle={false} />
+              </Link>
+              <div className={styles.featuredCopy}>
+                <p className={styles.featuredMeta}>{lead.meta}</p>
+                <div className={styles.featuredActions}>
+                  <ButtonLink href={lead.href} variant="primary">
+                    Buka rilis
+                  </ButtonLink>
+                  <ButtonLink href="#katalog" variant="secondary">
+                    Lihat dinding
+                  </ButtonLink>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
+      ) : null}
+
       <Container>
-        <div className={styles.body}>
+        <div className={styles.body} id="katalog">
         {items.length > 0 ? (
           <>
             <CatalogueWall items={wallItems} />
