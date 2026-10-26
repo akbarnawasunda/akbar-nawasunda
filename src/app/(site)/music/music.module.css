@@ -34,6 +34,8 @@
 .featuredSleeve {
   background: var(--color-bone-ink);
   padding: var(--space-3);
+  /* Same half-degree language as the home poster: one series, one hand. */
+  rotate: 1.5deg;
 }
 
 .featuredHead {

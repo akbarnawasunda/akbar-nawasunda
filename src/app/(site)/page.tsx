@@ -208,10 +208,6 @@ export default async function HomePage() {
                   <dd>{officialLinkCount}</dd>
                 </div>
               </dl>
-              <p className={styles.cue} aria-hidden="true">
-                <span>Gulir</span>
-                <span className={styles.cueLine} />
-              </p>
             </div>
           </div>
         </Plate3D>
@@ -243,6 +239,19 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------------- transmission */}
       <section className={styles.transmission} id="music" aria-labelledby="music-title">
+        {/* Round 28: the label's mark ghosts behind the campaign poster — artwork, portrait and
+            monogram share one identity, so the poster carries the mark at 5%, not as a logo box. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- identity ghost, cached bake */}
+        <img
+          className={styles.transmissionGhost}
+          src={anMark.src}
+          alt=""
+          width={anMark.width}
+          height={anMark.height}
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
         <Container>
           <div className={styles.transmissionHead}>
             <p className={styles.sectionNumber}>Rilis terbaru</p>
@@ -295,6 +304,9 @@ export default async function HomePage() {
           <h2 id="catalogue-title" className={styles.indexTitle}>
             Indeks
           </h2>
+          <p className={styles.railCount}>
+            {stats.releaseCount} rilis · sejak {siteConfig.since}
+          </p>
           {/*
             Round 23: the index is the data, the rail is the object. Ten sleeves in a horizontal
             scroll-snap rail under the rows — native overflow, no script, no second loop — because
