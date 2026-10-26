@@ -341,7 +341,36 @@
  * image, not on it: type over a photograph is the one thing this doctrine never does.
  */
 .stageBand {
+  position: relative;
   border-block: 1px solid var(--color-hairline);
+}
+
+/*
+ * Round 25 — registration. Two small printer's crosses pin the top corners of the stage band,
+ * the marks a sheet carries so the press knows where the image was meant to sit. It is the one
+ * decoration the doctrine allows, because it is not decoration: it is what the object is — a
+ * printed sheet, placed. Same crosses the HUD used, resized to the page.
+ */
+.stageBand::before,
+.stageBand::after {
+  content: "";
+  position: absolute;
+  top: var(--space-3);
+  z-index: 2;
+  width: var(--space-3);
+  height: var(--space-3);
+  pointer-events: none;
+  background:
+    linear-gradient(var(--color-text-muted), var(--color-text-muted)) center / 1px 100% no-repeat,
+    linear-gradient(var(--color-text-muted), var(--color-text-muted)) center / 100% 1px no-repeat;
+}
+
+.stageBand::before {
+  left: var(--gutter);
+}
+
+.stageBand::after {
+  right: var(--gutter);
 }
 
 .stageMedia {

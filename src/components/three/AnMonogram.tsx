@@ -6,39 +6,31 @@ import styles from "./AnMonogram.module.css";
 import { Depth } from "../zine/Depth";
 
 /**
- * The AN monogram: liquid metal, baked.
+ * The AN monogram: liquid, and quiet about it.
  *
- * Round 20, owner's instruction, verbatim: "3D pake liquid aja cuy, jangan 3D berat jir". Read
- * plainly — keep the liquid-metal object, lose the engine that computed it every frame. So this
- * file no longer contains a renderer. What it contains is the *output* of the renderer, captured
- * once by `scripts/bake-monogram.mjs` from the round-19 scene (black chrome, neon `#0087FF` edges,
- * bloom at threshold 0.72, the perspective-grid stage) and shipped as two WebP stills:
+ * Round 25, owner's instruction: drop the "Tanda AN" copy (a mark that has to introduce itself is
+ * a mark that does not trust itself), and make the object behave like water — touch it and it
+ * parts, a little, then closes back up. No WebGL (round 20 retired the renderer on "jangan 3D
+ * berat jir"), no canvas (banned site-wide since), no second rAF loop (the contract allows exactly
+ * one, and the scroll engine owns it). Three cheap tricks do the water instead:
  *
- *   - `liquid-metal-wide.webp`   — the ≥1024 px composition, mark offset right;
- *   - `liquid-metal-narrow.webp` — the <1024 px composition, mark centred.
+ * 1. **The part.** Two extra copies of the same baked still sit exactly on top of it. While the
+ *    pointer is inside the band they drift apart along the pointer vector — a few pixels, never
+ *    more — and fade back to nothing when it leaves. A surface that splits under a finger and
+ *    heals behind it is the whole grammar of liquid, and it costs two composited transforms.
+ * 2. **The wobble.** An inline SVG filter (feTurbulence → feDisplacementMap) bends the whole stack
+ *    like a reflection in disturbed water. The displacement scale is written from the pointer's
+ *    own speed (event timestamps, no clock of our own) and only exists while the band is touched:
+ *    `data-liquid` gates the filter, so an untouched band pays zero filter cost.
+ * 3. **The lean.** The base still answers the pointer with a counter-translate of a few pixels,
+ *    which is what makes the part read as *reaction* rather than as a glitch.
  *
- * Why pixels and not an approximation: a chrome surface is nothing but what it reflects, and what
- * it reflected was an authored PMREM room plus a vertex-shader noise field. CSS cannot fake that
- * without the banned vocabulary (gradients stacked into a lie, blur as a substitute for light), and
- * an SVG trace of the silhouette would be a sticker of the object, not the object. The bake is the
- * object, photographed once.
+ * Everything the pointer writes is a CSS custom property or one SVG attribute, written inside the
+ * event handler and smoothed by transitions — the layout thrash lesson still stands, so the band's
+ * rect is read once per scroll burst, never per move.
  *
- * What this costs now, against what it cost before:
- * - **before**: `three` + the post-processing chain as a lazy chunk (~150 KB gz of JavaScript that
- *   still had to parse, compile shaders and build a PMREM room), a WebGL context, a rAF loop at
- *   30–60 fps for as long as the band was on screen, and nothing at all below 768 px — a phone saw
- *   an empty band, which is a large part of why the site read as "jelek" on one;
- * - **after**: 47 KB + 35 KB of WebP, lazy like any other image, no JavaScript beyond the reveal
- *   flag, no context, no loop, and the object finally exists on every viewport.
- *
- * The band still moves, because a dead band is its own kind of ugly: the still is wrapped in the
- * site's one scroll engine (`<Depth>`), so it drifts and settles with the page through the same
- * single rAF loop everything else uses — no second loop, and under `prefers-reduced-motion` the
- * engine registers nothing and the mark simply stands there, which is the correct fallback.
- *
- * The reveal contract is unchanged: the host carries `data-ready` once the image has decoded, the
- * CSS fades it in, and `scripts/qa-motion.mjs` asserts there is not a single canvas element left
- * anywhere on the site. WebGL is not a dependency of this page any more.
+ * The bake is unchanged: two WebP stills from the round-19 renderer (`scripts/bake-monogram.mjs`),
+ * lazy like any image, present on every viewport including phones, which rounds 14–19 starved.
  */
 
 const WIDE = {
@@ -57,8 +49,9 @@ export function AnMonogram() {
 
   useEffect(() => {
     const host = hostRef.current;
-    const img = host ? host.querySelector("img") : null;
-    if (!host || !img) return;
+    if (!host) return;
+    const img = host.querySelector("img");
+    if (!img) return;
     const reveal = () => {
       host.dataset.ready = "true";
     };
@@ -66,25 +59,122 @@ export function AnMonogram() {
        `load` that already fired would leave the band invisible forever. */
     if (img.complete) reveal();
     else img.addEventListener("load", reveal, { once: true });
-    return () => img.removeEventListener("load", reveal);
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const displace = host.querySelector("feDisplacementMap");
+    if (!displace) return;
+
+    /* Cached geometry: the rect is read once per scroll burst and on entry, never per pointermove.
+       A 125 Hz mouse must not become 125 forced reflows — that bug is why this file reads the way
+       it does. */
+    let rect = host.getBoundingClientRect();
+    let rectDirty = false;
+    const onScroll = () => {
+      rectDirty = true;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    let lastStamp = 0;
+    const onMove = (event: PointerEvent) => {
+      if (rectDirty) {
+        rect = host.getBoundingClientRect();
+        rectDirty = false;
+      }
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (!inside) {
+        if (host.dataset.liquid) {
+          delete host.dataset.liquid;
+          host.style.setProperty("--lstr", "0");
+          displace.setAttribute("scale", "0");
+        }
+        return;
+      }
+      const nx = ((event.clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+      const ny = ((event.clientY - rect.top) / Math.max(1, rect.height)) * 2 - 1;
+      /* Speed from the event's own timestamps: the wobble follows the hand, not a clock. */
+      const dt = lastStamp ? Math.max(8, event.timeStamp - lastStamp) : 16;
+      lastStamp = event.timeStamp;
+      const speed = Math.min(1, Math.hypot(event.movementX ?? 0, event.movementY ?? 0) / dt / 2.2);
+      host.dataset.liquid = "on";
+      host.style.setProperty("--lx", nx.toFixed(3));
+      host.style.setProperty("--ly", ny.toFixed(3));
+      host.style.setProperty("--lstr", "1");
+      displace.setAttribute("scale", (3 + speed * 9).toFixed(1));
+    };
+    const onOff = () => {
+      delete host.dataset.liquid;
+      host.style.setProperty("--lstr", "0");
+      displace.setAttribute("scale", "0");
+      lastStamp = 0;
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onMove, { passive: true });
+    window.addEventListener("blur", onOff);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("blur", onOff);
+      img.removeEventListener("load", reveal);
+    };
   }, []);
 
   return (
     <div ref={hostRef} className={styles.canvas} aria-hidden="true">
+      {/* The water: one turbulence field, displacement gated by touch. */}
+      <svg className={styles.filterSvg} aria-hidden="true" focusable="false">
+        <filter id="an-liquid">
+          <feTurbulence type="fractalNoise" baseFrequency="0.006 0.014" numOctaves="2" seed="7" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
+
       <Depth className={styles.drift} y={-26} scale={0.07} data-layer="monogram-still">
-        <picture>
-          <source media="(max-width: 1023px)" srcSet={NARROW.src} type="image/webp" />
-          <img
-            className={styles.still}
-            src={WIDE.src}
-            alt=""
-            width={WIDE.width}
-            height={WIDE.height}
-            loading="lazy"
-            decoding="async"
-            fetchPriority="low"
-          />
-        </picture>
+        <div className={styles.liquid}>
+          <picture>
+            <source media="(max-width: 1023px)" srcSet={NARROW.src} type="image/webp" />
+            <img
+              className={`${styles.split} ${styles.splitA}`}
+              src={WIDE.src}
+              alt=""
+              width={WIDE.width}
+              height={WIDE.height}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+            />
+          </picture>
+          <picture>
+            <source media="(max-width: 1023px)" srcSet={NARROW.src} type="image/webp" />
+            <img
+              className={`${styles.split} ${styles.splitB}`}
+              src={WIDE.src}
+              alt=""
+              width={WIDE.width}
+              height={WIDE.height}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+            />
+          </picture>
+          <picture>
+            <source media="(max-width: 1023px)" srcSet={NARROW.src} type="image/webp" />
+            <img
+              className={styles.still}
+              src={WIDE.src}
+              alt=""
+              width={WIDE.width}
+              height={WIDE.height}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+            />
+          </picture>
+        </div>
       </Depth>
     </div>
   );

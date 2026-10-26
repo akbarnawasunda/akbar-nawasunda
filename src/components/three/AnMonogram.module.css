@@ -1,12 +1,17 @@
 /*
  * The band's scenery: it sits behind the type, never above it, never eats a pointer event.
  *
- * Round 20 retired the canvas; what fills this host now is a baked still of the same scene, so the
- * reveal contract is the one the canvas had — invisible until `data-ready`, then a long fade — and
- * the feathered mask stays because the bake is a clean rectangle and the band must still end in
- * ink, not in a visible edge.
+ * Round 25: the copy is gone (a mark that introduces itself does not trust itself) and the still
+ * became water — two extra copies that part along the pointer and heal behind it, over an SVG
+ * turbulence field that only exists while the band is touched. The reveal contract is the one the
+ * canvas had: invisible until `data-ready`, then a long fade into the band's black.
  */
 .canvas {
+  /* The water's state, at rest. The pointer overwrites these on the host element; declaring them
+     here keeps every calc() readable before the first touch and satisfies the token audit. */
+  --lx: 0;
+  --ly: 0;
+  --lstr: 0;
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -16,9 +21,6 @@
 }
 
 .canvas[data-ready="true"] {
-  /* The band gives the object its own stage, so it is shown at nearly full strength. The bake was
-     captured at opacity 1 on purpose: this 0.92 over the band's black reproduces the round-19
-     composite exactly once, instead of darkening an already-darkened capture. */
   opacity: 0.92;
   mask-image: radial-gradient(115% 105% at 50% 46%, black 52%, transparent 96%);
 }
@@ -29,21 +31,36 @@
   }
 }
 
-/*
- * The drift layer is the scroll engine's wrapper; it owns the transform, so it only has to fill the
- * band and stay out of the way.
- */
 .drift {
   position: absolute;
   inset: 0;
 }
 
+/* The water stack: three copies of one bake, exactly on top of each other at rest. */
+.liquid {
+  position: absolute;
+  inset: 0;
+}
+
+/* The displacement field is attached only while the pointer is inside: an untouched band pays
+   zero filter cost. `filter: url()` is not the banned blur — it is a reflection in disturbed
+   water, and it is the one thing CSS cannot fake with a gradient. */
+.canvas[data-liquid="on"] .liquid {
+  filter: url(#an-liquid);
+}
+
+.filterSvg {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
 /*
  * Oversized on purpose: the scroll engine translates the layer a few percent as the band passes,
- * and an image exactly the size of its box would show a gap at the extremes. The extra six percent
- * top and bottom is the travel budget; `object-fit` keeps the composition cropped, never stretched.
+ * and an image exactly the size of its box would show a gap at the extremes.
  */
-.still {
+.still,
+.split {
   position: absolute;
   inset: -6% 0;
   width: 100%;
@@ -54,17 +71,52 @@
 }
 
 /*
- * Two classes deep on purpose, same trick as `.signature .signatureFallback img` in the page
- * module: `globals.css` grayscales every photograph under `.site-main img`, which is right for the
- * archive and wrong for the one object that is the page's only light source. The bake carries the
- * neon blue; a grayscale filter would turn liquid metal back into tin.
+ * The part: the two copies drift apart along the pointer vector — a few pixels, token-scaled,
+ * never more — and the base answers with a smaller counter-lean. Opacity is the strength the
+ * pointer writes; at rest all three are one surface again.
  */
-.canvas .still {
+.split {
+  opacity: calc(var(--lstr, 0) * 0.38);
+  transition:
+    transform 260ms var(--ease-out),
+    opacity 340ms var(--ease-out);
+}
+
+.splitA {
+  transform: translate3d(calc(var(--lx, 0) * var(--space-2)), calc(var(--ly, 0) * var(--space-2)), 0);
+}
+
+.splitB {
+  transform: translate3d(calc(var(--lx, 0) * var(--space-2) * -1), calc(var(--ly, 0) * var(--space-2) * -1), 0);
+}
+
+.still {
+  transform: translate3d(calc(var(--lx, 0) * var(--space-1) * -1), calc(var(--ly, 0) * var(--space-1) * -1), 0);
+  transition: transform 260ms var(--ease-out);
+}
+
+/*
+ * Two classes deep on purpose, same trick as `.signature .signatureFallback img` in the page
+ * module: `globals.css` grayscales every photograph under `.site-main img`, which is right for
+ * the archive and wrong for the one object that is the page's only light source.
+ */
+.canvas .still,
+.canvas .split {
   filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .canvas {
     transition: none;
+  }
+
+  .split,
+  .still {
+    transition: none;
+    transform: none;
+  }
+
+  .split {
+    opacity: 0;
   }
 }

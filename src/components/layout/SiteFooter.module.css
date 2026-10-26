@@ -209,7 +209,7 @@
 .contactValue {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(1.25rem, 2.6vw, 2rem);
+  font-size: clamp(1.15rem, 2.1vw, 1.7rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
   overflow-wrap: anywhere;
@@ -231,7 +231,7 @@
      footer repeats the name in the reading face, set giant — a wordmark, not a second logo. */
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: 10.2vw;
+  font-size: 7.6vw;
   line-height: 0.95;
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;

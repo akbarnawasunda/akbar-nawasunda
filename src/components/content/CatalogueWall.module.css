@@ -102,7 +102,7 @@
 .title {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(1.125rem, 1.9vw, 1.625rem);
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
   line-height: var(--leading-title);
   letter-spacing: var(--tracking-title);
   text-transform: uppercase;

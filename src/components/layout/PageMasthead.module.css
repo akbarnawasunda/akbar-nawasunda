@@ -64,7 +64,7 @@
 .figure {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
 }

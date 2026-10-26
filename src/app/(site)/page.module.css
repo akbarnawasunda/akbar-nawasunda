@@ -261,7 +261,7 @@
   margin: 0;
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(1.5rem, 2.6vw, 2.25rem);
+  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
 }
@@ -333,43 +333,12 @@
   }
 }
 
-.signatureInner {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  max-width: var(--container-max);
-  margin-inline: auto;
-  padding: 0 var(--gutter) var(--space-12);
-  pointer-events: none;
-}
-
 .sectionNumber {
   font-family: var(--font-body-stack);
   font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
-}
-
-.signatureTitle {
-  margin-top: var(--space-2);
-  font-size: var(--text-display);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
-  text-transform: uppercase;
-}
-
-.signatureAccent {
-  color: var(--color-signal-blue);
-}
-
-.signatureMeta {
-  margin-top: var(--space-3);
-  font-family: var(--font-body-stack);
-  font-size: 0.625rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
 }
 
 /* ----------------------------------------------------------------------------- transmission */
@@ -630,6 +599,33 @@
   background: var(--color-bg);
 }
 
+/*
+ * Round 25 — registration. The night frame is pinned by two printer's crosses at the top corners,
+ * the same marks the stage band carries on /artist: an image on this site is a placed sheet, not
+ * a background. White at half, so they hold over the photograph without shouting.
+ */
+.night::before,
+.night::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--header-height) + var(--space-4));
+  z-index: 2;
+  width: var(--space-3);
+  height: var(--space-3);
+  pointer-events: none;
+  background:
+    linear-gradient(var(--color-hairline-strong), var(--color-hairline-strong)) center / 1px 100% no-repeat,
+    linear-gradient(var(--color-hairline-strong), var(--color-hairline-strong)) center / 100% 1px no-repeat;
+}
+
+.night::before {
+  left: var(--gutter);
+}
+
+.night::after {
+  right: var(--gutter);
+}
+
 .nightMedia {
   position: absolute;
   inset: 0;
@@ -653,7 +649,7 @@
   font-family: var(--font-body-stack);
   color: var(--color-text-secondary);
   font-weight: 400;
-  font-size: clamp(1.75rem, 4.4vw, 3.5rem);
+  font-size: clamp(1.5rem, 3.6vw, 2.9rem);
   line-height: 1.3;
   letter-spacing: var(--tracking-tight);
   text-wrap: balance;

@@ -22,7 +22,7 @@
   list-style: none;
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(1.5rem, 3.6vw, 3rem);
+  font-size: clamp(1.3rem, 3vw, 2.4rem);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;

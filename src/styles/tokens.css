@@ -156,13 +156,13 @@
    * The previous 12.5vw was tuned for Space Grotesk, which is roughly 25% narrower — with the new
    * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
    */
-  --text-hero: clamp(1.9rem, 10.2vw, 10.5rem);
+  --text-hero: clamp(1.7rem, 7.6vw, 7.5rem);
   /* Round 22: the takeover voice — one step under the hero name, for the release that owns the
      screen right now (home transmission band, catalogue featured block). A major-label site gives
      the current release almost the same type as the artist's own name; this is that move. */
-  --text-takeover: clamp(2.2rem, 8.4vw, 8rem);
-  --text-display: clamp(2rem, 6.2vw, 5rem);
-  --text-title: clamp(1.35rem, 2.2vw, 1.9rem);
+  --text-takeover: clamp(1.9rem, 5.8vw, 5.2rem);
+  --text-display: clamp(1.7rem, 4.4vw, 3.4rem);
+  --text-title: clamp(1.2rem, 1.8vw, 1.6rem);
   --text-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
   --text-small: 0.875rem;
   --text-label: 0.75rem;

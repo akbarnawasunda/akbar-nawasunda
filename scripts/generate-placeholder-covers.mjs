@@ -41,7 +41,6 @@ const root = process.cwd();
 const outDir = join(root, "public", "assets", "covers");
 const markPath = join(root, "public", "brand", "an-mark.webp");
 const SIZE = 1000;
-const PAD = 72;
 
 /**
  * One sleeve series, round 21 (D-117 reversed).
@@ -62,35 +61,49 @@ const SERIES = {
   ground: "#E8E6E1",
   frame: "#0A0A0E",
   ghost: "#0A0A0E",
-  ghostOpacity: 0.14,
+  ghostOpacity: 0.26,
   rule: "#2E8C86",
 };
 
-/** XML-safe text for the SVG. Titles contain em dashes and commas. */
-function xml(value) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 
 
 
 
 
+/*
+ * Round 25, series v4 — the die-cut press object.
+ *
+ * Every sleeve in the series is cut: one 45° corner off the top-right, and the cut is real — the
+ * outside of the shape is transparent, so a sleeve reads as a physically cut object lying on
+ * whatever is behind it (the ink plinth on the wall, the ink page in the rail) instead of a
+ * rectangle pasted on a slide. One cut, same corner, every sleeve: a series decision, not
+ * per-cover decoration.
+ *
+ * The object itself gets the anatomy of a pressed jacket: an ink spine down the left edge, the
+ * label's monogram as a strong ghost bleeding off the bottom-right, one misregistration rule in
+ * the series teal under the type-free field, and a crop hairline that follows the die. Round 19's
+ * ban on sleeve typography stands — a sleeve that prints its own title in rasterised type cannot
+ * reflow, be selected or be translated, and the card beside it already sets the title in Relidux.
+ */
+const CUT = 150;
+const SPINE = 64;
 
 function sleeveSvg() {
   const frame = 36;
+  const shape = `M0 0 H${SIZE - CUT} L${SIZE} ${CUT} V${SIZE} H0 Z`;
+  const inner = `M${SPINE + frame} ${frame} H${SIZE - CUT + frame} L${SIZE - frame} ${CUT - frame} V${SIZE - frame} H${SPINE + frame} Z`;
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <rect width="${SIZE}" height="${SIZE}" fill="${SERIES.ground}"/>
+  <path d="${shape}" fill="${SERIES.ground}"/>
 
-  <!-- The crop-mark frame: one hairline, inset, so the sleeve reads as a printed object on the
-       wall instead of a hole in it. -->
-  <rect x="${frame}" y="${frame}" width="${SIZE - frame * 2}" height="${SIZE - frame * 2}" fill="none" stroke="${SERIES.frame}" stroke-width="2"/>
+  <!-- The spine: a jacket is bound on one edge. Ink, full height, under everything else. -->
+  <rect x="0" y="0" width="${SPINE}" height="${SIZE}" fill="${SERIES.frame}"/>
 
-  <rect x="0" y="${SIZE - 4}" width="${SIZE}" height="4" fill="${SERIES.rule}"/>
+  <!-- The crop-mark hairline follows the same die-cut, inset, so the sleeve reads as a printed
+       sheet instead of a hole in the wall. -->
+  <path d="${inner}" fill="none" stroke="${SERIES.frame}" stroke-width="2"/>
+
+  <rect x="${SPINE}" y="${SIZE - 10}" width="${SIZE - SPINE}" height="10" fill="${SERIES.rule}"/>
 </svg>`);
 }
 
@@ -124,7 +137,7 @@ async function faded(input, opacity) {
   return sharp(input).composite([{ input: veil, blend: "dest-in" }]).png().toBuffer();
 }
 
-async function render(release) {
+async function render() {
   const svg = sleeveSvg();
   /*
    * Round 24, series v3: bone stock, and the mark printed large and cropped — it bleeds off the
@@ -132,10 +145,12 @@ async function render(release) {
    * placeholder; a cropped one reads as a design decision, because only a designer pushes a mark
    * off its own frame on purpose.
    */
-  const width = 780;
+  const width = 760;
   const ghost = await faded(await ghostMark(width, SERIES.ghost), SERIES.ghostOpacity);
-  const left = -150;
-  const top = -130;
+  /* Bleeding off the bottom-right, opposite the spine: the mark is the label's signature on the
+     jacket, and a signature that fits inside its own frame reads as a logo, not as ink. */
+  const left = SIZE - 520;
+  const top = SIZE - 470;
 
   const composed = await sharp(svg)
     .composite([{ input: ghost, left, top }])
@@ -168,7 +183,7 @@ async function main() {
       continue;
     }
 
-    const bytes = await render(release);
+    const bytes = await render();
     writeFileSync(target, bytes);
     written += 1;
     console.log(`sleeve ${release.slug}@sleeve.webp (${Math.round(bytes.byteLength / 1024)} KB)`);

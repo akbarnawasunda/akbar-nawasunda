@@ -230,7 +230,7 @@ export default async function HomePage() {
         mono copy at the bottom edge. No photograph, no gradient, no rule behind it: the metal is
         the light source, and a second bright thing on the same screen would halve it.
       */}
-      <section className={styles.signature} aria-labelledby="signature-title">
+      <section className={styles.signature} aria-label="Monogram">
         <HudMarks variant="corners" className={styles.signatureMarks} />
         <AnMonogram />
         {/*
@@ -242,15 +242,6 @@ export default async function HomePage() {
           {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, exact bytes */}
           <img src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" decoding="async" />
         </span>
-        <div className={styles.signatureInner}>
-          <p className={styles.sectionNumber}>02 — Monogram</p>
-          <h2 id="signature-title" className={styles.signatureTitle}>
-            Tanda <span className={styles.signatureAccent}>AN</span>
-          </h2>
-          <p className={styles.signatureMeta}>
-            Bandung Barat · sejak {siteConfig.since}
-          </p>
-        </div>
       </section>
 
       {/* ----------------------------------------------------------- running head */}

@@ -19,7 +19,7 @@
 .title {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem);
+  font-size: clamp(2.2rem, 1.2rem + 3.2vw, 4rem);
   line-height: 0.95;
   letter-spacing: -0.015em;
 }
@@ -38,7 +38,7 @@
 }
 
 .requirementTitle {
-  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.25rem);
+  font-size: clamp(1.3rem, 0.95rem + 1.2vw, 1.9rem);
   font-weight: 500;
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
@@ -69,7 +69,7 @@
 }
 
 .sectionHeading {
-  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-size: clamp(1.15rem, 0.95rem + 0.8vw, 1.5rem);
   font-weight: 500;
   letter-spacing: var(--tracking-tight);
   color: var(--color-fg);
@@ -136,7 +136,7 @@
 }
 
 .releaseLinks a {
-  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-size: clamp(1.15rem, 0.95rem + 0.8vw, 1.5rem);
   font-weight: 500;
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;

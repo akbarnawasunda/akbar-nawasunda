@@ -297,7 +297,7 @@
 .drawerLabel {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(2.5rem, 9.5vw, 5rem);
+  font-size: clamp(2rem, 7.6vw, 4rem);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;

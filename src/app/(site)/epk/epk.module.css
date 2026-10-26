@@ -201,7 +201,7 @@
   margin-top: var(--space-6);
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-size: clamp(1.3rem, 3.2vw, 2.4rem);
   line-height: 1.05;
   letter-spacing: var(--tracking-hero);
   overflow-wrap: anywhere;

@@ -38,12 +38,15 @@
 }
 
 /*
- * A sleeve is typography, not a photograph: it keeps its own type, so it gets less contrast and one
- * stop of brightness back compared with the site-wide `.site-main img` treatment. Two classes
- * because that global rule is (0,1,1) too — reaching it from a module needs the extra class.
+ * A sleeve is not a photograph: it is a printed object with its own ink — bone stock, a teal
+ * misregistration rule, a die-cut corner. The site-wide grayscale (right for the six owner photos,
+ * shot under six different lamps) was eating the one hue the series is allowed, and the wall read
+ * grey-on-grey. Round 25 removes the filter entirely: the sleeve arrives exactly as the press made
+ * it. Two classes because that global rule is (0,1,1) too — reaching it from a module needs the
+ * extra class.
  */
 .cover.cover > img {
-  filter: grayscale(1) contrast(1.06) brightness(0.98);
+  filter: none;
 }
 
 /* Level 3 sleeve: surface colour, AN mark at 10%, title at 24px, 4px signal rule. */
@@ -104,5 +107,5 @@
 
 .generated .title {
   max-width: 22ch;
-  font-size: clamp(1.5rem, 1rem + 1.2vw, 2rem);
+  font-size: clamp(1.3rem, 0.9rem + 1vw, 1.7rem);
 }
