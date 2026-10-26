@@ -210,6 +210,7 @@
   --delay-curtain-dot: 560ms;
   --delay-curtain-fade: 700ms;
   --duration-eq: 850ms;
+  --duration-press: 100ms;
   --duration-cursor-dot: 50ms;
   --duration-cursor-ring: 180ms;
   --cursor-dot: 6px;
@@ -226,5 +227,15 @@
 @media (max-width: 719px) {
   :root {
     --section-padding: clamp(6rem, 9vw, 7rem);
+    /*
+     * Round 32, owner's correction: the phone is the primary screen, so its type is tuned for the
+     * phone, not shrunk from the desktop. The vw terms grow until the measure fills a 390 px hand
+     * without a single title wrapping into an orphan line; the clamp ceilings keep a landscape
+     * phone from shouting.
+     */
+    --text-hero: clamp(2.5rem, 9.6vw, 3.6rem);
+    --text-takeover: clamp(1.7rem, 7.4vw, 2.5rem);
+    --text-display: clamp(1.45rem, 6.2vw, 2.2rem);
+    --text-title: clamp(1.15rem, 4.8vw, 1.5rem);
   }
 }

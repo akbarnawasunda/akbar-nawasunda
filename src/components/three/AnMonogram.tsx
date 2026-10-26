@@ -60,10 +60,11 @@ export function AnMonogram() {
       else img.addEventListener("load", reveal, { once: true });
     }
 
-    /* The GPU path is a desktop luxury: reduced motion keeps the still, phones keep the narrow
-       bake, and neither pays for a context it would not use. */
+    /* Round 32, owner's correction: mobile is not a lesser citizen — the majority of this site's
+       visitors hold it in a hand. The liquid mounts on phones exactly as on desktop (DPR is capped
+       at 1.5 inside the chunk, and the loop parks off screen); only a reader who asked for
+       stillness keeps the baked still instead. */
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(min-width: 768px)").matches) return;
 
     const observer = new IntersectionObserver(
       (entries) => {

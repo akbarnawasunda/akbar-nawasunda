@@ -215,6 +215,20 @@ function meltOf(mesh: THREE.Mesh | null): MeltUniforms | null {
   return (material?.userData.melt as MeltUniforms | undefined) ?? null;
 }
 
+/** iOS 13+ ships device orientation behind a permission that only a user gesture may request. */
+function askGyro(asked: { current: boolean }) {
+  if (asked.current) return;
+  asked.current = true;
+  const ctor = window.DeviceOrientationEvent as unknown as
+    | { requestPermission?: () => Promise<string> }
+    | undefined;
+  if (ctor && typeof ctor.requestPermission === "function") {
+    ctor.requestPermission().catch(() => {
+      /* declined or blocked: the mark simply keeps its own slow turn */
+    });
+  }
+}
+
 function MercuryMonogram() {
   const geometry = useMemo(() => buildMonogramGeometry(), []);
   const material = useMemo(() => {
@@ -240,18 +254,48 @@ function MercuryMonogram() {
 
   const meshRef = useRef<THREE.Mesh | null>(null);
   const hitTarget = useRef(0);
+  /*
+   * Round 32, the gyroscope: a phone knows which way gravity pulls, and a native app uses that.
+   * `deviceorientation` writes a target tilt into a ref (no loop of our own — the R3F frame below
+   * eases towards it), so tilting the phone leans the mark the way a card leans in a hand.
+   * Android delivers the events outright; iOS gates them behind a permission that may only be
+   * asked for inside a user gesture, which is what `askGyro` on the wrapper's pointerdown does.
+   */
+  const tiltTarget = useRef({ x: 0, y: 0 });
+  const tilt = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const onTilt = (event: DeviceOrientationEvent) => {
+      const gamma = event.gamma ?? 0;
+      const beta = event.beta ?? 0;
+      tiltTarget.current.y = Math.max(-1, Math.min(1, gamma / 26));
+      tiltTarget.current.x = Math.max(-1, Math.min(1, (beta - 42) / 26));
+    };
+    window.addEventListener("deviceorientation", onTilt, { passive: true });
+    return () => window.removeEventListener("deviceorientation", onTilt);
+  }, []);
 
   useFrame((state, delta) => {
     const mesh = meshRef.current;
     const uniforms = meltOf(mesh);
     if (!uniforms) return;
+    /*
+     * Round 32: a phone holds the band portrait. The camera's vertical fov is fixed, so on a
+     * narrow aspect the *width* is what runs out — without this fit the mark overflows the glass
+     * on exactly the screen the owner cares about most. `viewport` is the world size at z=0,
+     * recomputed by R3F on every resize; the mark scales to the smaller of the two axes.
+     */
     uniforms.uTime.value += Math.min(delta, 0.05);
     uniforms.uHitStrength.value += (hitTarget.current - uniforms.uHitStrength.value) * 0.1;
+    tilt.current.x += (tiltTarget.current.x - tilt.current.x) * 0.06;
+    tilt.current.y += (tiltTarget.current.y - tilt.current.y) * 0.06;
     if (mesh) {
+      const fit = Math.max(0.42, Math.min(1, state.viewport.width / 5.1, state.viewport.height / 2.5));
+      mesh.scale.setScalar(fit);
       /* A slow turn so the metal catches different strips of the environment — the read that
          separates an object from a decal. */
-      mesh.rotation.y = Math.sin(state.clock.elapsedTime * 0.16) * 0.22;
-      mesh.rotation.x = Math.cos(state.clock.elapsedTime * 0.12) * 0.07;
+      mesh.rotation.y = Math.sin(state.clock.elapsedTime * 0.16) * 0.22 + tilt.current.y * 0.42;
+      mesh.rotation.x = Math.cos(state.clock.elapsedTime * 0.12) * 0.07 + tilt.current.x * 0.24;
     }
   });
 
@@ -319,6 +363,7 @@ export default function AnMonogramLiquid() {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
   const [supported] = useState(() => webglAvailable());
+  const gyroAsked = useRef(false);
 
   useEffect(() => {
     if (!supported) return;
@@ -341,7 +386,7 @@ export default function AnMonogramLiquid() {
   if (!supported) return null;
 
   return (
-    <div ref={wrapRef} style={WRAP_STYLE}>
+    <div ref={wrapRef} style={WRAP_STYLE} onPointerDown={() => askGyro(gyroAsked)}>
       <Canvas
         /* "demand" off screen: the loop is parked, no frame is drawn, nothing stale can trail
            across the band while the reader scrolls. Back in view it runs again. */
@@ -355,7 +400,16 @@ export default function AnMonogramLiquid() {
              that is not a strip highlight collapses to ink. */
           gl.toneMappingExposure = 1.25;
         }}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          /* A finger dragging across the band should ripple the metal, not be eaten by the
+             canvas — but the page must still scroll: pan-y hands vertical gestures back to the
+             browser and keeps horizontal ones for the raycaster. */
+          touchAction: "pan-y",
+        }}
       >
         <MercuryMonogram />
         <StudioEnvironment />

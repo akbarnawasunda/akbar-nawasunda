@@ -238,6 +238,23 @@ html[data-menu="open"] body {
  * system pointer steps back — the dot and ring ARE the cursor. Touch and reduced motion never set
  * the flag, so they keep the pointer they have.
  */
+/*
+ * Round 32: a tap must feel like a button, on the phone especially. `scale` is its own CSS
+ * property, so the press composes with whatever transform a component already owns instead of
+ * overwriting it; 100 ms down and back is the whole trick.
+ */
+a,
+button,
+[role="button"] {
+  transition: scale var(--duration-press) var(--ease-out);
+}
+
+a:active,
+button:active,
+[role="button"]:active {
+  scale: 0.96;
+}
+
 html[data-cursor="on"],
 html[data-cursor="on"] a,
 html[data-cursor="on"] button,

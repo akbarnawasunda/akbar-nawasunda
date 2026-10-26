@@ -6,6 +6,7 @@ import { InkPress } from "@/components/print/InkPress";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { PerfSwitches } from "@/components/zine/PerfSwitches";
 import { MagneticCursor } from "@/components/zine/MagneticCursor";
+import { TouchPress } from "@/components/zine/TouchPress";
 import { RouteCurtain } from "@/components/zine/RouteCurtain";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -72,6 +73,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <SmoothScroll />
       <RouteCurtain />
       <MagneticCursor />
+      <TouchPress />
       <a href="#main" className="skip-link">
         Lompat ke konten
       </a>

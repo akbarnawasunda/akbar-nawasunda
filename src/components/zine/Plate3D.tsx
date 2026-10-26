@@ -128,7 +128,9 @@ export function Plate3D({
      * `clientX/Y` and the rect are both viewport-relative, so no scroll offset is involved.
      */
     const onMove = (event: PointerEvent) => {
-      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      /* Round 32: a finger drives the plate too, for as long as the browser keeps the gesture
+         (scrolling claims it with `pointercancel`, which rests the plate again). Round 8 fenced
+         touch out; the owner's round-32 note is that mobile must feel *more* alive, not less. */
       rect ??= host.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       target.x = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - 0.5) * 2));
@@ -150,11 +152,13 @@ export function Plate3D({
      */
     host.addEventListener("pointermove", onMove, { passive: true });
     host.addEventListener("pointerleave", onLeave);
+    host.addEventListener("pointercancel", onLeave);
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
       host.removeEventListener("pointermove", onMove);
       host.removeEventListener("pointerleave", onLeave);
+      host.removeEventListener("pointercancel", onLeave);
       delete host.dataset.active;
       host.style.removeProperty("--plate-ry");
       host.style.removeProperty("--plate-rx");

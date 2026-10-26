@@ -44,6 +44,20 @@
  * wide screens sits *below* the copy there, so nothing justifies the air. Half the beat on mobile.
  */
 @media (max-width: 767px) {
+  /*
+   * Round 32, owner's instruction: on a phone the artwork bleeds edge to edge — the screen IS the
+   * sleeve, no gutters, no plinth. The offset plate behind it has to go with the gutters, because
+   * its overhang would otherwise widen the document past the viewport.
+   */
+  .artworkStage {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .artworkPlate {
+    display: none;
+  }
+
   .bandInner {
     padding-top: calc(var(--header-height) + var(--space-4));
   }

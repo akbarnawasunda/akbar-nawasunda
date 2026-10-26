@@ -88,7 +88,8 @@
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
     scrollbar-color: var(--color-border) transparent;
     -webkit-overflow-scrolling: touch;
     flex-direction: row;

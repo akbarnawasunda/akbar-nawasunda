@@ -495,6 +495,26 @@
   border: 1px solid var(--color-border);
 }
 
+/*
+ * Round 32: the phone gets the sleeve edge to edge — a record held to the glass, not framed on a
+ * table. The offset plate (the one "shadow" on the site) stays on wider screens; at this width its
+ * overhang would push the document sideways.
+ */
+@media (max-width: 767px) {
+  .sleeveStage {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .sleeveEdge {
+    display: none;
+  }
+
+  .sleeveFace {
+    border: 0;
+  }
+}
+
 /* ------------------------------------------------------------------------------------ index */
 
 .indexBand {
