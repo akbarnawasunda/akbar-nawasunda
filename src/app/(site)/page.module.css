@@ -668,6 +668,13 @@
   color: var(--color-text-muted);
 }
 
+.pressActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
 .pressTitle {
   margin-top: var(--space-3);
   padding-bottom: var(--space-6);
@@ -745,58 +752,6 @@
   color: var(--color-text-muted);
 }
 
-/* -------------------------------------------------------------------------------------- epk */
-
-.epkBand {
-  padding-block: var(--section-padding);
-  border-top: 1px solid var(--color-hairline);
-}
-
-.epk {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: clamp(2rem, 5vw, 4rem);
-}
-
-.epkTitle {
-  margin-top: var(--space-3);
-  font-size: var(--text-display);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
-  text-transform: uppercase;
-}
-
-.epkActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-}
-
-.epkNote {
-  display: grid;
-  gap: var(--space-2);
-  padding-left: var(--space-6);
-  border-left: 1px solid var(--color-hairline);
-}
-
-.epkNoteLabel {
-  font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.epkNoteValue {
-  font-family: var(--font-body-stack);
-  font-weight: 400;
-  font-size: clamp(1.125rem, 1.6vw, 1.5rem);
-  line-height: 1.15;
-  letter-spacing: var(--tracking-tight);
-  overflow-wrap: anywhere;
-}
 
 .notesBand {
   padding-block: var(--section-padding);
@@ -820,20 +775,12 @@
   }
 
   .transmissionBody,
-  .pressWrap,
-  .epk {
+  .pressWrap {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .press {
     padding: var(--space-4);
-  }
-
-  .epkNote {
-    padding-left: 0;
-    padding-top: var(--space-4);
-    border-left: 0;
-    border-top: 1px solid var(--color-hairline);
   }
 
   .signature {

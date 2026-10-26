@@ -56,7 +56,7 @@ export default async function MusicPage() {
   return (
     <>
       <PageMasthead
-        index="01 — Katalog"
+        index="Katalog"
         title="Musik"
         figure={items.length > 0 ? count : undefined}
         lead="Rilis, remix, dan mix Akbar Nawasunda."

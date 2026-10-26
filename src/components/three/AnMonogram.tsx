@@ -65,6 +65,18 @@ export function AnMonogram() {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    /* Round 27: off-screen the water sleeps. An IntersectionObserver flips one boolean; while the
+       band is out of view the pointer handler returns before it even reads its cached rect, so a
+       page scrolled away from the monogram pays nothing for it. */
+    let inView = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        inView = entries[0]?.isIntersecting ?? false;
+      },
+      { rootMargin: "10% 0px" },
+    );
+    observer.observe(host);
+
     /* Cached geometry: the rect is read once per scroll burst and on entry, never per pointermove.
        A 125 Hz mouse must not become 125 forced reflows — that bug is why this file reads the way
        it does. */
@@ -81,6 +93,7 @@ export function AnMonogram() {
       host.style.setProperty("--lstr", "1");
     };
     const onMove = (event: PointerEvent) => {
+      if (!inView) return;
       if (rectDirty) {
         rect = host.getBoundingClientRect();
         rectDirty = false;
@@ -113,6 +126,7 @@ export function AnMonogram() {
       window.removeEventListener("pointerdown", onMove);
       window.removeEventListener("blur", onOff);
       img.removeEventListener("load", reveal);
+      observer.disconnect();
     };
   }, []);
 

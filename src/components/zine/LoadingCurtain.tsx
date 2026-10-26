@@ -30,12 +30,12 @@ import styles from "./LoadingCurtain.module.css";
  */
 const SHOWN_KEY = "an-curtain";
 /** How long the sheet stays up before it starts to lift. */
-const HOLD_MS = 1500;
+const HOLD_MS = 900;
 /** How long the lift takes, and the gap between the ink sheet and the blue one. */
-const LIFT_MS = 640;
+const LIFT_MS = 480;
 const GAP_MS = 80;
 /** The count runs slightly shorter than the hold, so it lands on 100 and is read for a moment. */
-const COUNT_MS = 1250;
+const COUNT_MS = 800;
 
 export function LoadingCurtain() {
   const boot = useRef<HTMLDivElement | null>(null);

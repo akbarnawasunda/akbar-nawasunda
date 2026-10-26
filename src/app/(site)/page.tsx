@@ -24,7 +24,7 @@ import { heroStats } from "@/content/stats";
 import { visualItems } from "@/content/visuals";
 import { artistTimeline } from "@/content/artist";
 import { siteConfig } from "@/config/site";
-import { contactEmail, contactHref, listenUrl, socialLinks } from "@/config/socials";
+import { listenUrl, socialLinks } from "@/config/socials";
 import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage, getPublicPhotos } from "@/studio/public";
@@ -245,7 +245,7 @@ export default async function HomePage() {
       <section className={styles.transmission} id="music" aria-labelledby="music-title">
         <Container>
           <div className={styles.transmissionHead}>
-            <p className={styles.sectionNumber}>03 — Rilis terbaru</p>
+            <p className={styles.sectionNumber}>Rilis terbaru</p>
             <Link className={styles.sectionLink} href="/music">
               Semua rilis <span aria-hidden="true">→</span>
             </Link>
@@ -289,7 +289,7 @@ export default async function HomePage() {
       <section className={styles.indexBand} aria-labelledby="catalogue-title">
         <Container>
           <div className={styles.transmissionHead}>
-            <p className={styles.sectionNumber}>04 — Katalog</p>
+            <p className={styles.sectionNumber}>Katalog</p>
             <p className={styles.sectionNote}>{String(stats.releaseCount).padStart(2, "0")} rilis</p>
           </div>
           <h2 id="catalogue-title" className={styles.indexTitle}>
@@ -351,7 +351,7 @@ export default async function HomePage() {
         <Container>
           <Depth y={26} fade={0.08}>
             <SectionHeader
-              eyebrow="05 — Arsip"
+              eyebrow="Arsip"
               title="Visual"
               id="visuals-title"
               action={youtube ? { href: youtube.href, label: "YouTube" } : undefined}
@@ -366,7 +366,7 @@ export default async function HomePage() {
         <Container>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
-              <p className={styles.pressEyebrow}>06 — Press kit</p>
+              <p className={styles.pressEyebrow}>Press kit</p>
               <h2 id="press-title" className={styles.pressTitle}>
                 Akbar Nawasunda
               </h2>
@@ -382,6 +382,17 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ol>
+
+              {/* Round 27: the press sheet absorbs the booking/EPK actions — a second band titled
+                  "Press kit" one section lower said the same thing twice. */}
+              <div className={styles.pressActions}>
+                <ButtonLink href="/epk/akbar-nawasunda-epk.zip" variant="primary">
+                  Unduh EPK (.zip)
+                </ButtonLink>
+                <ButtonLink href="/epk" variant="secondary">
+                  Isi press kit
+                </ButtonLink>
+              </div>
             </div>
 
             <figure className={styles.pressPhoto}>
@@ -411,40 +422,10 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* -------------------------------------------------------------------- epk */}
-      <section className={styles.epkBand} aria-labelledby="epk-title">
-        <Container>
-          <div className={styles.epk}>
-            <div>
-              <p className={styles.sectionNumber}>07 — Booking &amp; pers</p>
-              <h2 id="epk-title" className={styles.epkTitle}>
-                Press kit
-              </h2>
-              <div className={styles.epkActions}>
-                <Magnetic>
-                  <ButtonLink href="/epk/akbar-nawasunda-epk.zip" variant="primary">
-                    Unduh EPK (.zip)
-                  </ButtonLink>
-                </Magnetic>
-                <ButtonLink href="/epk" variant="secondary">
-                  Isi press kit
-                </ButtonLink>
-              </div>
-            </div>
-            <div className={styles.epkNote}>
-              <p className={styles.epkNoteLabel}>Booking &amp; pers</p>
-              <p className={styles.epkNoteValue}>
-                <a href={contactHref}>{contactEmail}</a>
-              </p>
-            </div>
-          </div>
-        </Container>
-      </section>
-
       {homeSections.length > 0 ? (
         <section className={styles.notesBand} aria-labelledby="catatan-title">
           <Container>
-            <SectionHeader eyebrow="08 — Catatan" title="Dari Studio" id="catatan-title" />
+            <SectionHeader eyebrow="Catatan" title="Dari Studio" id="catatan-title" />
             <SectionsView sections={homeSections} />
           </Container>
         </section>

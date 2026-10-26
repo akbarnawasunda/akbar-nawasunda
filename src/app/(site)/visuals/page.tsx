@@ -27,7 +27,7 @@ export default function VisualsPage() {
   return (
     <>
       <PageMasthead
-        index="02 — Visual"
+        index="Visual"
         title="Arsip"
         figure={count}
         lead="Potret, panggung, jalan malam, maskot, monogram, dan lockup."

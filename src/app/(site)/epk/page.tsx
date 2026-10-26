@@ -41,7 +41,7 @@ export default function EpkPage() {
     <Container>
       <header className={styles.head}>
         <div className={styles.headCopy}>
-          <p className={styles.eyebrow}>04 — Press kit</p>
+          <p className={styles.eyebrow}>Press kit</p>
           <h1 className={`${styles.title} ink`}>Press kit</h1>
           <p className={styles.lead}>
             Potret resmi, logo transparan, fakta terverifikasi, dan tautan platform. Satu unduhan.

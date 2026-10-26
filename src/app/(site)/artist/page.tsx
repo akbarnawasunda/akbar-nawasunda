@@ -62,7 +62,7 @@ export default async function ArtistPage() {
     <Container>
       <section className={styles.intro} aria-labelledby="artist-title">
         <div className={styles.copy}>
-          <p className={styles.eyebrow}>03 — Artist</p>
+          <p className={styles.eyebrow}>Artist</p>
           <h1 id="artist-title" className={`${styles.title} ink`}>
             Akbar
             <span className={styles.titleLine}>Nawasunda<span className={styles.stop} aria-hidden="true">.</span></span>
@@ -146,7 +146,18 @@ export default async function ArtistPage() {
             />
           ) : (
             <div className={styles.stageEmpty}>
-              <p>Slot foto kosong · isi melalui NAWA Studio</p>
+              {/* A designed placeholder, not a message: the label's own mark, ghosted, holds the
+                  frame until the owner fills the slot from NAWA Studio. */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- designed placeholder ghost, same bake as the band */}
+              <img
+                src={anMark.src}
+                alt=""
+                width={anMark.width}
+                height={anMark.height}
+                loading="lazy"
+                decoding="async"
+                className={styles.stageEmptyMark}
+              />
             </div>
           )}
         </Depth>

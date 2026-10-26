@@ -354,20 +354,12 @@
   place-items: center;
   height: 100%;
   background: var(--color-bone);
-  color: var(--color-bone-ink);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 
-.stageEmpty p {
-  /* globals.css gives every `p` its own secondary colour, which beats inheritance — the slot label
-     must read the plate's own ink, same trap as the round-24 bone flips. */
-  color: inherit;
-  margin: 0;
-  padding: 0 var(--gutter);
-  text-align: center;
+.stageEmptyMark {
+  width: var(--space-16);
+  height: auto;
+  opacity: 0.16;
 }
 
 .stageImage {

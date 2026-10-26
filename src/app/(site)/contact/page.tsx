@@ -26,7 +26,7 @@ export default function ContactPage() {
     <>
       <header className={styles.head}>
         <div className={styles.headInner}>
-          <p className={styles.eyebrow}>05 — Kontak</p>
+          <p className={styles.eyebrow}>Kontak</p>
           <h1 className={`${styles.title} ink`}>Kontak</h1>
           <p className={styles.lead}>Booking, remix, kolaborasi, lisensi, dan materi pers.</p>
 

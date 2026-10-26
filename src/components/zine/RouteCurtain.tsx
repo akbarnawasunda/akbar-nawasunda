@@ -8,49 +8,77 @@ import { anMark } from "@/assets/web";
 import styles from "./RouteCurtain.module.css";
 
 /**
- * The turn reel.
+ * The turn reel — and it waits for nothing that is not real.
  *
- * Round 26, owner's ask: entering the site and moving between pages should feel like one film,
- * "mengikuti logo gua". The entry already has the leader curtain; this is the same reel between
- * pages — one ink sheet sweeps up, the AN mark rides it through the middle of the frame, the sheet
- * leaves and the new page is underneath. Nine hundred milliseconds, once per navigation, and it is
- * the mark itself that carries the cut, so a page change is branded by the thing it is a page of.
+ * Round 26 played a fixed 950 ms reel after every navigation, which is exactly the fake loading
+ * the round-27 brief forbids: a duration whether the page is ready or not. Round 27 inverts the
+ * mechanism so the animation is a *measure* of the navigation instead of a tax on it:
  *
- * Rules, same discipline as the entry curtain:
- * - it never waits on anything: the mark is a cached WebP and the sheet is a transform;
- * - `prefers-reduced-motion: reduce` removes it entirely — navigation is instant;
- * - it is `aria-hidden` and `pointer-events: none`: a decoration must never be a wall between the
- *   reader and the page underneath, and tests that click fast must click through it;
- * - it plays on client-side navigation only; a cold load is the entry curtain's job.
+ * - a capture-phase click on an internal link drops the ink sheet (240 ms) while the router
+ *   fetches — the cover hides real work being done, not an invented pause;
+ * - the moment `usePathname` changes (the new route has committed) the sheet lifts and the AN mark
+ *   rides the middle of it out of frame (320 ms);
+ * - if the navigation never commits (aborted click, failed fetch) a safety timer lifts the sheet
+ *   anyway, so a broken route can never trap the reader behind ink;
+ * - clicks that are not plain left-button internal navigation (modifiers, external hrefs, targets,
+ *   the back/forward buttons) never raise the sheet at all.
+ *
+ * `aria-hidden`, `pointer-events: none`, absent under reduced motion, and never painted on a cold
+ * load — that is the entry curtain's reel, kept deliberately shorter in round 27 (900 ms hold) so
+ * the first tap on the catalogue is never more than a second away.
  */
+type Phase = "idle" | "cover" | "lift";
+
+const SAFETY_MS = 2500;
+
 export function RouteCurtain() {
   const pathname = usePathname();
-  const [playing, setPlaying] = useState(false);
-  const first = useRef(true);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const phaseRef = useRef<Phase>("idle");
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    /* Deferred on purpose: the sheet mounts on the next tick, so the browser paints its first
-       keyframe instead of skipping a curl that started mid-commit. */
-    let stop = 0;
-    const start = window.setTimeout(() => {
-      setPlaying(true);
-      stop = window.setTimeout(() => setPlaying(false), 950);
-    }, 0);
-    return () => {
-      window.clearTimeout(start);
-      window.clearTimeout(stop);
+    const onClick = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const anchor = target?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || !href.startsWith("/") || href.startsWith("//")) return;
+      if (anchor.target && anchor.target !== "_self") return;
+      if (phaseRef.current !== "idle") return;
+      setPhase("cover");
     };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  /* The commit is the cue: new route painted, sheet lifts. */
+  useEffect(() => {
+    if (phaseRef.current === "cover") setPhase("lift");
   }, [pathname]);
 
-  if (!playing) return null;
+  useEffect(() => {
+    if (phase !== "cover") return;
+    const safety = window.setTimeout(() => setPhase((value) => (value === "cover" ? "lift" : value)), SAFETY_MS);
+    return () => window.clearTimeout(safety);
+  }, [phase]);
+
+  if (phase === "idle") return null;
 
   return (
-    <div className={styles.curtain} aria-hidden="true">
+    <div
+      className={styles.curtain}
+      data-phase={phase}
+      aria-hidden="true"
+      onAnimationEnd={(event) => {
+        /* The sheet's own lift animation ending is the only clock this component trusts. */
+        if (phase === "lift" && event.animationName.includes("route-lift")) setPhase("idle");
+      }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element -- the mark is the cut; it must paint inside the sheet, not as a next/image slot */}
       <img className={styles.mark} src={anMark.src} alt="" width={anMark.width} height={anMark.height} />
     </div>
