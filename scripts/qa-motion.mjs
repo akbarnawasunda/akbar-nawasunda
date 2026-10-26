@@ -18,7 +18,7 @@
  *   4. hover changes a release card's transform (the 3D tilt);
  *   5. the header shrinks and hides on scroll-down, returns on scroll-up;
  *   6. the mobile drawer opens, traps focus, closes on Escape and returns focus;
- *   7. exactly one canvas exists, and it is loaded lazily rather than at first paint;
+ *   7. no canvas exists anywhere (round 20 baked the monogram), and its still loads lazily;
  *   8. no horizontal overflow at six widths, and no console errors anywhere;
  *   9. (R8, revised R10) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move
  *      writes a rotation, the hero's type block sits at a real negative Z behind the glass, and that
@@ -324,14 +324,14 @@ try {
   check("header hides on scroll down and returns on scroll up", headerDown.hidden === "true" && headerUp === "false");
 
   /*
-   * Canvas: at most one, and never mounted before its band is on screen (D-102).
+   * Zero canvases, everywhere, forever (round 20, owner's instruction: "jangan 3D berat jir").
    *
-   * This used to read the *main* tab after a dozen interactions, which was fine while the monogram
-   * sat 4,400px down the page — nothing could have mounted it. Round 16 moved the object directly
-   * under the hero, so by the time the header checks have scrolled the page the band is on screen
-   * and a mounted canvas is the correct outcome. The contract was never "zero canvases at some
-   * arbitrary scroll position", it was "nothing is allocated before the band is reached", so the
-   * measurement is taken on a fresh tab at scroll 0 and compared against where the band actually is.
+   * The contract used to be "at most one canvas, and nothing allocated before its band is on
+   * screen" (D-102) — a lazy WebGL monogram. Round 20 baked that monogram into WebP stills and
+   * deleted the renderer, so the contract is now absolute: no `<canvas>` element exists at scroll 0
+   * and none appears after the band has been reached, on any viewport. The probe also asserts the
+   * replacement is actually there — a lazy image with real decoded pixels — because "we removed the
+   * heavy thing" is only half the change; the band must not go dark.
    */
   const canvasProbe = await browser.newPage();
   await canvasProbe.setViewport({ width: 1440, height: 900 });
@@ -346,10 +346,6 @@ try {
     };
   });
   await canvasProbe.close();
-  const webgl = await page.evaluate(() => {
-    const probe = document.createElement("canvas");
-    return Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
-  });
 
   // Reduced motion: nothing registers, so no inline transform is written at all.
   const reduced = await browser.newPage();
@@ -438,25 +434,25 @@ try {
   check("no horizontal overflow at 320–1920", overflows.length === 0, overflows.join(", "));
   await sweeper.close();
 
-  // Canvas count is read last so the lazy 3D has had every chance to mount.
+  // Read last, after the band has been reached: the lazy still has had every chance to decode.
   await page.evaluate(() => window.scrollTo(0, 2000));
   await settleScroll(page);
   await sleep(1800);
-  const canvasLater = await page.evaluate(() => document.querySelectorAll("canvas").length);
+  const monogram = await page.evaluate(() => {
+    const band = document.querySelector('[class*="signature"]');
+    const img = band ? band.querySelector("img") : null;
+    return {
+      canvases: document.querySelectorAll("canvas").length,
+      still: Boolean(img && img.complete && img.naturalWidth > 0),
+      lazy: img?.loading === "lazy",
+    };
+  });
   check(
-    "at most one canvas, and nothing allocated before the band is on screen",
-    (canvasBefore.onScreen ? canvasBefore.count <= 1 : canvasBefore.count === 0) &&
-      canvasLater <= (webgl ? 1 : 0),
-    `at scroll 0: ${canvasBefore.count} (band on screen: ${canvasBefore.onScreen}) · after the band: ${canvasLater} · webgl ${webgl ? "yes" : "no"}`,
+    "zero canvases site-wide, and the monogram band ships a decoded lazy still",
+    canvasBefore.count === 0 && monogram.canvases === 0 && monogram.still && monogram.lazy,
+    `canvases at scroll 0: ${canvasBefore.count} (band on screen: ${canvasBefore.onScreen}) · after the band: ${monogram.canvases} · still decoded: ${monogram.still} · lazy: ${monogram.lazy}`,
   );
-  if (!webgl) {
-    check(
-      "without WebGL the monogram band leaves no dead canvas",
-      canvasLater === 0,
-      `${canvasLater} canvas element(s)`,
-    );
-  }
-  await shot(page, "qa-canvas");
+  await shot(page, "qa-monogram");
 
   /*
    * R8 — the catalogue wall and the title sequence.

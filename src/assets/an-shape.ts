@@ -7,6 +7,11 @@
  * 3D scene size it in world units without depending on the raster's pixel size.
  *
  * Do not hand-edit: re-run `node scripts/build-an-shape.mjs` after the mark file changes.
+ *
+ * Round 20 note: nothing in the app imports this any more — the renderer that consumed it is gone
+ * and the monogram ships as baked WebP stills. The contours stay because they are the traced source
+ * of truth for the mark: any future re-bake (`scripts/bake-monogram.mjs` against a pre-round-20
+ * worktree) or re-extrusion starts here, not from the raster.
  */
 export type Ring = readonly (readonly [number, number])[];
 export type AnPolygon = readonly Ring[];

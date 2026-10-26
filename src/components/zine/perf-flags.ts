@@ -11,7 +11,8 @@
  *
  *   /?perf=noplate          the hero does not rotate towards the pointer
  *   /?perf=noink            the colour plate does not follow the pointer
- *   /?perf=nocanvas         the monogram scene is never mounted
+ *   (round 20 retired `nocanvas` with its subject: the monogram is a baked still now, so there is
+ *   no scene left to ablate — the question "what does the canvas cost" has a permanent answer of 0)
  *   /?perf=blur             the header's backdrop blur is restored (it ships removed)
  *   /?perf=noplate,noink    combine as many as you like
  *
@@ -22,7 +23,7 @@
  * is guessing — and the last two rounds of this project were spent learning that guessing about
  * rendering is reliably wrong.
  */
-export const PERF_FLAGS = ["blur", "noplate", "noink", "nocanvas"] as const;
+export const PERF_FLAGS = ["blur", "noplate", "noink"] as const;
 
 export type PerfFlag = (typeof PERF_FLAGS)[number];
 

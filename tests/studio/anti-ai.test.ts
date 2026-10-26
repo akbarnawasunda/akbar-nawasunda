@@ -37,28 +37,26 @@ describe("no generated visual effects ship", () => {
   });
 
   /**
-   * Round 3 (D-095) allows exactly one canvas, for the owner's own mark, and exactly one file that
-   * may create it. A single `<canvas>` in the app is what the brief asks for; a second one is how
-   * the particle field came back last time, so the rule is written as an allowlist, not a ban.
+   * Round 3 (D-095) allowed exactly one canvas, for the owner's own mark. Round 20 retired even
+   * that, on the owner's instruction ("jangan 3D berat jir"): the monogram is now a baked WebP
+   * still and the renderer is gone, so the allowlist collapses into a total ban. A `<canvas>`
+   * coming back anywhere in app code is how the particle field returned last time — the rule stays
+   * absolute precisely because it has been broken once.
    */
-  const CANVAS_ALLOWLIST = ["src/components/three/AnMonogram.tsx"];
-
-  it("ships at most one canvas, in the monogram component only", () => {
-    const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter((file) => {
-      if (CANVAS_ALLOWLIST.includes(file)) return false;
-      return /<canvas/i.test(readFileSync(join(root, file), "utf8"));
-    });
+  it("ships no canvas at all, in any component", () => {
+    const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter((file) =>
+      /<canvas/i.test(readFileSync(join(root, file), "utf8")),
+    );
     assert.deepEqual(offenders, [], `these files render a <canvas>: ${offenders.join(", ")}`);
   });
 
-  it("allows three for the monogram but never the react-three wrappers", () => {
+  it("ships no 3D renderer at all — not even the one the brief once allowed", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
     const all = { ...pkg.dependencies, ...pkg.devDependencies };
-    assert.ok(all.three, "three is the one renderer the brief allows (D-095)");
-    for (const name of ["@react-three/fiber", "@react-three/drei", "gsap"]) {
+    for (const name of ["three", "@react-three/fiber", "@react-three/drei", "babylonjs", "gsap"]) {
       assert.equal(all[name], undefined, `${name} is installed again`);
     }
   });

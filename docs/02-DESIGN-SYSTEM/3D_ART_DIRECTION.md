@@ -7,6 +7,14 @@
 > current site. The current visual language is in `DESIGN.md`: real photography, tight display type,
 > 11px mono labels, hairlines, one 2% grain layer.
 
+> **ADDENDUM, ROUND 20 (2026-10-26).** The one renderer that survived the withdrawal — the liquid-metal
+> AN monogram of rounds 14–19 — is now also gone as a renderer, on the owner's instruction ("3D pake
+> liquid aja cuy, jangan 3D berat jir"). Its look was baked once from the real scene into two WebP
+> stills (`public/assets/monogram/`, provenance in `scripts/bake-monogram.mjs`) and ships as an image:
+> no canvas, no WebGL context, no rAF loop, no `three` in the dependency tree. The object still moves
+> with the page through the single scroll engine. Evidence and the weight table are in
+> `docs/08-IMPLEMENTATION/design-review/round20/`.
+
 ## Concept Meaning
 Liquid Signal = visualisasi sinyal bass yang cair, metalik, mengalir. Representasi transisi: dari remix culture yang cair, tidak berbentuk (DJ Akbar Remix) → identitas yang solid tapi tetap fluid (Akbar Nawasunda). Menggabungkan elemen air (Sunda: flow, sungai) + metal (modern bass, studio gear).
 

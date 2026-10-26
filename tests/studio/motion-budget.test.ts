@@ -19,6 +19,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 
+import { PERF_FLAGS } from "@/components/zine/perf-flags";
+
 import { PLATE_STEPS, platePx, snapPlate } from "../../src/components/print/ink-plate";
 import { parsePerfFlags } from "../../src/components/zine/perf-flags";
 
@@ -119,10 +121,20 @@ test("an unknown or misspelled switch measures the baseline, not something else"
 test("the ablation switches are wired where they claim to be", () => {
   const plate = read("src/components/zine/Plate3D.tsx");
   const ink = read("src/components/print/InkPress.tsx");
-  const canvas = read("src/components/three/AnMonogram.tsx");
   assert.match(plate, /perfFlag\("noplate"\)/, "Plate3D does not honour ?perf=noplate");
   assert.match(ink, /perfFlag\("noink"\)/, "InkPress does not honour ?perf=noink");
-  assert.match(canvas, /perfFlag\("nocanvas"\)/, "AnMonogram does not honour ?perf=nocanvas");
+});
+
+test("the retired nocanvas switch stays retired", () => {
+  /*
+   * Round 20 baked the monogram into WebP stills and deleted the renderer, so `?perf=nocanvas`
+   * lost its subject. The danger this guards is the switch quietly coming back: a flag that reads
+   * as "the heavy thing is off" while the heavy thing ships is worse than no flag at all.
+   */
+  const canvas = read("src/components/three/AnMonogram.tsx");
+  assert.doesNotMatch(canvas, /perfFlag\(/, "AnMonogram reads a perf flag again");
+  assert.doesNotMatch(canvas, /<canvas/i, "AnMonogram renders a canvas again");
+  assert.ok(!(PERF_FLAGS as readonly string[]).includes("nocanvas"), "nocanvas is back in PERF_FLAGS");
 });
 
 test("the header blur only ever comes back behind the switch", () => {

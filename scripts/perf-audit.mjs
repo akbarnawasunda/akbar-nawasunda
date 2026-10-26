@@ -199,9 +199,11 @@ const ABLATION = [
   { name: "baseline", query: "", note: "the shipped build" },
   { name: "-plate", query: "?perf=noplate", note: "hero does not rotate towards the pointer" },
   { name: "-ink", query: "?perf=noink", note: "ink plate frozen (no text-shadow writes)" },
-  { name: "-canvas", query: "?perf=nocanvas", note: "monogram scene never mounted" },
+  /* Round 20 retired the `-canvas` row with its subject: the monogram is a baked WebP still, so the
+     ablation matrix no longer needs a row to prove what the renderer cost — the permanent answer
+     is in docs/08-IMPLEMENTATION/design-review/round20/. */
   { name: "+blur", query: "?perf=blur", note: "header backdrop-filter restored" },
-  { name: "-plate-ink-blur", query: "?perf=noplate,noink,blur", note: "everything but the canvas, plus the blur" },
+  { name: "-plate-ink-blur", query: "?perf=noplate,noink,blur", note: "every remaining switch at once" },
 ];
 
 const ablation = args.includes("--ablation");

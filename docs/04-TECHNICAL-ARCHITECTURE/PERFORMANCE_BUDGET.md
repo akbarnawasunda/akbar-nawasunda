@@ -22,12 +22,12 @@ dapat dilacak di §20.1 dokumen audit.
 | Metrik | Hasil | Budget |
 |---|---|---|
 | JS awal `/` (13 chunk, HTML saja — tanpa chunk 3D) | **201 KB gz** | < 250 KB (round 3) / < 200 KB (Phase 8, terlampaui 1 KB) |
-| JS lazy 3D (chunk `three`) | **78.7 KB gz**, **0 KB** sampai band monogram masuk viewport | < 70 KB di luar anggaran awal — lihat D-096 |
+| JS lazy 3D (chunk `three`) | **0 KB — round 20 menghapus renderer-nya** (sebelumnya 78.7 KB gz lazy) | lihat D-096 dan addendum round 20 di bawah |
 | CSS (3 file) | **14.3 KB gz** | < 40 KB (round 3) / < 30 KB (Phase 8) |
 | LCP `/` desktop (Lighthouse preset) | **0.9 s** | < 2.5 s |
 | LCP `/` mobile (simulasi Lantern, server lokal HTTP/1.1) | **3.4 s** (skor 90) | dicatat, lihat §20.1 |
 | Gambar LCP (stiker potret) | 31.6 KB AVIF / 63.7 KB WebP pada 1200w; 480–720w dipakai di ponsel | < 150 KB |
-| `canvas` di halaman, saat load | **0** | 1 (round 3) — hanya setelah band monogram terlihat |
+| `canvas` di halaman, kapan pun | **0** — permanen sejak round 20 (renderer dihapus, monogram = WebP bake) | 1 (round 3) dulu |
 | TBT `/` | **0–10 ms** | < 200 ms |
 | CLS | 0 desktop / 0.009 mobile | < 0.1 |
 

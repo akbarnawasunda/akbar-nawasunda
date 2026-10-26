@@ -1,18 +1,25 @@
-/* The canvas is scenery: it sits behind the type, never above it, and never eats a pointer event. */
+/*
+ * The band's scenery: it sits behind the type, never above it, never eats a pointer event.
+ *
+ * Round 20 retired the canvas; what fills this host now is a baked still of the same scene, so the
+ * reveal contract is the one the canvas had — invisible until `data-ready`, then a long fade — and
+ * the feathered mask stays because the bake is a clean rectangle and the band must still end in
+ * ink, not in a visible edge.
+ */
 .canvas {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Fades in only once the scene has drawn a frame, so there is no black rectangle in the meantime. */
   opacity: 0;
   transition: opacity 900ms var(--ease);
 }
 
 .canvas[data-ready="true"] {
-  /* The band gives the object its own stage, so it can be shown at nearly full strength. */
+  /* The band gives the object its own stage, so it is shown at nearly full strength. The bake was
+     captured at opacity 1 on purpose: this 0.92 over the band's black reproduces the round-19
+     composite exactly once, instead of darkening an already-darkened capture. */
   opacity: 0.92;
-  /* Feathered at the frame edges so the canvas is never a visible rectangle. */
   mask-image: radial-gradient(115% 105% at 50% 46%, black 52%, transparent 96%);
 }
 
@@ -22,10 +29,38 @@
   }
 }
 
-.canvas canvas {
+/*
+ * The drift layer is the scroll engine's wrapper; it owns the transform, so it only has to fill the
+ * band and stay out of the way.
+ */
+.drift {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * Oversized on purpose: the scroll engine translates the layer a few percent as the band passes,
+ * and an image exactly the size of its box would show a gap at the extremes. The extra six percent
+ * top and bottom is the travel budget; `object-fit` keeps the composition cropped, never stretched.
+ */
+.still {
+  position: absolute;
+  inset: -6% 0;
+  width: 100%;
+  height: 112%;
+  object-fit: cover;
+  object-position: 50% 46%;
   display: block;
-  width: 100% !important;
-  height: 100% !important;
+}
+
+/*
+ * Two classes deep on purpose, same trick as `.signature .signatureFallback img` in the page
+ * module: `globals.css` grayscales every photograph under `.site-main img`, which is right for the
+ * archive and wrong for the one object that is the page's only light source. The bake carries the
+ * neon blue; a grayscale filter would turn liquid metal back into tin.
+ */
+.canvas .still {
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
