@@ -44,38 +44,27 @@ const SIZE = 1000;
 const PAD = 72;
 
 /**
- * Two sleeve series (D-117).
+ * One sleeve series, round 21 (D-117 reversed).
  *
- * Ten sleeves with one layout is the same "nine identical boxes" problem the bento grid was built
- * to avoid — and it is exactly what makes a set of generated covers read as generated. A real label
- * prints a series: same mark, same grid, one thing inverted. So half the catalogue is ink-on-paper
- * and half is paper-on-ink, picked by a hash of the slug — deterministic (the sleeve for a given
- * release never changes between builds, so the grid cannot reshuffle) but not alternating in a way
- * the eye can count.
+ * D-117 split the catalogue into two series — ink-on-paper and paper-on-ink, picked by a slug hash —
+ * on the theory that a real label prints a series with one thing inverted. On the wall it read the
+ * opposite way: light and dark boxes next to each other with no logic the eye can find ("kacau",
+ * owner's word, round 21), and the ink half was so close to the page black that those cards looked
+ * like empty holes rather than sleeves. A series only reads as a series when the grid shows its
+ * rule; a hash is not a rule the eye can see.
  *
- * This is still not artwork. Artwork is the owner's file or the platform's, fetched by
- * `npm run covers:fetch` / the Covers Action. This is the designed floor under that.
- */
-/*
- * The palette is the R13 press palette, not the R8 screen palette: the ground matches the page
- * (`--color-bg-base` #0A0A0E) so a sleeve sitting on the catalogue wall looks printed on the same
- * stock, and the 4 px rule carries one of the two misregistration inks — press cyan on the ink
- * series, poster red on the paper one — instead of the deleted #0087FF.
+ * So: one series, every sleeve, and it is given presence instead of hiding — a ground one step
+ * lighter than the page so the box reads as an object on the wall, a hairline frame like a printed
+ * crop mark, the ghost mark a little louder, and the misregistration rule in press cyan at the
+ * bottom edge. Still no type, still no invented artwork: ground, frame, ghost, rule.
  */
 const SERIES = {
-  ink: { paper: false, ground: "#0A0A0E", title: "#E8E6E1", label: "#9ECFC9", ghost: "#E8E6E1", ghostOpacity: 0.11, rule: "#2E8C86", ruleEdge: "bottom" },
-  paper: { paper: true, ground: "#E8E6E1", title: "#12120F", label: "#14263A", ghost: "#12120F", ghostOpacity: 0.09, rule: "#C93A22", ruleEdge: "top" },
+  ground: "#101014",
+  frame: "#23232B",
+  ghost: "#E8E6E1",
+  ghostOpacity: 0.16,
+  rule: "#2E8C86",
 };
-
-function hash(text) {
-  let value = 0;
-  for (const char of text) value = (value * 31 + char.charCodeAt(0)) >>> 0;
-  return value;
-}
-
-function seriesFor(slug) {
-  return SERIES[hash(slug) % 2 === 0 ? "ink" : "paper"];
-}
 
 /** XML-safe text for the SVG. Titles contain em dashes and commas. */
 function xml(value) {
@@ -92,12 +81,16 @@ function xml(value) {
 
 
 
-function sleeveSvg(release) {
-  const series = seriesFor(release.slug);
+function sleeveSvg() {
+  const frame = 36;
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <rect width="${SIZE}" height="${SIZE}" fill="${series.ground}"/>
+  <rect width="${SIZE}" height="${SIZE}" fill="${SERIES.ground}"/>
 
-  <rect x="0" y="${series.ruleEdge === "bottom" ? SIZE - 4 : 0}" width="${SIZE}" height="4" fill="${series.rule}"/>
+  <!-- The crop-mark frame: one hairline, inset, so the sleeve reads as a printed object on the
+       wall instead of a hole in it. -->
+  <rect x="${frame}" y="${frame}" width="${SIZE - frame * 2}" height="${SIZE - frame * 2}" fill="none" stroke="${SERIES.frame}" stroke-width="2"/>
+
+  <rect x="0" y="${SIZE - 4}" width="${SIZE}" height="4" fill="${SERIES.rule}"/>
 </svg>`);
 }
 
@@ -132,16 +125,13 @@ async function faded(input, opacity) {
 }
 
 async function render(release) {
-  const series = seriesFor(release.slug);
-  const svg = sleeveSvg(release);
-  /* The paper series prints a larger, lower mark: white space at the top of a pale sleeve reads as
-     an empty file, while the same area on ink reads as a sleeve. */
-  const width = series.paper ? 460 : 360;
-  const ghost = await faded(await ghostMark(width, series.ghost), series.ghostOpacity);
-  /* Centred: with the title gone the mark IS the sleeve's subject, and a centred mark on a square
-     is the one composition that reads as deliberate at every crop. */
+  const svg = sleeveSvg();
+  /* One composition for the whole catalogue: the mark centred at a size that survives the phone
+     crop, loud enough to be a subject, quiet enough to stay a ghost. */
+  const width = 420;
+  const ghost = await faded(await ghostMark(width, SERIES.ghost), SERIES.ghostOpacity);
   const left = Math.round((SIZE - width) / 2);
-  const top = Math.round((SIZE - width) / 2) - (series.paper ? 20 : 0);
+  const top = Math.round((SIZE - width) / 2);
 
   const composed = await sharp(svg)
     .composite([{ input: ghost, left, top }])

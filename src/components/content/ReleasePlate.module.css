@@ -38,6 +38,17 @@
   padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-8);
 }
 
+/*
+ * Round 21, from the owner's own screenshots: on a phone the desktop top padding leaves a dead
+ * black band between the header and the catalogue counter — the sleeve that anchors this space on
+ * wide screens sits *below* the copy there, so nothing justifies the air. Half the beat on mobile.
+ */
+@media (max-width: 767px) {
+  .bandInner {
+    padding-top: calc(var(--header-height) + var(--space-4));
+  }
+}
+
 .copy {
   min-width: 0;
   display: grid;
