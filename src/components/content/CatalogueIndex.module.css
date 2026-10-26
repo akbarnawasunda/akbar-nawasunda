@@ -25,6 +25,26 @@
   border-bottom: 1px solid var(--color-hairline);
 }
 
+/*
+ * Round 23 stagger: armed rows sit 14px low and slide home 60ms apart once the wrap is seen.
+ * Transform only — opacity entrances on text fail the contrast gate before the first scroll.
+ */
+.armed .row {
+  transform: translateY(0.875rem);
+}
+
+/* Declared here so the value always resolves, same trick as Reveal's --reveal-delay: the inline
+   style per row overrides it, the stylesheet never reads an undefined custom property. */
+.wrap .row {
+  --row-i: 0;
+  transition: transform 620ms var(--ease-out);
+  transition-delay: calc(var(--row-i, 0) * 60ms);
+}
+
+.wrap[data-visible="true"] .row {
+  transform: none;
+}
+
 .link {
   display: grid;
   grid-template-columns: 3.5rem minmax(0, 1fr) auto auto;

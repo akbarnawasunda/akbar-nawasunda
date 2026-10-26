@@ -311,6 +311,33 @@ export default async function HomePage() {
             Indeks
           </h2>
           <CatalogueIndex rows={indexRows} />
+
+          {/*
+            Round 23: the index is the data, the rail is the object. Ten sleeves in a horizontal
+            scroll-snap rail under the rows — native overflow, no script, no second loop — because
+            a discography you can push sideways with a thumb is the one catalogue gesture a major
+            label site never drops. The rows stay for the readers; the rail is for the hands.
+          */}
+          <div className={styles.railWrap}>
+            <ol className={styles.rail} aria-label="Diskografi">
+              {catalogue.map((item) => (
+                <li className={styles.railItem} key={item.slug}>
+                  <Link
+                    className={styles.railLink}
+                    href={item.href}
+                    aria-label={`Buka rilis ${item.title}`}
+                  >
+                    <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
+                  </Link>
+                  <p className={styles.railTitle}>{item.title}</p>
+                  <p className={styles.railMeta}>{item.meta}</p>
+                </li>
+              ))}
+            </ol>
+            <p className={styles.railHint} aria-hidden="true">
+              Geser <span>→</span>
+            </p>
+          </div>
         </Container>
       </section>
 

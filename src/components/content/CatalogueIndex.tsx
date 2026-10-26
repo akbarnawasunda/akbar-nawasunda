@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import styles from "./CatalogueIndex.module.css";
 
@@ -38,8 +38,39 @@ const PREVIEW_OFFSET = { x: 40, y: -170 };
 export function CatalogueIndex({ rows }: { rows: readonly IndexRow[] }) {
   const [active, setActive] = useState<string | null>(null);
   const previewRef = useRef<HTMLSpanElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const frame = useRef(0);
   const point = useRef({ x: 0, y: 0 });
+
+  /*
+   * Round 23: the index arrives one row per beat.
+   *
+   * Transform only, never opacity: an entrance that fades text out before the scroll reaches it
+   * fails the axe contrast gate on every load that has not scrolled yet (learned the same turn I
+   * wrote it — the first pass wrapped each row in the shared Reveal and both gates objected). One
+   * observer on the wrap, one dataset flag, and each row's delay comes from its own --row-i.
+   */
+  useEffect(() => {
+    const node = wrapRef.current;
+    if (!node) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      node.dataset.visible = "true";
+      return;
+    }
+    node.classList.add(styles.armed ?? "index-armed");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          node.dataset.visible = "true";
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const place = useCallback(() => {
     frame.current = 0;
@@ -73,14 +104,14 @@ export function CatalogueIndex({ rows }: { rows: readonly IndexRow[] }) {
   const current = rows.find((row) => row.slug === active) ?? null;
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} ref={wrapRef}>
       <ul
         className={styles.list}
         onPointerMove={onPointerMove}
         onPointerLeave={() => setActive(null)}
       >
-        {rows.map((row) => (
-          <li key={row.slug} className={styles.row}>
+        {rows.map((row, index) => (
+          <li key={row.slug} className={styles.row} style={{ "--row-i": index } as React.CSSProperties}>
             <Link
               href={row.href}
               className={styles.link}

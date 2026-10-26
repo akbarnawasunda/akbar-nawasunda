@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
-import { anMark, lockup, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
+import { anMark, editorialFrame, lockup, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionsView } from "@/components/content/SectionsView";
+import { Depth } from "@/components/zine/Depth";
 import { Plate3D } from "@/components/zine/Plate3D";
 import {
   artistFacts,
@@ -118,6 +119,30 @@ export default async function ArtistPage() {
             Potret resmi
           </figcaption>
         </figure>
+      </section>
+
+      {/*
+        Round 23: the artist page gets the one frame the home hero only wears as a backdrop — the
+        empty stage with its single warm spot, full-bleed at last, on the site's one scroll engine.
+        A portrait says who; an empty stage says where the work happens, and it is the only frame
+        in the archive wide enough to breathe between the facts and the bio.
+      */}
+      <section className={styles.stageBand} aria-label="Panggung">
+        <Depth className={styles.stageMedia} y={-64} perspective={1200}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame */}
+          <img
+            src={editorialFrame.webp}
+            alt=""
+            width={editorialFrame.width}
+            height={editorialFrame.height}
+            loading="lazy"
+            decoding="async"
+            className={styles.stageImage}
+          />
+        </Depth>
+        <p className={styles.stageCaption}>
+          Panggung kosong · satu lampu sorot
+        </p>
       </section>
 
       <PlatformRow />

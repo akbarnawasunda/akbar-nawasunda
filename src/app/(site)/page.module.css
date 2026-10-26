@@ -506,6 +506,74 @@
   border-top: 1px solid var(--color-hairline);
 }
 
+/*
+ * Round 23 — the discography rail. Native horizontal overflow with scroll-snap: no script, no
+ * second rAF loop, a thumb does the work. The scroller is the only element allowed to overflow,
+ * so the page itself never gains a horizontal scrollbar (qa:motion asserts exactly that at five
+ * widths). Sleeves keep their square and their title underneath, because a sleeve without its
+ * title is a texture, not a release.
+ */
+.railWrap {
+  position: relative;
+  margin-top: var(--space-8);
+}
+
+.rail {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-1) var(--space-4);
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.railItem {
+  flex: 0 0 clamp(9rem, 24vw, 15rem);
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.railLink {
+  display: block;
+  aspect-ratio: 1;
+  outline-offset: var(--space-1);
+}
+
+.railTitle {
+  margin-top: var(--space-3);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-small);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  overflow-wrap: break-word;
+}
+
+.railMeta {
+  margin-top: var(--space-1);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.railHint {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
 /* "INDEKS" is a section title, not a hero: 6vw keeps it subordinate to the name on the same page. */
 .indexTitle {
   margin-top: var(--space-6);
