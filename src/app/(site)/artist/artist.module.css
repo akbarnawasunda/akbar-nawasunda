@@ -7,7 +7,8 @@
  */
 .intro {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  /* Round 29, per the owner's spec: copy on the left gets 5fr, the portrait on the right 7fr. */
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: clamp(2rem, 5vw, 5rem);
   align-items: start;
   padding-block: var(--section-padding);

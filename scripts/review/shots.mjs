@@ -50,7 +50,7 @@ const R8_SHOTS = [
   { name: "03-home-hero-3d-1280", route: "/", width: 1280, height: 900, pointer: [1080, 760] },
   { name: "04-home-ticker-1280", route: "/", width: 1280, height: 900, selector: "[data-ticker]" },
   { name: "05-home-release-1280", route: "/", width: 1280, height: 900, selector: "#music" },
-  { name: "06-home-rail-hover-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']", hover: "[data-rail-item]" },
+  { name: "06-home-reel-hover-1280", route: "/", width: 1280, height: 900, pinMid: true, hover: "[data-qa-hover]" },
   { name: "07-home-night-1280", route: "/", width: 1280, height: 900, selector: "[class*='night']" },
   { name: "08-music-1280", route: "/music", width: 1280, height: 900 },
   { name: "09-music-wall-hover-1280", route: "/music", width: 1280, height: 900, scroll: 320, hover: "[data-wall-card]" },
@@ -173,6 +173,27 @@ async page => {
       await page.evaluate(() => window.scrollTo(0, 0));
     }
 
+    if (shot.pinMid) {
+      // The catalogue reel (round 29) is a pinned band: the readable state is mid-travel, with the
+      // row translated and the sleeves under the sticky viewport — not the wrapper's first pixel.
+      await page.evaluate(() => {
+        const wrap = document.querySelector('[data-catalogue-pin]');
+        if (wrap) {
+          const rect = wrap.getBoundingClientRect();
+          window.scrollTo(0, rect.top + window.scrollY + (rect.height - window.innerHeight) * 0.55);
+        }
+        // Mid-travel the first cards are off screen; mark one fully inside the viewport so the
+        // hover below has a clickable point.
+        for (const link of document.querySelectorAll('[data-pin-card] a')) {
+          const r = link.getBoundingClientRect();
+          if (r.left > 24 && r.right < window.innerWidth - 24 && r.top > 24 && r.bottom < window.innerHeight - 24) {
+            link.setAttribute('data-qa-hover', '');
+            break;
+          }
+        }
+      });
+    }
+
     if (shot.offset) {
       await page.evaluate((y) => window.scrollTo(0, y), shot.offset);
     }
@@ -286,6 +307,15 @@ try {
 
       if (shot.scroll) await page.evaluate((y) => window.scrollTo(0, y), shot.scroll);
       if (shot.offset) await page.evaluate((y) => window.scrollTo(0, y), shot.offset);
+      if (shot.pinMid) {
+        await page.evaluate(() => {
+          const wrap = document.querySelector("[data-catalogue-pin]");
+          if (wrap) {
+            const rect = wrap.getBoundingClientRect();
+            window.scrollTo(0, rect.top + window.scrollY + (rect.height - window.innerHeight) * 0.55);
+          }
+        });
+      }
 
       /* Settle: fonts ready, then wait until the smooth-scroll layer has actually stopped moving. */
       await page.evaluate(async () => {
@@ -298,6 +328,20 @@ try {
         }
       });
       await new Promise((r) => setTimeout(r, 700));
+
+      if (shot.pinMid) {
+        /* Marked after the settle, never before: with smooth scrolling the cards are still a
+           viewport away at write time, and a mark made then names the wrong sleeve. */
+        await page.evaluate(() => {
+          for (const link of document.querySelectorAll("[data-pin-card] a")) {
+            const r = link.getBoundingClientRect();
+            if (r.left > 24 && r.right < window.innerWidth - 24 && r.top > 24 && r.bottom < window.innerHeight - 24) {
+              link.setAttribute("data-qa-hover", "");
+              break;
+            }
+          }
+        });
+      }
 
       if (shot.sheet) {
         const toggle = await page.$("[data-sheet-toggle]");

@@ -37,27 +37,58 @@ describe("no generated visual effects ship", () => {
   });
 
   /**
-   * Round 3 (D-095) allowed exactly one canvas, for the owner's own mark. Round 20 retired even
-   * that, on the owner's instruction ("jangan 3D berat jir"): the monogram is now a baked WebP
-   * still and the renderer is gone, so the allowlist collapses into a total ban. A `<canvas>`
-   * coming back anywhere in app code is how the particle field returned last time — the rule stays
-   * absolute precisely because it has been broken once.
+   * The canvas rule's history, because it has now flipped twice and each flip was the owner's:
+   * round 3 (D-095) allowed exactly one canvas for the mark; round 20 retired it ("jangan 3D berat
+   * jir") and the monogram became a baked WebP still; round 29 is an absolute spec for a *liquid
+   * shader* monogram — a 2D quad, no 3D objects, lazily mounted, `frameloop` off when the band
+   * scrolls away. So the rule is again "exactly one canvas, in exactly one file": the lazy
+   * `AnMonogramLiquid` chunk. Anywhere else a `<canvas>` appears is how the particle field
+   * returned last time, and stays banned.
    */
-  it("ships no canvas at all, in any component", () => {
-    const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter((file) =>
-      /<canvas/i.test(readFileSync(join(root, file), "utf8")),
+  const LIQUID_CHUNK = "src/components/three/AnMonogramLiquid.tsx";
+
+  it("ships exactly one canvas surface: the lazy liquid-monogram chunk", () => {
+    const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter(
+      (file) => file !== LIQUID_CHUNK && /<canvas/i.test(readFileSync(join(root, file), "utf8")),
     );
     assert.deepEqual(offenders, [], `these files render a <canvas>: ${offenders.join(", ")}`);
+    assert.ok(
+      /<Canvas/.test(readFileSync(join(root, LIQUID_CHUNK), "utf8")),
+      "the liquid chunk no longer renders its Canvas",
+    );
   });
 
-  it("ships no 3D renderer at all — not even the one the brief once allowed", () => {
+  /**
+   * Round 29 sanctions three/@react-three/fiber for the liquid monogram and nothing else: the
+   * chunk that imports them must be the lazy one, the orchestrator must mount it through
+   * `React.lazy` (so `check:web`'s budget never sees it), the baked still must stay in the DOM as
+   * the fallback, the owner's "no rigid 3D" rules out extruded/box geometry, and drei/babylon/gsap
+   * stay banned outright — a dependency that arrives "just for the signal" is how this started.
+   */
+  it("keeps the 3D stack quarantined in the lazy liquid chunk, with no rigid geometry", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
     const all = { ...pkg.dependencies, ...pkg.devDependencies };
-    for (const name of ["three", "@react-three/fiber", "@react-three/drei", "babylonjs", "gsap"]) {
+    for (const name of ["@react-three/drei", "babylonjs", "gsap"]) {
       assert.equal(all[name], undefined, `${name} is installed again`);
+    }
+
+    const importers = globSync("src/**/*.{ts,tsx}", { cwd: root }).filter((file) =>
+      /from\s+"(three|@react-three\/fiber)|import\(\s*"(three|@react-three\/fiber)/.test(
+        readFileSync(join(root, file), "utf8"),
+      ),
+    );
+    assert.deepEqual(importers, [LIQUID_CHUNK], `these files import the 3D stack: ${importers.join(", ")}`);
+
+    const orchestrator = readFileSync(join(root, "src/components/three/AnMonogram.tsx"), "utf8");
+    assert.match(orchestrator, /lazy\(\(\) => import\("\.\/AnMonogramLiquid"\)\)/, "the chunk is not lazily imported");
+    assert.match(orchestrator, /loading="lazy"/, "the baked still fallback is gone");
+
+    const chunk = readFileSync(join(root, LIQUID_CHUNK), "utf8");
+    for (const rigid of [/BoxGeometry/, /ExtrudeGeometry/, /TextGeometry/, /TubeGeometry/]) {
+      assert.ok(!rigid.test(chunk), `${rigid.source}: the owner's spec is a shader quad, not rigid 3D`);
     }
   });
 

@@ -1,18 +1,12 @@
 /*
  * The band's scenery: it sits behind the type, never above it, never eats a pointer event.
  *
- * Round 26: the water is visible and cheap. Three copies of one bake — base under, two splits
- * over it — parting along the pointer and healing behind it, with no filter anywhere: every byte
- * of the effect is a compositor transform and an opacity, which is the only reason a full-viewport
- * band can answer a 125 Hz mouse without dropping a frame. The reveal contract is the one the
- * canvas had: invisible until `data-ready`, then a long fade into the band's black.
+ * Round 29: the water is a shader quad (see AnMonogramLiquid). The baked still underneath is the
+ * fallback and the floor: no WebGL, reduced motion and phones never mount the GPU path, and once
+ * the shader is live the still simply fades out under it — same reveal contract as always:
+ * invisible until `data-ready`, then a long fade into the band's black.
  */
 .canvas {
-  /* The water's state, at rest. The pointer overwrites these on the host element; declaring them
-     here keeps every calc() readable before the first touch and satisfies the token audit. */
-  --lx: 0;
-  --ly: 0;
-  --lstr: 0;
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -36,21 +30,17 @@
   inset: 0;
 }
 
-/* The water stack: three copies of one bake, exactly on top of each other at rest. */
+/* The stack: baked still below, shader quad above it once mounted. */
 .liquid {
   position: absolute;
   inset: 0;
-  /* The swell: half a percent thicker where the hand is, and back to 1 when it leaves. */
-  transform: scale(calc(1 + var(--lstr) * 0.006));
-  transition: transform 320ms var(--ease-out);
 }
 
 /*
  * Oversized on purpose: the scroll engine translates the layer a few percent as the band passes,
  * and an image exactly the size of its box would show a gap at the extremes.
  */
-.still,
-.split {
+.still {
   position: absolute;
   inset: -6% 0;
   width: 100%;
@@ -58,32 +48,12 @@
   object-fit: cover;
   object-position: 50% 46%;
   display: block;
+  transition: opacity 700ms var(--ease);
 }
 
-/*
- * The part: the two copies ride ABOVE the base and drift apart along the pointer vector — token
- * scaled, never more than a centimetre — at almost half strength, so the mark visibly doubles at
- * its edges. At rest (`--lstr: 0`) all three are one surface again.
- */
-.split {
-  opacity: calc(var(--lstr) * 0.5);
-  transition:
-    transform 220ms var(--ease-out),
-    opacity 300ms var(--ease-out);
-}
-
-.splitA {
-  transform: translate3d(calc(var(--lx) * var(--space-6)), calc(var(--ly) * var(--space-6)), 0);
-}
-
-.splitB {
-  transform: translate3d(calc(var(--lx) * var(--space-6) * -1), calc(var(--ly) * var(--space-6) * -1), 0);
-}
-
-/* The lean: the base answers with a smaller counter-translate — reaction, not glitch. */
-.still {
-  transform: translate3d(calc(var(--lx) * var(--space-3) * -1), calc(var(--ly) * var(--space-3) * -1), 0);
-  transition: transform 220ms var(--ease-out);
+/* The shader is live: the still steps back under it instead of doubling the mark. */
+.canvas[data-liquid="on"] .still {
+  opacity: 0;
 }
 
 /*
@@ -91,24 +61,13 @@
  * module: `globals.css` grayscales every photograph under `.site-main img`, which is right for
  * the archive and wrong for the one object that is the page's only light source.
  */
-.canvas .still,
-.canvas .split {
+.canvas .still {
   filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .canvas {
+  .canvas,
+  .still {
     transition: none;
-  }
-
-  .split,
-  .still,
-  .liquid {
-    transition: none;
-    transform: none;
-  }
-
-  .split {
-    opacity: 0;
   }
 }

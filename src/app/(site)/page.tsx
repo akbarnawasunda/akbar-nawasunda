@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
 import { PaperAbout } from "@/components/content/PaperAbout";
+import { CataloguePin } from "@/components/content/CataloguePin";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
@@ -308,28 +309,21 @@ export default async function HomePage() {
             {stats.releaseCount} rilis · sejak {siteConfig.since}
           </p>
           {/*
-            Round 23: the index is the data, the rail is the object. Ten sleeves in a horizontal
-            scroll-snap rail under the rows — native overflow, no script, no second loop — because
-            a discography you can push sideways with a thumb is the one catalogue gesture a major
-            label site never drops. The rows stay for the readers; the rail is for the hands.
+            Round 29: the index is the data, the rail is the object — and the object is a pinned
+            reel now. A 300vh wrapper, a sticky 100vh flex row, and the page's own scroll engine
+            turning the pinned travel into one translateX; under 768px it dissolves back into a
+            vertical column, because a discography you can push sideways with a thumb is the one
+            catalogue gesture a major label site never drops.
           */}
-          <div className={styles.railWrap}>
-            <ol className={styles.rail} aria-label="Diskografi">
-              {catalogue.map((item) => (
-                <li className={styles.railItem} key={item.slug} data-rail-item>
-                  <Link
-                    className={styles.railLink}
-                    href={item.href}
-                    aria-label={`Buka rilis ${item.title}`}
-                  >
-                    <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
-                  </Link>
-                  <p className={styles.railTitle}>{item.title}</p>
-                  <p className={styles.railMeta}>{item.meta}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
+          <CataloguePin
+            items={catalogue.map((item) => ({
+              slug: item.slug,
+              href: item.href,
+              title: item.title,
+              meta: item.meta,
+              artwork: item.artwork,
+            }))}
+          />
         </Container>
       </section>
 

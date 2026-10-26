@@ -94,6 +94,9 @@ h3 {
 p {
   line-height: var(--leading-body);
   color: var(--color-text-secondary);
+  /* Round 29, per spec: body copy never runs wider than a comfortable measure. Components that
+     genuinely need a wider line (a ticker, a wordmark) opt out locally with `max-width: none`. */
+  max-width: 60ch;
 }
 
 /*

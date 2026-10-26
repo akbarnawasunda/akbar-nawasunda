@@ -186,21 +186,68 @@ try {
    * - the featured sleeve lifts, which is a translate.
    * Both are read from the element that owns the property, not assumed.
    */
-  const railItem = await page.$('[data-rail-item] a');
-  if (railItem) {
-    const readTransform = () =>
-      page.evaluate(() => {
-        const link = document.querySelector("[data-rail-item] a");
-        return link ? getComputedStyle(link).transform : "none";
-      });
-    const before = await readTransform();
-    await railItem.hover();
-    await sleep(500);
-    const after = await readTransform();
-    check("rail sleeves answer hover", before !== after, `${before} → ${after}`);
-    await shot(page, "qa-rail-hover");
+  /*
+   * Round 29 — the rail is a pinned reel: the engine writes --pin across the wrapper's 200vh of
+   * travel and the stylesheet turns it into one translateX. Asserted from both ends: the number
+   * moves, and the row visibly moves with it. Then the sleeve still answers the hand.
+   */
+  const pinWrap = await page.$("[data-catalogue-pin]");
+  if (pinWrap) {
+    await page.evaluate(() => {
+      const wrap = document.querySelector("[data-catalogue-pin]");
+      const top = wrap.getBoundingClientRect().top + window.scrollY;
+      const span = wrap.getBoundingClientRect().height - window.innerHeight;
+      window.scrollTo(0, top + span * 0.55);
+    });
+    await settleScroll(page);
+    await sleep(400);
+    const pinned = await page.evaluate(() => {
+      const wrap = document.querySelector("[data-catalogue-pin]");
+      const row = wrap?.firstElementChild;
+      const m = row ? new DOMMatrixReadOnly(getComputedStyle(row).transform) : null;
+      return {
+        pin: Number(getComputedStyle(wrap).getPropertyValue("--pin")),
+        tx: m ? m.m41 : 0,
+      };
+    });
+    check(
+      "the pinned catalogue reel translates as --pin crosses the band",
+      pinned.pin > 0.4 && pinned.pin < 0.7 && pinned.tx < -100,
+      `--pin ${pinned.pin.toFixed(4)} · translateX ${pinned.tx.toFixed(1)}px`,
+    );
+    await shot(page, "qa-pin-reel");
+
+    /* Mid-travel the first card is off screen — the row has translated. Hover the card that is
+       actually under the reader: find one fully inside the viewport, mark it, aim the mouse. */
+    const cardBox = await page.evaluate(() => {
+      const links = [...document.querySelectorAll("[data-pin-card] a")];
+      for (const link of links) {
+        const r = link.getBoundingClientRect();
+        if (r.left > 24 && r.right < window.innerWidth - 24 && r.top > 24 && r.bottom < window.innerHeight - 24) {
+          link.setAttribute("data-qa-hover", "");
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        }
+      }
+      return null;
+    });
+    if (cardBox) {
+      const readTransform = () =>
+        page.evaluate(() => {
+          const link = document.querySelector("[data-qa-hover]");
+          return link ? getComputedStyle(link).transform : "none";
+        });
+      const before = await readTransform();
+      await page.mouse.move(cardBox.x, cardBox.y, { steps: 6 });
+      await sleep(500);
+      const after = await readTransform();
+      check("reel sleeves answer hover", before !== after, `${before} → ${after}`);
+      await shot(page, "qa-rail-hover");
+    } else {
+      check("reel sleeves answer hover", false, "no [data-pin-card] link inside the viewport at mid-travel");
+    }
   } else {
-    check("rail sleeves answer hover", false, "no [data-rail-item] found");
+    check("the pinned catalogue reel translates as --pin crosses the band", false, "no [data-catalogue-pin] found");
+    check("reel sleeves answer hover", false, "no [data-catalogue-pin] found");
   }
 
   /*
@@ -328,9 +375,12 @@ try {
    * The contract used to be "at most one canvas, and nothing allocated before its band is on
    * screen" (D-102) — a lazy WebGL monogram. Round 20 baked that monogram into WebP stills and
    * deleted the renderer, so the contract is now absolute: no `<canvas>` element exists at scroll 0
-   * and none appears after the band has been reached, on any viewport. The probe also asserts the
-   * replacement is actually there — a lazy image with real decoded pixels — because "we removed the
-   * heavy thing" is only half the change; the band must not go dark.
+   * on any viewport. Round 29 replaced the baked still with a lazy shader quad: the canvas the
+   * band may own is imported dynamically only when the band approaches, only above 768px, only
+   * with motion allowed and only where WebGL exists — so at scroll 0 the count is still zero, and
+   * after the band it is at most one, and only inside the band. The probe also asserts the
+   * fallback floor never moved: a lazy image with real decoded pixels underneath, because "we
+   * added the heavy thing" is only half the change; the band must survive without it.
    */
   const canvasProbe = await browser.newPage();
   await canvasProbe.setViewport({ width: 1440, height: 900 });
@@ -440,16 +490,18 @@ try {
   const monogram = await page.evaluate(() => {
     const band = document.querySelector('[class*="signature"]');
     const img = band ? band.querySelector("img") : null;
+    const canvases = [...document.querySelectorAll("canvas")];
     return {
-      canvases: document.querySelectorAll("canvas").length,
+      canvases: canvases.length,
+      inBand: canvases.every((node) => Boolean(band && band.contains(node))),
       still: Boolean(img && img.complete && img.naturalWidth > 0),
       lazy: img?.loading === "lazy",
     };
   });
   check(
-    "zero canvases site-wide, and the monogram band ships a decoded lazy still",
-    canvasBefore.count === 0 && monogram.canvases === 0 && monogram.still && monogram.lazy,
-    `canvases at scroll 0: ${canvasBefore.count} (band on screen: ${canvasBefore.onScreen}) · after the band: ${monogram.canvases} · still decoded: ${monogram.still} · lazy: ${monogram.lazy}`,
+    "no canvas before the band, at most one inside it, and the band ships a decoded lazy still",
+    canvasBefore.count === 0 && monogram.canvases <= 1 && monogram.inBand && monogram.still && monogram.lazy,
+    `canvases at scroll 0: ${canvasBefore.count} (band on screen: ${canvasBefore.onScreen}) · after the band: ${monogram.canvases} (all inside it: ${monogram.inBand}) · still decoded: ${monogram.still} · lazy: ${monogram.lazy}`,
   );
   await shot(page, "qa-monogram");
 

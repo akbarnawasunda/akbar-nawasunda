@@ -1,0 +1,91 @@
+/*
+ * Round 29 — the pinned horizontal catalogue, exactly per spec:
+ * the wrapper owns 300vh of travel, the row pins at the top for 100vh, and the scroll engine's
+ * `--pin` (0 → 1, inherited from the wrapper) becomes the only transform in the system.
+ * `100%` inside the translate is the row's own max-content width, so at pin 1 the last card sits
+ * flush with the right gutter — no measurement in JS, no layout read per frame.
+ */
+.pinWrap {
+  /* Rest state before the engine's first write: the reel sits flush left. */
+  --pin: 0;
+  height: 300vh;
+  position: relative;
+  margin-top: var(--space-8);
+  /* The row is max-content wide and translates through the wrap, so the wrap clips the overhang —
+     `clip`, not `hidden`: hidden would make it a scroll container and the sticky row would pin to
+     the wrap instead of the viewport, i.e. never pin at all. `clip` keeps sticky on the document
+     scroller and still keeps the page free of a horizontal scrollbar (qa:motion asserts that). */
+  overflow-x: clip;
+}
+
+.pinContent {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: var(--space-6);
+  width: max-content;
+  min-width: 100%;
+  padding-inline: var(--gutter);
+  transform: translateX(calc(var(--pin, 0) * (100vw - 100%)));
+}
+
+.pinCard {
+  flex: none;
+  width: clamp(13rem, 22vw, 19rem);
+}
+
+.pinLink {
+  display: block;
+  outline-offset: var(--space-1);
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.pinLink:hover,
+.pinLink:focus-visible {
+  transform: scale(1.04);
+}
+
+.pinTitle {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-body-stack);
+  font-size: var(--text-title);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+}
+
+.pinMeta {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-body-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Phones: the pin dissolves and the catalogue reads vertically, like the rest of the page. */
+@media (max-width: 767px) {
+  .pinWrap {
+    height: auto;
+  }
+
+  .pinContent {
+    position: static;
+    height: auto;
+    width: auto;
+    min-width: 0;
+    overflow: visible;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-8);
+    padding-block: var(--space-6);
+    transform: none;
+  }
+
+  .pinCard {
+    width: 100%;
+  }
+}

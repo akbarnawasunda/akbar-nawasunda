@@ -3,8 +3,8 @@
  *
  * Three ideas carry this page, and they are the owner's, not the stylesheet's:
  *
- *   1. **The type is the layout.** The name is set at --text-hero (12.5vw, capped at 11.5rem) in
- *      uppercase, one word per line, with 0.86 leading. Nothing else on the band competes with it:
+ *   1. **The type is the layout.** The name is set at --text-hero (round 29: clamp(2rem, 4vw,
+ *      4rem), 1.1 leading, -0.02em) in uppercase, one word per line. Nothing else competes:
  *      the facts are 0.625rem mono, the buttons are 0.6875rem mono, and the photograph is behind
  *      and grayscale.
  *   2. **Structure is a hairline and a mark.** Bands are separated by a 1px white line at 16%; the
@@ -422,7 +422,7 @@
  */
 .transmissionBody {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   align-items: start;
   gap: clamp(2rem, 5vw, 5rem);
   padding-top: var(--space-8);
@@ -527,73 +527,11 @@
 }
 
 /*
- * Round 23 — the discography rail. Native horizontal overflow with scroll-snap: no script, no
- * second rAF loop, a thumb does the work. The scroller is the only element allowed to overflow,
- * so the page itself never gains a horizontal scrollbar (qa:motion asserts exactly that at five
- * widths). Sleeves keep their square and their title underneath, because a sleeve without its
- * title is a texture, not a release.
+ * Round 29 — the discography rail moved: it is a pinned horizontal reel now (see
+ * CataloguePin.module.css — 300vh wrapper, sticky 100vh flex row, the engine's --pin becomes one
+ * translateX, and under 768px it dissolves back to a vertical column). What stays here is the
+ * count above it: a section title's understudy, not a hero.
  */
-.railWrap {
-  position: relative;
-  margin-top: var(--space-8);
-}
-
-.rail {
-  display: flex;
-  gap: var(--space-4);
-  margin: 0;
-  padding: var(--space-2) var(--space-1) var(--space-4);
-  list-style: none;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
-
-.railItem {
-  flex: 0 0 clamp(9rem, 24vw, 15rem);
-  scroll-snap-align: start;
-  min-width: 0;
-}
-
-.railLink {
-  display: block;
-  aspect-ratio: 1;
-  outline-offset: var(--space-1);
-  transition: transform var(--duration-slow) var(--ease-out);
-}
-
-/* Round 26: the rail answers the hand — the sleeve breathes up under the pointer, the only hover
-   the object strip needs now that the rows are gone. Ungated on purpose: on touch the tap
-   navigates before a sticky :hover could mean anything, and a gate would also hide the answer
-   from every headless reviewer. */
-.railLink:hover,
-.railLink:focus-visible {
-  transform: scale(1.04);
-}
-
-.railTitle {
-  margin-top: var(--space-3);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-small);
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-title);
-  text-transform: uppercase;
-  color: var(--color-text-primary);
-  overflow-wrap: break-word;
-}
-
-.railMeta {
-  margin-top: var(--space-1);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-
-/* "INDEKS" is a section title, not a hero: 6vw keeps it subordinate to the name on the same page. */
 .railCount {
   margin: calc(var(--space-2) * -1) 0 var(--space-4);
   font-family: var(--font-body-stack);
@@ -804,8 +742,8 @@
 /* ----------------------------------------------------------------------------------- phones */
 
 /*
- * Every band stacks. The name stays at --text-hero, because a 390px phone is the screen most of
- * these visits happen on and shrinking the type there would be working against the brief.
+ * Every band stacks. The name rides the same clamp() scale as the desktop (round 29: the owner's
+ * type spec floors it at 2rem, so a 390px phone reads the same hierarchy, just smaller).
  */
 @media (max-width: 899px) {
   .hero {
