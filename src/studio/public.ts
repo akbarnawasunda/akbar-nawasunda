@@ -5,6 +5,7 @@ import { getReadyDb } from "./db";
 import { DEFAULT_DESIGN, parseDesign, type DesignSettings } from "./design";
 import { parsePageDocument, type PageDocument, type PageSlug } from "./content-model";
 import * as repo from "./repository";
+import { listPhotoMeta, photoUrl } from "./photos";
 import { parseReleaseDocument, releaseKey, slugFromKey, type ReleaseDocument } from "./releases";
 
 /**
@@ -75,5 +76,20 @@ function sortReleases(items: PublishedRelease[]): PublishedRelease[] {
     if (dateA) return -1;
     if (dateB) return 1;
     return a.doc.title.localeCompare(b.doc.title);
+  });
+}
+
+/**
+ * Filled site photo slots as `slot -> public url`. Public pages call this once per render and fall
+ * back to their repository assets (or an empty frame) for whatever is missing, so a site with no
+ * studio behind it is byte-identical to the static one.
+ */
+export function getPublicPhotos(): Promise<Record<string, string>> {
+  return safely("site photos", {}, async () => {
+    const db = await getReadyDb();
+    const meta = await listPhotoMeta(db);
+    const out: Record<string, string> = {};
+    for (const row of meta) out[row.slot] = photoUrl(row.slot);
+    return out;
   });
 }

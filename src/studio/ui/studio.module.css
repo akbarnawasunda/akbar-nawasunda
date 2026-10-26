@@ -384,3 +384,49 @@
     grid-template-columns: 1fr 2fr auto;
   }
 }
+
+/* Round 26 — the photo slot desk: one row per site photo position. */
+.photoList {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photoRow {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid rgba(236, 232, 223, 0.12);
+}
+
+.photoName {
+  margin: 0;
+  font-weight: 600;
+}
+
+.photoName code {
+  margin-left: var(--space-2);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.photoForms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.photoForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fileInput {
+  min-width: 0;
+  font: inherit;
+  color: var(--color-text-secondary);
+}

@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 import { clearSession, isAdminRequest, setSessionCookie } from "./auth";
 import { getStudioConfigStatus } from "./config";
-import { StudioNotConfiguredError } from "./db";
+import { getReadyDb, StudioNotConfiguredError } from "./db";
+import { deletePhoto, isPhotoSlot, savePhoto } from "./photos";
 import { isPageSlug, PAGE_CONFIG, type PageSlug } from "./content-model";
 import type { FormState } from "./form-state";
 import { releaseArtworkIds } from "./artwork";
@@ -228,4 +229,51 @@ function failureResult(error: unknown, fallback: string): FormState {
   }
   console.error("[studio] action failed", error);
   return { status: "error", message: fallback };
+}
+
+/**
+ * Round 26: the owner's photo pipeline. A slot upload is validated here (type, size), stored as a
+ * base64 row in the studio database, and revalidates the public layouts so the next render serves
+ * `/api/public/foto/<slot>`. "Kosongkan" removes the row and the site falls back to its repository
+ * asset or its empty frame — the slot is never half-filled.
+ */
+export async function savePhotoAction(_previous: FormState, formData: FormData): Promise<FormState> {
+  if (!(await isAdminRequest())) return NOT_SIGNED_IN;
+  const slot = String(formData.get("slot") ?? "");
+  if (!isPhotoSlot(slot)) return { status: "error", message: "Slot tidak dikenali." };
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { status: "error", message: "Pilih file foto dulu." };
+  }
+  if (!["image/webp", "image/png", "image/jpeg", "image/avif"].includes(file.type)) {
+    return { status: "error", message: "Format harus WebP, PNG, JPG, atau AVIF." };
+  }
+  if (file.size > 2_000_000) {
+    return { status: "error", message: "Maksimum 2 MB — fotonya disimpan di database studio." };
+  }
+  try {
+    const db = await getReadyDb();
+    const bytes = Buffer.from(await file.arrayBuffer());
+    await savePhoto(db, slot, bytes.toString("base64"), file.type);
+    revalidatePath("/", "layout");
+    revalidatePath("/artist");
+    return { status: "ok", message: `Foto slot "${slot}" tersimpan dan langsung dipakai situs.` };
+  } catch (error) {
+    return failureResult(error, "Gagal menyimpan foto. Coba lagi sebentar.");
+  }
+}
+
+export async function clearPhotoAction(_previous: FormState, formData: FormData): Promise<FormState> {
+  if (!(await isAdminRequest())) return NOT_SIGNED_IN;
+  const slot = String(formData.get("slot") ?? "");
+  if (!isPhotoSlot(slot)) return { status: "error", message: "Slot tidak dikenali." };
+  try {
+    const db = await getReadyDb();
+    await deletePhoto(db, slot);
+    revalidatePath("/", "layout");
+    revalidatePath("/artist");
+    return { status: "ok", message: `Slot "${slot}" dikosongkan. Situs kembali ke fallbacknya.` };
+  } catch (error) {
+    return failureResult(error, "Gagal mengosongkan slot. Coba lagi sebentar.");
+  }
 }

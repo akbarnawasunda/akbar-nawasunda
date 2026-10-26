@@ -2,6 +2,9 @@ import { assets } from "@/assets/manifest";
 import { coverCandidates, resolveCover } from "@/content/covers";
 import { releases } from "@/content/releases";
 import { requireAdmin } from "@/studio/auth";
+import { getReadyDb } from "@/studio/db";
+import { listPhotoMeta, PHOTO_SLOTS } from "@/studio/photos";
+import { PhotoSlotsForm } from "@/studio/ui/PhotoSlotsForm";
 import { getMediaStorageStatus, R2_REQUIRED_ENV } from "@/studio/media/storage";
 import styles from "@/studio/ui/studio.module.css";
 
@@ -11,6 +14,13 @@ export const metadata = { title: "Media" };
 export default async function StudioMedia() {
   await requireAdmin();
   const status = getMediaStorageStatus();
+  let photoMeta: Awaited<ReturnType<typeof listPhotoMeta>> = [];
+  try {
+    const db = await getReadyDb();
+    photoMeta = await listPhotoMeta(db);
+  } catch {
+    photoMeta = [];
+  }
 
   return (
     <>
@@ -37,6 +47,17 @@ export default async function StudioMedia() {
         card and release page pick it up with no code change and no database edit. This panel is the
         checklist for that, so it is obvious which of the six releases still has no file.
       */}
+      <section className={styles.section} aria-labelledby="photos-heading">
+        <h2 id="photos-heading" className={styles.sectionTitle}>Foto situs</h2>
+        <p className={styles.lead}>
+          {PHOTO_SLOTS.length} posisi foto bernama di situs publik. Unggahan disimpan di database
+          studio dan langsung disajikan lewat <code>/api/public/foto/&lt;slot&gt;</code>; slot yang
+          kosong memakai fallback aset repositori atau frame kosong yang jujur. Maksimum 2 MB per
+          foto (WebP, PNG, JPG, AVIF).
+        </p>
+        <PhotoSlotsForm meta={photoMeta} />
+      </section>
+
       <section className={styles.section} aria-labelledby="covers-heading">
         <h2 id="covers-heading" className={styles.sectionTitle}>
           Artwork rilis

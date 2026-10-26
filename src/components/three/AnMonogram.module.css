@@ -1,9 +1,10 @@
 /*
  * The band's scenery: it sits behind the type, never above it, never eats a pointer event.
  *
- * Round 25: the copy is gone (a mark that introduces itself does not trust itself) and the still
- * became water — two extra copies that part along the pointer and heal behind it, over an SVG
- * turbulence field that only exists while the band is touched. The reveal contract is the one the
+ * Round 26: the water is visible and cheap. Three copies of one bake — base under, two splits
+ * over it — parting along the pointer and healing behind it, with no filter anywhere: every byte
+ * of the effect is a compositor transform and an opacity, which is the only reason a full-viewport
+ * band can answer a 125 Hz mouse without dropping a frame. The reveal contract is the one the
  * canvas had: invisible until `data-ready`, then a long fade into the band's black.
  */
 .canvas {
@@ -22,7 +23,6 @@
 
 .canvas[data-ready="true"] {
   opacity: 0.92;
-  mask-image: radial-gradient(115% 105% at 50% 46%, black 52%, transparent 96%);
 }
 
 @media (max-width: 1023px) {
@@ -40,19 +40,9 @@
 .liquid {
   position: absolute;
   inset: 0;
-}
-
-/* The displacement field is attached only while the pointer is inside: an untouched band pays
-   zero filter cost. `filter: url()` is not the banned blur — it is a reflection in disturbed
-   water, and it is the one thing CSS cannot fake with a gradient. */
-.canvas[data-liquid="on"] .liquid {
-  filter: url(#an-liquid);
-}
-
-.filterSvg {
-  position: absolute;
-  width: 0;
-  height: 0;
+  /* The swell: half a percent thicker where the hand is, and back to 1 when it leaves. */
+  transform: scale(calc(1 + var(--lstr) * 0.006));
+  transition: transform 320ms var(--ease-out);
 }
 
 /*
@@ -71,28 +61,29 @@
 }
 
 /*
- * The part: the two copies drift apart along the pointer vector — a few pixels, token-scaled,
- * never more — and the base answers with a smaller counter-lean. Opacity is the strength the
- * pointer writes; at rest all three are one surface again.
+ * The part: the two copies ride ABOVE the base and drift apart along the pointer vector — token
+ * scaled, never more than a centimetre — at almost half strength, so the mark visibly doubles at
+ * its edges. At rest (`--lstr: 0`) all three are one surface again.
  */
 .split {
-  opacity: calc(var(--lstr, 0) * 0.38);
+  opacity: calc(var(--lstr) * 0.5);
   transition:
-    transform 260ms var(--ease-out),
-    opacity 340ms var(--ease-out);
+    transform 220ms var(--ease-out),
+    opacity 300ms var(--ease-out);
 }
 
 .splitA {
-  transform: translate3d(calc(var(--lx, 0) * var(--space-2)), calc(var(--ly, 0) * var(--space-2)), 0);
+  transform: translate3d(calc(var(--lx) * var(--space-6)), calc(var(--ly) * var(--space-6)), 0);
 }
 
 .splitB {
-  transform: translate3d(calc(var(--lx, 0) * var(--space-2) * -1), calc(var(--ly, 0) * var(--space-2) * -1), 0);
+  transform: translate3d(calc(var(--lx) * var(--space-6) * -1), calc(var(--ly) * var(--space-6) * -1), 0);
 }
 
+/* The lean: the base answers with a smaller counter-translate — reaction, not glitch. */
 .still {
-  transform: translate3d(calc(var(--lx, 0) * var(--space-1) * -1), calc(var(--ly, 0) * var(--space-1) * -1), 0);
-  transition: transform 260ms var(--ease-out);
+  transform: translate3d(calc(var(--lx) * var(--space-3) * -1), calc(var(--ly) * var(--space-3) * -1), 0);
+  transition: transform 220ms var(--ease-out);
 }
 
 /*
@@ -111,7 +102,8 @@
   }
 
   .split,
-  .still {
+  .still,
+  .liquid {
     transition: none;
     transform: none;
   }

@@ -14,8 +14,6 @@ export function homepageSourceFiles(): string[] {
     /* R8 moved the homepage's movement into these three; the rule follows the surface, not the
        file that happened to be on it in round 5 (D-121). ReleaseBento/ReleaseGrid/ReleaseCard were
        deleted with the card grid they belonged to. */
-    "src/components/content/CatalogueIndex.tsx",
-    "src/components/content/CatalogueIndex.module.css",
     "src/components/content/ReleaseTicker.tsx",
     "src/components/content/ReleaseTicker.module.css",
     "src/components/zine/Plate3D.tsx",

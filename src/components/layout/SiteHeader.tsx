@@ -35,6 +35,25 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
+  /*
+   * Round 26, owner's bug: after choosing a page from the menu, the new page could open mid-scroll
+   * (Lenis still coasting at the old position) with the bar hidden — the menu button "disappeared".
+   * A route change now lands at the top, at rest, bar visible, every time.
+   */
+  const firstRoute = useRef(true);
+  useEffect(() => {
+    if (firstRoute.current) {
+      firstRoute.current = false;
+      return;
+    }
+    const header = headerRef.current;
+    if (header) {
+      header.dataset.hidden = "false";
+      header.dataset.state = "rest";
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+  }, [pathname]);
+
   /**
    * Two states, one listener, no layout reads per frame: the bar is 72px at rest and 56px once the
    * page has moved, and it hides while the reader is scrolling down and returns on the first upward
@@ -51,6 +70,12 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
       const y = window.scrollY;
       const delta = y - last;
       header.dataset.state = y > 24 ? "compact" : "rest";
+      /* An open menu is a dialog: the bar that closes it may never hide behind the scroll. */
+      if (document.documentElement.dataset.menu === "open") {
+        header.dataset.hidden = "false";
+        last = y;
+        return;
+      }
       if (y < 96) {
         header.dataset.hidden = "false";
       } else if (delta > 6) {
@@ -175,7 +200,7 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
           >
             <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
             <span aria-hidden="true" className={styles.menuWord}>
-              Menu
+              {open ? "Tutup" : "Menu"}
             </span>
             <span aria-hidden="true" className={styles.burger}>
               <span />

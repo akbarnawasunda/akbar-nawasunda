@@ -186,22 +186,21 @@ try {
    * - the featured sleeve lifts, which is a translate.
    * Both are read from the element that owns the property, not assumed.
    */
-  const indexRow = await page.$('[data-index-row]');
-  if (indexRow) {
-    const before = await page.evaluate(
-      (el) => ({ bg: getComputedStyle(el).backgroundColor, color: getComputedStyle(el).color }),
-      indexRow,
-    );
-    await indexRow.hover();
+  const railItem = await page.$('[data-rail-item] a');
+  if (railItem) {
+    const readTransform = () =>
+      page.evaluate(() => {
+        const link = document.querySelector("[data-rail-item] a");
+        return link ? getComputedStyle(link).transform : "none";
+      });
+    const before = await readTransform();
+    await railItem.hover();
     await sleep(500);
-    const after = await page.evaluate(
-      (el) => ({ bg: getComputedStyle(el).backgroundColor, color: getComputedStyle(el).color }),
-      indexRow,
-    );
-    check("index rows invert on hover", before.bg !== after.bg && before.color !== after.color, `${before.bg} → ${after.bg}`);
-    await shot(page, "qa-index-hover");
+    const after = await readTransform();
+    check("rail sleeves answer hover", before !== after, `${before} → ${after}`);
+    await shot(page, "qa-rail-hover");
   } else {
-    check("index rows invert on hover", false, "no [data-index-row] found");
+    check("rail sleeves answer hover", false, "no [data-rail-item] found");
   }
 
   /*

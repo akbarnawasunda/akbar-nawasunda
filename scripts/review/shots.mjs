@@ -50,7 +50,7 @@ const R8_SHOTS = [
   { name: "03-home-hero-3d-1280", route: "/", width: 1280, height: 900, pointer: [1080, 760] },
   { name: "04-home-ticker-1280", route: "/", width: 1280, height: 900, selector: "[data-ticker]" },
   { name: "05-home-release-1280", route: "/", width: 1280, height: 900, selector: "#music" },
-  { name: "06-home-index-hover-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']", hover: "[data-index-row]" },
+  { name: "06-home-rail-hover-1280", route: "/", width: 1280, height: 900, selector: "[class*='indexBand']", hover: "[data-rail-item]" },
   { name: "07-home-night-1280", route: "/", width: 1280, height: 900, selector: "[class*='night']" },
   { name: "08-music-1280", route: "/music", width: 1280, height: 900 },
   { name: "09-music-wall-hover-1280", route: "/music", width: 1280, height: 900, scroll: 320, hover: "[data-wall-card]" },

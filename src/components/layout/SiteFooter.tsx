@@ -4,6 +4,7 @@ import { anMark } from "@/assets/web";
 import { footerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { contactEmail, contactHref, socialLinks } from "@/config/socials";
+import { platformIcons, type PlatformKey } from "@/components/ui/PlatformIcon";
 import { buildLabel } from "@/config/build";
 import { releases, releaseDisplayTitle } from "@/content/releases";
 import styles from "./SiteFooter.module.css";
@@ -33,14 +34,23 @@ export function SiteFooter() {
         <div className={styles.follow}>
           <p className={styles.followLabel}>Ikuti</p>
           <ul className={styles.socialRow}>
-            {socialLinks.map((link) => (
-              <li key={link.platform}>
-                <a href={link.href} target="_blank" rel="noopener noreferrer">
-                  {link.label}
-                  <span className="sr-only"> (membuka tab baru)</span>
-                </a>
-              </li>
-            ))}
+            {socialLinks.map((link) => {
+              const Icon = platformIcons[link.platform as PlatformKey];
+              return (
+                <li key={link.platform}>
+                  <a href={link.href} target="_blank" rel="noopener noreferrer">
+                    {/*
+                      Round 26, owner: socials read as empty text cells. Each profile now carries
+                      its monochrome SVG mark above the word — the same in-house 24px grid the
+                      listening row uses, so the footer stays one system.
+                    */}
+                    <Icon className={styles.socialIcon} />
+                    {link.label}
+                    <span className="sr-only"> (membuka tab baru)</span>
+                  </a>
+                </li>
+              );
+            })}
             <li>
               <a href={contactHref}>
                 Email

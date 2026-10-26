@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
-import { CatalogueIndex } from "@/components/content/CatalogueIndex";
 import { PaperAbout } from "@/components/content/PaperAbout";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
-import { HudMarks } from "@/components/layout/HudMarks";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
@@ -29,7 +27,7 @@ import { siteConfig } from "@/config/site";
 import { contactEmail, contactHref, listenUrl, socialLinks } from "@/config/socials";
 import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
-import { getPublicPage } from "@/studio/public";
+import { getPublicPage, getPublicPhotos } from "@/studio/public";
 
 import styles from "./page.module.css";
 
@@ -89,14 +87,6 @@ const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
 const officialLinkCount = releases.length + socialLinks.length;
 
 /** One sleeve path per release, for the index preview. `release.cover` first, then the waterfall. */
-const indexRows = catalogue.map((item, index) => ({
-  slug: item.slug,
-  ordinal: String(index + 1).padStart(2, "0"),
-  href: item.href,
-  title: item.title,
-  meta: item.meta,
-  sleeve: item.artwork.kind === "generated" ? null : item.artwork.src,
-}));
 
 const tickerItems = catalogue.map((item) => ({
   slug: item.slug,
@@ -107,9 +97,15 @@ const tickerItems = catalogue.map((item) => ({
 /** Only the milestones that are documented; a gap is silent, not a stamped hole. */
 const timeline = artistTimeline.filter((entry) => !entry.pending);
 
+/* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
+ * filled slot appear within a minute (and immediately after the studio's revalidatePath). */
+export const revalidate = 60;
+
 export default async function HomePage() {
   if (!featured) return null;
   const home = await getPublicPage("home");
+  /* Round 26 photo slots: a studio upload wins, the repository asset is the fallback. */
+  const photos = await getPublicPhotos();
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
 
   return (
@@ -126,7 +122,7 @@ export default async function HomePage() {
         rel="preload"
         as="image"
         type="image/avif"
-        href={editorialFrame.webp}
+        href={photos.latar ?? editorialFrame.webp}
         fetchPriority="high"
       />
 
@@ -136,7 +132,7 @@ export default async function HomePage() {
           {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed art direction, exact crop */}
           <img
             className={styles.heroImage}
-            src={editorialFrame.webp}
+            src={photos.latar ?? editorialFrame.webp}
             alt=""
             width={editorialFrame.width}
             height={editorialFrame.height}
@@ -145,7 +141,6 @@ export default async function HomePage() {
           />
         </Depth>
         <div className={styles.heroScrim} aria-hidden="true" />
-        <HudMarks variant="corners" className={styles.heroMarks} />
 
         <Plate3D
           className={styles.heroStage}
@@ -231,7 +226,6 @@ export default async function HomePage() {
         the light source, and a second bright thing on the same screen would halve it.
       */}
       <section className={styles.signature} aria-label="Monogram">
-        <HudMarks variant="corners" className={styles.signatureMarks} />
         <AnMonogram />
         {/*
           Below 768px the renderer never mounts (R14: bloom on a phone GPU is not worth the frames),
@@ -301,8 +295,6 @@ export default async function HomePage() {
           <h2 id="catalogue-title" className={styles.indexTitle}>
             Indeks
           </h2>
-          <CatalogueIndex rows={indexRows} />
-
           {/*
             Round 23: the index is the data, the rail is the object. Ten sleeves in a horizontal
             scroll-snap rail under the rows — native overflow, no script, no second loop — because
@@ -312,7 +304,7 @@ export default async function HomePage() {
           <div className={styles.railWrap}>
             <ol className={styles.rail} aria-label="Diskografi">
               {catalogue.map((item) => (
-                <li className={styles.railItem} key={item.slug}>
+                <li className={styles.railItem} key={item.slug} data-rail-item>
                   <Link
                     className={styles.railLink}
                     href={item.href}
@@ -325,9 +317,6 @@ export default async function HomePage() {
                 </li>
               ))}
             </ol>
-            <p className={styles.railHint} aria-hidden="true">
-              Geser <span>→</span>
-            </p>
           </div>
         </Container>
       </section>
@@ -337,7 +326,7 @@ export default async function HomePage() {
         <Depth className={styles.nightMedia} y={-90} perspective={1200}>
           {/* eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame */}
           <img
-            src="/media/stage-700.webp"
+            src={photos.malam ?? "/media/stage-700.webp"}
             alt=""
             width={700}
             height={700}

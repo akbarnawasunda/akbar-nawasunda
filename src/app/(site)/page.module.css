@@ -74,9 +74,6 @@
   );
 }
 
-.heroMarks {
-  z-index: 3;
-}
 
 .heroStage {
   position: relative;
@@ -304,9 +301,6 @@
   background: var(--color-band-monogram);
 }
 
-.signatureMarks {
-  z-index: 2;
-}
 
 /* The static stand-in for the renderer, phone-width only. */
 .signatureFallback {
@@ -537,6 +531,16 @@
   display: block;
   aspect-ratio: 1;
   outline-offset: var(--space-1);
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+/* Round 26: the rail answers the hand — the sleeve breathes up under the pointer, the only hover
+   the object strip needs now that the rows are gone. Ungated on purpose: on touch the tap
+   navigates before a sticky :hover could mean anything, and a gate would also hide the answer
+   from every headless reviewer. */
+.railLink:hover,
+.railLink:focus-visible {
+  transform: scale(1.04);
 }
 
 .railTitle {
@@ -559,17 +563,6 @@
   color: var(--color-text-muted);
 }
 
-.railHint {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  padding-top: var(--space-2);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
 
 /* "INDEKS" is a section title, not a hero: 6vw keeps it subordinate to the name on the same page. */
 .indexTitle {
@@ -597,33 +590,6 @@
   overflow: hidden;
   border-top: 1px solid var(--color-hairline);
   background: var(--color-bg);
-}
-
-/*
- * Round 25 — registration. The night frame is pinned by two printer's crosses at the top corners,
- * the same marks the stage band carries on /artist: an image on this site is a placed sheet, not
- * a background. White at half, so they hold over the photograph without shouting.
- */
-.night::before,
-.night::after {
-  content: "";
-  position: absolute;
-  top: calc(var(--header-height) + var(--space-4));
-  z-index: 2;
-  width: var(--space-3);
-  height: var(--space-3);
-  pointer-events: none;
-  background:
-    linear-gradient(var(--color-hairline-strong), var(--color-hairline-strong)) center / 1px 100% no-repeat,
-    linear-gradient(var(--color-hairline-strong), var(--color-hairline-strong)) center / 100% 1px no-repeat;
-}
-
-.night::before {
-  left: var(--gutter);
-}
-
-.night::after {
-  right: var(--gutter);
 }
 
 .nightMedia {

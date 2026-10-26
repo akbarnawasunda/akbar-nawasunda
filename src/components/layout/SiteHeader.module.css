@@ -216,6 +216,19 @@
   transition: transform 200ms var(--ease);
 }
 
+/*
+ * Round 26: the control always shows its state. Open, the two lines cross into an X and the word
+ * becomes TUTUP — a menu button that looks identical open and closed reads as a button that does
+ * nothing, which is exactly how the owner reported it ("tombol menu hilang").
+ */
+.toggle[aria-expanded="true"] .burger span:first-child {
+  transform: translateY(3.5px) rotate(45deg);
+}
+
+.toggle[aria-expanded="true"] .burger span:last-child {
+  transform: translateY(-3.5px) rotate(-45deg);
+}
+
 /* ------------------------------------------------------------- the menu */
 
 /*
@@ -227,6 +240,11 @@
  * behind it cannot scroll (html[data-menu="open"] in globals.css), and it is rendered in a portal
  * rather than inside the header — see the note in SiteHeader.tsx.
  */
+.header:has(.toggle[aria-expanded="true"]) {
+  /* The bar that closes the dialog stays above the dialog. */
+  z-index: calc(var(--z-chrome) + 1);
+}
+
 .drawer {
   /* Default for the inline value the header writes when it opens; declared so the token audit can
      see it, and so a drawer rendered without JS still sits in the right place. */

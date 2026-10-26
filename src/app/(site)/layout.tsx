@@ -3,10 +3,9 @@ import type { ReactNode } from "react";
 import { GrainOverlay } from "@/components/effects/GrainOverlay";
 import { BackSide, type SheetData } from "@/components/print/BackSide";
 import { InkPress } from "@/components/print/InkPress";
-import { CursorDot } from "@/components/zine/CursorDot";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { PerfSwitches } from "@/components/zine/PerfSwitches";
-import { ScrollProgress } from "@/components/zine/ScrollProgress";
+import { RouteCurtain } from "@/components/zine/RouteCurtain";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader, type DrawerLatest } from "@/components/layout/SiteHeader";
@@ -70,7 +69,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <PerfSwitches />
       <LoadingCurtain />
       <SmoothScroll />
-      <ScrollProgress />
+      <RouteCurtain />
       <a href="#main" className="skip-link">
         Lompat ke konten
       </a>
@@ -80,7 +79,6 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       </main>
       <SiteFooter />
       <GrainOverlay />
-      <CursorDot />
       <InkPress />
       <BackSide data={sheet} />
     </div>

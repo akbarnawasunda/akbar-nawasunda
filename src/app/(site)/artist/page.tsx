@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
-import { anMark, editorialFrame, lockup, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
+import { anMark, lockup, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
-import { PlatformRow } from "@/components/layout/PlatformRow";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Depth } from "@/components/zine/Depth";
@@ -18,7 +17,7 @@ import {
 } from "@/content/artist";
 import { listenUrl } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
-import { getPublicPage } from "@/studio/public";
+import { getPublicPage, getPublicPhotos } from "@/studio/public";
 import styles from "./artist.module.css";
 
 // Published Studio content is read per request so a publish shows immediately.
@@ -46,7 +45,14 @@ function formatServices(): string {
   return `${items.join(", ")}, dan ${(last ?? "").toLowerCase()}`;
 }
 
+/* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
+ * filled slot appear within a minute (and immediately after the studio's revalidatePath). */
+export const revalidate = 60;
+
 export default async function ArtistPage() {
+  /* Round 26: the stage is a photo SLOT. Empty until the owner fills it from NAWA Studio — the
+     band then shows an honest bone frame instead of borrowing the home page's photograph. */
+  const photos = await getPublicPhotos();
   // Stored under the `about` key (see content-model.ts): the owner writes the bio in Studio and it
   // appears here, with no code change and no migration.
   const published = await getPublicPage("about");
@@ -129,23 +135,26 @@ export default async function ArtistPage() {
       */}
       <section className={styles.stageBand} aria-label="Panggung">
         <Depth className={styles.stageMedia} y={-64} perspective={1200}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame */}
-          <img
-            src={editorialFrame.webp}
-            alt=""
-            width={editorialFrame.width}
-            height={editorialFrame.height}
-            loading="lazy"
-            decoding="async"
-            className={styles.stageImage}
-          />
+          {photos.panggung ? (
+            // eslint-disable-next-line @next/next/no-img-element -- decorative full-bleed frame
+            <img
+              src={photos.panggung}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className={styles.stageImage}
+            />
+          ) : (
+            <div className={styles.stageEmpty}>
+              <p>Slot foto kosong · isi melalui NAWA Studio</p>
+            </div>
+          )}
         </Depth>
         <p className={styles.stageCaption}>
           Panggung kosong · satu lampu sorot
         </p>
       </section>
 
-      <PlatformRow />
       <GenreTape />
 
       <section className={styles.bioSection} aria-labelledby="bio-title">

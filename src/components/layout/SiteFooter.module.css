@@ -62,6 +62,7 @@
 .socialRow a {
   display: grid;
   place-items: center;
+  gap: var(--space-2);
   min-width: 6.5rem;
   min-height: 3.5rem;
   padding: var(--space-3) var(--space-4);
@@ -74,6 +75,11 @@
   transition:
     background var(--duration-fast) var(--ease),
     color var(--duration-fast) var(--ease);
+}
+
+.socialIcon {
+  width: var(--space-4);
+  height: var(--space-4);
 }
 
 .socialRow a:hover,

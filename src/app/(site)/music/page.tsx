@@ -46,6 +46,12 @@ export default async function MusicPage() {
   const count = String(items.length).padStart(2, "0");
   /* The takeover needs a first release; `?? null` keeps noUncheckedIndexedAccess honest. */
   const lead = wallItems[0] ?? null;
+  /*
+   * Round 26, de-duplication: the lead release already owns the takeover poster above; printing it
+   * again as the first cell of the wall made the page say the same thing twice. The wall is the
+   * catalogue *after* the feature.
+   */
+  const wall = lead ? wallItems.slice(1) : wallItems;
 
   return (
     <>
@@ -99,7 +105,7 @@ export default async function MusicPage() {
         <div className={styles.body} id="katalog">
         {items.length > 0 ? (
           <>
-            <CatalogueWall items={wallItems} />
+            <CatalogueWall items={wall} />
             <p className={styles.note}>
               {count} rilis · sorot sampul untuk membuka
             </p>
