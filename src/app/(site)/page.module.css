@@ -60,11 +60,16 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  /*
+   * Round 24: the scrim used to bury the photograph — an "image-led" site whose image nobody can
+   * see is a black rectangle with type on it. Lighter at the top and middle so the stage reads as
+   * a place; the floor still falls to ink so the facts bar sits on solid ground.
+   */
   background: linear-gradient(
     to bottom,
-    rgb(0 0 0 / 0.82) 0%,
-    rgb(0 0 0 / 0.42) 34%,
-    rgb(0 0 0 / 0.55) 62%,
+    rgb(0 0 0 / 0.58) 0%,
+    rgb(0 0 0 / 0.26) 34%,
+    rgb(0 0 0 / 0.42) 62%,
     var(--color-bg) 96%
   );
 }
@@ -372,6 +377,29 @@
 .transmission {
   padding-block: var(--section-padding);
   border-top: 1px solid var(--color-hairline);
+  /*
+   * Round 24 — the takeover prints on bone, like a street poster pasted over the ink page.
+   * The flip is four local token re-declarations: every descendant (type, hairlines, buttons)
+   * inverts by reading the same names it always read. No per-child classes, no theme prop.
+   */
+  background: var(--color-bone);
+  /* Inherited color is a *computed* value, not a variable: without this line every descendant
+     that does not set its own color keeps the body's white. The section must read the flipped
+     token itself and hand the result down. */
+  color: var(--color-text-primary);
+  --color-text-primary: var(--color-bone-ink);
+  --color-text-secondary: var(--color-bone-muted);
+  --color-text-muted: var(--color-bone-muted);
+  --color-ink-black: var(--color-bone);
+  --color-hairline: var(--color-bone-line);
+  --color-border: var(--color-bone-line);
+}
+
+/* The sleeve is bone stock too, so on a bone band it needs an ink plinth to sit on — the same
+   move a gallery makes hanging a light print on a light wall. */
+.transmissionArt {
+  background: var(--color-bone-ink);
+  padding: var(--space-3);
 }
 
 .transmissionHead {

@@ -17,6 +17,23 @@
   border-top: 1px solid var(--color-hairline);
   border-bottom: 1px solid var(--color-hairline);
   padding-block: var(--space-12);
+  /* Round 24: the catalogue's poster prints on bone, same four-token flip as the home takeover. */
+  background: var(--color-bone);
+  /* Inherited color is a *computed* value, not a variable: without this line every descendant
+     that does not set its own color keeps the body's white. The section must read the flipped
+     token itself and hand the result down. */
+  color: var(--color-text-primary);
+  --color-text-primary: var(--color-bone-ink);
+  --color-text-secondary: var(--color-bone-muted);
+  --color-text-muted: var(--color-bone-muted);
+  --color-ink-black: var(--color-bone);
+  --color-hairline: var(--color-bone-line);
+  --color-border: var(--color-bone-line);
+}
+
+.featuredSleeve {
+  background: var(--color-bone-ink);
+  padding: var(--space-3);
 }
 
 .featuredHead {

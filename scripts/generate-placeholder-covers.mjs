@@ -59,10 +59,10 @@ const PAD = 72;
  * bottom edge. Still no type, still no invented artwork: ground, frame, ghost, rule.
  */
 const SERIES = {
-  ground: "#101014",
-  frame: "#23232B",
-  ghost: "#E8E6E1",
-  ghostOpacity: 0.16,
+  ground: "#E8E6E1",
+  frame: "#0A0A0E",
+  ghost: "#0A0A0E",
+  ghostOpacity: 0.14,
   rule: "#2E8C86",
 };
 
@@ -126,12 +126,16 @@ async function faded(input, opacity) {
 
 async function render(release) {
   const svg = sleeveSvg();
-  /* One composition for the whole catalogue: the mark centred at a size that survives the phone
-     crop, loud enough to be a subject, quiet enough to stay a ghost. */
-  const width = 420;
+  /*
+   * Round 24, series v3: bone stock, and the mark printed large and cropped — it bleeds off the
+   * top-left corner instead of sitting centred like a logo on a slide. A centred ghost reads as
+   * placeholder; a cropped one reads as a design decision, because only a designer pushes a mark
+   * off its own frame on purpose.
+   */
+  const width = 780;
   const ghost = await faded(await ghostMark(width, SERIES.ghost), SERIES.ghostOpacity);
-  const left = Math.round((SIZE - width) / 2);
-  const top = Math.round((SIZE - width) / 2);
+  const left = -150;
+  const top = -130;
 
   const composed = await sharp(svg)
     .composite([{ input: ghost, left, top }])

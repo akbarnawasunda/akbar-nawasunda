@@ -27,6 +27,17 @@
   --color-text-primary: #ffffff;
   --color-text-secondary: #b8b8b8;
   --color-text-muted: #8f8f8f;
+  /*
+   * Round 24 — the bone press stock. An all-ink page with hairlines reads as *empty* before it
+   * reads as luxurious; a printed campaign alternates stock. Bone is the second paper of the
+   * R13 press palette (the sleeve series already spoke it): posters, takeovers and the sleeves
+   * themselves print on it, everything else stays ink. Sections flip by re-declaring the text and
+   * hairline tokens locally, so descendants invert without a single new class per child.
+   */
+  --color-bone: #e8e6e1;
+  --color-bone-ink: #0a0a0e;
+  --color-bone-muted: #52525a;
+  --color-bone-line: #c9c7c2;
 
   /*
    * The neon. It is the owner's own #0087FF — the colour of the AN mark and of the light coming off

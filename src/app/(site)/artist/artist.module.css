@@ -12,6 +12,19 @@
   align-items: start;
   padding-block: var(--section-padding);
   border-bottom: 1px solid var(--color-hairline);
+  /* Round 24: the artist spread is the campaign's poster page — bone stock, ink type, the
+     portrait as the only dark object on it. Same four-token flip as the takeovers. */
+  background: var(--color-bone);
+  /* Inherited color is a *computed* value, not a variable: without this line every descendant
+     that does not set its own color keeps the body's white. The section must read the flipped
+     token itself and hand the result down. */
+  color: var(--color-text-primary);
+  --color-text-primary: var(--color-bone-ink);
+  --color-text-secondary: var(--color-bone-muted);
+  --color-text-muted: var(--color-bone-muted);
+  --color-ink-black: var(--color-bone);
+  --color-hairline: var(--color-bone-line);
+  --color-border: var(--color-bone-line);
 }
 
 .copy {
