@@ -70,31 +70,13 @@ describe("catalogue — the songs are always there", () => {
   });
 });
 
-describe("magnetic cursor — it can never block the hand", () => {
-  const css = readCss("src/components/zine/MagneticCursor.module.css");
-
-  it("declares pointer-events: none !important on the layer and on both shapes", () => {
-    const layer = css.slice(css.indexOf(".cursor {"), css.indexOf(".cursor[data-hidden"));
-    assert.match(layer, /pointer-events:\s*none\s*!important/);
-
-    const shapes = css.slice(css.indexOf(".dot,\n.ring {"), css.indexOf(".dot {"));
-    assert.match(shapes, /pointer-events:\s*none\s*!important/);
-  });
-
-  it("hands the pointer back on touch input", () => {
-    const tsx = read("src/components/zine/MagneticCursor.tsx");
-    assert.match(tsx, /event\.pointerType === "touch"/);
-    assert.match(tsx, /disarm\(\)/);
-    /* `data-cursor` is what hides the native pointer, so disarming has to clear it. */
-    assert.match(tsx, /delete document\.documentElement\.dataset\.cursor/);
-  });
-
-  it("coalesces pointer moves into one frame", () => {
-    const tsx = read("src/components/zine/MagneticCursor.tsx");
-    assert.match(tsx, /requestAnimationFrame\(paint\)/);
-    assert.match(tsx, /cancelAnimationFrame/);
-  });
-});
+/*
+ * Round 40: the magnetic-cursor block that stood here asserted the internals of
+ * `src/components/zine/MagneticCursor.tsx` — pointer-events on its layer, the touch disarm, the
+ * rAF coalescing. The component is mounted nowhere in `src/`, so the tests were guarding dead code:
+ * they would go red if the file were edited and green if it were broken. The file is gone (audit
+ * P0-4), and so is the block. Nothing else in this suite changed.
+ */
 
 describe("monogram — the logo survives a broken GPU", () => {
   it("keeps the baked still until the shader has painted", () => {
