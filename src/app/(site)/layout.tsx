@@ -18,8 +18,7 @@ import { contactEmail, listenLinks, socialLinks } from "@/config/socials";
 import { designAttributes } from "@/studio/design";
 import { getPublicDesign } from "@/studio/public";
 
-// Design settings come from the published Studio state, so this layout is read per request.
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 /**
  * Shared chrome for the artist website: header, main landmark and footer. The wrapper carries only

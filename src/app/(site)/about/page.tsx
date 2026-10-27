@@ -1,8 +1,8 @@
 import Image from "next/image";
 
 import { ContentRequirement } from "@/components/content/ContentRequirement";
-import { PageIntro } from "@/components/content/PageIntro";
 import { SectionsView } from "@/components/content/SectionsView";
+import { PageIntro } from "@/components/content/PageIntro";
 import { Container } from "@/components/layout/Container";
 import { getAsset, getImage } from "@/assets/manifest";
 import { siteConfig } from "@/config/site";
@@ -10,16 +10,17 @@ import { pageMetadata } from "@/lib/metadata";
 import { getPublicPage } from "@/studio/public";
 import styles from "./about.module.css";
 
-// Published content is read on each request so a publish shows immediately and a read failure
-// never caches the static fallback.
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 const defaultDescription = `About ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`;
 
 export async function generateMetadata() {
   const published = await getPublicPage("about");
-  const description = published?.seoDescription.trim() || defaultDescription;
-  return pageMetadata({ title: "About", description, path: "/about" });
+  return pageMetadata({
+    title: "About",
+    description: published?.seoDescription.trim() || defaultDescription,
+    path: "/about",
+  });
 }
 
 const portrait = getImage("portrait-optimized");

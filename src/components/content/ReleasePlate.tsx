@@ -87,10 +87,19 @@ export function ReleasePlate({
             {description ? <p className={styles.lead}>{description}</p> : null}
 
             {links.length === 0 ? (
-              <p className={styles.noLinks}>
-                <span className={styles.noLinksLabel}>Tautan</span>
-                Tautan mendengarkan untuk rilis ini belum tersedia.
-              </p>
+              <div className={styles.dubplateNotice}>
+                <div className={styles.noticeHeader}>
+                  <span className={styles.noticeTag}>[ UNRELEASED / DUBPLATE ]</span>
+                </div>
+                <p className={styles.noticeText}>
+                  Trek ini tidak didistribusikan ke platform streaming digital (DSP). Master rekaman hanya dimainkan secara offline pada club set &amp; penampilan langsung.
+                </p>
+                <div className={styles.noticeAction}>
+                  <Link href="/music" className={styles.noticeBackLink}>
+                    ← KEMBALI KE INDEX DISKOGRAFI
+                  </Link>
+                </div>
+              </div>
             ) : null}
           </div>
 
@@ -153,12 +162,17 @@ export function ReleasePlate({
             Lembar data
           </h2>
           <dl className={styles.facts}>
-            {facts.map((fact) => (
-              <div key={fact.label} className={styles.fact}>
-                <dt>{fact.label}</dt>
-                <dd>{fact.value ?? "—"}</dd>
-              </div>
-            ))}
+            {facts
+              .filter(({ value }) => {
+                const normalized = value?.trim();
+                return Boolean(normalized) && normalized !== "—" && normalized !== "-";
+              })
+              .map((fact) => (
+                <div key={fact.label} className={styles.fact}>
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
           </dl>
         </div>
       </section>

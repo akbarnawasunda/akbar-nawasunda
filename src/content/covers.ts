@@ -30,7 +30,7 @@ export function coverCandidates(slug: string): string[] {
 /** First existing cover for the slug, or null. `publicDir` is injectable so tests stay hermetic. */
 export function resolveCover(slug: string, publicDir: string = join(process.cwd(), "public")): string | null {
   for (const candidate of coverCandidates(slug)) {
-    if (existsSync(join(publicDir, candidate))) return candidate;
+    if (existsSync(join(/*turbopackIgnore: true*/ publicDir, candidate))) return candidate;
   }
   return null;
 }

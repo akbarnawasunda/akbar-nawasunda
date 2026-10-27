@@ -83,6 +83,10 @@
 }
 
 .under {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 5.5rem;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 2px var(--space-3);
@@ -90,7 +94,31 @@
   border-top: 1px solid var(--color-border);
 }
 
+.ledgerIndexStamp {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  z-index: 0;
+  transform: translateY(-50%);
+  color: color-mix(in srgb, var(--color-text-primary) 3.5%, transparent);
+  font-family: var(--font-body-stack);
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  pointer-events: none;
+  user-select: none;
+  transition: color var(--duration-base) var(--ease);
+}
+
+.card:hover .ledgerIndexStamp,
+.card:focus-visible .ledgerIndexStamp {
+  color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
+}
+
 .ordinal {
+  position: relative;
+  z-index: 1;
   grid-row: 1 / span 2;
   font-family: var(--font-body-stack);
   font-size: 0.5625rem;
@@ -100,6 +128,8 @@
 }
 
 .title {
+  position: relative;
+  z-index: 1;
   font-family: var(--font-body-stack);
   font-weight: 400;
   font-size: clamp(1.05rem, 1.6vw, 1.4rem);
@@ -113,6 +143,8 @@
 }
 
 .meta {
+  position: relative;
+  z-index: 1;
   font-family: var(--font-body-stack);
   font-size: 0.5rem;
   letter-spacing: 0.18em;

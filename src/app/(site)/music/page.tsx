@@ -13,7 +13,7 @@ import { pageMetadata } from "@/lib/metadata";
 import { getPublishedReleases } from "@/studio/public";
 import styles from "./music.module.css";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export const metadata = pageMetadata({
   title: "Music",

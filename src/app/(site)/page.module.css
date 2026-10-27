@@ -86,6 +86,16 @@
 }
 
 
+.heroMonogram {
+  position: absolute;
+  z-index: 2;
+  right: var(--gutter);
+  bottom: 8rem;
+  width: min(52vw, 56rem);
+  height: min(54vh, 34rem);
+  pointer-events: none;
+}
+
 .heroStage {
   position: relative;
   z-index: 2;
@@ -163,7 +173,7 @@
 }
 
 .heroBody {
-  width: 100%;
+  width: min(64%, 52rem);
   min-width: 0;
 }
 
@@ -240,6 +250,35 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
+}
+
+.heroLogistics {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+  opacity: 0.65;
+}
+
+.logisticsItem,
+.logisticsDivider {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.logisticsItem {
+  color: var(--color-text-muted);
+}
+
+.logisticsDivider {
+  color: var(--color-text-muted);
 }
 
 /*
@@ -763,6 +802,18 @@
   .heroInner {
     gap: var(--space-6);
     padding-top: var(--space-4);
+  }
+
+  .heroBody {
+    width: 100%;
+  }
+
+  .heroMonogram {
+    right: -18%;
+    bottom: 9rem;
+    width: 78vw;
+    height: 44vh;
+    opacity: 0.38;
   }
 
   .transmissionBody,

@@ -6,6 +6,8 @@ import sharp from "sharp";
 
 import { coverArtwork } from "@/content/covers";
 import { releaseDisplayTitle, releases } from "@/content/releases";
+import { getPublishedRelease } from "@/studio/public";
+import { publicReleaseDate, RELEASE_TYPE_LABELS } from "@/studio/releases";
 
 /**
  * Social card, generated at request time.
@@ -25,12 +27,13 @@ import { releaseDisplayTitle, releases } from "@/content/releases";
  *    fields the page prints, from the same module. A release with no year prints no year.
  */
 export const runtime = "nodejs";
+export const dynamic = "force-static";
 
 /** 1200×630 is the size WhatsApp/X/Facebook crop to; `summary_large_image` expects this ratio. */
 const WIDTH = 1200;
 const HEIGHT = 630;
 
-const BLUE = "#2E8C86";
+const BLUE = "#0087FF";
 const INK = "#0A0A0E";
 const PAPER = "#E8E6E1";
 const SECONDARY = "#A1A1B5";
@@ -57,15 +60,18 @@ async function readAsset(path: string): Promise<Buffer | null> {
 export async function GET(request: Request) {
   const slug = new URL(request.url).searchParams.get("slug");
   const release = slug ? releases.find((candidate) => candidate.slug === slug) : undefined;
+  const managed = slug && !release ? await getPublishedRelease(slug) : null;
 
   const fontBytes = await readAsset("fonts/anton-og.ttf");
   if (!fontBytes) return new Response("OG font missing", { status: 500 });
   const font = new Uint8Array(fontBytes).buffer;
 
-  const title = release ? releaseDisplayTitle(release) : "Akbar Nawasunda";
-  const meta = release
-    ? [release.type, release.year].filter(Boolean).join(" · ")
-    : "Produser · Remixer · DJ";
+  const title = managed?.seoTitle || (managed ? managed.title : release ? releaseDisplayTitle(release) : "Akbar Nawasunda");
+  const meta = managed
+    ? [RELEASE_TYPE_LABELS[managed.type], publicReleaseDate(managed)].filter(Boolean).join(" · ")
+    : release
+      ? [release.type, release.year].filter(Boolean).join(" · ")
+      : "Produser · Remixer · DJ";
 
   /**
    * The card uses the site's display face, Anton, in caps (R13). Anton is condensed, so the same box
@@ -74,7 +80,7 @@ export async function GET(request: Request) {
    */
   const titleSize = title.length > 30 ? 88 : title.length > 18 ? 104 : 124;
 
-  const artwork = release ? coverArtwork(release.slug) : null;
+  const artwork = slug && (release || managed) ? coverArtwork(slug) : null;
   // A data URI, not a URL: satori accepts both, but only one survives the SSRF guard and a cold CDN.
   /**
    * Only *real* artwork is shown. A generated sleeve (kind "sleeve") already prints the release title

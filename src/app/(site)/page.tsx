@@ -4,10 +4,10 @@ import Link from "next/link";
 
 import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
 import { PaperAbout } from "@/components/content/PaperAbout";
+import { SectionsView } from "@/components/content/SectionsView";
 import { CataloguePin } from "@/components/content/CataloguePin";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
-import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
@@ -19,17 +19,17 @@ import { Depth } from "@/components/zine/Depth";
 import { Magnetic } from "@/components/zine/Magnetic";
 import { Plate3D } from "@/components/zine/Plate3D";
 import { Reveal } from "@/components/zine/Reveal";
-import { coverArtwork } from "@/content/covers";
-import { fromStaticRelease } from "@/content/release-view";
+import { coverArtwork, resolveCover } from "@/content/covers";
+import { fromReleaseDocument, fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
 import { visualItems } from "@/content/visuals";
 import { artistTimeline } from "@/content/artist";
 import { siteConfig } from "@/config/site";
 import { listenUrl, socialLinks } from "@/config/socials";
+import { getPublicPage, getPublishedReleases } from "@/studio/public";
 import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
-import { getPublicPage, getPublicPhotos } from "@/studio/public";
 
 import styles from "./page.module.css";
 
@@ -80,34 +80,38 @@ export const metadata: Metadata = {
 };
 
 const youtube = socialLinks.find((link) => link.platform === "youtube");
-const catalogue = releases.map((release) => ({
-  ...fromStaticRelease(release, null),
-  artwork: coverArtwork(release.slug),
-}));
-const featured = catalogue[0];
-const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
-const officialLinkCount = releases.length + socialLinks.length;
-
-/** One sleeve path per release, for the index preview. `release.cover` first, then the waterfall. */
-
-const tickerItems = catalogue.map((item) => ({
-  slug: item.slug,
-  title: item.title,
-  meta: item.meta,
-}));
-
-/** Only the milestones that are documented; a gap is silent, not a stamped hole. */
 const timeline = artistTimeline.filter((entry) => !entry.pending);
 
-/* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
- * filled slot appear within a minute (and immediately after the studio's revalidatePath). */
-export const revalidate = 60;
+export const dynamic = "force-static";
 
 export default async function HomePage() {
+  const publishedReleases = await getPublishedReleases();
+  const catalogue = publishedReleases.length > 0
+    ? publishedReleases.map(({ slug, doc }) => {
+        const cover = resolveCover(slug);
+        return {
+          ...fromReleaseDocument(slug, doc, cover),
+          artwork: cover ? { kind: "image" as const, src: cover } : coverArtwork(slug),
+        };
+      })
+    : releases.map((release) => ({
+        ...fromStaticRelease(release, resolveCover(release.slug)),
+        artwork: coverArtwork(release.slug),
+      }));
+  const featured = catalogue[0];
   if (!featured) return null;
+  const stats = heroStats({
+    since: siteConfig.since,
+    origin: siteConfig.origin,
+    releaseCount: catalogue.length,
+  });
+  const officialLinkCount = catalogue.length + socialLinks.length;
+  const tickerItems = catalogue.map((item) => ({
+    slug: item.slug,
+    title: item.title,
+    meta: item.meta,
+  }));
   const home = await getPublicPage("home");
-  /* Round 26 photo slots: a studio upload wins, the repository asset is the fallback. */
-  const photos = await getPublicPhotos();
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
 
   return (
@@ -124,7 +128,7 @@ export default async function HomePage() {
         rel="preload"
         as="image"
         type="image/avif"
-        href={photos.latar ?? editorialFrame.webp}
+        href={editorialFrame.webp}
         fetchPriority="high"
       />
 
@@ -133,7 +137,7 @@ export default async function HomePage() {
         <Depth className={styles.heroMedia} y={-70} scale={0.05} perspective={1400} data-layer="hero-photo">
           <Image
             className={styles.heroImage}
-            src={photos.latar ?? editorialFrame.webp}
+            src={editorialFrame.webp}
             alt=""
             fill
             sizes="100vw"
@@ -141,6 +145,9 @@ export default async function HomePage() {
           />
         </Depth>
         <div className={styles.heroScrim} aria-hidden="true" />
+        <div className={styles.heroMonogram}>
+          <AnMonogram />
+        </div>
 
         <Plate3D
           className={styles.heroStage}
@@ -189,6 +196,13 @@ export default async function HomePage() {
                       </ButtonLink>
                     </Magnetic>
                   </div>
+                  <div className={styles.heroLogistics} aria-label="Logistik katalog">
+                    <span className={styles.logisticsItem}>KATALOG: {stats.releaseCount} ITEM</span>
+                    <span className={styles.logisticsDivider} aria-hidden="true">/</span>
+                    <span className={styles.logisticsItem}>STATUS: AKTIF</span>
+                    <span className={styles.logisticsDivider} aria-hidden="true">/</span>
+                    <span className={styles.logisticsItem}>LOC: BANDUNG BARAT, ID</span>
+                  </div>
                 </div>
               </div>
             </Depth>
@@ -211,26 +225,6 @@ export default async function HomePage() {
             </div>
           </div>
         </Plate3D>
-      </section>
-
-      {/* --------------------------------------------------------------- monogram */}
-      {/*
-        The centrepiece, second only to the name.
-
-        It is a full-bleed black band with the 3D mark as the only object on it and one line of
-        mono copy at the bottom edge. No photograph, no gradient, no rule behind it: the metal is
-        the light source, and a second bright thing on the same screen would halve it.
-      */}
-      <section className={styles.signature} aria-label="Monogram">
-        <AnMonogram />
-        {/*
-          Below 768px the renderer never mounts (R14: bloom on a phone GPU is not worth the frames),
-          so the band used to be 74svh of empty black on every phone. This is the mark itself — the
-          same file the header and the footer use — set at the size the object would have occupied.
-        */}
-        <span className={styles.signatureFallback} aria-hidden="true">
-          <Image src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
-        </span>
       </section>
 
       {/* ----------------------------------------------------------- running head */}
@@ -318,7 +312,7 @@ export default async function HomePage() {
       <section className={styles.night} aria-label="Malam" data-section="night">
         <Depth className={styles.nightMedia} y={-90} perspective={1200}>
           <Image
-            src={photos.malam ?? "/media/stage-700.webp"}
+            src="/media/stage-700.webp"
             alt=""
             fill
             sizes="100vw"

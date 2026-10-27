@@ -23,7 +23,7 @@ export const SOCIAL_CARD_HEIGHT = 630;
  */
 export function releaseCard(slug: string, title: string, siteName: string): SocialCard {
   return {
-    url: `/og?slug=${encodeURIComponent(slug)}`,
+    url: `/og/${encodeURIComponent(slug)}`,
     width: SOCIAL_CARD_WIDTH,
     height: SOCIAL_CARD_HEIGHT,
     alt: `${title}, ${siteName}`,

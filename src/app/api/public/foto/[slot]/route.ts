@@ -1,5 +1,5 @@
 import { getReadyDb } from "@/studio/db";
-import { isPhotoSlot, readPhoto } from "@/studio/photos";
+import { isPhotoSlot, PHOTO_SLOT_IDS, readPhoto } from "@/studio/photos";
 
 /**
  * Public reader for one studio-filled site photo slot.
@@ -8,7 +8,12 @@ import { isPhotoSlot, readPhoto } from "@/studio/photos";
  * route serves exactly those bytes with the stored mime — no listing, no metadata, no auth. An
  * unknown slot is a 404, so the site's fallback (repository asset or empty frame) is what renders.
  */
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return PHOTO_SLOT_IDS.map((slot) => ({ slot }));
+}
 
 const ALLOWED_MIME = new Set(["image/webp", "image/png", "image/jpeg", "image/avif"]);
 

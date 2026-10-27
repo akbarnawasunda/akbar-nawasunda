@@ -12,9 +12,17 @@ import {
 import { pageMetadata } from "@/lib/metadata";
 import { getReleaseArtwork } from "@/studio/artwork";
 import { publicReleaseDate, RELEASE_TYPE_LABELS } from "@/studio/releases";
-import { getPublishedRelease } from "@/studio/public";
+import { getPublishedRelease, getPublishedReleases } from "@/studio/public";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const published = await getPublishedReleases();
+  return [...new Set([...releases.map(({ slug }) => slug), ...published.map(({ slug }) => slug)])].map(
+    (slug) => ({ slug }),
+  );
+}
 
 interface ReleasePageProps {
   params: Promise<{ slug: string }>;
@@ -76,9 +84,8 @@ function resolveArtwork(slug: string): CoverArtwork {
 
 export default async function ReleasePage({ params }: ReleasePageProps) {
   const { slug } = await params;
-
-  /* ------------------------------------------------------------------ Studio */
   const managed = await getPublishedRelease(slug);
+
   if (managed) {
     const cover = resolveCover(slug);
     const asset = getReleaseArtwork(managed.artworkId);
@@ -88,18 +95,19 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
         ? { kind: "image", src: asset.image.src }
         : coverArtwork(slug);
     const date = publicReleaseDate(managed);
+    const managedType = RELEASE_TYPE_LABELS[managed.type];
 
     return (
       <ReleasePlate
         title={managed.title}
         ordinal={null}
-        meta={[RELEASE_TYPE_LABELS[managed.type], date].filter((part): part is string => Boolean(part))}
+        meta={[managedType, date].filter((part): part is string => Boolean(part))}
         description={managed.description || null}
         artwork={artwork}
         links={managed.links.map((link) => ({ label: link.label, href: link.href }))}
         facts={[
           { label: "Judul", value: managed.title },
-          { label: "Jenis", value: RELEASE_TYPE_LABELS[managed.type] },
+          { label: "Jenis", value: managedType },
           { label: "Tanggal", value: date },
         ]}
       />
@@ -128,9 +136,8 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       artwork={resolveArtwork(release.slug)}
       links={release.links}
       facts={[
-        // Type and year always print: an unconfirmed one shows an em dash rather than vanishing.
-        { label: "Jenis", value: release.type ? releaseTypeLabel[release.type] : null },
-        { label: "Tahun", value: release.year ? String(release.year) : null },
+        ...(release.type ? [{ label: "Jenis", value: releaseTypeLabel[release.type] }] : []),
+        ...(release.year ? [{ label: "Tahun", value: String(release.year) }] : []),
         // These two only exist when the owner supplied them, so they are absent, not empty.
         ...(release.source ? [{ label: "Karya asli", value: release.source }] : []),
         ...(release.era ? [{ label: "Era", value: release.era }] : []),
