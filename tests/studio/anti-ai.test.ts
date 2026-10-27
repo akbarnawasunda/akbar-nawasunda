@@ -26,14 +26,27 @@ const root = join(import.meta.dirname, "../..");
  */
 
 describe("no generated visual effects ship", () => {
+  /*
+   * Round 32: `main` arrived carrying the owner's own reference snippets, `*.example.tsx` —
+   * documented sketches of the old particle fields, imported by nothing. They name the banned
+   * effects on purpose (that is what a sketch of a removed effect is), so the scan skips files
+   * whose name carries `.example.` — and, so the skip can never become a hiding place, the very
+   * next assertion fails the suite the moment anything imports one of them.
+   */
+  const isExample = (file: string) => file.includes(".example.");
+
   it("has no signal/particle/WebGL component left in the app", () => {
-    const files = globSync("src/**/*.{ts,tsx,css}", { cwd: root });
+    const files = globSync("src/**/*.{ts,tsx,css}", { cwd: root }).filter((file) => !isExample(file));
     const banned = [/SignalField/, /MusicNotesField/, /liquid-signal/, /HeroSignal/];
     const offenders = files.filter((file) => {
       const body = readFileSync(join(root, file), "utf8");
       return banned.some((pattern) => pattern.test(file) || pattern.test(body));
     });
     assert.deepEqual(offenders, [], `these files still mention the removed effect: ${offenders.join(", ")}`);
+    const importers = globSync("src/**/*.{ts,tsx}", { cwd: root }).filter(
+      (file) => !isExample(file) && /from ["'][^"']*\.example/.test(readFileSync(join(root, file), "utf8")),
+    );
+    assert.deepEqual(importers, [], `example sketches must stay unimported: ${importers.join(", ")}`);
   });
 
   /**
@@ -49,7 +62,7 @@ describe("no generated visual effects ship", () => {
 
   it("ships exactly one canvas surface: the lazy liquid-monogram chunk", () => {
     const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter(
-      (file) => file !== LIQUID_CHUNK && /<canvas/i.test(readFileSync(join(root, file), "utf8")),
+      (file) => file !== LIQUID_CHUNK && !isExample(file) && /<canvas/i.test(readFileSync(join(root, file), "utf8")),
     );
     assert.deepEqual(offenders, [], `these files render a <canvas>: ${offenders.join(", ")}`);
     assert.ok(

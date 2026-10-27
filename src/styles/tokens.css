@@ -68,6 +68,9 @@
   --color-paper: #050505;
   --color-paper-ink: #ffffff;
   --color-paper-muted: #8f8f8f;
+  /* Round 32 merge: the /about page arrived from main painted in main's ink scale; the alias
+     keeps its surface exactly the colour the owner committed, in our single token source. */
+  --color-ink-800: #17171b;
   --color-ink-black: #000000;
   --color-band-monogram: #000000;
 
