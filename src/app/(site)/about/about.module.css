@@ -1,0 +1,12 @@
+.figure {
+  margin: 0 0 var(--space-12);
+  max-width: 360px;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: var(--color-ink-800);
+}
