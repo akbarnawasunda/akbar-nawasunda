@@ -310,7 +310,10 @@ try {
       sheetZ: zOf(sheet),
       name: own('[data-depth="hero-name"]'),
       masthead: own('[data-depth="hero-masthead"]'),
-      facts: own('[data-depth="hero-facts"]'),
+      /* Round 34 removed the facts bar from the hero, so the third layer is the foot now. If a
+         layer is missing entirely it is simply not part of the surface any more — `own()` returns
+         null and the check skips it instead of measuring a null as 0 px of depth. */
+      foot: own('[data-depth="hero-foot"]'),
     };
   });
   const rotated = Math.abs(parseFloat(plate.ry)) > 0.2 || Math.abs(parseFloat(plate.rx)) > 0.2;
@@ -331,10 +334,10 @@ try {
     plate.perspective !== "none" && typeof plate.sheetZ === "number" && plate.sheetZ <= -10,
     `perspective ${plate.perspective}, sheet translateZ ${plate.sheetZ}px`,
   );
-  const inner = [plate.name, plate.masthead, plate.facts];
+  const inner = [plate.name, plate.masthead, plate.foot].filter(Boolean);
   check(
     "the hero's sheet is one rigid surface, not a stack of layers",
-    inner.every((n) => n.transform === "none" || n.z === 0),
+    inner.length > 0 && inner.every((n) => n.transform === "none" || n.z === 0),
     inner.map((n) => `${n.z}px`).join(" / "),
   );
 
@@ -498,8 +501,34 @@ try {
     for (const route of routes) {
       await sweeper.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
       await sleep(220);
-      const delta = await sweeper.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-      if (delta > 0) overflows.push(`${route} @${width} +${delta}px`);
+      /*
+       * The failure message names the offending boxes, not just the number: "every route +22 px at
+       * 1024" is not a bug report, it is a symptom. The culprit is the first element whose right
+       * edge passes the viewport and which is not `position: fixed` (fixed chrome cannot widen the
+       * document, so blaming it would send the next reader down the wrong path).
+       */
+      const measurement = await sweeper.evaluate(() => {
+        const delta = document.documentElement.scrollWidth - window.innerWidth;
+        if (delta <= 0) return { delta, culprits: [] };
+        const vw = window.innerWidth;
+        const culprits = [];
+        for (const el of document.querySelectorAll("body *")) {
+          const box = el.getBoundingClientRect();
+          if (box.width === 0 || box.height === 0) continue;
+          if (getComputedStyle(el).position === "fixed") continue;
+          if (box.right <= vw + 0.5) continue;
+          const id = el.id ? `#${el.id}` : "";
+          const cls = typeof el.className === "string" && el.className ? `.${el.className.split(" ")[0]}` : "";
+          culprits.push(`${el.tagName.toLowerCase()}${id}${cls} right=${Math.round(box.right)}`);
+          if (culprits.length >= 4) break;
+        }
+        return { delta, culprits };
+      });
+      if (measurement.delta > 0) {
+        overflows.push(
+          `${route} @${width} +${measurement.delta}px${measurement.culprits.length ? ` [${measurement.culprits.join(" | ")}]` : ""}`,
+        );
+      }
     }
   }
   check("no horizontal overflow at 320–1920", overflows.length === 0, overflows.join(", "));

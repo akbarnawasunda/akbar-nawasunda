@@ -51,14 +51,25 @@ export function ReleaseGrid({ items }: ReleaseGridProps) {
     <ol className={styles.grid}>
       {items.map((item, index) => (
         <li key={item.slug} className={styles.card} data-release={item.slug}>
-          <Link href={item.href} className={styles.sleeve} aria-label={`Buka rilis ${item.title}`}>
+          <Link
+            href={item.href}
+            className={styles.sleeve}
+            /* WCAG 2.5.3: every word printed inside the link has to appear in its accessible name.
+               The ordinal is already hidden; the "Baru" badge is visual shorthand for the phrase
+               below, which is what a screen reader hears instead. */
+            aria-label={item.featured ? `Buka rilis ${item.title} — rilis terbaru` : `Buka rilis ${item.title}`}
+          >
             <span className={styles.sleeveInner}>
               <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             </span>
             <span className={styles.ordinal} aria-hidden="true">
               {String(index + 1).padStart(2, "0")}
             </span>
-            {item.featured ? <span className={styles.flag}>Baru</span> : null}
+            {item.featured ? (
+              <span className={styles.flag} aria-hidden="true">
+                Baru
+              </span>
+            ) : null}
           </Link>
 
           <p className={styles.meta}>
