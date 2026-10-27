@@ -119,7 +119,9 @@ try {
   await capture({ name: "home-1440", route: "/", width: 1440, height: 900 });
   await capture({ name: "home-1440-full", route: "/", width: 1440, height: 900, fullPage: true });
   await capture({ name: "music-1440", route: "/music", width: 1440, height: 900 });
-  console.log(`\n${6 - 1} shots written to ${outDir}/`);
+  await capture({ name: "release-1440", route: "/#release", width: 1440, height: 900 });
+  await capture({ name: "discography-1440", route: "/#catalogue", width: 1440, height: 900 });
+  console.log(`\nall shots written to ${outDir}/`);
 } finally {
   await browser.close();
 }
