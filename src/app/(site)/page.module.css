@@ -219,13 +219,22 @@
   background: var(--color-cover-fallback);
 }
 
+/*
+ * Round 38 — the mark on the navy panel is printed white, not ink.
+ *
+ * The one shared mark file is ink-coloured because the header and the footer sit on black. Here it
+ * sits on `--color-cover-fallback`, and an ink silhouette on #14263A is a smudge: no contrast, no
+ * edge, exactly the "empty box" read the owner flagged. brightness(0) collapses the file to its
+ * silhouette, invert(1) turns that silhouette white, and the panel finally looks like a sleeve with
+ * a stamp on it.
+ */
 .artPanelMark {
   grid-row: 1;
   align-self: end;
   width: min(34%, 12rem);
   height: auto;
-  filter: none;
-  opacity: 0.9;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
 }
 
 .artPanelTitle {
