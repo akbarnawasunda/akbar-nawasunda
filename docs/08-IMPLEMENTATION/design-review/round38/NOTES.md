@@ -56,7 +56,10 @@ badges on an audio rack.
 
 The navy panel on the homepage (`--color-cover-fallback`, #14263A) keeps its colour, but the ink mark
 on it is now printed white (`brightness(0) invert(1)`): an ink silhouette on navy was the same
-"empty box" read in a different colour.
+"empty box" read in a different colour. That one took two attempts — the rule was written as a single
+module class at (0,1,0) and silently lost to `globals.css`'s `.site-main img { filter: grayscale(1)
+contrast(1.18) brightness(0.92) }` at (0,1,1), so the shot came back byte-identical. A specificity
+defeat looks exactly like a change that was never made; the screenshot is what caught it.
 
 ## 3. `/music`: no cream anywhere
 
@@ -115,5 +118,5 @@ one object is a decision.
 
 `0e9f50c` shader + sleeve series + `/music` + hero · `e001b52` chrome ramp and stroke-edge rim ·
 `c53ced6` horizon-lit environment · `de389f7` dilated rim · `5bc7ca4` lazy-image capture fix ·
-`3d60bb4` the missing `/2e` · `541613c` reflected-sky edge and tighter glint · final commit: the white
-mark on the navy panel and this note.
+`3d60bb4` the missing `/2e` · `541613c` reflected-sky edge and tighter glint · `d2462bd` this note and
+the white panel mark · `53712f1` the specificity fix that made it apply.
