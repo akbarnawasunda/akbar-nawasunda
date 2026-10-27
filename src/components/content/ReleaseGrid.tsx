@@ -60,7 +60,9 @@ export function ReleaseGrid({ items }: ReleaseGridProps) {
             aria-label={item.featured ? `Buka rilis ${item.title} — rilis terbaru` : `Buka rilis ${item.title}`}
           >
             <span className={styles.sleeveInner}>
-              <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
+              {/* The link above already names the release; a second name on the picture would
+                  fail WCAG 2.5.3 for no gain. */}
+              <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} alt="" />
             </span>
             <span className={styles.ordinal} aria-hidden="true">
               {String(index + 1).padStart(2, "0")}

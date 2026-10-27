@@ -18,6 +18,17 @@ interface ReleaseCoverProps {
    * own body, so the same words never appear twice in one tile.
    */
   showTitle?: boolean;
+  /**
+   * Alt text for the real file. Defaults to "Artwork <title>", which is what a sleeve should say
+   * when it stands on its own.
+   *
+   * Round 35.1: pass `""` when the sleeve is the *only* content of a link that carries its own
+   * `aria-label`. WCAG 2.5.3 ("label in name") compares the link's visible text with its accessible
+   * name, and an image's alt text counts as visible text — so a link named "Buka rilis Cinta
+   * Terbuang" wrapping an image alt-ed "Artwork Cinta Terbuang" fails the rule even though both
+   * strings name the same record. One name, one place: the link owns it, the picture is decorative.
+   */
+  alt?: string;
 }
 
 /**
@@ -41,6 +52,7 @@ export function ReleaseCover({
   shape = "square",
   priority = false,
   showTitle = true,
+  alt,
 }: ReleaseCoverProps) {
   const [failed, setFailed] = useState(false);
   const shapeClass = shape === "wide" ? styles.wide : styles.square;
@@ -51,7 +63,7 @@ export function ReleaseCover({
         <Image
           src={artwork.src}
           /* A sleeve carries no type at all (round 19), so every alt names the release. */
-          alt={`Artwork ${title}`}
+          alt={alt ?? `Artwork ${title}`}
           width={shape === "wide" ? 1200 : 600}
           height={shape === "wide" ? 675 : 600}
           sizes="(min-width: 1024px) 30vw, 80vw"
@@ -63,12 +75,16 @@ export function ReleaseCover({
   }
 
   if (artwork.kind !== "generated" && failed) {
+    /* The fallback is a picture too, so it follows the same rule as the real file: named when it
+       stands alone, hidden from the accessibility tree when the link around it already speaks. */
+    const decorative = alt === "";
     return (
       <span
         className={`${styles.cover} ${styles.fallback} ${shapeClass}`}
         data-cover="fallback"
-        role="img"
-        aria-label={`Artwork ${title}`}
+        role={decorative ? undefined : "img"}
+        aria-label={decorative ? undefined : `Artwork ${title}`}
+        aria-hidden={decorative ? true : undefined}
       >
         <Image
           className={styles.fallbackMark}
