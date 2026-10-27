@@ -106,3 +106,29 @@ CSS terbangun memuat `pointer-events:none!important` untuk kursor.
 
 Screenshot tetap tidak mungkin di sandbox ini (tidak ada Chromium/Firefox, apt diblokir) — tidak ada
 klaim visual berbasis tangkapan layar, dan gerakan kursor/logo tidak bisa direkam di sini.
+
+## CI hijau (run 40451448500)
+
+Job `quality · budgets · a11y` selesai **sukses** di commit `c4c5dc0`:
+
+```
+check:web   ✓  JS 191 KB gz / 11 chunk, CSS 16.2 KB gz, 20 rute, 25 target internal, 65 media
+a11y        ✓  0 violation(s) across 15 page loads (termasuk menu ponsel terbuka)
+smoke       ✓  28/28
+qa:motion   ✓  21/21
+```
+
+Tiga perbaikan yang menutup putaran ini:
+
+1. **`label-content-name-mismatch` (`a7d9d28`)** — badge nomor dan lencana "Baru" dipindah keluar
+   dari `<a>`; teks cetak tidak lagi berada di dalam elemen yang punya `aria-label`. Sibling-nya
+   `pointer-events: none`, jadi tidak memotong klik.
+2. **Dua pemeriksaan `[data-catalogue-pin]` (`8f8d5c0`)** — reel yang dipin sudah diganti grid pada
+   putaran 35, jadi pemeriksaannya dialihkan ke properti yang masih berlaku: 14 kartu ada di DOM
+   tanpa penggerak gulir, dan selongsong menjawab hover (`none → 0px -4px`). Probe hover kini
+   menunggu Lenis berhenti sebelum mengukur; versi pertama mengukur lalu menembak ruang kosong.
+3. **Gulir mendatar 22 px di @1024 (`c4c5dc0`)** — pelakunya bukan `100vw`: sebuah kolom footer.
+   Ukuran minimum otomatis grid item adalah lebar isinya, dan alamat surel adalah satu token tanpa
+   titik putus di Chrome, sehingga kolom itu melebarkan dokumen. `min-width: 0` +
+   `overflow-wrap: anywhere` menutupnya di ketujuh rute. Penyapu overflow juga tidak lagi menuduh
+   kotak yang sudah diklip oleh scroller/`overflow: hidden` induknya.
