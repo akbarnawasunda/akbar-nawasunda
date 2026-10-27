@@ -228,7 +228,13 @@
  * silhouette, invert(1) turns that silhouette white, and the panel finally looks like a sleeve with
  * a stamp on it.
  */
-.artPanelMark {
+/*
+ * Two class selectors, not one, and that is the whole point: `globals.css` treats *every* image in
+ * `.site-main` as photography (`grayscale(1) contrast(1.18) brightness(0.92)`) at (0,1,1), which beats
+ * a single module class at (0,1,0). The first version of this rule therefore did nothing at all and
+ * the mark stayed ink on navy — the shot proved it. `.artPanel .artPanelMark` is (0,2,0) and wins.
+ */
+.artPanel .artPanelMark {
   grid-row: 1;
   align-self: end;
   width: min(34%, 12rem);
