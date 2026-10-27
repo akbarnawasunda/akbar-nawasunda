@@ -1,0 +1,40 @@
+/*
+  Grain, and a lot more of it (R12).
+
+  2% was a screenshot-compression level: it stopped banding in the gradients and was otherwise
+  invisible. A photocopied zine has *tooth* — the paper is the loudest surface in the room — and the
+  flat ink fields this design uses need it, otherwise they read as hex fills on a screen.
+
+  6.5% at a 120 px tile is roughly the density of 100 gsm copier paper at reading distance: present
+  in the flat areas, gone in the photographs. It is still one fixed layer with no blend mode —
+  `mix-blend-mode` on a viewport-sized element is what forces a full-page repaint per scroll frame
+  on low-end Android, and the whole point of the tile is that it costs nothing while you scroll.
+*/
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-overlay) - 1);
+  pointer-events: none;
+  opacity: 0.065;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+}
+
+/*
+  A phone screen is small, bright and usually held at arm's length; grain at this density turns into
+  visible dither on it and it is pure repaint on the weakest GPUs in the audience. Half of it goes.
+*/
+@media (max-width: 720px) {
+  .grain {
+    opacity: 0.035;
+    background-size: 160px 160px;
+  }
+}
+
+/* A permanently animated texture is decoration; anyone asking the OS for less motion gets the
+   plain surface instead. */
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    opacity: 0.065;
+  }
+}

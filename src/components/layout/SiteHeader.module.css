@@ -1,6 +1,61 @@
 .header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: var(--z-chrome);
+  /* The bar's current height, so the drawer below it can sit flush against it in both states. */
+  --bar-h: var(--header-height);
+  /*
+   * Solid black, not a translucent scrim.
+
+   * The bar sits on top of the hero, which is a photograph and the one band where something is
+   * always moving. Round 11 deleted its `backdrop-filter` because re-blurring that backdrop cost a
+   * full-width re-composite on every frame; the honest successor is not a lighter blur but no blur
+   * and no transparency at all. A black bar with a hairline under it is also what the reference
+   * does, and it means the header looks identical over the hero, over a photo band, and over the
+   * monogram's glow.
+   */
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-hairline);
+  transition:
+    height 320ms var(--ease),
+    translate 420ms var(--ease);
+}
+
+/* Compact once the page has moved; off-canvas while the reader is going down, back on the way up. */
+/*
+  The swallowed blur, for one reason only: `?perf=blur` (see `perf-flags.ts`).
+
+  Round 11 removed `backdrop-filter` from this bar because it re-blurs everything behind it on every
+  frame that content moves, and the bar sits on top of the site's only continuously moving band. The
+  claim that removal was worth something is only worth as much as the measurement behind it — so the
+  declaration is kept here, behind a switch, to be put back in one URL and measured against the
+  baseline in the same build.
+*/
+:global(html[data-perf~="blur"]) .header {
+  backdrop-filter: blur(12px) saturate(120%);
+  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+}
+
+.header[data-state="compact"] {
+  --bar-h: var(--header-height-compact);
+}
+
+/*
+ * No `will-change` here, and that is load-bearing rather than a preference.
+ *
+ * `will-change: transform` makes the header a containing block for its fixed-position children, so
+ * the drawer — `position: fixed; inset: var(--drawer-top) 0 0 0` — was being laid out against a
+ * 72 px tall header instead of the viewport. It rendered as an 81 px sliver that the page scrolled
+ * over: tapping the hamburger looked like nothing happened at all, on every phone, for four rounds.
+ */
+.header[data-hidden="true"] {
+  translate: 0 -100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    transition: none;
+  }
 }
 
 .bar {
@@ -8,86 +63,396 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  min-height: var(--header-height);
+  height: var(--header-height);
+  transition: height 320ms var(--ease);
+  max-width: var(--container-max);
+  margin-inline: auto;
   padding-inline: var(--gutter);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+}
+
+.header[data-state="compact"] .bar {
+  height: var(--header-height-compact);
 }
 
 .brand {
-  color: var(--color-fg);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
   text-decoration: none;
+  color: var(--color-fg);
+  min-width: 0;
 }
 
-.desktopNav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* AN mark at 34px tall. The file is 174x112, so the ratio is preserved. */
+.mark {
+  height: 34px;
+  width: auto;
+  transition: height 320ms var(--ease);
+}
+
+.header[data-state="compact"] .mark {
+  height: 26px;
+}
+
+.wordmarkWrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/*
+ * The wordmark is set in the mono face at label size, uppercase, tracked out — it reads as a
+ * product code next to the mark rather than as a second logo competing with the 12vw name below.
+ */
+.wordmark {
+  font-family: var(--font-body-stack);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+/* RMX tag: a bordered stamp, not a chip. */
+
+.actions {
   display: flex;
-  gap: var(--space-8);
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.desktopNav a {
-  color: var(--color-muted);
-  text-decoration: none;
-  transition: color var(--duration-fast) ease;
-}
-
-.desktopNav a:hover,
-.desktopNav a[aria-current="page"] {
-  color: var(--color-fg);
-}
-
-.toggle {
-  min-height: 44px;
-  min-width: 44px;
-  padding: var(--space-2) var(--space-3);
+/*
+ * "Listen ↗" is a right-angled box, not a pill. The reference's call to action is a thin white
+ * rectangle with the label inside it, and that is the only shape on this page that means "leave".
+ */
+.listen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border-strong);
   background: none;
-  border: 1px solid rgba(236, 232, 223, 0.3);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.listen:hover,
+.listen:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+}
+
+.listenArrow {
+  font-size: 0.85em;
+}
+
+/*
+ * MENU. Word + two rules, no border: it has to sit in the corner as type, the way the reference's
+ * does, and it must not look like one of the outlined buttons because it opens a surface rather
+ * than going anywhere.
+ */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 40px;
+  padding: 0;
+  background: none;
+  border: 0;
   color: var(--color-fg);
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
   cursor: pointer;
+  font-family: var(--font-body-stack);
+  font-size: 1.125rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
 }
 
-.mobileNav {
+.toggle:hover .burger span,
+.toggle:focus-visible .burger span {
+  transform: scaleX(0.72);
+  transform-origin: left center;
+}
+
+.menuWord {
+  font-family: var(--font-body-stack);
+  text-transform: uppercase;
+  font-size: 1.125rem;
+  line-height: 1;
+  letter-spacing: var(--tracking-nav);
+}
+
+.burger {
+  display: inline-grid;
+  gap: 5px;
+  width: 26px;
+}
+
+.burger span {
+  display: block;
+  height: 2px;
+  background: currentColor;
+  transition: transform 200ms var(--ease);
+}
+
+/*
+ * Round 26: the control always shows its state. Open, the two lines cross into an X and the word
+ * becomes TUTUP — a menu button that looks identical open and closed reads as a button that does
+ * nothing, which is exactly how the owner reported it ("tombol menu hilang").
+ */
+.toggle[aria-expanded="true"] .burger span:first-child {
+  transform: translateY(3.5px) rotate(45deg);
+}
+
+.toggle[aria-expanded="true"] .burger span:last-child {
+  transform: translateY(-3.5px) rotate(-45deg);
+}
+
+/* ------------------------------------------------------------- the menu */
+
+/*
+ * A full-screen index, at every width.
+ *
+ * The reference's phone menu is a numbered list of words at 11vw with a hairline under each —
+ * exactly the shape the catalogue index already uses, which is why it survives the redesign
+ * untouched in structure and only changes its type. It covers the screen edge to edge, the page
+ * behind it cannot scroll (html[data-menu="open"] in globals.css), and it is rendered in a portal
+ * rather than inside the header — see the note in SiteHeader.tsx.
+ */
+.header:has(.toggle[aria-expanded="true"]) {
+  /* The bar that closes the dialog stays above the dialog. */
+  z-index: calc(var(--z-chrome) + 1);
+}
+
+.drawer {
+  /* Default for the inline value the header writes when it opens; declared so the token audit can
+     see it, and so a drawer rendered without JS still sits in the right place. */
+  --drawer-top: var(--header-height);
+  position: fixed;
+  top: var(--drawer-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-chrome);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
   padding: var(--space-6) var(--gutter) var(--space-8);
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
   background: var(--color-bg);
+  border-top: 1px solid var(--color-hairline);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: drawerIn 260ms var(--ease-out) both;
 }
 
-.mobileNav ul {
+@keyframes drawerIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.drawerList {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
 }
 
-.mobileNav a {
-  display: inline-block;
-  font-size: clamp(2rem, 8vw, 3rem);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-  text-decoration: none;
+/* Each line rises out of its own hairline, 55 ms after the one above it. */
+.drawerList li {
+  --i: 0;
+  border-bottom: 1px solid var(--color-hairline);
+  animation: drawerLine 460ms var(--ease-out) both;
+  animation-delay: calc(40ms + var(--i) * 55ms);
 }
 
-.mobileNav a[aria-current="page"] {
-  color: var(--color-accent);
-}
-
-@media (max-width: 719px) {
-  .desktopNav {
-    display: none;
+@keyframes drawerLine {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
   }
 }
 
-@media (min-width: 720px) {
-  .toggle,
-  .mobileNav {
+.drawerList a {
+  display: block;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  text-decoration: none;
+  color: var(--color-fg);
+}
+
+
+.drawerLabel {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(2rem, 7.6vw, 4rem);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  transition: color 200ms var(--ease);
+}
+
+/* The current page keeps the accent: it is a live marker, not a fill. */
+.drawerList a[aria-current="page"] .drawerLabel,
+
+.drawerLatest {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.drawerLatestLabel {
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.drawerLatestLink {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  text-decoration: none;
+  color: var(--color-fg);
+}
+
+/* A sleeve, not a card: square, unrounded. */
+.drawerLatestCover {
+  display: block;
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  background: var(--color-bg-surface);
+  transition: translate 260ms var(--ease-out);
+}
+
+.drawerLatestLink:hover .drawerLatestCover,
+.drawerLatestLink:focus-visible .drawerLatestCover {
+  translate: 4px 0;
+}
+
+.drawerLatestText {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 2px;
+}
+
+.drawerLatestTitle {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+}
+
+.drawerLatestMeta {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Outlined, right-angled, uppercase — the same box as the header's Listen. */
+.drawerCta {
+  align-self: start;
+  justify-self: start;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.drawerCta:hover,
+.drawerCta:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+}
+
+.drawerMeta {
+  /* Pinned to the bottom: the list is the menu, the colophon is the edge of the page. */
+  margin: auto 0 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .drawerList li {
+    animation: none;
+  }
+
+  .drawerLatestCover {
+    transition: none;
+  }
+}
+
+/*
+ * At 390px the bar has three things to fit: mark + wordmark + tag, Listen, and MENU. The wordmark
+ * goes first — the mark is the logo — and MENU keeps its word, because a hamburger with no label is
+ * the one control on the page a first-time visitor has to guess at.
+ */
+@media (max-width: 560px) {
+  /*
+   * Visually hidden, not removed.
+   *
+   * `display: none` took the artist's name out of the accessibility tree, and the link's only
+   * remaining content was a decorative mark (`alt=""`) — axe flags that as `link-name`, correctly:
+   * a screen reader on a phone heard "link" with no name. The words stay in the document and are
+   * clipped to a pixel, which is the standard trade for a logo-only bar.
+   */
+  .wordmarkWrap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .listen {
+    padding: 10px 12px;
+    letter-spacing: 0.14em;
+  }
+
+  .menuWord {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .listen {
     display: none;
   }
 }

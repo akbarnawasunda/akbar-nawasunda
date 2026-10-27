@@ -1,0 +1,11 @@
+.wrap {
+  display: inline-flex;
+  transition: transform 220ms var(--ease-out);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    transition: none;
+  }
+}

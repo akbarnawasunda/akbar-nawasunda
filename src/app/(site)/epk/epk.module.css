@@ -1,0 +1,285 @@
+/*
+ * /epk — a document page.
+ *
+ * The head is the title, one line of lead and the download; below it, three ruled sections (the
+ * contents of the pack, the verified facts, the contact). It is deliberately the most *plain* page
+ * on the site: a journalist arrives here to copy an email address and a fact sheet, and every
+ * flourish between them and that information is in the way.
+ */
+.head {
+  padding-block: var(--section-padding) var(--space-8);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.headCopy {
+  max-width: 62ch;
+}
+
+.eyebrow {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin-top: var(--space-4);
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+}
+
+.lead {
+  max-width: 46ch;
+  margin-top: var(--space-6);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+  padding-block: var(--section-padding);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.pack {
+  min-width: 0;
+}
+
+.sectionTitle {
+  font-size: var(--text-title);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+/* A file list is a table: name, note, size, one row each, hairlines between. */
+.fileList {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: grid;
+}
+
+.fileList li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr) auto;
+  gap: var(--space-4);
+  align-items: baseline;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.fileList code {
+  font-family: var(--font-body-stack);
+  font-size: var(--text-small);
+  letter-spacing: var(--tracking-nav);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.fileNote {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.fileSize {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.terms {
+  margin-top: var(--space-6);
+  max-width: 52ch;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------------- preview */
+
+.preview {
+  min-width: 0;
+  border: 1px solid var(--color-hairline);
+}
+
+.preview img {
+  width: 100%;
+  height: auto;
+}
+
+.previewCaption {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------------- update */
+
+.sheet,
+.contact {
+  padding-block: var(--section-padding);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.sheetNote {
+  margin-top: var(--space-3);
+  max-width: 52ch;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.bio {
+  margin-top: var(--space-6);
+  max-width: 58ch;
+  color: var(--color-text-secondary);
+  font-size: clamp(1rem, 1.2vw, 1.125rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.facts {
+  display: grid;
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.fact dt {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-primary);
+}
+
+.contact {
+  border-bottom: 0;
+}
+
+.contactMail {
+  margin-top: var(--space-6);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 3.2vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: var(--tracking-hero);
+  overflow-wrap: anywhere;
+}
+
+.contactMail a {
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.contactMail a:hover,
+.contactMail a:focus-visible {
+  border-bottom-color: var(--color-text-primary);
+}
+
+.links {
+  list-style: none;
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+}
+
+.links a {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.links a:hover,
+.links a:focus-visible {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-primary);
+}
+
+/* The mark strip is the page's only graphic: the monogram and one line of positioning. */
+.markStrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding-block: var(--space-8);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.markStrip img {
+  height: 28px;
+  width: auto;
+}
+
+.markStrip span {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 900px) {
+  .body,
+  .sheet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fileList li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fileNote {
+    grid-column: 1 / -1;
+  }
+
+  .fact {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+}

@@ -21,6 +21,12 @@ export const SCHEMA_STATEMENTS = [
     published_json TEXT,
     published_at INTEGER
   )`,
+  `CREATE TABLE IF NOT EXISTS studio_photos (
+    slot TEXT PRIMARY KEY,
+    data_base64 TEXT NOT NULL,
+    mime TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS studio_login_failures (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     failures INTEGER NOT NULL,

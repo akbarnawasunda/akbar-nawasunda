@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return { title: `Edit release ${slug}` };
+  return { title: `Sunting rilis ${slug}` };
 }
 
 export default async function EditRelease({
@@ -32,11 +32,11 @@ export default async function EditRelease({
   return (
     <>
       <p className={styles.muted}>
-        <Link href="/studio/music" className={styles.link}>← Music</Link>
+        <Link href="/studio/music" className={styles.link}>← Musik</Link>
       </p>
-      <h1 className={styles.heading}>{record.draft?.title || "Release"}</h1>
+      <h1 className={styles.heading}>{record.draft?.title || "Rilis"}</h1>
       {created === "1" ? (
-        <p role="status" className={`${styles.notice} ${styles.noticeOk}`}>Draft created. It is private until you publish.</p>
+        <p role="status" className={`${styles.notice} ${styles.noticeOk}`}>Draf dibuat. Masih privat sampai diterbitkan.</p>
       ) : null}
       {record.draft ? (
         <ReleaseEditorForm

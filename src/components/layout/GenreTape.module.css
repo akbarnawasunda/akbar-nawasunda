@@ -1,0 +1,83 @@
+/* Genre tape. The marquee is the single bounded loop on the site (D-085): 46s for a full pass, paused
+   on hover and on focus, and switched off entirely for reduced motion. */
+.tape {
+  overflow: hidden;
+  border-block: 1px solid var(--color-hairline);
+  background: var(--color-bg);
+}
+
+.viewport {
+  display: flex;
+  width: max-content;
+  max-width: none;
+  padding-block: var(--space-4);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0 var(--space-4) 0 0;
+  list-style: none;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 3vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  /* #A1A1B5 (7.8:1), not the #6A6A80 in the reference (3.5:1): this is real text (D-030). */
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex: none;
+}
+
+.item + .item::before,
+.item:first-child::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+}
+
+@keyframes tape-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .viewport {
+    animation: tape-scroll 46s linear infinite;
+  }
+
+  .viewport:hover,
+  .viewport:focus-within {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    width: 100%;
+  }
+
+  .track {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .track:last-child {
+    display: none;
+  }
+}

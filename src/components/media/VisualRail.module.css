@@ -1,0 +1,97 @@
+/*
+ * The archive wall.
+ *
+ * Six owner files on one grid, aligned on their top edge, all the same height, captions on their own
+ * row underneath. The frame is a hairline; the photographs are high-contrast monochrome, which is the
+ * only treatment the whole archive shares.
+ *
+ * The three-column rhythm is deliberate: at six assets it produces two clean rows, which is the
+ * whole of the composition. Nothing is offset, nothing overlaps, nothing is a card.
+ */
+.wall {
+  padding: var(--space-8) var(--gutter) 0;
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+.grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+}
+
+.panel {
+  min-width: 0;
+}
+
+.figure {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-field);
+}
+
+.media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Monochrome, high contrast: the same rule as every other photograph (globals.css). */
+  filter: grayscale(1) contrast(1.18) brightness(0.92);
+  transition: scale 600ms var(--ease-out);
+}
+
+.figure:hover .media,
+.figure:focus-within .media {
+  scale: 1.03;
+}
+
+/* The mark and the lockup are line art on transparency: they are not photographs, so they are not
+   filtered, and they sit one step above the ground so the white strokes have something to sit on. */
+.onSurface {
+  object-fit: contain;
+  padding: clamp(1.5rem, 6vw, 4rem);
+  background: var(--color-bg-surface-2);
+  filter: none;
+}
+
+.caption {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.index {
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

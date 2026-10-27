@@ -1,99 +1,796 @@
+/*
+ * Homepage — "HUD" (round 16).
+ *
+ * Three ideas carry this page, and they are the owner's, not the stylesheet's:
+ *
+ *   1. **The type is the layout.** The name is set at --text-hero (round 29: clamp(2rem, 4vw,
+ *      4rem), 1.1 leading, -0.02em) in uppercase, one word per line. Nothing else competes:
+ *      the facts are 0.625rem mono, the buttons are 0.6875rem mono, and the photograph is behind
+ *      and grayscale.
+ *   2. **Structure is a hairline and a mark.** Bands are separated by a 1px white line at 16%; the
+ *      corners of the two full-bleed bands carry a `+` and an `×` (HudMarks). No panel has a fill,
+ *      no corner has a radius.
+ *   3. **Black is black.** The ground is #000000 everywhere, including behind the 3D monogram, so
+ *      the metal is the only light source on the page. The accent appears exactly twice: the full
+ *      stop after the name, and the monogram's own bloom.
+ *
+ * Everything below is sized in rem/clamp so a 320px phone gets a 44px name and a 2560px monitor
+ * does not get a 330px one; the only viewport unit in the file is inside those clamps.
+ */
+
+/* ------------------------------------------------------------------------------------ hero */
+
 .hero {
   position: relative;
   isolation: isolate;
-  min-height: calc(100vh - var(--header-height));
-  min-height: calc(100dvh - var(--header-height));
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  /* A definite height, not a min-height: flex children only grow into free space the container
+     actually has, and `min-height` leaves the container content-high — which is exactly how the
+     facts strip ended up floating mid-screen with dead ink below it (round 28). */
+  height: min(100svh, 58rem);
+  overflow: hidden;
+  /* The hero writes transforms every frame while it is in view; this keeps that work inside the
+     band instead of invalidating the whole document (R11). */
+  contain: layout paint;
+  background: var(--color-bg);
 }
 
-/* Secondary link to the visual study, placed in the negative space above the roles. */
-.study {
+.heroMedia {
   position: absolute;
-  top: var(--space-6);
-  right: var(--gutter);
-  z-index: var(--z-chrome);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-muted);
-  text-decoration: none;
+  inset: 0;
+  z-index: 0;
 }
 
-.study:hover {
-  color: var(--color-accent);
+/*
+ * The photograph is cropped from the top third of the frame: the owner's shot is an empty stage
+ * with the lamp high in the picture, and cropping from the bottom cut the lamp out of every
+ * viewport shorter than 900px.
+ */
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 68% 40%;
+  opacity: 0.9;
 }
 
-.content {
+/*
+ * One scrim, one purpose: the name has to be readable over a photograph whose middle is a bright
+ * lamp. It goes to solid black at the bottom edge so the next band starts without a seam.
+ */
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /*
+   * Round 24: the scrim used to bury the photograph — an "image-led" site whose image nobody can
+   * see is a black rectangle with type on it. Lighter at the top and middle so the stage reads as
+   * a place; the floor still falls to ink so the facts bar sits on solid ground.
+   */
+  background:
+    linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.9) 0%,
+      rgb(0 0 0 / 0.62) 38%,
+      rgb(0 0 0 / 0.18) 72%,
+      rgb(0 0 0 / 0) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.42) 0%,
+      rgb(0 0 0 / 0.18) 34%,
+    rgb(0 0 0 / 0.42) 62%,
+    var(--color-bg) 96%
+  );
+}
+
+
+.heroStage {
   position: relative;
-  z-index: var(--z-content);
-  align-self: end;
+  z-index: 2;
+  display: flex;
+  flex: 1 1 auto;
+}
+
+/* Plate3D's own `.stage` rule sets display and lands later in the bundle, so the fold only closes
+   with a selector that out-ranks it: without these two rules the tilt wrapper stays a content-high
+   block and the facts strip floats mid-screen instead of closing the first fold. */
+.hero > .heroStage {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.heroStage > * {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+/*
+ * The sheet, and the one number worth explaining.
+ *
+ * R10 established that the hero's type block is a single rigid surface 40px behind the glass, and
+ * that nothing inside it carries its own Z (the measured failure of per-layer depth is written up
+ * in the R10 notes). This stylesheet keeps that contract: the transform lives here, on the block
+ * that holds the masthead, the name and the facts, and no descendant sets one.
+ */
+.heroInner {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding-inline: var(--gutter);
-  padding-bottom: var(--space-6);
-  display: grid;
-  gap: var(--space-8);
+  padding: var(--space-6) var(--gutter) var(--space-8);
+  transform: translateZ(-40px);
 }
 
-/* Roles: an indexed list with hairline rules. Three columns on wide screens, stacked on phones. */
-.roles {
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.live {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-signal-blue);
+}
+
+.heroText {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+}
+
+.heroBody {
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * The name.
+ *
+ * Two lines, each one word, each as wide as the container allows. `overflow-wrap` is the phone
+ * guard: at 320px the second line is 273px of glyphs inside a 280px column, and one extra pixel of
+ * tracking would otherwise push the full stop off-screen.
+ */
+.name {
+  font-size: var(--text-hero);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+
+/*
+ * Round 22 — the name arrives like a curtain call, not a paste-in.
+ *
+ * Each line sits in its own overflow mask and rises out of it once, on load, 120 ms apart: the
+ * oldest trick in title sequencing and still the one that reads as *produced* rather than
+ * rendered. One-shot keyframes with `both`, never infinite — the anti-slop fixture bans looping
+ * CSS animation, and a name that keeps re-entering would be a slot machine, not a marquee.
+ */
+.nameLine {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+.nameRise {
+  display: block;
+  animation: name-rise 900ms var(--ease) both;
+}
+
+.nameLine:nth-child(2) .nameRise {
+  animation-delay: 120ms;
+}
+
+@keyframes name-rise {
+  from {
+    transform: translateY(112%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* The one pixel of colour in the hero, and it is 12vw wide. */
+.stop {
+  color: var(--color-brand);
+}
+
+.heroFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.heroSub {
+  max-width: 34ch;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/*
+ * The facts, as one ruled line: a figure, a label, a figure. They are the only numbers on the page
+ * and they are set at 2rem in the display face, because a figure set in 11px mono reads as a
+ * footnote and these are the argument.
+ */
+.factsBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-bone);
+  color: var(--color-bone-ink);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.5rem, 5vw, 4.5rem);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+}
+
+.fact dt {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-bone-muted);
+}
+
+.fact dd {
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+  line-height: 1;
+  color: var(--color-bone-ink);
+  letter-spacing: var(--tracking-tight);
+}
+
+
+
+/* -------------------------------------------------------------------------------- monogram */
+
+/*
+ * The centrepiece.
+ *
+ * 92svh of black with the 3D mark on it and one line of copy at the bottom edge. The canvas is
+ * `position: absolute; inset: 0` (AnMonogram.module.css), so this band only has to provide height
+ * and a stacking context — and height is what gives the object room to be the subject rather than
+ * an illustration beside some text.
+ */
+.signature {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 74svh;
+  overflow: hidden;
+  background: var(--color-band-monogram);
+}
+
+
+/* The static stand-in for the renderer, phone-width only. */
+.signatureFallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: none;
+  place-items: center;
+  padding: 0 12%;
+}
+
+/* Two classes deep on purpose: `.site-main img` in globals.css filters every photograph, and this
+   file must not be grayscaled — the mark's blue tips are the only colour in the band. */
+.signature .signatureFallback img {
+  width: 100%;
+  height: auto;
+  filter: none;
+  opacity: 0.9;
+}
+
+@media (max-width: 767px) {
+  .signatureFallback {
+    display: grid;
+  }
+}
+
+
+/* ----------------------------------------------------------------------------- transmission */
+
+.transmission {
+  position: relative;
+  overflow: hidden;
+  padding-block: var(--section-padding);
+  border-top: 1px solid var(--color-hairline);
+  /*
+   * Round 24 — the takeover prints on bone, like a street poster pasted over the ink page.
+   * The flip is four local token re-declarations: every descendant (type, hairlines, buttons)
+   * inverts by reading the same names it always read. No per-child classes, no theme prop.
+   */
+  background: var(--color-bone);
+  /* Inherited color is a *computed* value, not a variable: without this line every descendant
+     that does not set its own color keeps the body's white. The section must read the flipped
+     token itself and hand the result down. */
+  color: var(--color-text-primary);
+  --color-text-primary: var(--color-bone-ink);
+  --color-text-secondary: var(--color-bone-muted);
+  --color-text-muted: var(--color-bone-muted);
+  --color-ink-black: var(--color-bone);
+  --color-hairline: var(--color-bone-line);
+  --color-border: var(--color-bone-line);
+}
+
+/* The sleeve is bone stock too, so on a bone band it needs an ink plinth to sit on — the same
+   move a gallery makes hanging a light print on a light wall. */
+.transmissionArt {
+  background: var(--color-bone-ink);
+  padding: var(--space-3);
+  /* A pasted poster is never perfectly square on the wall. One and a half degrees, no more. */
+  rotate: -1.5deg;
+}
+
+.transmissionGhost {
+  position: absolute;
+  top: var(--space-8);
+  right: calc(var(--gutter) * -1);
+  z-index: 0;
+  width: clamp(16rem, 34vw, 34rem);
+  height: auto;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+
+.sectionLink,
+
+.sectionLink:hover,
+.sectionLink:focus-visible {
+  color: var(--color-text-primary);
+}
+
+/*
+ * Two columns, and the asymmetry is deliberate: the title takes 7 of 12 and the sleeve 5, so the
+ * type stays the subject even when the artwork is the loudest object in the row.
+ */
+.transmissionBody {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: start;
+  gap: clamp(2rem, 5vw, 5rem);
+  padding-top: var(--space-8);
+}
+
+.transmissionCopy {
+  min-width: 0;
+}
+
+.transmissionTitle {
+  position: relative;
+  z-index: 1;
+  text-align: right;
+  font-family: var(--font-body-stack);
+  /* Round 22 takeover: the release that owns the screen prints almost as loud as the name. */
+  font-size: var(--text-takeover);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* The "out now" flag: one mono line with the hero's live dot, because a takeover that does not
+   say it is current is just a big title. */
+.transmissionFlag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding-bottom: var(--space-3);
+}
+
+.transmissionMeta {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.transmissionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.transmissionArt {
+  min-width: 0;
+}
+
+.sleeveStage {
+  width: 100%;
+}
+
+/*
+ * A sleeve is a square object with an edge: the offset plate behind it is the only shadow on the
+ * site, and it is not a shadow — it is a second, flat rectangle a few pixels down and right, which
+ * is how a record sleeve sits on a table.
+ */
+.sleeveLink {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: translate 260ms var(--ease-out);
+}
+
+.sleeveLink:hover,
+.sleeveLink:focus-visible {
+  translate: -4px -4px;
+}
+
+.sleeveEdge {
+  position: absolute;
+  inset: 0;
+  translate: 10px 10px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-surface);
+}
+
+.sleeveFace {
+  position: relative;
+  display: block;
+  border: 1px solid var(--color-border);
+}
+
+/*
+ * Round 32: the phone gets the sleeve edge to edge — a record held to the glass, not framed on a
+ * table. The offset plate (the one "shadow" on the site) stays on wider screens; at this width its
+ * overhang would push the document sideways.
+ */
+@media (max-width: 767px) {
+  .sleeveStage {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .sleeveEdge {
+    display: none;
+  }
+
+  .sleeveFace {
+    border: 0;
+  }
+}
+
+/* ------------------------------------------------------------------------------------ index */
+
+.indexBand {
+  padding-block: var(--section-padding);
+  border-top: 1px solid var(--color-hairline);
+}
+
+/*
+ * Round 29 — the discography rail moved: it is a pinned horizontal reel now (see
+ * CataloguePin.module.css — 300vh wrapper, sticky 100vh flex row, the engine's --pin becomes one
+ * translateX, and under 768px it dissolves back to a vertical column). What stays here is the
+ * count above it: a section title's understudy, not a hero.
+ */
+.railCount {
+  margin: calc(var(--space-2) * -1) 0 var(--space-4);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.indexTitle {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------------------------ night */
+
+/*
+ * One full-bleed photograph and one sentence. No interface on it at all — this is the band that
+ * tells a visitor there is a room behind the catalogue.
+ */
+.night {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 78svh;
+  overflow: hidden;
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-bg);
+}
+
+.nightMedia {
+  position: absolute;
+  inset: 0;
+}
+
+.nightImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+  opacity: 0.7;
+}
+
+.nightQuote {
+  /*
+   * Round 28: the pull-quote is a sheet of the label's stock laid over the photograph, offset to
+   * the left edge instead of centred — type never sits on a photograph, but paper can.
+   */
+  position: relative;
+  z-index: 2;
+  max-width: min(34ch, calc(100% - var(--space-12)));
+  margin: 0 auto var(--space-8) var(--gutter);
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-bone);
+  color: var(--color-bone-ink);
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.6vw, 2.9rem);
+  line-height: 1.3;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+  text-shadow: 0 1px 40px rgb(0 0 0 / 0.65);
+}
+
+.nightCaption {
+  position: relative;
+  z-index: 2;
+  padding-bottom: var(--space-6);
+  text-align: center;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------------------- archive */
+
+.archive {
+  padding-block: var(--section-padding) 0;
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* ------------------------------------------------------------------------------------ press */
+
+.pressBand {
+  padding-block: var(--section-padding);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.pressWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.press {
+  padding: var(--space-8);
+  border: 1px solid var(--color-hairline);
+}
+
+.pressEyebrow {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.pressActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.pressTitle {
+  margin-top: var(--space-3);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-hairline);
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+}
+
+/*
+ * The timeline is a table of two columns, not a vertical line with dots: at 0.625rem the years line
+ * up down the left edge and read as a chronology, where a drawn rail beside display type reads as a
+ * decorative flourish.
+ */
+.timeline {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
 }
 
-.role {
+.timeline li {
   display: grid;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid rgba(236, 232, 223, 0.18);
-  font-size: clamp(1.125rem, 0.9rem + 0.9vw, 1.75rem);
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-.index {
-  font-size: var(--text-label);
+.timelineYear {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.timelineBody {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.timelineTitle {
+  font-family: var(--font-body-stack);
   font-weight: 400;
-  letter-spacing: var(--tracking-label);
-  color: var(--color-muted);
-}
-
-.title {
-  font-size: var(--text-display);
-  font-weight: 500;
-  line-height: var(--leading-tight);
+  font-size: var(--text-title);
+  line-height: 1.1;
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
-  margin-left: -0.04em;
 }
 
-.title span {
-  display: block;
+.timelineDetail {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  line-height: 1.55;
 }
 
-@media (max-width: 640px) {
-  .roles {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
+.pressPhoto {
+  border: 1px solid var(--color-hairline);
+}
+
+.pressPhoto img {
+  width: 100%;
+  height: auto;
+}
+
+.pressPhotoCaption {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+
+.notesBand {
+  padding-block: var(--section-padding);
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* ----------------------------------------------------------------------------------- phones */
+
+/*
+ * Every band stacks. The name rides the same clamp() scale as the desktop (round 29: the owner's
+ * type spec floors it at 2rem, so a 390px phone reads the same hierarchy, just smaller).
+ */
+@media (max-width: 899px) {
+  .hero {
+    height: auto;
+    min-height: auto;
   }
 
-  .role {
-    grid-template-columns: auto 1fr;
-    align-items: baseline;
-    gap: var(--space-4);
+  .transmissionTitle {
+    text-align: left;
   }
 
+  .transmissionGhost {
+    width: 16rem;
+    top: var(--space-4);
+  }
+
+  .hero {
+    min-height: auto;
+  }
+
+  .heroInner {
+    gap: var(--space-6);
+    padding-top: var(--space-4);
+  }
+
+  .transmissionBody,
+  .pressWrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .press {
+    padding: var(--space-4);
+  }
+
+  .signature {
+    min-height: 74svh;
+  }
 }
 
-.below {
-  padding-block: var(--space-16);
+@media (max-width: 560px) {
+  .timeline li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .heroActions {
+    width: 100%;
+  }
+
+  .nightQuote {
+    max-width: calc(100% - var(--space-8));
+    margin-inline: var(--gutter);
+  }
 }

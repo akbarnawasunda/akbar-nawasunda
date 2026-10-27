@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 import { clearSession, isAdminRequest, setSessionCookie } from "./auth";
 import { getStudioConfigStatus } from "./config";
-import { StudioNotConfiguredError } from "./db";
+import { getReadyDb, StudioNotConfiguredError } from "./db";
+import { deletePhoto, isPhotoSlot, savePhoto } from "./photos";
 import { isPageSlug, PAGE_CONFIG, type PageSlug } from "./content-model";
 import type { FormState } from "./form-state";
 import { releaseArtworkIds } from "./artwork";
@@ -18,12 +19,12 @@ import { slugify } from "./releases";
 // Every mutation below checks the session on the server first. Client state is never trusted.
 // Validation runs on the server for every save and publish; the browser's checks are convenience only.
 
-const NOT_SIGNED_IN: FormState = { status: "error", message: "Your session has ended. Sign in again to save." };
+const NOT_SIGNED_IN: FormState = { status: "error", message: "Sesi berakhir. Masuk lagi untuk menyimpan." };
 
 export async function loginAction(_previous: FormState, formData: FormData): Promise<FormState> {
   const config = getStudioConfigStatus();
   if (!config.ready) {
-    return { status: "error", message: "NAWA STUDIO is not configured yet." };
+    return { status: "error", message: "NAWA STUDIO belum dikonfigurasi." };
   }
 
   try {
@@ -31,18 +32,18 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
     const failure = await getFailureState();
     if (isLockedOut(failure, now)) {
       const minutes = Math.ceil(LOGIN_FAILURE_WINDOW_MS / 60000);
-      return { status: "error", message: `Too many failed attempts. Wait up to ${minutes} minutes, then try again.` };
+      return { status: "error", message: `Terlalu banyak percobaan gagal. Tunggu sampai ${minutes} menit, lalu coba lagi.` };
     }
 
     const password = formData.get("password");
     if (typeof password !== "string" || password.length === 0) {
-      return { status: "error", message: "Enter the password." };
+      return { status: "error", message: "Masukkan password." };
     }
 
     const valid = await verifyPassword(password, process.env.STUDIO_ADMIN_PASSWORD_HASH as string);
     if (!valid) {
       await setFailureState(recordFailure(failure, now));
-      return { status: "error", message: "Incorrect password." };
+      return { status: "error", message: "Password salah." };
     }
 
     await setFailureState(null);
@@ -50,7 +51,7 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
     await createSession(hashSessionToken(token), now, now + SESSION_TTL_MS);
     await setSessionCookie(token);
   } catch (error) {
-    return failureResult(error, "Sign-in failed. Try again.");
+    return failureResult(error, "Gagal masuk. Coba lagi.");
   }
 
   redirect("/studio");
@@ -77,10 +78,10 @@ export async function saveOrPublishAction(_previous: FormState, formData: FormDa
 
   const slug = formData.get("slug");
   if (typeof slug !== "string" || !isPageSlug(slug)) {
-    return { status: "error", message: "This page cannot be edited." };
+    return { status: "error", message: "Halaman ini tidak bisa diedit." };
   }
   const intent = intentOf(formData);
-  if (!intent) return { status: "error", message: "Unknown action." };
+  if (!intent) return { status: "error", message: "Aksi tidak dikenali." };
 
   const input: Record<string, unknown> = {
     title: text(formData, "title"),
@@ -90,7 +91,7 @@ export async function saveOrPublishAction(_previous: FormState, formData: FormDa
   };
   const result = validatePageDocument(slug as PageSlug, input);
   if (!result.ok) {
-    return { status: "error", message: "Some fields need attention. Check the highlighted items.", errors: result.errors };
+    return { status: "error", message: "Ada isian yang perlu diperbaiki. Periksa bagian yang ditandai.", errors: result.errors };
   }
 
   try {
@@ -99,12 +100,12 @@ export async function saveOrPublishAction(_previous: FormState, formData: FormDa
     if (intent === "publish") {
       await publishPage(slug as PageSlug, result.value, now);
       revalidatePath(PAGE_CONFIG[slug as PageSlug].path);
-      return { status: "ok", message: "Published. The public page now shows this version.", unpublishedChanges: false, savedAt: now };
+      return { status: "ok", message: "Terbit. Halaman publik sekarang memakai versi ini.", unpublishedChanges: false, savedAt: now };
     }
     await savePageDraft(slug as PageSlug, result.value, now);
-    return { status: "ok", message: "Draft saved. Only you can see it until you publish.", unpublishedChanges: true, savedAt: now };
+    return { status: "ok", message: "Draf tersimpan. Hanya kamu yang bisa melihatnya sampai diterbitkan.", unpublishedChanges: true, savedAt: now };
   } catch (error) {
-    return failureResult(error, "Could not save. Try again in a moment.");
+    return failureResult(error, "Gagal menyimpan. Coba lagi sebentar.");
   }
 }
 
@@ -112,11 +113,11 @@ export async function saveOrPublishAction(_previous: FormState, formData: FormDa
 export async function saveDesignAction(_previous: FormState, formData: FormData): Promise<FormState> {
   if (!(await isAdminRequest())) return NOT_SIGNED_IN;
   const intent = intentOf(formData);
-  if (!intent) return { status: "error", message: "Unknown action." };
+  if (!intent) return { status: "error", message: "Aksi tidak dikenali." };
 
   const result = validateDesign({ accent: formData.get("accent"), titleCase: formData.get("titleCase") });
   if (!result.ok) {
-    return { status: "error", message: "Choose a valid option for each setting.", errors: result.errors };
+    return { status: "error", message: "Pilih opsi yang valid untuk setiap pengaturan.", errors: result.errors };
   }
 
   try {
@@ -124,12 +125,12 @@ export async function saveDesignAction(_previous: FormState, formData: FormData)
     if (intent === "publish") {
       await publishDesign(result.value, now);
       revalidatePath("/", "layout");
-      return { status: "ok", message: "Published. The public site uses these settings.", unpublishedChanges: false, savedAt: now };
+      return { status: "ok", message: "Terbit. Situs publik memakai pengaturan ini.", unpublishedChanges: false, savedAt: now };
     }
     await saveDesignDraft(result.value, now);
-    return { status: "ok", message: "Draft saved. The public site is unchanged until you publish.", unpublishedChanges: true, savedAt: now };
+    return { status: "ok", message: "Draf tersimpan. Situs publik belum berubah sampai diterbitkan.", unpublishedChanges: true, savedAt: now };
   } catch (error) {
-    return failureResult(error, "Could not save. Try again in a moment.");
+    return failureResult(error, "Gagal menyimpan. Coba lagi sebentar.");
   }
 }
 
@@ -142,21 +143,21 @@ export async function createReleaseAction(_previous: FormState, formData: FormDa
 
   const requestedSlug = typeof formData.get("slug") === "string" ? (formData.get("slug") as string).trim() : "";
   const slug = requestedSlug.length > 0 ? requestedSlug : slugify(typeof input.title === "string" ? input.title : "");
-  const slugError = slug.length === 0 ? "Enter a title or an address for the release." : validateSlug(slug);
+  const slugError = slug.length === 0 ? "Isi judul atau alamat untuk rilis ini." : validateSlug(slug);
 
   if (!result.ok || slugError) {
     const errors = { ...(result.ok ? {} : result.errors) } as Record<string, string>;
     if (slugError) errors.slug = slugError;
-    return { status: "error", message: "Some fields need attention. Check the highlighted items.", errors };
+    return { status: "error", message: "Ada isian yang perlu diperbaiki. Periksa bagian yang ditandai.", errors };
   }
 
   try {
     const created = await createReleaseDraft(slug, result.value, Date.now());
     if (!created) {
-      return { status: "error", message: "A release with this address already exists.", errors: { slug: "This address is already used." } };
+      return { status: "error", message: "Rilis dengan alamat ini sudah ada.", errors: { slug: "Alamat ini sudah dipakai." } };
     }
   } catch (error) {
-    return failureResult(error, "Could not create the release. Try again in a moment.");
+    return failureResult(error, "Gagal membuat rilis. Coba lagi sebentar.");
   }
   redirect(`/studio/music/${slug}?created=1`);
 }
@@ -167,38 +168,38 @@ export async function saveReleaseAction(_previous: FormState, formData: FormData
 
   const slug = formData.get("slug");
   if (typeof slug !== "string" || validateSlug(slug) !== null) {
-    return { status: "error", message: "This release cannot be edited." };
+    return { status: "error", message: "Rilis ini tidak bisa diedit." };
   }
   const intent = formData.get("intent");
   if (intent !== "save" && intent !== "publish" && intent !== "unpublish") {
-    return { status: "error", message: "Unknown action." };
+    return { status: "error", message: "Aksi tidak dikenali." };
   }
 
   try {
     const record = await getReleaseRecord(slug);
-    if (!record) return { status: "error", message: "This release does not exist." };
+    if (!record) return { status: "error", message: "Rilis ini tidak ada." };
     const now = Date.now();
 
     if (intent === "unpublish") {
       await unpublishRelease(slug);
       revalidateRelease(slug);
-      return { status: "ok", message: "Unpublished. The release is hidden from the public site; the draft is kept.", unpublishedChanges: true, savedAt: now };
+      return { status: "ok", message: "Ditarik dari publik. Rilis disembunyikan dari situs; draf tetap disimpan.", unpublishedChanges: true, savedAt: now };
     }
 
     const result = validateRelease(releaseInput(formData), { allowedArtworkIds: releaseArtworkIds() });
     if (!result.ok) {
-      return { status: "error", message: "Some fields need attention. Check the highlighted items.", errors: result.errors };
+      return { status: "error", message: "Ada isian yang perlu diperbaiki. Periksa bagian yang ditandai.", errors: result.errors };
     }
 
     if (intent === "publish") {
       await publishRelease(slug, result.value, now);
       revalidateRelease(slug);
-      return { status: "ok", message: "Published. The release is now visible on the Music page.", unpublishedChanges: false, savedAt: now };
+      return { status: "ok", message: "Terbit. Rilis sekarang terlihat di halaman Music.", unpublishedChanges: false, savedAt: now };
     }
     await saveReleaseDraft(slug, result.value, now);
-    return { status: "ok", message: "Draft saved. Only you can see it until you publish.", unpublishedChanges: true, savedAt: now };
+    return { status: "ok", message: "Draf tersimpan. Hanya kamu yang bisa melihatnya sampai diterbitkan.", unpublishedChanges: true, savedAt: now };
   } catch (error) {
-    return failureResult(error, "Could not save. Try again in a moment.");
+    return failureResult(error, "Gagal menyimpan. Coba lagi sebentar.");
   }
 }
 
@@ -224,8 +225,55 @@ function revalidateRelease(slug: string): void {
 
 function failureResult(error: unknown, fallback: string): FormState {
   if (error instanceof StudioNotConfiguredError) {
-    return { status: "error", message: "NAWA STUDIO is not configured yet." };
+    return { status: "error", message: "NAWA STUDIO belum dikonfigurasi." };
   }
   console.error("[studio] action failed", error);
   return { status: "error", message: fallback };
+}
+
+/**
+ * Round 26: the owner's photo pipeline. A slot upload is validated here (type, size), stored as a
+ * base64 row in the studio database, and revalidates the public layouts so the next render serves
+ * `/api/public/foto/<slot>`. "Kosongkan" removes the row and the site falls back to its repository
+ * asset or its empty frame — the slot is never half-filled.
+ */
+export async function savePhotoAction(_previous: FormState, formData: FormData): Promise<FormState> {
+  if (!(await isAdminRequest())) return NOT_SIGNED_IN;
+  const slot = String(formData.get("slot") ?? "");
+  if (!isPhotoSlot(slot)) return { status: "error", message: "Slot tidak dikenali." };
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { status: "error", message: "Pilih file foto dulu." };
+  }
+  if (!["image/webp", "image/png", "image/jpeg", "image/avif"].includes(file.type)) {
+    return { status: "error", message: "Format harus WebP, PNG, JPG, atau AVIF." };
+  }
+  if (file.size > 2_000_000) {
+    return { status: "error", message: "Maksimum 2 MB — fotonya disimpan di database studio." };
+  }
+  try {
+    const db = await getReadyDb();
+    const bytes = Buffer.from(await file.arrayBuffer());
+    await savePhoto(db, slot, bytes.toString("base64"), file.type);
+    revalidatePath("/", "layout");
+    revalidatePath("/artist");
+    return { status: "ok", message: `Foto slot "${slot}" tersimpan dan langsung dipakai situs.` };
+  } catch (error) {
+    return failureResult(error, "Gagal menyimpan foto. Coba lagi sebentar.");
+  }
+}
+
+export async function clearPhotoAction(_previous: FormState, formData: FormData): Promise<FormState> {
+  if (!(await isAdminRequest())) return NOT_SIGNED_IN;
+  const slot = String(formData.get("slot") ?? "");
+  if (!isPhotoSlot(slot)) return { status: "error", message: "Slot tidak dikenali." };
+  try {
+    const db = await getReadyDb();
+    await deletePhoto(db, slot);
+    revalidatePath("/", "layout");
+    revalidatePath("/artist");
+    return { status: "ok", message: `Slot "${slot}" dikosongkan. Situs kembali ke fallbacknya.` };
+  } catch (error) {
+    return failureResult(error, "Gagal mengosongkan slot. Coba lagi sebentar.");
+  }
 }

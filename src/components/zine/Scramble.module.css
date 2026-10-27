@@ -1,0 +1,9 @@
+/*
+  The host is `position: relative` for one reason: the `.sr-only` twin inside is absolutely
+  positioned, and without a positioned ancestor its containing block is the page — which let a
+  1px span sitting at x≈3100 inside the ticker stretch the document's scroll width past the
+  band's clip (round 31, measured +2483px at 390w). Contained here, the clip contains it.
+*/
+.host {
+  position: relative;
+}

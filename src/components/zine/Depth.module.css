@@ -1,0 +1,13 @@
+/* The wrapper only owns depth. `translateZ` and `rotateX` need a vanishing point, which Depth sets
+   inline on this element; `transform-style: preserve-3d` lets children sit at different depths
+   inside it (the hero uses that for the portrait against the copy). */
+.depth {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .depth {
+    will-change: auto;
+  }
+}

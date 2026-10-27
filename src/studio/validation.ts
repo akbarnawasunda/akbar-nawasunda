@@ -37,7 +37,7 @@ function readText(input: Record<string, unknown>, key: string): string | null {
   return typeof value === "string" ? value : null;
 }
 
-const FORM_ERROR = "The form data was not understood. Reload the page and try again.";
+const FORM_ERROR = "Data formulir tidak terbaca. Muat ulang halaman lalu coba lagi.";
 
 /** Fields as submitted by the editor, before server rules are applied. */
 interface RawSection {
@@ -77,24 +77,24 @@ export function validatePageDocument(slug: PageSlug, input: Record<string, unkno
   const cleanSeo = config.fields.seoDescription ? seoDescription.trim() : "";
 
   if (config.fields.title) {
-    if (cleanTitle.length === 0) errors.title = "Enter a title.";
-    else if (cleanTitle.length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
-    else if (hasControl(cleanTitle)) errors.title = "Remove hidden control characters.";
+    if (cleanTitle.length === 0) errors.title = "Isi judul.";
+    else if (cleanTitle.length > LIMITS.title) errors.title = `Judul maksimal ${LIMITS.title} karakter.`;
+    else if (hasControl(cleanTitle)) errors.title = "Hapus karakter kontrol yang tidak terlihat.";
   }
   if (config.fields.lead) {
-    if (cleanLead.length > LIMITS.lead) errors.lead = `Keep the introduction under ${LIMITS.lead} characters.`;
-    else if (hasControl(cleanLead)) errors.lead = "Remove hidden control characters.";
+    if (cleanLead.length > LIMITS.lead) errors.lead = `Kalimat pembuka maksimal ${LIMITS.lead} karakter.`;
+    else if (hasControl(cleanLead)) errors.lead = "Hapus karakter kontrol yang tidak terlihat.";
   }
   if (config.fields.seoDescription) {
     if (cleanSeo.length > LIMITS.seoDescription) {
-      errors.seoDescription = `Keep the search description under ${LIMITS.seoDescription} characters.`;
+      errors.seoDescription = `Deskripsi pencarian maksimal ${LIMITS.seoDescription} karakter.`;
     } else if (hasControl(cleanSeo)) {
-      errors.seoDescription = "Remove hidden control characters.";
+      errors.seoDescription = "Hapus karakter kontrol yang tidak terlihat.";
     }
   }
 
   if (rawSections.length > config.maxSections) {
-    errors.sections = `Use at most ${config.maxSections} sections on this page.`;
+    errors.sections = `Maksimal ${config.maxSections} bagian di halaman ini.`;
   }
 
   const sections: PageSection[] = [];
@@ -117,41 +117,41 @@ function validateSection(
   position: number,
   allowed: readonly SectionType[],
 ): PageSection | string {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return `Section ${position} is not valid.`;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return `Bagian ${position} tidak valid.`;
   const section = raw as RawSection;
   const type = section.type;
   if (typeof type !== "string" || !(allowed as readonly string[]).includes(type)) {
-    return `Section ${position} uses a type this page does not support.`;
+    return `Bagian ${position} memakai jenis yang tidak didukung halaman ini.`;
   }
   if (section.visible !== undefined && typeof section.visible !== "boolean") {
-    return `Section ${position}: visibility must be on or off.`;
+    return `Bagian ${position}: status tampil harus hidup atau mati.`;
   }
   const visible = section.visible !== false;
   const id = `s${position}`;
 
   if (type === "heading" || type === "paragraph") {
-    if (typeof section.text !== "string") return `Section ${position} has no text.`;
+    if (typeof section.text !== "string") return `Bagian ${position} tidak punya teks.`;
     const text = section.text.trim();
-    if (text.length === 0) return `Section ${position}: add text, or remove this section.`;
+    if (text.length === 0) return `Bagian ${position}: isi teksnya, atau hapus bagian ini.`;
     if (type === "heading") {
-      if (text.length > LIMITS.headingText) return `Section ${position}: keep the heading under ${LIMITS.headingText} characters.`;
-      if (hasControl(text)) return `Section ${position}: remove hidden control characters.`;
+      if (text.length > LIMITS.headingText) return `Bagian ${position}: judul maksimal ${LIMITS.headingText} karakter.`;
+      if (hasControl(text)) return `Bagian ${position}: hapus karakter kontrol yang tidak terlihat.`;
       return { id, type, visible, text };
     }
     if (text.length > LIMITS.paragraphLength) {
-      return `Section ${position}: keep the paragraph under ${LIMITS.paragraphLength} characters.`;
+      return `Bagian ${position}: paragraf maksimal ${LIMITS.paragraphLength} karakter.`;
     }
-    if (hasControl(text)) return `Section ${position}: remove hidden control characters.`;
+    if (hasControl(text)) return `Bagian ${position}: hapus karakter kontrol yang tidak terlihat.`;
     return { id, type, visible, text };
   }
 
   // music-list
   const heading = typeof section.heading === "string" ? section.heading.trim() : "";
-  if (heading.length > LIMITS.headingText) return `Section ${position}: keep the heading under ${LIMITS.headingText} characters.`;
-  if (hasControl(heading)) return `Section ${position}: remove hidden control characters.`;
+  if (heading.length > LIMITS.headingText) return `Bagian ${position}: judul maksimal ${LIMITS.headingText} karakter.`;
+  if (hasControl(heading)) return `Bagian ${position}: hapus karakter kontrol yang tidak terlihat.`;
   const count = Number(section.count);
   if (!(MUSIC_LIST_COUNTS as readonly number[]).includes(count)) {
-    return `Section ${position}: choose how many releases to show.`;
+    return `Bagian ${position}: pilih jumlah rilis yang ditampilkan.`;
   }
   return { id, type: "music-list", visible, heading, count: count as (typeof MUSIC_LIST_COUNTS)[number] };
 }
@@ -159,8 +159,8 @@ function validateSection(
 /** Design validation: enum values only. Anything else is rejected. */
 export function validateDesign(input: Record<string, unknown>): ValidationResult<DesignSettings> {
   const errors: Record<string, string> = {};
-  if (!isAccent(input.accent)) errors.accent = "Choose one of the listed accent colours.";
-  if (!isTitleCase(input.titleCase)) errors.titleCase = "Choose one of the listed title styles.";
+  if (!isAccent(input.accent)) errors.accent = "Pilih salah satu warna aksen yang tersedia.";
+  if (!isTitleCase(input.titleCase)) errors.titleCase = "Pilih salah satu gaya judul yang tersedia.";
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -204,45 +204,45 @@ export function validateRelease(input: Record<string, unknown>, options: Release
   }
 
   const cleanTitle = (title as string).trim();
-  if (cleanTitle.length === 0) errors.title = "Enter a release title.";
-  else if (cleanTitle.length > RELEASE_LIMITS.title) errors.title = `Keep the title under ${RELEASE_LIMITS.title} characters.`;
-  else if (hasControl(cleanTitle)) errors.title = "Remove hidden control characters.";
+  if (cleanTitle.length === 0) errors.title = "Isi judul rilis.";
+  else if (cleanTitle.length > RELEASE_LIMITS.title) errors.title = `Judul maksimal ${RELEASE_LIMITS.title} karakter.`;
+  else if (hasControl(cleanTitle)) errors.title = "Hapus karakter kontrol yang tidak terlihat.";
 
-  if (!(RELEASE_TYPES as readonly string[]).includes(type as string)) errors.type = "Choose a release type.";
+  if (!(RELEASE_TYPES as readonly string[]).includes(type as string)) errors.type = "Pilih jenis rilis.";
 
   const cleanDate = (releaseDate as string).trim();
   const dateVerified = input.dateVerified === true || input.dateVerified === "on" || input.dateVerified === "true";
   if (cleanDate.length > 0) {
-    if (!isValidCalendarDate(cleanDate)) errors.releaseDate = "Enter a real date in the form YYYY-MM-DD.";
-    else if (!dateVerified) errors.releaseDate = "Tick \"date verified\" to save this date, or clear the date.";
+    if (!isValidCalendarDate(cleanDate)) errors.releaseDate = "Isi tanggal yang benar dalam format YYYY-MM-DD.";
+    else if (!dateVerified) errors.releaseDate = "Centang \"tanggal terverifikasi\" untuk menyimpan tanggal ini, atau kosongkan tanggalnya.";
   }
 
   const cleanDescription = (description as string).trim();
   if (cleanDescription.length > RELEASE_LIMITS.description) {
-    errors.description = `Keep the description under ${RELEASE_LIMITS.description} characters.`;
+    errors.description = `Deskripsi maksimal ${RELEASE_LIMITS.description} karakter.`;
   } else if (hasControl(cleanDescription)) {
-    errors.description = "Remove hidden control characters.";
+    errors.description = "Hapus karakter kontrol yang tidak terlihat.";
   }
 
   const cleanArtwork = (artworkId as string).trim();
   if (cleanArtwork.length > 0 && !options.allowedArtworkIds.includes(cleanArtwork)) {
-    errors.artworkId = "This artwork is not approved for releases.";
+    errors.artworkId = "Artwork ini belum disetujui untuk rilis.";
   }
 
   const cleanSeoTitle = (seoTitle as string).trim();
-  if (cleanSeoTitle.length > RELEASE_LIMITS.seoTitle) errors.seoTitle = `Keep under ${RELEASE_LIMITS.seoTitle} characters.`;
-  else if (hasControl(cleanSeoTitle)) errors.seoTitle = "Remove hidden control characters.";
+  if (cleanSeoTitle.length > RELEASE_LIMITS.seoTitle) errors.seoTitle = `Maksimal ${RELEASE_LIMITS.seoTitle} karakter.`;
+  else if (hasControl(cleanSeoTitle)) errors.seoTitle = "Hapus karakter kontrol yang tidak terlihat.";
 
   const cleanSeoDescription = (seoDescription as string).trim();
   if (cleanSeoDescription.length > RELEASE_LIMITS.seoDescription) {
-    errors.seoDescription = `Keep under ${RELEASE_LIMITS.seoDescription} characters.`;
+    errors.seoDescription = `Maksimal ${RELEASE_LIMITS.seoDescription} karakter.`;
   } else if (hasControl(cleanSeoDescription)) {
-    errors.seoDescription = "Remove hidden control characters.";
+    errors.seoDescription = "Hapus karakter kontrol yang tidak terlihat.";
   }
 
   const links = parseLinks(linksJson as string);
   if (typeof links === "string") errors.links = links;
-  else if (links.length > MAX_RELEASE_LINKS) errors.links = `Use at most ${MAX_RELEASE_LINKS} links.`;
+  else if (links.length > MAX_RELEASE_LINKS) errors.links = `Maksimal ${MAX_RELEASE_LINKS} tautan.`;
 
   if (Object.keys(errors).length > 0 || typeof links === "string") return { ok: false, errors };
 
@@ -268,9 +268,9 @@ export function parseLinks(json: string): ReleaseLinkDoc[] | string {
   try {
     raw = JSON.parse(json || "[]");
   } catch {
-    return "The links could not be read. Reload and try again.";
+    return "Tautan tidak terbaca. Muat ulang lalu coba lagi.";
   }
-  if (!Array.isArray(raw)) return "The links could not be read. Reload and try again.";
+  if (!Array.isArray(raw)) return "Tautan tidak terbaca. Muat ulang lalu coba lagi.";
   const out: ReleaseLinkDoc[] = [];
   for (let i = 0; i < raw.length; i++) {
     const item = raw[i] as { label?: unknown; href?: unknown } | null;

@@ -10,6 +10,26 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
+  /* Smooth for anchor jumps on machines where nothing else is animating the scroll. */
+  scroll-behavior: smooth;
+}
+
+/*
+ * Two easing systems cannot own the same scroll (D-118).
+ *
+ * Lenis writes `window.scrollTo` on every frame of its own easing. Native `scroll-behavior:
+ * smooth` is also easing, over the same property. Put them together and a programmatic jump — an
+ * in-page anchor, `scrollIntoView`, a "skip to content" link, or a test harness — stops dead where
+ * the native animation had got to when Lenis wrote its next frame. That is exactly what happened on
+ * a 2800 px jump here: the page settled 1000 px short of the section it was asked for, and the
+ * catalogue below it never entered the viewport, so its reveal never fired.
+ *
+ * Lenis puts `lenis` on <html> when it starts, so the override only exists while it is running;
+ * reduced-motion and touch never load Lenis and keep the native behaviour above.
+ */
+html.lenis,
+html.lenis body {
+  scroll-behavior: auto;
 }
 
 body {
@@ -17,25 +37,128 @@ body {
   min-height: 100dvh;
   background: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-sans);
+  font-family: var(--font-body-stack);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Instrument Serif ships in one weight. Without this, every `font-weight: 700` left in a module
+     would be a browser-synthesised bold — the smeared, over-inked look that made the old type read
+     as cheap. Better to fall back to 400 than to fake a weight. */
+  font-synthesis: none;
+}
+
+/*
+ * Display type: the whole design in three declarations.
+ *
+ * Two families, split by job (round 19): the display face for the site's own name and nothing
+ * else; Relidux for every other glyph on the site — headings, titles, paragraphs, buttons, nav,
+ * labels. One reading face is what makes ten sections look like one publication instead of a
+ * ransom note.
+ *
+ * Both binaries ship a single weight (400), so `font-synthesis: none` plus the explicit weights
+ * below mean the browser never fakes a bold. Hierarchy lives in size, weight-as-declared, tracking
+ * and space.
+ */
+h1,
+h2,
+h3 {
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* The site's own name: the hero, the footer wordmark, the loading curtain. Nowhere else. */
+h1 {
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  letter-spacing: var(--tracking-hero);
+  line-height: var(--leading-hero);
+}
+
+/* Every other heading is reading type set large: Relidux at full size, a touch of negative
+   tracking, and enough leading for two-line uppercase to breathe. */
+h2,
+h3 {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+/*
+ * Reading copy. 1.6 leading and one step down from pure white: on a #000 ground, full-white
+ * paragraphs vibrate; #b8b8b8 reads as ink on paper and holds a 10:1 contrast ratio, comfortably
+ * past WCAG AAA.
+ */
+p {
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+  /* Round 29, per spec: body copy never runs wider than a comfortable measure. Components that
+     genuinely need a wider line (a ticker, a wordmark) opt out locally with `max-width: none`. */
+  max-width: 60ch;
+}
+
+/*
+ * One panel material. `--color-paper` is the same black as the page; a panel is marked by its
+ * hairlines, not by a fill. That is what keeps a ten-section page from looking like ten cards.
+ */
+.paper {
+  background: var(--color-paper);
+  color: var(--color-paper-ink);
+  border-block: 1px solid var(--color-border);
+}
+
+/* Atmospheric texture: 1.5% noise, never a gradient wash. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-chrome);
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 img,
 svg,
-canvas {
+canvas,
+picture {
   display: block;
   max-width: 100%;
 }
 
+/*
+ * Photograph treatment — one rule, every photo.
+ *
+ * The archive is six owner files and a handful of release sleeves, reused across five routes, and
+ * they were shot in six different rooms under six different lamps. Round 15 unified them with a
+ * duotone (grayscale → sepia → hue-rotate into the accent), which is a strong look and the wrong
+ * one here: the reference is monochrome photography, full stop, and a blue photograph next to a
+ * blue 3D object competes with the one thing on the page that is supposed to be the light.
+ *
+ * So: grayscale, +18% contrast, and a stop darker. Contrast is doing the work colour used to do —
+ * at these levels the faces in the archive still separate from the ground, which a plain
+ * `grayscale(1)` on a dark frame does not manage.
+ */
+.site-main img,
+.stage img {
+  filter: grayscale(1) contrast(1.18) brightness(0.92);
+}
+
+/*
+ * Sleeve artwork is typography, not photography: it gets one step less contrast and brightness than
+ * a photograph so the sleeve's own title stays readable at 320px. That override lives in
+ * `ReleaseCover.module.css`, not here — `.cover` is a CSS-module class, so a plain `.cover img` in a
+ * global sheet never matches it (16: it shipped as dead code for two rounds and sleeves were being
+ * graded as photographs).
+ */
+
 h1,
 h2,
 h3,
-p {
+p,
+figure {
   margin: 0;
 }
 
@@ -46,13 +169,55 @@ a {
 }
 
 ::selection {
-  background: var(--color-accent);
-  color: var(--color-ink-950);
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 4px;
+  outline: 2px solid var(--color-signal-blue);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * Display type, lit.
+ *
+ * Rounds 9–13 printed every heading twice — two plates a couple of pixels out of register, moving
+ * under the pointer. Round 15 replaced that with a blue bloom, which the new direction does not
+ * want on body-sized headings but does want on the hero's name: it sits directly over a photograph,
+ * and a white word at 12vw on a dark frame needs a little light behind it to separate from the
+ * grain. `--ink-x` / `--ink-y` are still written by <InkPress /> from the pointer and still modulate
+ * the bloom radius, so the type never leaves its position — which is the point of a precise layout.
+ */
+:root {
+  --ink-x: 0;
+  --ink-y: 0;
+  --ink-glow: 16px;
+  --ink-glow-tight: 2px;
+}
+
+.ink {
+  text-shadow:
+    0 0 calc(var(--ink-glow-tight) + (var(--ink-x) + var(--ink-y)) * 1.2px) rgb(255 255 255 / 0.22),
+    0 0 calc(var(--ink-glow) + (var(--ink-x) + var(--ink-y)) * 5px) rgb(0 135 255 / 0.16);
+}
+
+/*
+ * The verso owns the screen while it is open, the same way the phone menu does.
+ */
+html[data-sheet="open"],
+html[data-sheet="open"] body {
+  overflow: hidden;
+}
+
+/*
+ * The phone menu owns the screen while it is open. Set on the root element rather than the body so
+ * it also stops the document from rubber-banding behind the drawer on iOS; removed on close, so the
+ * reader's scroll position is never lost.
+ */
+html[data-menu="open"],
+html[data-menu="open"] body {
+  overflow: hidden;
 }
 
 /* Utility: visually hidden but available to assistive technology. */
@@ -68,14 +233,46 @@ a {
   border: 0;
 }
 
+/*
+ * Round 31: while the magnetic cursor is armed (mouse input only, set by MagneticCursor) the
+ * system pointer steps back — the dot and ring ARE the cursor. Touch and reduced motion never set
+ * the flag, so they keep the pointer they have.
+ */
+/*
+ * Round 32: a tap must feel like a button, on the phone especially. `scale` is its own CSS
+ * property, so the press composes with whatever transform a component already owns instead of
+ * overwriting it; 100 ms down and back is the whole trick.
+ */
+a,
+button,
+[role="button"] {
+  transition: scale var(--duration-press) var(--ease-out);
+}
+
+a:active,
+button:active,
+[role="button"]:active {
+  scale: 0.96;
+}
+
+html[data-cursor="on"],
+html[data-cursor="on"] a,
+html[data-cursor="on"] button,
+html[data-cursor="on"] [role="button"] {
+  cursor: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
@@ -84,10 +281,10 @@ a {
   position: absolute;
   left: var(--space-4);
   top: var(--space-2);
-  z-index: 100;
+  z-index: var(--z-overlay);
   padding: var(--space-2) var(--space-4);
   background: var(--color-fg);
-  color: var(--color-ink-950);
+  color: var(--color-bg);
   text-decoration: none;
   transform: translateY(-200%);
 }
@@ -97,14 +294,14 @@ a {
 }
 
 /* Design settings (NAWA STUDIO). Only these closed attribute values are ever emitted by the server. */
-.site-root[data-accent="bone"] {
-  --color-accent: #ece8df;
-  --color-focus: #ece8df;
+.site-root[data-accent="icy"] {
+  --color-accent: var(--color-signal-icy);
+  --color-focus: var(--color-signal-icy);
 }
 
-.site-root[data-accent="cobalt"] {
-  --color-accent: #4f8cff;
-  --color-focus: #4f8cff;
+.site-root[data-accent="bone"] {
+  --color-accent: var(--color-text-primary);
+  --color-focus: var(--color-signal-icy);
 }
 
 .site-root[data-title-case="as-written"] .page-title {

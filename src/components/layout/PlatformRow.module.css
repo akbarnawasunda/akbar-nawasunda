@@ -1,0 +1,93 @@
+/* Not sticky any more (D-097). A pinned bar crossing the paper band put a dark strip through the
+   one light surface on the site, and the bar only holds a set of links that the footer repeats. */
+.row {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  border-block: 1px solid var(--color-hairline);
+  /* 32px of air above and below the logos, per the final brief. */
+  padding-block: var(--space-8);
+  border-inline: 0;
+  padding-inline: var(--gutter);
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Room for the focus ring, which is drawn outside the link box. */
+  padding-block: 2px;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .list {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    row-gap: var(--space-4);
+  }
+}
+
+.item {
+  /* Containing block for the visually-hidden "(membuka tab baru)" label: without it the label is
+     positioned against the page and pushes the document 62px wide on a 320px screen. */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Round 27: a thumb-sized target. The row used to be a 16px text line — fine for a cursor,
+     too small to tap on the phones most of these links are opened on. */
+  min-height: var(--space-6);
+  padding-block: var(--space-2);
+  color: var(--color-text-secondary);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.item:hover {
+  color: var(--color-text-primary);
+}
+
+.icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.note {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 719px) {
+  .note {
+    display: none;
+  }
+
+  .row {
+    gap: 0;
+  }
+}

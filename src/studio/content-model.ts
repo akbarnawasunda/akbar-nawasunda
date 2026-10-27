@@ -6,13 +6,40 @@
  * Adding a section type = add it here, to validation, and to the renderer. No schema migration.
  */
 
+/**
+ * Optional per-page editor copy. The form is the same component for every page, but "Introduction"
+ * means different things on different pages: on /artist it is the one-line positioning shown under
+ * the name, and the long bio is written as paragraph sections. Labels live next to the page config
+ * so the editor can never describe a field differently from how the public page uses it.
+ */
+export interface EditorCopy {
+  leadLabel?: string;
+  leadHint?: string;
+  sectionsLabel?: string;
+  sectionsHint?: string;
+}
+
 export const PAGE_CONFIG = {
+  /**
+   * Key stays `about` on purpose: stored documents live under this key, and renaming it would
+   * orphan whatever the owner has already published. The route and label are what users see, and
+   * those are `/artist` + "Artist" since D-024. Moving the key would need a data migration for no
+   * visible benefit.
+   */
   about: {
-    label: "About",
-    path: "/about",
+    label: "Artist",
+    path: "/artist",
     fields: { title: true, lead: true, seoDescription: true },
     sectionTypes: ["heading", "paragraph"],
     maxSections: 30,
+    editor: {
+      leadLabel: "Kalimat pembuka",
+      leadHint:
+        "Satu kalimat di bawah nama pada /artist. Kosongkan untuk memakai kalimat bawaan situs.",
+      sectionsLabel: "Bio panjang",
+      sectionsHint:
+        "Tulis bio sebagai bagian Paragraf. Bagian pertama akan tampil paling atas di /artist setelah diterbitkan.",
+    } satisfies EditorCopy,
   },
   home: {
     label: "Homepage (below hero)",
@@ -20,6 +47,11 @@ export const PAGE_CONFIG = {
     fields: { title: false, lead: false, seoDescription: true },
     sectionTypes: ["heading", "paragraph", "music-list"],
     maxSections: 8,
+    editor: {
+      sectionsLabel: "Bagian tambahan",
+      sectionsHint:
+        "Konten ini tampil di bawah hero beranda, setelah katalog dan arsip visual bawaan.",
+    } satisfies EditorCopy,
   },
 } as const;
 
@@ -33,9 +65,9 @@ export function isPageSlug(value: string): value is PageSlug {
 }
 
 export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
-  heading: "Heading",
-  paragraph: "Paragraph",
-  "music-list": "Music list (published releases)",
+  heading: "Judul bagian",
+  paragraph: "Paragraf",
+  "music-list": "Daftar musik (rilis terbit)",
 };
 
 /** Allowed values for the music-list section. */

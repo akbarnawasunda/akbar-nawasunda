@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Pages" };
 
 function formatTime(ms: number | null): string {
-  if (ms === null) return "Never";
-  return new Date(ms).toLocaleString("en-GB", { timeZone: "Asia/Jakarta", dateStyle: "medium", timeStyle: "short" }) + " WIB";
+  if (ms === null) return "Belum pernah";
+  return new Date(ms).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", dateStyle: "medium", timeStyle: "short" }) + " WIB";
 }
 
 export default async function StudioPages() {
@@ -19,17 +19,17 @@ export default async function StudioPages() {
 
   return (
     <>
-      <h1 className={styles.heading}>Pages</h1>
-      <p className={styles.lead}>Edit a page, save drafts, and publish when the content is ready. Drafts are never shown on the public site.</p>
+      <h1 className={styles.heading}>Halaman</h1>
+      <p className={styles.lead}>Sunting halaman, simpan draf, lalu terbitkan saat kontennya siap. Draf tidak pernah tampil di situs publik.</p>
 
-      <section className={styles.section} aria-label="Page list">
+      <section className={styles.section} aria-label="Daftar halaman">
         <div style={{ overflowX: "auto" }}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Page</th>
-                <th scope="col">Last draft</th>
-                <th scope="col">Last published</th>
+                <th scope="col">Halaman</th>
+                <th scope="col">Draf terakhir</th>
+                <th scope="col">Terbit terakhir</th>
                 <th scope="col"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
@@ -42,8 +42,8 @@ export default async function StudioPages() {
                     <td>{formatTime(record.publishedAt)}</td>
                     <td>
                       <div className={styles.actions}>
-                        <Link href={`/studio/pages/${slug}`} className={styles.link}>Edit</Link>
-                        <Link href={`/studio/preview/${slug}`} className={styles.link}>Preview draft</Link>
+                        <Link href={`/studio/pages/${slug}`} className={styles.link}>Sunting</Link>
+                        <Link href={`/studio/preview/${slug}`} className={styles.link}>Pratinjau draf</Link>
                       </div>
                     </td>
                   </tr>

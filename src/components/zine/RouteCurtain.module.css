@@ -1,0 +1,92 @@
+/*
+ * The turn reel: one ink sheet sweeps up through the frame, the AN mark rides the middle of it,
+ * the sheet leaves and the new page is underneath. Transforms and opacity only — the sheet is one
+ * composited layer, the mark is a cached WebP, and the whole cut costs less than a paint.
+ */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-chrome) + 2);
+  pointer-events: none;
+  background: var(--color-bg);
+  transform: translateY(101%);
+}
+
+/* The sheet falls in while the router fetches, and lifts the instant the new route commits. */
+.curtain[data-phase="cover"] {
+  animation: route-cover 240ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+.curtain[data-phase="lift"] {
+  animation: route-lift 320ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+.mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: var(--space-24);
+  height: auto;
+  opacity: 0;
+}
+
+.curtain[data-phase="cover"] .mark {
+  animation: route-mark-in 200ms var(--ease) 120ms both;
+}
+
+.curtain[data-phase="lift"] .mark {
+  animation: route-mark-out 320ms var(--ease) both;
+}
+
+@keyframes route-cover {
+  from {
+    transform: translateY(101%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes route-lift {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-101%);
+  }
+}
+
+@keyframes route-mark-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes route-mark-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 1.02;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .curtain,
+  .mark {
+    animation: none;
+    opacity: 0;
+  }
+}

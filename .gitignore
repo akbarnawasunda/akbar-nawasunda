@@ -21,6 +21,10 @@ npm-debug.log*
 
 # local playwright / screenshot artifacts (kept out of git)
 /artifacts/
+/.playwright-cli/
 
 # local database for NAWA STUDIO development (never commit)
 /data/
+
+# local screenshot harness output (kept out of git)
+/.review/

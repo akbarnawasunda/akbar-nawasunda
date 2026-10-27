@@ -53,7 +53,7 @@ describe("page content model", () => {
 
 describe("design settings", () => {
   it("accepts only the closed option values", () => {
-    assert.equal(isAccent("cobalt"), true);
+    assert.equal(isAccent("icy"), true);
     assert.equal(isAccent("#ff0000"), false);
     assert.equal(isAccent("constructor"), false);
     assert.equal(isTitleCase("as-written"), true);

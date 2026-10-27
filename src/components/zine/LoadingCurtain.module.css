@@ -1,0 +1,94 @@
+/*
+  The entry reel (round 30): the monogram draws itself, then the sheet steps back.
+
+  The old sequence was a count to 100 over 1.3 s plus two lifting sheets — over two seconds of
+  toll booth before the catalogue. The owner's spec is a drawn AN and a slow fade, one second
+  ceiling. Everything here is stroke geometry and two keyframes:
+
+  - `pathLength={1}` on every path makes one `stroke-dasharray: 1` fit all of them, so the draw is
+    one keyframe on `stroke-dashoffset`, staggered by tokens;
+  - the blue stop pops as the last stroke lands;
+  - the sheet fades on opacity from 700 ms and is gone at 1000 ms — the fade is the exit, not a
+    third act;
+  - no text on the sheet at all, so there is nothing unreadable to audit while it is up.
+*/
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  background: var(--color-ink-black);
+}
+
+.boot[data-state="idle"] {
+  display: none;
+}
+
+.mark {
+  width: clamp(8rem, 26vw, 14rem);
+  height: auto;
+  overflow: visible;
+}
+
+.stroke {
+  fill: none;
+  stroke: var(--color-text-primary);
+  stroke-width: 10;
+  stroke-linecap: square;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.dot {
+  fill: var(--color-signal-blue);
+  opacity: 0;
+}
+
+/* ---------------------------------------------------------------- the sequence */
+
+.boot[data-state="playing"] {
+  animation: curtain-fade var(--duration-curtain-fade) var(--ease) var(--delay-curtain-fade) forwards;
+}
+
+.boot[data-state="playing"] .stroke {
+  animation: curtain-draw var(--duration-curtain-draw) var(--ease-out) forwards;
+}
+
+.boot[data-state="playing"] .stroke:nth-of-type(2) {
+  animation-delay: var(--delay-curtain-stroke-2);
+}
+
+.boot[data-state="playing"] .stroke:nth-of-type(3) {
+  animation-delay: var(--delay-curtain-stroke-3);
+}
+
+.boot[data-state="playing"] .dot {
+  animation: curtain-dot var(--duration-curtain-dot) var(--ease-out) var(--delay-curtain-dot) forwards;
+}
+
+@keyframes curtain-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes curtain-dot {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes curtain-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot {
+    display: none;
+  }
+}

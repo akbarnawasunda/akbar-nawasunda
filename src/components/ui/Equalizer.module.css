@@ -1,0 +1,49 @@
+/*
+  Four bars, one keyframe, transform-only. The desync is negative delays — a bar that starts
+  mid-cycle never marches in step with its neighbour, which is the whole difference between an
+  equalizer and a blinking cursor.
+*/
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: calc(var(--space-1) / 2);
+  height: var(--space-3);
+}
+
+.eq i {
+  width: calc(var(--space-1) / 2);
+  height: 100%;
+  background: var(--color-signal-blue);
+  transform-origin: bottom;
+  transform: scaleY(0.35);
+  animation: eq-bar var(--duration-eq) var(--ease) infinite alternate;
+}
+
+.eq i:nth-child(2) {
+  animation-delay: calc(var(--duration-eq) * -0.35);
+}
+
+.eq i:nth-child(3) {
+  animation-delay: calc(var(--duration-eq) * -0.62);
+}
+
+.eq i:nth-child(4) {
+  animation-delay: calc(var(--duration-eq) * -0.18);
+}
+
+@keyframes eq-bar {
+  from {
+    transform: scaleY(0.25);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eq i {
+    animation: none;
+    transform: scaleY(0.6);
+  }
+}

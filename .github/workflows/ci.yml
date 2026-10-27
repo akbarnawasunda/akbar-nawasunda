@@ -1,0 +1,118 @@
+name: CI
+
+# Everything in this file used to be a shell session that only existed on one machine: the byte
+# budgets, the dead-link sweep and the axe run were done by hand before each push and never
+# re-checked afterwards. On a PR they now run on their own.
+#
+# One job, not several: `next start` needs the real .next output, and passing that directory between
+# jobs through an artifact fails on the absolute paths inside required-server-files.json. Building
+# once and checking in the same job is slower by seconds and correct.
+on:
+  push:
+    branches: [main, "arena/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: quality · budgets · a11y
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      # Static, no browser: every hex outside tokens.css, every token referenced but never defined,
+      # every token defined but unused. Cheap enough to run before the build.
+      - name: Design tokens
+        run: npm run audit:tokens
+
+      # PREVIEW_FRAMING keeps the CSP wide enough for the sandbox iframe, which is also what the
+      # header assertions in the suite expect.
+      - name: Build
+        run: npm run build
+        env:
+          PREVIEW_FRAMING: "1"
+
+      # Real Chrome for axe-core; scripts/a11y-audit.mjs reads CHROME_PATH.
+      - name: Install Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Start the site
+        run: |
+          npx next start -H 127.0.0.1 -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 40); do
+            curl -sf -o /dev/null http://127.0.0.1:3000/ && exit 0
+            sleep 1
+          done
+          echo "server did not start"; cat /tmp/next.log; exit 1
+
+      - name: JS/CSS budget, internal links, anchors
+        run: npm run check:web
+
+      - name: Accessibility (axe-core, 14 page loads)
+        run: npm run a11y
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
+      - name: Smoke
+        run: npm run smoke
+
+      # Behaviour, not pixels: the scroll depth writes different transforms, reveals actually reveal,
+      # the header shrinks and hides, the drawer traps focus, reduced motion is still, and no page
+      # overflows horizontally at 320–1920. Needs a Chrome with no extra system libraries.
+      - name: Motion and interaction
+        run: npm run qa:motion
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/next.log || true
+
+  # On demand only: the 14 platform links live on hosts that rate-limit CI runners, and a red build
+  # because Spotify answered slowly teaches nobody anything. Run this before a release, not per PR.
+  external-links:
+    name: external links (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          PREVIEW_FRAMING: "1"
+      - run: |
+          npx next start -H 127.0.0.1 -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 40); do
+            curl -sf -o /dev/null http://127.0.0.1:3000/ && break
+            sleep 1
+          done
+          npm run check:web:external

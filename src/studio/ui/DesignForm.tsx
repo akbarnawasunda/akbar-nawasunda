@@ -23,8 +23,8 @@ export function DesignForm({ initial, initialUnpublishedChanges }: DesignFormPro
   return (
     <form action={formAction} className={styles.section} noValidate>
       <fieldset className={styles.field} style={{ border: 0, padding: 0, margin: 0 }}>
-        <legend className={styles.label}>Accent colour</legend>
-        <p className={styles.hint}>Used for hover states, focus outlines and text selection. The homepage hero and logo are not changed.</p>
+        <legend className={styles.label}>Warna aksen</legend>
+        <p className={styles.hint}>Dipakai untuk hover, garis fokus, dan seleksi teks. Hero beranda dan logo tidak berubah.</p>
         <div className={styles.optionGrid}>
           {Object.values(ACCENT_OPTIONS).map((option) => (
             <label key={option.value} className={styles.optionCard}>
@@ -44,8 +44,8 @@ export function DesignForm({ initial, initialUnpublishedChanges }: DesignFormPro
       </fieldset>
 
       <fieldset className={styles.field} style={{ border: 0, padding: 0, margin: 0 }}>
-        <legend className={styles.label}>Page title style</legend>
-        <p className={styles.hint}>Applies to page titles on inner pages (About, Music, releases, contact).</p>
+        <legend className={styles.label}>Gaya judul halaman</legend>
+        <p className={styles.hint}>Berlaku untuk judul halaman dalam (Artist, Music, rilis, kontak).</p>
         <div className={styles.optionGrid}>
           {Object.values(TITLE_CASE_OPTIONS).map((option) => (
             <label key={option.value} className={styles.optionCard}>
@@ -71,15 +71,15 @@ export function DesignForm({ initial, initialUnpublishedChanges }: DesignFormPro
       ) : null}
 
       <p className={styles.muted} aria-live="polite">
-        {unpublished ? "The draft differs from what the public site uses." : "The draft matches what the public site uses."}
+        {unpublished ? "Draf berbeda dari yang dipakai situs publik." : "Draf sama dengan yang dipakai situs publik."}
       </p>
 
       <div className={styles.actions}>
         <button type="submit" name="intent" value="save" className={`${styles.button} ${styles.buttonSecondary}`} disabled={pending}>
-          Save draft
+          Simpan draf
         </button>
         <button type="submit" name="intent" value="publish" className={styles.button} disabled={pending}>
-          Publish
+          Terbitkan
         </button>
       </div>
     </form>

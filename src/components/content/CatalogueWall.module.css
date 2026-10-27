@@ -1,0 +1,152 @@
+/*
+  The wall (/music).
+
+  No frames, no radii, no surface fills: a sleeve is a printed square that already has an edge, so
+  the card is the artwork plus a hairline of type under it. What makes it a wall rather than a grid
+  is the vanishing point — the list has perspective, each sleeve has its own Z, and the one under the
+  pointer comes 54 px towards the reader and turns towards the cursor.
+
+  The blue plate behind each sleeve is the same misregistered-print device the homepage uses for its
+  featured release (D-121): a flat sheet of the identity colour, one step down and to the right. It
+  is hidden at rest on the wall — ten of them at once would be a pattern — and it appears with the
+  lift, which means the colour is a *reward for pointing at something* rather than decoration. It is
+  a hard `box-shadow` rather than an absolutely positioned sheet, so it can never bleed under the
+  title row the way a positioned layer did.
+*/
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2.25rem, 5vw, 4.5rem) clamp(1.25rem, 3vw, 2.75rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  perspective: 1700px;
+  perspective-origin: 50% 30%;
+}
+
+.cell {
+  margin: 0;
+  transform-style: preserve-3d;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--color-text-primary);
+  transform: rotateX(var(--wall-rx, 0deg)) rotateY(var(--wall-ry, 0deg))
+    translate3d(0, 0, var(--wall-z, 0px));
+  transform-style: preserve-3d;
+  /* The lift is written by the pointer loop; the easing is here so a card that leaves the pointer
+     settles instead of snapping back. */
+  transition: transform 320ms var(--ease-out);
+  will-change: transform;
+}
+
+.sleeve {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 45%);
+  transition: box-shadow 320ms var(--ease-out);
+}
+
+.sleeve > span {
+  display: block;
+  height: 100%;
+  border-radius: 0;
+}
+
+.sleeve img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .sleeve,
+  .card:focus-visible .sleeve {
+    /* 14 px of the identity colour, down and to the right, under the sleeve's own dark shadow. */
+    box-shadow:
+      10px 12px 0 var(--color-border-strong),
+      0 30px 70px rgb(0 0 0 / 55%);
+  }
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 6px;
+}
+
+.under {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.ordinal {
+  grid-row: 1 / span 2;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  color: var(--color-text-secondary);
+  padding-top: 0.5em;
+}
+
+.title {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  text-wrap: balance;
+  /* Relidux is wider than the condensed face this replaced: at 320px the title column is ~103px
+     and "MENCINTAINYA" does not fit on one line. Break only when a word truly cannot fit. */
+  overflow-wrap: break-word;
+}
+
+.meta {
+  font-family: var(--font-body-stack);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/*
+ * One column on phones. Two columns of Relidux caps leave a ~130px title column at 390px, and
+ * "MENCINTAINYA" needs ~180px at the smallest legible size — the only ways out are type too small
+ * to read or words broken mid-syllable, and both look broken. A record bin is one sleeve per row
+ * anyway; the wall reads calmer for it.
+ */
+@media (max-width: 560px) {
+  .wall {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 720px) {
+  .wall {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .wall {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transform: none;
+    transition: none;
+  }
+}

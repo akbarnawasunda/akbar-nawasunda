@@ -1,0 +1,111 @@
+/* A release sleeve. Two shapes only: 1:1 in the grid, 16:9 on the featured card. */
+.cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  /*
+    Square cut, hairline edge (R13). A 24 px radius is a web card; a sleeve is trimmed with a blade.
+    The hairline is what keeps an ink-ground sleeve from dissolving into an ink-ground page — the
+    paper series already separates itself, the ink series needed the edge.
+  */
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  background-color: var(--color-bg-surface);
+}
+
+.square {
+  aspect-ratio: 1 / 1;
+}
+
+.wide {
+  aspect-ratio: 16 / 9;
+}
+
+/* A generated sleeve is 1:1 and its title block sits on the bottom edge, so a 16:9 crop that centres
+   slices the words in half. Anchoring the crop to the bottom keeps the eyebrow and the title whole —
+   the top of a sleeve is empty by design. */
+.wide > img,
+.generated.wide > img {
+  object-position: 50% 100%;
+}
+
+.cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+/*
+ * A sleeve is not a photograph: it is a printed object with its own ink — bone stock, a teal
+ * misregistration rule, a die-cut corner. The site-wide grayscale (right for the six owner photos,
+ * shot under six different lamps) was eating the one hue the series is allowed, and the wall read
+ * grey-on-grey. Round 25 removes the filter entirely: the sleeve arrives exactly as the press made
+ * it. Two classes because that global rule is (0,1,1) too — reaching it from a module needs the
+ * extra class.
+ */
+.cover.cover > img {
+  filter: none;
+}
+
+/* Level 3 sleeve: surface colour, AN mark at 10%, title at 24px, 4px signal rule. */
+.generated {
+  display: grid;
+  align-content: end;
+  padding: var(--space-4);
+  /* The rule is drawn as a border so it never sits under the title. */
+  /* 4px signal rule along the bottom edge only. Drawn as a pseudo-element rather than border-image,
+     which would also paint the other three edges. */
+  border-bottom: 4px solid transparent;
+  background: var(--color-bg-surface);
+}
+
+.ghost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(46%, 400px);
+  height: auto;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.generated::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--color-text-primary);
+}
+
+.generated .title {
+  position: relative;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+/* On the 16:9 sleeve the title has more room, so it can hold two lines without crowding the mark. */
+.wide.generated {
+  padding: var(--space-8);
+}
+
+.wide.generated::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--color-text-primary);
+}
+
+.generated .title {
+  max-width: 22ch;
+  font-size: clamp(1.3rem, 0.9rem + 1vw, 1.7rem);
+}

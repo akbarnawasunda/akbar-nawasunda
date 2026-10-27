@@ -1,0 +1,222 @@
+/* The about band. Round 16 removed the light sheet: it is the same black as everything else, ruled
+   top and bottom, and the owner's biography is the only long text on the site. */
+.paper {
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(4rem, 9vw, 8rem);
+  background: var(--color-bg);
+  color: var(--color-paper-ink);
+  /* A straight edge. The torn top and bottom were the most conspicuous piece of applied texture on
+     the page — a sheet is already readable as a sheet from its colour and its straight seam (D-108). */
+  border-block: 1px solid var(--color-hairline);
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.kicker {
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+  margin-top: var(--space-6);
+}
+
+.heading {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: 0.5rem;
+}
+
+.lead {
+  font-size: clamp(1rem, 1.35vw, 1.1875rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.meta {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
+}
+
+/* ------------------------------------------------------------------ timeline */
+
+.timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: clamp(3rem, 6vw, 5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  overflow: visible;
+}
+
+.railBase,
+.railInk {
+  fill: none;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.railBase {
+  stroke: color-mix(in srgb, var(--color-paper-ink) 18%, transparent);
+}
+
+.railInk {
+  stroke: var(--color-signal-blue);
+  /* pathLength=1 makes the dash maths exact regardless of the drawn length. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+/*
+ * Drawn on first sight, once. `DrawOnView` sets `data-drawn` when the timeline scrolls into view;
+ * the path then animates from fully dashed to fully drawn in 1.4 s. Without the attribute — no JS,
+ * or reduced motion — the path simply sits at its finished value, which is the readable state and
+ * therefore the only correct fallback.
+ */
+.timeline[data-drawn="true"] .railInk {
+  animation: rail-draw 1400ms var(--ease-out) both;
+}
+
+@keyframes rail-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.stop {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-6);
+}
+
+/* A 7px square on the rail: the HUD's mark, not a printed bullet. */
+.stop::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  background: var(--color-text-primary);
+}
+
+.pending::before {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-paper-ink) 45%, transparent);
+}
+
+.year {
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-body-stack);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.detail {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--color-paper-ink) 78%, transparent);
+  text-wrap: pretty;
+}
+
+.pending .detail {
+  color: color-mix(in srgb, var(--color-paper-ink) 58%, transparent);
+}
+
+.flag {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  /* 70% ink on paper clears AA at 9px; 55% did not (axe, 2026-10-24). */
+  color: color-mix(in srgb, var(--color-paper-ink) 72%, transparent);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .timeline {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  /* The rail turns into a vertical line down the left edge of the stack. */
+  .rail {
+    display: none;
+  }
+
+  .stop {
+    padding: 0 0 0 var(--space-4);
+  }
+
+  .stop::before {
+    top: 6px;
+    left: 0;
+  }
+
+  .stop::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    bottom: calc(-1 * var(--space-4));
+    left: 4px;
+    width: 1px;
+    background: color-mix(in srgb, var(--color-paper-ink) 18%, transparent);
+  }
+
+  .stop:last-child::after {
+    display: none;
+  }
+}

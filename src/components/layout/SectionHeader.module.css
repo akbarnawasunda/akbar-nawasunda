@@ -1,0 +1,72 @@
+/*
+ * Section head: an index in the corner, the title at display size, a hairline, and an optional
+ * "see all" link on the far right.
+ *
+ * The rule sits under the whole row rather than under the word, which is the one structural cue the
+ * reference repeats on every band: the page is a stack of ruled rows, and a section begins where a
+ * rule stops.
+ */
+.head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.end {
+  flex-direction: row-reverse;
+}
+
+.end > div {
+  text-align: right;
+}
+
+.eyebrow {
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin-top: var(--space-2);
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.action {
+  flex-shrink: 0;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--color-border-strong);
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.action:hover,
+.action:focus-visible {
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 620px) {
+  .head,
+  .end {
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-3);
+  }
+
+  .end > div {
+    text-align: left;
+  }
+}

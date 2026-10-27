@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1792736107525,
+      "tag": "0000_certain_the_santerians",
+      "breakpoints": true
+    }
+  ]
+}

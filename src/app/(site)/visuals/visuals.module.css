@@ -1,0 +1,101 @@
+/*
+  /visuals (round 15).
+
+  The wall is the page. Everything below is a caption to it: the grid takes the whole measure, and
+  the annotation column is a hairline panel — no fill, no radius, no accent block. The zine pass had
+  it as a blue "note slip"; a solid field of the accent next to six duotoned prints competed with the
+  photographs for the same job, and the accent is supposed to mean "this is the interface talking".
+*/
+
+.body {
+  display: grid;
+  gap: var(--space-16);
+  padding-block: var(--space-12) var(--section-padding);
+}
+
+.aside {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-6);
+  border: 1px solid var(--color-hairline);
+  background: none;
+}
+
+.noteLabel {
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.noteLabel:not(:first-child) {
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.uses {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.uses li {
+  display: grid;
+  gap: 3px;
+}
+
+.uses span {
+  display: block;
+  font-family: var(--font-body-stack);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.noteText {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-small);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.noteText code {
+  font-family: var(--font-body-stack);
+  font-size: 0.75rem;
+  letter-spacing: var(--tracking-nav);
+  color: var(--color-text-primary);
+}
+
+.needs {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--color-stamp-ink);
+  border-bottom: 1px solid var(--color-stamp);
+}
+
+@media (min-width: 1024px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .aside {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-6));
+  }
+}

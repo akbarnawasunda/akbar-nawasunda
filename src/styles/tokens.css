@@ -1,36 +1,176 @@
 /*
- * Design tokens. Every colour, spacing step, type size, motion curve and z-layer used by the
- * app is defined here. Components reference these variables; they never hard-code values.
+ * Design tokens — "HUD" (round 16).
+ *
+ * Round 15 was a neon editorial page: near-black ground, hairline blue, generous air. The owner
+ * then handed over a set of screenshots from a world-class artist site and asked for *that* class of
+ * object: pure black, pure white, type at 12vw in uppercase, thin cross marks, nothing decorative
+ * that is not structural. This file is the replacement, and the values below are the whole visual
+ * idea in one place:
+ *
+ *   - one ground (#000000) and one ink (white). There is no second surface colour: separation comes
+ *     from a 1px white line at 16% and from space;
+ *   - the accent (#0087FF) is no longer a page colour. It survives as the light inside the 3D
+ *     monogram, the focus ring, and the single active mark — a light, never a field;
+ *   - type is the design: Space Grotesk in uppercase at 10–13vw with 0.86 leading for display, and
+ *     Inter for anything longer than a sentence;
+ *   - photography is high-contrast monochrome (globals.css), because a duotone treatment was how
+ *     the previous round tried to unify six files from different shoots.
+ *
+ * docs/02-DESIGN-SYSTEM/DESIGN_TOKENS.md wins over prose when the two disagree (AGENTS.md §4).
  */
 :root {
-  /* Colour: a near-black ink ramp, a warm bone ramp for text, and one signal accent. */
-  --color-ink-950: #050506;
-  --color-ink-900: #0b0b0d;
+  /* --- Colour: black ground, white ink --------------------------------------------- */
+  --color-bg-base: #000000;
+  --color-bg-surface: #050505;
+  --color-bg-surface-2: #0b0b0b;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b8b8b8;
+  --color-text-muted: #8f8f8f;
+  /*
+   * Round 24 — the bone press stock. An all-ink page with hairlines reads as *empty* before it
+   * reads as luxurious; a printed campaign alternates stock. Bone is the second paper of the
+   * R13 press palette (the sleeve series already spoke it): posters, takeovers and the sleeves
+   * themselves print on it, everything else stays ink. Sections flip by re-declaring the text and
+   * hairline tokens locally, so descendants invert without a single new class per child.
+   */
+  --color-bone: #e8e6e1;
+  --color-bone-ink: #0a0a0e;
+  --color-bone-muted: #52525a;
+  --color-bone-line: #c9c7c2;
+
+  /*
+   * The neon. It is the owner's own #0087FF — the colour of the AN mark and of the light coming off
+   * the 3D monogram. On a page that is now black-and-white, this is the only chromatic value left,
+   * so it is spent carefully: the monogram's bloom, the focus ring, and the one live dot.
+   */
+  --color-signal-blue: #0087ff;
+  --color-signal-blue-hover: #38a7ff;
+  --color-signal-icy: #7fc4ff;
+  --color-signal-purple: #6d4a7c;
+
+  --color-brand: var(--color-signal-blue);
+  --color-on-brand: #000000;
+
+  /* The monogram band is pure black: the object is the only light on it. */
+  --color-field: #000000;
+
+  /*
+   * Structure is one hairline in white. At 16% it is invisible until you look for it, which is
+   * exactly the job a HUD grid does; the strong step is for a hovered or active rule.
+   */
+  --color-hairline: rgb(255 255 255 / 0.16);
+  --color-hairline-strong: rgb(255 255 255 / 0.5);
+  --color-border: #1f1f1f;
+  --color-border-strong: #4a4a4a;
+
+  /* Panels. `paper` is a name the components still use; it resolves to the ground plus a rule. */
+  --color-paper: #050505;
+  --color-paper-ink: #ffffff;
+  --color-paper-muted: #8f8f8f;
+  /* Round 32 merge: the /about page arrived from main painted in main's ink scale; the alias
+     keeps its surface exactly the colour the owner committed, in our single token source. */
   --color-ink-800: #17171b;
-  --color-bone-100: #ece8df;
-  --color-bone-300: #bdb8ae;
-  --color-bone-500: #8a867e;
-  --color-signal: #ff4f1f;
+  --color-ink-black: #000000;
+  --color-band-monogram: #000000;
 
-  --color-bg: var(--color-ink-950);
-  --color-fg: var(--color-bone-100);
-  --color-muted: var(--color-bone-500);
-  --color-accent: var(--color-signal);
-  --color-focus: var(--color-signal);
+  /* Content markers kept for the Studio's own status rows; the public pages no longer print them. */
+  --color-stamp: #ff3b30;
+  --color-stamp-ink: #ff6b62;
+  --color-poster-red: var(--color-signal-blue);
+  --color-poster-yellow: #ffd60a;
 
-  /* Typography */
-  --font-sans: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-  --leading-tight: 0.88;
-  --leading-body: 1.5;
-  --tracking-tight: -0.035em;
-  --tracking-label: 0.14em;
+  /* Studio status colours (D-114). The public site never shows them. */
+  --color-status-ok: #7bd389;
+  --color-status-warn: #f2b84b;
+  --color-status-bad: var(--color-stamp);
+  --color-preview-ink: #3a1d12;
+
+  /* Semantic aliases used by components. */
+  --color-bg: var(--color-bg-base);
+  --color-fg: var(--color-text-primary);
+  --color-muted: var(--color-text-muted);
+  --color-accent: var(--color-signal-blue);
+  --color-focus: var(--color-signal-icy);
+
+  /* Legacy ramp names kept so the Studio and existing pages inherit the palette in one step. */
+  --color-ink-950: var(--color-bg-base);
+  --color-ink-900: var(--color-bg-surface);
+  --color-bone-100: var(--color-text-primary);
+  --color-bone-300: var(--color-text-secondary);
+  --color-bone-500: var(--color-text-muted);
+  --color-signal: var(--color-signal-blue);
+
+  /* --- Typography ------------------------------------------------------------------- */
+  /*
+   * Five roles, five families (see src/lib/fonts.ts for the map and for which binary currently
+   * fills each slot). A component asks for a role, never for a family: that is what made this
+   * round a one-file change instead of a search-and-replace across 24 stylesheets.
+   *
+   * The fallbacks are not decoration. Every role names a face that exists on the device before
+   * `sans-serif`, because a giant uppercase headline that reflows on a slow connection is worse
+   * than one set in Helvetica.
+   */
+  /* `var(--font-*)` already carries next/font's own fallback chain (it is emitted as
+     `family, ui-sans-serif, system-ui, …`), so the stack below only adds the *intended* family —
+     the one that will be there once the real files land — and one generic. */
+  --font-display-stack: var(--font-display), "Excess V Straight", sans-serif;
+  --font-body-stack: var(--font-body), "Relidux", sans-serif;
+
+  /*
+   * Poster metrics, on purpose.
+   *
+   * The display sizes are viewport-relative and uncapped at the top: a headline on this site is
+   * supposed to own the width of the window, the way the reference does. The clamps exist so a
+   * 320px phone still gets a readable 40px and a 2560px monitor does not get a 330px word.
+   * 0.86 leading is below the point where ascenders and descenders collide in Space Grotesk at
+   * these weights; 0.8 is where they start to.
+   */
+  --leading-hero: 1.1;
+  --leading-tight: 1.02;
+  /* The label face is a condensed stamp: at 0.86 its ascenders touch the line above, at 0.94
+     it reads as one block. Release and track titles: uppercase Relidux 600 with a little air. */
+  --leading-title: 1.12;
+  --leading-body: 1.6;
+  --tracking-hero: -0.02em;
+  --tracking-tight: -0.02em;
+  /*
+   * Tracking, as a function of size. A display face at 12vw needs to be pulled together or it falls
+   * apart into letters; 9px uppercase needs to be pushed apart or it becomes a grey smear. The three
+   * label steps are the difference between those two jobs:
+   *
+   *   --tracking-label   9–10px uppercase meta ("01 — Katalog", counters, footer rules)
+   *   --tracking-nav     11–14px navigation, buttons, list meta
+   *   --tracking-stamp   the label face at title size — a label maker's tape is tight, not airy
+   */
+  --tracking-label: 0.2em;
+  --tracking-nav: 0.13em;
+  --tracking-title: 0.04em;
+
+  /*
+   * Fitted to the face, not chosen from a scale.
+   *
+   * "NAWASUNDA" measures 8.43 × font-size in Excess V Straight at −0.045em tracking (measured in the
+   * browser, not guessed). The container is ~viewport − 2 gutters, so the largest size at which the
+   * longest word still sits on ONE line is ≈10.7vw across the whole 320–1920 range. 10.2vw leaves a
+   * little air at every width; the 1.9rem floor keeps a 320px phone above the legibility edge, and
+   * the 10.5rem ceiling stops a 2560px monitor from getting a 270px word.
+   *
+   * The previous 12.5vw was tuned for Space Grotesk, which is roughly 25% narrower — with the new
+   * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
+   */
+  --text-hero: clamp(2rem, 4vw, 4rem);
+  /* Round 22: the takeover voice — one step under the hero name, for the release that owns the
+     screen right now (home transmission band, catalogue featured block). A major-label site gives
+     the current release almost the same type as the artist's own name; this is that move. */
+  --text-takeover: clamp(1.5rem, 2.5vw, 2.5rem);
+  --text-display: clamp(1.5rem, 2.5vw, 2.5rem);
+  --text-title: clamp(1.2rem, 1.8vw, 1.6rem);
+  --text-body: clamp(0.9rem, 1vw, 1rem);
+  --text-small: 0.875rem;
   --text-label: 0.75rem;
-  --text-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-  --text-title: clamp(2.25rem, 1.2rem + 5vw, 5.5rem);
-  /* Sized from the viewport width so the longest word always fits inside the gutters. */
-  --text-display: min(15.5vw, 15rem);
 
-  /* Spacing scale (4px base) */
+  /* --- Spacing (4px base) ----------------------------------------------------------- */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -39,19 +179,66 @@
   --space-8: 2rem;
   --space-12: 3rem;
   --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
 
-  /* Layout */
+  /* --- Layout ----------------------------------------------------------------------- */
   --container-max: 1440px;
-  --gutter: clamp(1rem, 0.6rem + 2.5vw, 2.5rem);
-  --header-height: 4.5rem;
+  --gutter: clamp(1.25rem, 3vw, 3rem);
+  --header-height: 5rem;
+  --header-height-compact: 3.75rem;
+  --section-padding: clamp(6rem, 8vw, 8rem);
+  /*
+   * Corners. A HUD is built from right angles: nothing on this site is rounded. The pill step is
+   * kept for the Studio's one status dot.
+   */
+  --radius-sm: 0;
+  --radius-xl: 0;
+  --radius-pill: 9999px;
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 200ms;
-  --duration-base: 600ms;
+  /* --- Motion ----------------------------------------------------------------------- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.08, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --duration-breath: 6s;
 
-  /* Layers: effects sit beneath content so text is never obscured by the visual layer. */
+  /* --- Entry reel: the monogram draws itself inside one second, ceiling included ------------- */
+  --duration-curtain-draw: 520ms;
+  --duration-curtain-dot: 140ms;
+  --duration-curtain-fade: 300ms;
+  --delay-curtain-stroke-2: 80ms;
+  --delay-curtain-stroke-3: 140ms;
+  --delay-curtain-dot: 560ms;
+  --delay-curtain-fade: 700ms;
+  --duration-eq: 850ms;
+  --duration-press: 100ms;
+  --duration-cursor-dot: 50ms;
+  --duration-cursor-ring: 180ms;
+  --cursor-dot: 6px;
+  --cursor-ring: 36px;
+
+  /* --- Layers: effects sit beneath content so text is never obscured ---------------- */
   --z-effects: 0;
   --z-content: 10;
-  --z-chrome: 20;
+  --z-chrome: 50;
+  --z-overlay: 100;
+  --z-cursor: 300;
+}
+
+@media (max-width: 719px) {
+  :root {
+    --section-padding: clamp(6rem, 9vw, 7rem);
+    /*
+     * Round 32, owner's correction: the phone is the primary screen, so its type is tuned for the
+     * phone, not shrunk from the desktop. The vw terms grow until the measure fills a 390 px hand
+     * without a single title wrapping into an orphan line; the clamp ceilings keep a landscape
+     * phone from shouting.
+     */
+    --text-hero: clamp(2.5rem, 9.6vw, 3.6rem);
+    --text-takeover: clamp(1.7rem, 7.4vw, 2.5rem);
+    --text-display: clamp(1.45rem, 6.2vw, 2.2rem);
+    --text-title: clamp(1.15rem, 4.8vw, 1.5rem);
+  }
 }

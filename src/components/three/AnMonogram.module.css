@@ -1,0 +1,85 @@
+/*
+ * The band's scenery: it sits behind the type, never above it, never eats a pointer event.
+ *
+ * Round 29: the water is a shader quad (see AnMonogramLiquid). The baked still underneath is the
+ * fallback and the floor: no WebGL, reduced motion and phones never mount the GPU path, and once
+ * the shader is live the still simply fades out under it — same reveal contract as always:
+ * invisible until `data-ready`, then a long fade into the band's black.
+ */
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 900ms var(--ease);
+}
+
+.canvas[data-ready="true"] {
+  opacity: 0.92;
+}
+
+@media (max-width: 1023px) {
+  .canvas[data-ready="true"] {
+    opacity: 0.85;
+  }
+}
+
+.drift {
+  position: absolute;
+  inset: 0;
+}
+
+/* The stack: baked still below, shader quad above it once mounted. */
+.liquid {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * Oversized on purpose: the scroll engine translates the layer a few percent as the band passes,
+ * and an image exactly the size of its box would show a gap at the extremes.
+ */
+.still {
+  position: absolute;
+  inset: -6% 0;
+  width: 100%;
+  height: 112%;
+  object-fit: cover;
+  object-position: 50% 46%;
+  display: block;
+  transition: opacity 700ms var(--ease);
+}
+
+/* The shader is live: the still steps back under it instead of doubling the mark. */
+.canvas[data-liquid="on"] .still {
+  opacity: 0;
+}
+
+/*
+ * The 3D layer: above the still, flush with the band, and the one surface in the band that takes
+ * pointer events — the raycaster inside the chunk needs the hand. Everything above and below the
+ * band keeps its own clicks; the layer is exactly the band's box.
+ */
+.liquidLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/*
+ * Two classes deep on purpose, same trick as `.signature .signatureFallback img` in the page
+ * module: `globals.css` grayscales every photograph under `.site-main img`, which is right for
+ * the archive and wrong for the one object that is the page's only light source.
+ */
+.canvas .still {
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas,
+  .still {
+    transition: none;
+  }
+}

@@ -1,33 +1,109 @@
 # ENVIRONMENT_VARIABLES
 
-## Required (Vercel Project Settings)
+Update 2026-10-23 (D-014 + D-028). The app reads **two spellings of the same Turso database**.
+`DATABASE_URL` wins when both are set; nothing has to be renamed.
+
+## Database (Turso) — pick one spelling
 
 ```env
-# Turso
-TURSO_DATABASE_URL=libsql://[your-db].turso.io
+# Preferred (what the app, .env.example and drizzle.config.ts use)
+DATABASE_URL=libsql://akbar-nawasunda-<org>.turso.io
+DATABASE_AUTH_TOKEN=eyJ...
+
+# Legacy alias (older runbook / HANDOFF). Works, same database.
+TURSO_DATABASE_URL=libsql://akbar-nawasunda-<org>.turso.io
 TURSO_AUTH_TOKEN=eyJ...
-
-# Auth
-AUTH_SECRET=random-32-chars-min
-AUTH_URL=https://akbarnawasunda.my.id
-
-# Optional Vercel Blob for uploads
-BLOB_READ_WRITE_TOKEN=vercel_blob_...
-
-# Admin seed (for initial migration only, remove after)
-ADMIN_EMAIL=admin@akbarnawasunda.my.id
-ADMIN_PASSWORD_HASH=$2b$10$...
 ```
 
-## Rules
-- NEVER expose TURSO_AUTH_TOKEN or AUTH_SECRET to client
-- Never commit .env to repo
-- Use Vercel Environment Variables: Production, Preview, Development
-- For local dev: .env.local (gitignore)
+Resolver: `src/lib/turso.ts` → `readDatabaseEnv()`. Precedence and blank handling are unit-tested
+(`tests/studio/turso.test.ts`).
 
-## Setup Steps
-1. Create Turso DB: turso db create akbar-nawasunda
-2. Get URL: turso db show akbar-nawasunda --url
-3. Get token: turso db tokens create akbar-nawasunda
-4. Add to Vercel env
-5. Run drizzle migration: npm run db:migrate
+Local development needs no token:
+
+```env
+DATABASE_URL=file:./data/studio.db
+```
+
+## Studio (admin)
+
+```env
+# scrypt hash from: npm run -s studio:hash-password   (password read from stdin, never stored)
+STUDIO_ADMIN_PASSWORD_HASH=scrypt$...
+```
+
+Without it, `/studio` shows the setup screen and the public site falls back to static content — the
+preview stays reviewable without exposing credentials.
+
+## Site
+
+```env
+# Canonical URL for metadata/Open Graph. Leave unset locally; defaults to https://akbarnawasunda.my.id
+NEXT_PUBLIC_SITE_URL=
+```
+
+## Preview framing (sandbox only)
+
+```env
+# Widens CSP frame-ancestors by https://*.e2b.app so the sandbox preview can be embedded in the
+# review UI. NEVER set this in Production or on Vercel.
+PREVIEW_FRAMING=1
+```
+
+Without it the production CSP is `frame-ancestors 'self'` plus `X-Frame-Options: SAMEORIGIN`, and
+the preview would be blank. The value is read when the build evaluates `next.config.ts`, so a preview
+that needs framing must be built with it set (see DEPLOYMENT_RUNBOOK §1).
+
+## Not used (yet)
+
+These appear in older docs but no code reads them. Do not add them to Vercel until a feature needs
+them — an unused secret is a liability:
+
+| Variable | Status |
+|---|---|
+| `AUTH_SECRET` / `AUTH_URL` | Not read. Studio sessions use their own hashed cookie (`src/studio/auth.ts`). |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Not read. There is one owner password hash, no user table. |
+| `BLOB_READ_WRITE_TOKEN` | Not read. Uploads are disabled (`UPLOADS_IMPLEMENTED = false`); the planned provider is Cloudflare R2 (see `src/studio/media/storage.ts`). |
+| `ANALYTICS_*` | Not read. There is no analytics script on the site (docs/04-TECHNICAL-ARCHITECTURE/ANALYTICS_SPEC.md is still a plan). |
+
+## Rules
+
+- Never commit `.env*` values; `.env.local` is gitignored, `.env.example` documents names only.
+- Keep `DATABASE_AUTH_TOKEN` server-side only; no `NEXT_PUBLIC_` prefix on any token.
+- Set values per Vercel environment (Production / Preview / Development).
+
+## Setup steps
+
+```bash
+turso db create akbar-nawasunda
+turso db show akbar-nawasunda --url
+turso db tokens create akbar-nawasunda
+
+# local: write DATABASE_URL + DATABASE_AUTH_TOKEN into .env.local
+npm run db:generate     # SQL migration from drizzle/schema.ts
+npm run db:migrate      # apply to Turso
+npm run db:seed         # verified releases (idempotent)
+npm run db:seed -- --dry   # preview what would be written
+```
+
+`npm run db:seed` also creates the tables if they are missing, so a fresh database works without the
+migration step. Running it twice never overwrites rows the owner has edited in the Studio.
+
+## Phase 6 — Studio sudah diuji dengan variabel ini
+
+Nama (bukan nilai):
+
+| Variabel | Wajib | Dipakai untuk |
+|---|---|---|
+| `DATABASE_URL` (atau `TURSO_DATABASE_URL`) | ya | `file:./data/studio.db` lokal, `libsql://…` di produksi |
+| `DATABASE_AUTH_TOKEN` (atau `TURSO_AUTH_TOKEN`) | hanya untuk `libsql://` | token Turso |
+| `STUDIO_ADMIN_PASSWORD_HASH` | ya | hash scrypt dari `npm run studio:hash-password` |
+
+Catatan yang terverifikasi pada Phase 6:
+
+- `npm run db:seed` dan `drizzle-kit` sekarang membaca `.env.local` (`loadEnvConfig`), jadi tidak perlu
+  mengekspor variabel manual.
+- Folder `data/` dibuat otomatis bila belum ada; sebelumnya seed gagal di clone baru.
+- `.env.local` dan `data/` tetap di-gitignore. Nilai tidak pernah ditampilkan di layar Studio mana pun.
+
+Untuk produksi, isi nama-nama di atas pada pengaturan environment Vercel, lalu deploy. Tidak ada
+variabel lain yang dibutuhkan Studio saat ini: unggah media (storage) belum aktif.

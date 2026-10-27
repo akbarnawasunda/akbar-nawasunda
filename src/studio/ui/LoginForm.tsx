@@ -12,7 +12,7 @@ export function LoginForm() {
   return (
     <form action={formAction} className={styles.section} style={{ maxWidth: 420 }}>
       <div className={styles.field}>
-        <label htmlFor="password" className={styles.label}>Admin password</label>
+        <label htmlFor="password" className={styles.label}>Password admin</label>
         <input
           id="password"
           name="password"
@@ -31,7 +31,7 @@ export function LoginForm() {
 
       <div className={styles.actions}>
         <button type="submit" className={styles.button} disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? "Memproses…" : "Masuk"}
         </button>
       </div>
     </form>

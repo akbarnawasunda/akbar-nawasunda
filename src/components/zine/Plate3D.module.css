@@ -1,0 +1,56 @@
+/*
+  A plate is a stage, not a card.
+
+  The host owns the vanishing point; the inner element owns the rotation. Everything the caller puts
+  inside the inner element shares that same 3D scene, so `translateZ` on a child is real depth rather
+  than a scale trick — which is the whole point of putting the object here instead of in a wrapper
+  that merely writes a `transform`.
+*/
+.stage {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.inner {
+  width: 100%;
+  height: 100%;
+  transform: rotateX(var(--plate-rx, 0deg)) rotateY(var(--plate-ry, 0deg))
+    translate3d(var(--plate-x, 0px), var(--plate-y, 0px), 0);
+  transform-style: preserve-3d;
+  /* Only the rotation is animated, and it is written by the rAF loop, so no CSS transition here:
+     two easing systems on one property is how a tilt starts to feel laggy. */
+}
+
+/*
+  `will-change` is scoped to the gesture, and that is the whole point of this rule.
+
+  It used to sit on `.inner` unconditionally, which promoted — for the entire life of the page — a
+  layer the size of the viewport, holding a `preserve-3d` subtree with the site's largest type in
+  it. Two costs, both invisible until you look for them:
+
+  - **Memory.** A promoted 1440×900 layer is ~5 MB of texture before the compositor's own copies, and
+    on an integrated GPU that is memory the rest of the page cannot use. It is why a page can hold
+    60 fps while the cursor moves and still feel heavy.
+  - **Wasted work.** A promoted layer is composited separately even when it is not moving, and it
+    keeps the whole hero out of the page's own layer for no reason.
+
+  The plate sets `data-active="true"` when it schedules its first rotation frame and removes it once
+  the lerp has settled (`Plate3D.tsx`). The hint is present for exactly the frames where a transform
+  is being written, and a pointer that crosses the hero without moving never turns it on.
+
+  There is deliberately no `will-change` on `.stage`: the perspective is static, and promoting the
+  parent as well would nest two layers for one rotation.
+*/
+.stage[data-active="true"] .inner {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner {
+    transform: none;
+  }
+
+  .stage[data-active="true"] .inner {
+    will-change: auto;
+  }
+}

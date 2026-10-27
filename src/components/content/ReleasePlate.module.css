@@ -1,0 +1,426 @@
+/*
+  The release page (round 15).
+
+  Three bands: the sleeve and its title, the listening rows, and the colophon with the neighbouring
+  releases. The band is dark now instead of a sheet of #0087FF, because on this site the accent is a
+  light — the one bright object on the page is the sleeve itself, sitting in a bloom of it.
+
+  No card, no frame, no grey paragraph in the middle: a release either has a link to listen to or it
+  says so in a sentence.
+*/
+
+.record {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ the band */
+
+/*
+  The band is the page's ground, not a field of colour. It used to be a full-bleed sheet of #0087FF
+  with ink type on it — the loudest object on any route, and the thing that made a release page look
+  like a different site from the one that linked to it. The sleeve is the object here; the band only
+  gives it a dark room and a lit hairline.
+*/
+.band {
+  position: relative;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bandInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-8);
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-8);
+}
+
+/*
+ * Round 21, from the owner's own screenshots: on a phone the desktop top padding leaves a dead
+ * black band between the header and the catalogue counter — the sleeve that anchors this space on
+ * wide screens sits *below* the copy there, so nothing justifies the air. Half the beat on mobile.
+ */
+@media (max-width: 767px) {
+  /*
+   * Round 32, owner's instruction: on a phone the artwork bleeds edge to edge — the screen IS the
+   * sleeve, no gutters, no plinth. The offset plate behind it has to go with the gutters, because
+   * its overhang would otherwise widen the document past the viewport.
+   */
+  .artworkStage {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .artworkPlate {
+    display: none;
+  }
+
+  .bandInner {
+    padding-top: calc(var(--header-height) + var(--space-4));
+  }
+}
+
+.copy {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.counter {
+  font-variant-numeric: tabular-nums;
+}
+
+.slash {
+  opacity: 0.9;
+}
+
+/* The type line, in its own tint: the same ink, without the weight of the counter. */
+.meta {
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--color-border);
+}
+
+/*
+  The title, at sleeve scale: the release is the subject of this page, so it is the largest thing on
+  it. `text-wrap: balance` keeps a three-word remix title from breaking into ragged lines.
+*/
+.title {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(2rem, 5.4vw, 4.6rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-wrap: balance;
+}
+
+.tail {
+  color: var(--color-text-secondary);
+}
+
+.lead {
+  max-width: 44ch;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: var(--leading-body);
+}
+
+/* The honest empty state: a rule and a sentence, not a dashed box. */
+.noLinks {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 40ch;
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.noLinksLabel {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-signal-blue);
+}
+
+/* --------------------------------------------------------------- the print */
+
+.artworkStage {
+  /* Room for the plate's 20 px overhang, so the print never touches the page edge. */
+  width: min(100% - 20px, 460px);
+  margin-inline: auto;
+}
+
+.artwork {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+.artworkPlate {
+  position: absolute;
+  inset: 20px -20px -20px 20px;
+  background: var(--color-ink-black);
+  transform: translateZ(-45px);
+}
+
+.artworkFace {
+  position: relative;
+  display: block;
+  height: 100%;
+  box-shadow: 0 30px 70px rgb(5 5 7 / 45%);
+}
+
+.artworkFace > span {
+  display: block;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* --------------------------------------------------------------- listening */
+
+.factsInner,
+.moreInner {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.sectionLabel {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-signal-blue);
+}
+
+/* The listening rows: hairline rules across the whole band, one row per platform. */
+.links {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-hairline);
+}
+
+/*
+  A listening row is the index row's cousin: full width, hairline above, display type, and the same
+  inversion to blue under the pointer. The one difference is that these rows are the *action* of the
+  page, so the label is larger than a release title would be in a list.
+*/
+.link {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition:
+    background var(--duration-base) var(--ease),
+    color var(--duration-base) var(--ease),
+    padding var(--duration-base) var(--ease-out);
+}
+
+/* Same gesture as the homepage index: a tint of the accent and a lit left edge. */
+.link:hover,
+.link:focus-visible {
+  background: color-mix(in srgb, var(--color-signal-blue) 10%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-signal-blue);
+  padding-left: var(--space-4);
+  outline: none;
+}
+
+.linkIndex,
+.linkArrow {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+}
+
+.link:hover .linkIndex,
+.link:focus-visible .linkIndex,
+.link:hover .linkArrow,
+.link:focus-visible .linkArrow {
+  color: var(--color-signal-blue);
+}
+
+.linkLabel {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 3vw, 2.3rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------- colophon */
+
+.factsInner {
+  padding-block: var(--space-8) var(--space-6);
+}
+
+.facts {
+  display: grid;
+  /* Capped: four facts spread across 1232 px read as four abandoned columns, not as a data sheet. */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  max-width: 760px;
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.fact {
+  display: grid;
+  gap: 2px;
+}
+
+.fact dt {
+  font-family: var(--font-body-stack);
+  font-size: 0.5rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.needs {
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+}
+
+/* ------------------------------------------------------------------- more */
+
+.moreInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  padding-block: var(--space-8) var(--space-16);
+  border-top: 1px solid var(--color-border);
+}
+
+.neighbour {
+  display: grid;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text-primary);
+  width: fit-content;
+}
+
+.neighbourLabel {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* The thumbnail is a sleeve, so it is square, unrounded, and takes the blue plate on hover. */
+.neighbourSleeve {
+  display: block;
+  width: 96px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    translate var(--duration-base) var(--ease-out);
+}
+
+.neighbourSleeve > span {
+  display: block;
+  height: 100%;
+  border-radius: 0;
+}
+
+.neighbour:hover .neighbourSleeve,
+.neighbour:focus-visible .neighbourSleeve {
+  translate: -3px -3px;
+  box-shadow: 6px 6px 0 var(--color-border-strong);
+}
+
+.neighbourTitle {
+  max-width: 24ch;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: var(--leading-title);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-title);
+}
+
+.all {
+  justify-self: start;
+  align-self: end;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid var(--color-hairline-strong);
+  padding-bottom: 2px;
+}
+
+.all:hover,
+.all:focus-visible {
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 900px) {
+  .bandInner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+    align-items: center;
+    gap: var(--space-12) var(--space-16);
+    padding-block: calc(var(--header-height) + var(--space-12)) var(--space-8);
+  }
+
+  /*
+    On a wide screen the listening rows stay in the copy column and the sleeve occupies the right
+    column across both rows. Full-bleed rows ran underneath the artwork, which read as a print
+    mistake rather than as a layout.
+  */
+  .links {
+    grid-column: 1;
+    margin-top: calc(var(--space-4) * -1);
+  }
+
+  .artworkStage {
+    width: min(100% - 20px, 400px);
+  }
+
+  .moreInner {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: end;
+    gap: var(--space-8);
+  }
+
+  .neighbourNext {
+    justify-self: end;
+    text-align: right;
+  }
+
+  .neighbourNext .neighbourTitle {
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .link:hover,
+  .link:focus-visible,
+  .neighbourSleeve {
+    transition: none;
+  }
+}

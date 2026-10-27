@@ -1,0 +1,84 @@
+name: Covers
+
+# Pulls the real artwork for every release that has a published link, and opens a PR with the files.
+#
+# Why here and not in the app: the site must never call a third party while rendering (a slow or
+# blocked Spotify would become a slow page), so art is resolved once, stored in
+# public/assets/covers/<slug>.webp, and served from our own origin. GitHub runners have the network
+# that the sandbox and most local dev containers do not, which is why this is a one-click Action
+# instead of a step every contributor has to remember.
+#
+# Manual: Actions → Covers → Run workflow (tick "force" to re-fetch everything).
+# Weekly: catches artwork the owner uploads later, and tracks platform thumbnails that change.
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Re-fetch artwork even where a file already exists
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: covers
+  cancel-in-progress: true
+
+jobs:
+  fetch:
+    name: resolve artwork from release links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Plan (what the links can actually resolve)
+        run: npm run covers:plan
+
+      - name: Fetch
+        run: node scripts/fetch-release-artwork.mjs ${{ inputs.force && '--force' || '' }}
+
+      - name: Open a PR if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain -- public/assets/covers)" ]; then
+            echo "No artwork changed. Nothing to do."
+            exit 0
+          fi
+
+          branch="covers/auto-$(date -u +%Y%m%d-%H%M)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add public/assets/covers
+          git commit -m "covers: artwork resolved from the releases' own links"
+          git push origin "$branch"
+
+          gh pr create \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "$branch" \
+            --title "Covers: real artwork from the release links" \
+            --body "Fetched by \`.github/workflows/covers.yml\` from the links already published on each release (Apple Music lookup, SoundCloud/Spotify/YouTube oEmbed).
+
+          The site reads \`public/assets/covers/<slug>.webp\` as level 1 of the cover waterfall, so these files replace the generated sleeves on the affected releases. Check the diff renders correctly — the preview in the CI job for this PR will show it."
+
+      - name: Upload the fetched covers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: covers
+          path: public/assets/covers/*.webp
+          retention-days: 7

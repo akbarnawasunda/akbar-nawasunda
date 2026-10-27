@@ -5,8 +5,15 @@ import { Text, Float } from '@react-three/drei';
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 
-function MusicNote({ position, color, symbol }) {
-  const ref = useRef(null);
+/* Deterministic stand-in for Math.random: a component must be pure, and a field of notes that
+   reshuffles on every re-render is exactly what the React rules forbid. Same scatter, every time. */
+const rand = (seed: number) => {
+  const x = Math.sin(seed) * 43758.5453123;
+  return x - Math.floor(x);
+};
+
+function MusicNote({ position, color, symbol }: { position: [number, number, number]; color: string; symbol: string }) {
+  const ref = useRef<THREE.Mesh | null>(null);
   useFrame((state) => {
     if (ref.current) {
       ref.current.rotation.y += 0.01;
@@ -26,9 +33,9 @@ export function MusicNotesField() {
   const notes = useMemo(() => {
     const symbols = ['♪', '♫', '♬', '♩'];
     return Array.from({ length: 60 }, (_, i) => ({
-      position: [(Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 5],
+      position: [(rand(i * 3 + 1) - 0.5) * 10, (rand(i * 3 + 2) - 0.5) * 10, (rand(i * 3 + 3) - 0.5) * 5] as [number, number, number],
       color: i % 3 === 0 ? '#0087FF' : i % 3 === 1 ? '#8AE8FF' : '#7800FF',
-      symbol: symbols[i % symbols.length],
+      symbol: symbols[i % symbols.length] ?? "\u266A",
     }));
   }, []);
 

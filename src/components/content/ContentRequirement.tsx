@@ -16,7 +16,7 @@ export function ContentRequirement({ title, description, items }: ContentRequire
     <section className={styles.requirement} aria-label={title}>
       <h2 className={styles.requirementTitle}>{title}</h2>
       <p className={styles.requirementText}>{description}</p>
-      <p className={styles.label}>Needed before publishing</p>
+      <p className={styles.label}>Dibutuhkan sebelum terbit</p>
       <ul className={styles.requirementList}>
         {items.map((item) => (
           <li key={item}>{item}</li>

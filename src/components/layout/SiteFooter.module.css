@@ -1,56 +1,118 @@
+/*
+  Footer, round 31: four columns, one hairline, 12px type.
+
+  The wordmark object, the bordered social strip and the full-width booking bar are gone — the
+  owner's spec is a minimalist grid that answers four questions (Navigasi, Sosial, Rilis, Kontak)
+  and then stops. Everything here is type and hairlines; the only colour on the floor is the
+  equalizer beside "Sedang diputar".
+*/
 .footer {
-  position: relative;
-  z-index: var(--z-chrome);
-  border-top: 1px solid rgba(236, 232, 223, 0.12);
-  padding-block: var(--space-8);
-  padding-inline: var(--gutter);
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-bg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-8);
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: var(--space-8) var(--gutter) var(--space-6);
+}
+
+.heading {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-body-stack);
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
-.inner {
-  max-width: var(--container-max);
-  margin-inline: auto;
-  display: grid;
-  gap: var(--space-6);
-}
-
-.identity {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.name {
-  color: var(--color-fg);
-}
-
-.muted {
-  color: var(--color-muted);
-}
-
-.nav ul {
-  list-style: none;
+.column ul {
   margin: 0;
   padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.column a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-small);
+  line-height: var(--leading-title);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.column a:hover,
+.column a:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.socialIcon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.column a:hover .socialIcon,
+.column a:focus-visible .socialIcon {
+  color: var(--color-text-primary);
+}
+
+.live {
+  color: var(--color-text-secondary);
+}
+
+/* ------------------------------------------------------------------ the base line */
+
+.base {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: var(--space-4) var(--gutter) var(--space-6);
+  border-top: 1px solid var(--color-hairline);
 }
 
-.nav a {
-  color: var(--color-bone-300);
-  text-decoration: none;
+.mono {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
-.nav a:hover {
-  color: var(--color-accent);
+.mark {
+  width: var(--space-6);
+  height: auto;
+  opacity: 0.7;
 }
 
-@media (min-width: 720px) {
-  .inner {
-    grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: var(--space-8);
+/* ------------------------------------------------------------------ phones */
+
+@media (max-width: 899px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+}
+
+@media (max-width: 479px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

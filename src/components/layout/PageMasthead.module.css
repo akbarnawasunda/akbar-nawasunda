@@ -1,0 +1,90 @@
+/*
+ * The head of an inner page.
+ *
+ * Four routes share it, so it carries the whole "where am I" job: a mono index in the corner, the
+ * page name at 12vw uppercase, one line of lead, and a ruled row holding the count. Nothing is a
+ * card, a sheet or a sticker — the archive below it is the content.
+ *
+ * The type is the layout. The name spans the full container at --text-hero, which means the head's
+ * height is decided by the word: "MUSIK" is one line, "ELECTRONIC PRESS KIT" is three, and both look
+ * deliberate because the leading is 0.86 and the tracking is tight enough that the letters read as
+ * one block rather than as a row of separate glyphs.
+ */
+.head {
+  padding-top: var(--section-padding);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.inner {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.eyebrow {
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  margin-top: var(--space-6);
+  /* The name is allowed to break a long word rather than overflow the viewport at 320px. */
+  overflow-wrap: anywhere;
+  font-size: var(--text-hero);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+}
+
+.lead {
+  max-width: 46ch;
+  margin-top: var(--space-6);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+
+.noteBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* The count is the one number on the page, so it is set as display type, not as a statistic. */
+.figure {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+}
+
+.figure span {
+  display: block;
+  margin-top: var(--space-2);
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.note {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  text-align: right;
+}

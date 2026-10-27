@@ -1,5 +1,20 @@
 # 3D_ART_DIRECTION — Liquid Signal
 
+> **WITHDRAWN (2026-10-23).** The owner removed the Liquid Signal from the site: the hero, the
+> catalogue and the 404 now carry no 3D, no canvas, no particle field (D-055). The Phase 7 WebGL
+> implementation this document describes was deleted, not disabled. This file stays as the record of
+> how the effect was specified, in case it is ever revisited — it is **not** a description of the
+> current site. The current visual language is in `DESIGN.md`: real photography, tight display type,
+> 11px mono labels, hairlines, one 2% grain layer.
+
+> **ADDENDUM, ROUND 20 (2026-10-26).** The one renderer that survived the withdrawal — the liquid-metal
+> AN monogram of rounds 14–19 — is now also gone as a renderer, on the owner's instruction ("3D pake
+> liquid aja cuy, jangan 3D berat jir"). Its look was baked once from the real scene into two WebP
+> stills (`public/assets/monogram/`, provenance in `scripts/bake-monogram.mjs`) and ships as an image:
+> no canvas, no WebGL context, no rAF loop, no `three` in the dependency tree. The object still moves
+> with the page through the single scroll engine. Evidence and the weight table are in
+> `docs/08-IMPLEMENTATION/design-review/round20/`.
+
 ## Concept Meaning
 Liquid Signal = visualisasi sinyal bass yang cair, metalik, mengalir. Representasi transisi: dari remix culture yang cair, tidak berbentuk (DJ Akbar Remix) → identitas yang solid tapi tetap fluid (Akbar Nawasunda). Menggabungkan elemen air (Sunda: flow, sungai) + metal (modern bass, studio gear).
 
@@ -42,3 +57,25 @@ Bukan bola bercahaya generik.
 - [ ] Fallback works with JS disabled? At least readable
 - [ ] No blocking text, no preventing click
 - [ ] Reduced-motion media query respected
+
+---
+
+## Implementasi Phase 7 (2026-10-23)
+
+Rekomendasi "Prefer Three.js + R3F" **tidak** dipakai. Alasannya angka: `three@0.186` mengirim
+127 KB gz + 279 KB gz inti sebelum tree-shaking, sedangkan budget chunk 3D adalah < 70 KB gz, dan
+yang dibutuhkan di sini hanya satu point cloud tanpa lighting, loader, atau post-processing. Yang
+dibangun adalah renderer WebGL tulis tangan (±3,1 KB gz) — detail keputusan di D-050…D-054.
+
+| Butir spec | Status Phase 7 |
+|---|---|
+| Satu scene / satu komponen | `liquid-signal/` + `HeroSignal`; hanya dipakai di hero beranda |
+| Bukan bola bercahaya generik | Field titik dengan tepi menyala (rim) dan interior redup; bagian dalam tidak pernah menutup jadi bola |
+| Dot 1.5–3 px, palet #0087FF → #8AE8FF → #7800FF | Ya: titik 2–9 px menurut kedalaman/rim di buffer device px, warna dari tinggi + rim, latar #0A0A0E |
+| Breathing 1 → 1.03 / 6 s, rotasi Y 5° / 20 s | Ya (`breathScale`, `signalViewMatrix`) |
+| Reduced-motion → statis | Ya, renderer tidak pernah diimpor |
+| Fallback tanpa WebGL | Ya: SVG server-rendered adalah lapisan dasar, bukan placeholder |
+| FPS < 30 selama 2 s → statis | Ya, governor di renderer (lihat D-053) |
+| Dispose saat unmount | Ya: buffer, program, context (`WEBGL_lose_context`) |
+| Init setelah LCP | Ya: `load` → `requestIdleCallback` (timeout 1.2 s) |
+| Tilt pointer ≤ 10° / parallax −10% | **Belum** — ditunda ke Phase 8, lihat §17 di audit |

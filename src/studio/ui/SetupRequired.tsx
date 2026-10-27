@@ -4,10 +4,9 @@ import styles from "./studio.module.css";
 export function SetupRequired({ missing }: { missing: string[] }) {
   return (
     <section className={styles.section} aria-labelledby="setup-heading">
-      <h2 id="setup-heading" className={styles.sectionTitle}>Setup required</h2>
+      <h2 id="setup-heading" className={styles.sectionTitle}>Perlu pengaturan</h2>
       <p className={styles.lead}>
-        NAWA STUDIO is not connected yet. Pages on the public site still show their current content.
-        Add the following environment variables on the server, then restart the app:
+        NAWA STUDIO belum terhubung. Halaman publik masih memakai konten yang ada sekarang. Tambahkan variabel lingkungan berikut di server, lalu jalankan ulang aplikasi:
       </p>
       <ul className={styles.card} style={{ listStyle: "none" }}>
         {missing.map((name) => (
@@ -17,8 +16,7 @@ export function SetupRequired({ missing }: { missing: string[] }) {
         ))}
       </ul>
       <p className={styles.hint}>
-        Values are never shown in this screen. See <code>.env.example</code> for the variable names and
-        the README for setup steps.
+        Nilai variabel tidak pernah ditampilkan di layar ini. Lihat <code>.env.example</code> untuk nama variabel dan README untuk langkah pemasangannya.
       </p>
     </section>
   );

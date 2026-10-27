@@ -1,0 +1,260 @@
+/*
+  The archive wall (round 15).
+
+  The previous pass laid these prints by hand: each tile rotated a fraction of a degree off the wall
+  and lifted 46 px out of it on hover. That was the zine, and it is gone. What replaces it is the
+  most literal reading of "precise": one square, one gap, one hairline, and the crop doing the
+  composing.
+
+  Two things earn their complexity here:
+
+  1. **The treatment.** Six owner files are reused across five routes, so a tile that is left plain
+     looks like the same photograph you already scrolled past. Every tile is duotoned and screened
+     (see `.frame`), which is a legible, deliberate look rather than a filter switch.
+  2. **The crop.** The same portrait at 42% 20% and at 58% 30% is two different photographs to a
+     reader. Alternating the anchor per column is the cheapest way to make a contact sheet feel
+     authored instead of dumped.
+
+  Symmetry is not negotiable on this page, so: three equal columns, equal gaps, equal squares. The
+  only asymmetry is which part of each frame the crop keeps.
+*/
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6) var(--space-4);
+}
+
+.photoTile,
+.surfaceTile {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- the print */
+
+.frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--color-border);
+  background: var(--color-field);
+  transition: border-color var(--duration-base) var(--ease);
+}
+
+/*
+  Every image on this page is duotone: grayscale first so the six files share one tonal ramp, then
+  a sepia pass rotated into the accent's hue so that ramp runs ink → neon instead of ink → brown.
+  No `mix-blend-mode` and no blur: both are on the project's anti-slop list, and neither is needed —
+  a filter chain is enough and it costs one compositor pass.
+*/
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 24%;
+  filter: grayscale(1) contrast(1.18) brightness(0.92);
+  transition:
+    filter var(--duration-base) var(--ease),
+    scale var(--duration-slow) var(--ease-out);
+}
+
+/* The screen: a 3 px raster at 4 % white, the way a monitor shows a photograph. Drawn as an overlay
+   so it never touches the image's own contrast. */
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.04) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* Marks (monogram, mascot, lockup) are drawings on white, not photographs: contain them, and lift the
+   brightness so the white field stays a white field after the duotone. */
+.surfaceTile .frame img {
+  object-fit: contain;
+  padding: 16%;
+  filter: grayscale(1) contrast(1.1) brightness(1.02);
+}
+
+/* Crop anchors, alternating by position so no two neighbours keep the same part of the frame. */
+.grid > li:nth-child(2n) .frame img {
+  object-position: 58% 32%;
+}
+
+.grid > li:nth-child(3n) .frame img {
+  object-position: 40% 40%;
+}
+
+/* --------------------------------------------------------------- caption row */
+
+.meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.ordinal {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.expand {
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.trigger {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: zoom-in;
+}
+
+.trigger:focus-visible {
+  outline-offset: 6px;
+}
+
+.trigger:hover .frame,
+.trigger:focus-visible .frame {
+  border-color: var(--color-text-primary);
+}
+
+.trigger:hover .frame img,
+.trigger:focus-visible .frame img {
+  /* The hover is a change of exposure, not of position: nothing on this page moves off the grid. */
+  filter: grayscale(1) contrast(1.12) brightness(0.95);
+  scale: 1.02;
+}
+
+.trigger:hover .caption,
+.trigger:focus-visible .caption,
+.trigger:hover .expand,
+.trigger:focus-visible .expand {
+  color: var(--color-text-primary);
+}
+
+/* The homepage block: same object, two columns, no size change. */
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid.masonry .frame,
+  .grid:not(.masonry) .frame {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+@media (min-width: 900px) {
+  .grid {
+    gap: var(--space-8) var(--space-6);
+  }
+
+  .masonry {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .masonry .frame {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+/* ------------------------------------------------------------------ lightbox */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgb(5 5 7 / 0.94);
+  cursor: zoom-out;
+}
+
+.lightbox {
+  position: relative;
+  margin: 0;
+  max-width: min(92vw, 880px);
+  max-height: 84vh;
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+}
+
+/* The lightbox shows the file as the owner supplied it — the duotone is a page treatment, not an
+   edit to the asset, so the largest view is the honest one. */
+.lightbox img {
+  max-height: 74vh;
+  width: auto;
+  border: 1px solid var(--color-hairline-strong);
+}
+
+.lightboxCaption {
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
