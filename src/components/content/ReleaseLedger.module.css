@@ -24,7 +24,7 @@
   align-items: center;
   gap: var(--space-4);
   margin: 0;
-  padding: var(--space-4) 0;
+  padding: var(--space-6) 0;
   border-bottom: 1px solid var(--color-hairline);
   min-width: 0;
 }
@@ -78,12 +78,19 @@
   min-width: 0;
 }
 
+/*
+ * Round 39 — a row is a row.
+ *
+ * 1.2–1.6rem bold in the reading face made every line shout; a running order should be legible and
+ * quiet, so this is 1–1.1rem at weight 500 with normal leading, and the sleeve, not the type, is what
+ * carries the row's weight.
+ */
 .title {
   font-family: var(--font-body-stack);
-  font-size: var(--text-title);
-  font-weight: 700;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-title);
+  font-size: clamp(1rem, 1.35vw, 1.1rem);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   overflow-wrap: anywhere;
   color: var(--color-text-primary);

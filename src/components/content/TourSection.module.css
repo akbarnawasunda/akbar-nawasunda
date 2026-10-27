@@ -52,9 +52,9 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-display-stack);
-  font-weight: 400;
-  font-size: var(--text-display);
+  font-family: var(--font-body-stack);
+  font-weight: 500;
+  font-size: var(--text-title);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;

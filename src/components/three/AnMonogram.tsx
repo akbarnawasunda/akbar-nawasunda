@@ -14,8 +14,10 @@ import styles from "./AnMonogram.module.css";
  *
  * This file stays the orchestrator and the contract's sanctioned surface for the mark:
  *
- * - the baked WebP stills (round 20) remain the base layer and the fallback: no WebGL, reduced
- *   motion, or a screen under 768px never mounts the GPU path at all and simply reads the still;
+ * - the baked WebP still (round 20) is now only ever a *fallback*: it is in the DOM while the shader
+ *   has not painted yet (and forever for a reader who asked for reduced motion), and it is unmounted
+ *   the moment the shader draws — never merely faded. A baked mark at a slightly different scale
+ *   sitting behind a live one is a double silhouette, and that is exactly what the owner saw;
  * - the liquid shader (`AnMonogramLiquid`, the lazy split chunk that owns the three/@react-three/
  *   fiber import) is imported dynamically the first time the band approaches the viewport, so
  *   nothing heavy is on the critical path and `check:web`'s budget only sees what `/` references;
@@ -147,20 +149,31 @@ export function AnMonogram() {
       */}
       {/* The lamp behind the mark: a wide, low blue pool, under the still and the shader alike. */}
       <div className={styles.glow} />
-      <div className={styles.drift}>
-        <div className={styles.liquid}>
-          <Image
-            className={styles.still}
-            src={stillSrc}
-            alt=""
-            width={stillSrc === WIDE.src ? WIDE.width : anMark.width}
-            height={stillSrc === WIDE.src ? WIDE.height : anMark.height}
-            sizes="100vw"
-            loading="lazy"
-            onError={() => setStillSrc(anMark.src)}
-          />
+      {/*
+        Round 39 — the still is a fallback, not a layer.
+
+        It used to live in the band permanently and fade to `opacity: 0` under the shader. An
+        invisible element is still painted, and the baked mark and the shader's mark are drawn at
+        different scales, so its edges read as a second, dark silhouette behind the live one. It is
+        now *unmounted* as soon as the shader reports its second frame, and it comes back only if the
+        GPU drops the context — a genuine fallback rather than a permanent ghost.
+      */}
+      {shaderReady ? null : (
+        <div className={styles.drift}>
+          <div className={styles.liquid}>
+            <Image
+              className={styles.still}
+              src={stillSrc}
+              alt=""
+              width={stillSrc === WIDE.src ? WIDE.width : anMark.width}
+              height={stillSrc === WIDE.src ? WIDE.height : anMark.height}
+              sizes="100vw"
+              loading="lazy"
+              onError={() => setStillSrc(anMark.src)}
+            />
+          </div>
         </div>
-      </div>
+      )}
       {/*
         Round 31: the shader lives in its own layer, OUTSIDE the parallax transform. Round 29 put
         the canvas under the depth drift, so a frozen frame travelled while the reader scrolled —

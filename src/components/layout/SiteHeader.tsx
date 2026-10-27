@@ -235,6 +235,35 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
               aria-modal="true"
               aria-label="Menu"
             >
+              {/*
+                Round 39 — the close control lives inside the dialog and is fixed to the glass.
+
+                The owner's report was that the X disappeared once the menu was open, and the reason
+                was structural: the only close control was the MENU/TUTUP button in the sticky bar,
+                which is (a) outside the dialog's focus trap, so Tab could never reach it, and
+                (b) positioned by the bar's layout, so any scroll or state change moved it. This one
+                is a real button inside the dialog, `position: fixed` at the bar's own height with
+                `z-index: 1000`: the first thing Tab lands on, always in the same corner, always on
+                top.
+              */}
+              <button
+                type="button"
+                className={styles.drawerClose}
+                onClick={() => {
+                  setOpen(false);
+                  toggleRef.current?.focus();
+                }}
+              >
+                <span className="sr-only">Tutup menu</span>
+                <span aria-hidden="true" className={styles.menuWord}>
+                  Tutup
+                </span>
+                <span aria-hidden="true" className={styles.burger}>
+                  <span />
+                  <span />
+                </span>
+              </button>
+
               <nav aria-label="Menu utama">
                 <ul className={styles.drawerList}>
                   {drawerNav.map((item, index) => (

@@ -247,9 +247,11 @@ export default async function HomePage() {
                   </Link>
                 ) : (
                   /*
-                   * The panel from the brief: #14263A, the AN mark, the track title centred. It is
-                   * deliberately NOT a link — the words inside it are visible text, so wrapping it in
-                   * an `aria-label`led anchor would fail WCAG 2.5.3 again. The link is the button below.
+                   * The panel from the brief: #14263A and the AN mark, nothing else. Round 39 removed
+                   * the track title from inside it — the name is already set three inches to the
+                   * right, at full size, and printing it twice inside one screen is the duplication
+                   * the owner asked to delete. It is NOT a link either: an `aria-label`led anchor
+                   * around an image and visible text fails WCAG 2.5.3. The link is the button below.
                    */
                   <div className={styles.artPanel} data-cover="fallback">
                     <Image
@@ -258,9 +260,8 @@ export default async function HomePage() {
                       alt=""
                       width={anMark.width}
                       height={anMark.height}
-                      sizes="(min-width: 1024px) 12rem, 30vw"
+                      sizes="(min-width: 1024px) 13rem, 30vw"
                     />
-                    <p className={styles.artPanelTitle}>{featured.title}</p>
                   </div>
                 )}
               </div>

@@ -143,17 +143,22 @@ ${SIMPLEX}
  */
 
 /*
- * The height field (round 38).
+ * The height field.
  *
  * Round 37 ran two octaves at 2.4 and 6.1, and the result read as crumpled foil. Mercury does not
- * wrinkle — it has a very high surface tension, so its skin is a few large, soft, slowly bending
- * lobes. The frequencies are therefore an order of magnitude lower (0.85 and 1.9), and the second
- * octave, the one that made the creases, is down to a quarter of the first one's amplitude. The
- * pointer ripple stays on top and stays wide: a rolling ring, not a comb.
+ * wrinkle — it has a very high surface tension, so its skin is a few large, soft lobes. The
+ * frequencies are therefore an order of magnitude lower (0.85 and 1.9), and the second octave, the
+ * one that made the creases, is down to a quarter of the first one's amplitude.
+ *
+ * Round 39 — the flow is self-propelled. The time terms were 0.10 and 0.17 against a clock that
+ * counts real seconds, so the surface took ~60 s to change shape: technically alive, visibly frozen.
+ * At uTime * 0.8 the lobes travel at a walking pace, which is the speed at which liquid mercury
+ * reads as liquid in a still frame and in motion. It is the shader's own clock: no pointer, no
+ * hover, no scroll — the mark breathes on its own from the first frame.
  */
 float liquidHeight(vec2 p) {
-  float body = snoise3(vec3(p * 0.85, uTime * 0.10)) * 0.55
-             + snoise3(vec3(p * 1.90, uTime * 0.17)) * 0.14;
+  float body = snoise3(vec3(p * 0.85, uTime * 0.8)) * 0.55
+             + snoise3(vec3(p * 1.90, uTime * 1.35)) * 0.14;
   vec2 toPointer = p - uMouse;
   toPointer.x *= 1.25;
   float d = length(toPointer);
@@ -163,9 +168,9 @@ float liquidHeight(vec2 p) {
 }
 
 void main() {
-  /* Small and slow: the mark keeps its shape and the *surface* moves, in soft lobes. */
-  vec3 field = vec3((vUv - 0.5) * 1.1, uTime * 0.10);
-  vec2 flow = vec2(snoise3(field), snoise3(field * 1.7 + vec3(11.3, 4.7, -uTime * 0.08))) * 0.010;
+  /* Small and continuous: the mark keeps its shape and the *surface* moves, in soft lobes. */
+  vec3 field = vec3((vUv - 0.5) * 1.1, uTime * 0.8);
+  vec2 flow = vec2(snoise3(field), snoise3(field * 1.7 + vec3(11.3, 4.7, -uTime * 0.62))) * 0.010;
 
   vec2 toPointer = vUv - uMouse;
   toPointer.x *= 1.25;

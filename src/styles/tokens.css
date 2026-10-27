@@ -183,10 +183,14 @@
    * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
    */
   --text-hero: clamp(2rem, 4vw, 4rem);
-  /* Round 22: the takeover voice — one step under the hero name, for the release that owns the
-     screen right now (home transmission band, catalogue featured block). A major-label site gives
-     the current release almost the same type as the artist's own name; this is that move. */
-  --text-takeover: clamp(1.5rem, 2.5vw, 2.5rem);
+  /*
+   * Round 39 — `--text-takeover` is gone.
+   *
+   * It existed to give the current release almost the artist's own scale. The owner's final
+   * direction inverts that: the display face belongs to the name alone, and a release title is title
+   * type (1.5–1.85rem in the reading face). With no consumer left, the token is deleted rather than
+   * left behind — `audit:tokens` fails on an orphan, which is the point of it.
+   */
   /*
    * Round 37 — the wordmark clamp for the editorial hero, on the owner's spec: 3.5rem at the bottom,
    * 6rem at the top. This is the one piece of type on the site that has to work as a poster — read
@@ -232,7 +236,7 @@
   --gutter: clamp(1.25rem, 3vw, 3rem);
   --header-height: 5rem;
   --header-height-compact: 3.75rem;
-  --section-padding: clamp(6rem, 8vw, 8rem);
+  --section-padding: clamp(7rem, 9vw, 9.5rem);
   /*
    * Corners. A HUD is built from right angles: nothing on this site is rounded. The pill step is
    * kept for the Studio's one status dot.
@@ -290,7 +294,6 @@
     --text-hero: clamp(2.5rem, 9.6vw, 3.6rem);
     /* A 320px hand cannot hold 3.5rem × 15 characters; the floor steps down with the room. */
     --text-wordmark: clamp(2.4rem, 9.6vw, 3.4rem);
-    --text-takeover: clamp(1.7rem, 7.4vw, 2.5rem);
     --text-display: clamp(1.45rem, 6.2vw, 2.2rem);
     --text-title: clamp(1.15rem, 4.8vw, 1.5rem);
   }

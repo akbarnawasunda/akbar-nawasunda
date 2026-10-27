@@ -179,6 +179,77 @@
   text-transform: uppercase;
 }
 
+/*
+ * Round 39 — while the dialog is open the bar's own control steps aside.
+ *
+ * It keeps its box (`visibility`, not `display`) so the Listen button beside it does not slide under
+ * the close control, but it is not visible, not focusable and not clickable: the dialog owns the way
+ * out, and there is exactly one X on the glass.
+ */
+.toggle[aria-expanded="true"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/*
+ * The close control: fixed, top-right, above everything.
+ *
+ * Three rounds of "tombol menu hilang" reports all had the same shape — a control that scrolls with
+ * the page, sits under the surface it opened, or is cropped by a containing block. This one is a
+ * direct child of the portalled dialog (so no transformed ancestor), `position: fixed` at the bar's
+ * height, `z-index: 1000`, and the first focusable element in the dialog (so Tab lands on it).
+ * `right` repeats the bar's own container maths, so the X sits exactly where MENU was.
+ */
+.drawerClose {
+  position: fixed;
+  top: 0;
+  right: max(var(--gutter), calc((100% - var(--container-max)) / 2 + var(--gutter)));
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--drawer-top, var(--header-height));
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-size: var(--text-lead);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.drawerClose:hover,
+.drawerClose:focus-visible {
+  color: var(--color-signal-blue);
+}
+
+.drawerClose .burger span:first-child {
+  transform: translateY(3.5px) rotate(45deg);
+}
+
+.drawerClose .burger span:last-child {
+  transform: translateY(-3.5px) rotate(-45deg);
+}
+
+.drawerClose:hover .burger span,
+.drawerClose:focus-visible .burger span {
+  transform: none;
+}
+
+.drawerClose:hover .burger span:first-child,
+.drawerClose:focus-visible .burger span:first-child {
+  transform: translateY(3.5px) rotate(45deg) scaleX(0.72);
+  transform-origin: left center;
+}
+
+.drawerClose:hover .burger span:last-child,
+.drawerClose:focus-visible .burger span:last-child {
+  transform: translateY(-3.5px) rotate(-45deg) scaleX(0.72);
+  transform-origin: left center;
+}
+
 .toggle:hover .burger span,
 .toggle:focus-visible .burger span {
   transform: scaleX(0.72);
@@ -233,6 +304,16 @@
 .header:has(.toggle[aria-expanded="true"]) {
   /* The bar that closes the dialog stays above the dialog. */
   z-index: calc(var(--z-chrome) + 1);
+  /*
+   * Round 39 — and it must not be a containing block.
+   *
+   * `translate: 0 -100%` (the hide-on-scroll state, and the transition on it) makes the bar a
+   * containing block for fixed-position descendants, the same trap the drawer fell into in round 26.
+   * The close button inside it is fixed now, so while the dialog is open the bar is pinned at 0 and
+   * never transitions: the X lands against the viewport, over the dialog, at every scroll position.
+   */
+  translate: none;
+  transition: none;
 }
 
 .drawer {
@@ -289,24 +370,34 @@
   display: block;
   align-items: baseline;
   gap: var(--space-2);
-  padding-block: var(--space-2);
+  padding-block: var(--space-3);
   text-decoration: none;
   color: var(--color-fg);
 }
 
 
+/*
+ * Round 39 — an index, not a poster.
+ *
+ * 2rem to 4rem with 7.6vw between them was the loudest type on the site, on the one surface where
+ * the reader has already decided what they are looking for. It is 1.5rem to 2.25rem now: four lines
+ * of menu read as a list, and the row's hairline plus the generous padding does the work the size
+ * was doing before.
+ */
 .drawerLabel {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: clamp(2rem, 7.6vw, 4rem);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
+  font-size: clamp(1.5rem, 3.4vw, 2.25rem);
+  line-height: 1.25;
+  letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
   transition: color 200ms var(--ease);
 }
 
 /* The current page keeps the accent: it is a live marker, not a fill. */
-.drawerList a[aria-current="page"] .drawerLabel,
+.drawerList a[aria-current="page"] .drawerLabel {
+  color: var(--color-signal-blue);
+}
 
 .drawerLatest {
   display: grid;

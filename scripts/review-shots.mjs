@@ -22,6 +22,8 @@
  *   release-390       layer on load, so the anchor is applied after the page has settled).
  *   discography-1440  the ledger band, at both widths.
  *   discography-390
+ *   menu-390          the drawer, OPEN: the one shot that proves the close control is on the glass.
+ *   menu-1440
  *   music-1440        the catalogue route, for comparison with the homepage ledger.
  *
  * The intro curtain is skipped with the same session key the motion QA uses (`an-curtain`), so a
@@ -129,7 +131,16 @@ async function prepare(page) {
   await sleep(1600);
 }
 
-async function capture({ name, route, width, height, mobile = false, fullPage = false, anchor = "" }) {
+async function capture({
+  name,
+  route,
+  width,
+  height,
+  mobile = false,
+  fullPage = false,
+  anchor = "",
+  menu = false,
+}) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile });
   await page.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
@@ -146,6 +157,18 @@ async function capture({ name, route, width, height, mobile = false, fullPage = 
     }, anchor);
     await sleep(1400);
   }
+  /*
+   * Round 39 — the open drawer, photographed.
+   *
+   * "Tombol close tidak kelihatan" is a claim about a state, and the state cannot be checked from a
+   * screenshot of the closed page. So the harness opens it the way a reader does (click the control,
+   * not a class), waits for the 260 ms panel animation, and shoots what is actually on the glass.
+   */
+  if (menu) {
+    const toggle = await page.$("header button[aria-expanded]");
+    if (toggle) await toggle.click();
+    await sleep(900);
+  }
   const path = join(outDir, `${name}.png`);
   await page.screenshot({ path, fullPage, captureBeyondViewport: fullPage });
   const size = await page.evaluate(() => ({
@@ -161,6 +184,8 @@ try {
   await capture({ name: "home-390-full", route: "/", width: 390, height: 844, mobile: true, fullPage: true });
   await capture({ name: "home-1440", route: "/", width: 1440, height: 900 });
   await capture({ name: "home-1440-full", route: "/", width: 1440, height: 900, fullPage: true });
+  await capture({ name: "menu-390", route: "/", width: 390, height: 844, mobile: true, menu: true });
+  await capture({ name: "menu-1440", route: "/", width: 1440, height: 900, menu: true });
   await capture({ name: "music-1440", route: "/music", width: 1440, height: 900 });
   await capture({ name: "release-1440", route: "/", width: 1440, height: 900, anchor: "#release" });
   await capture({ name: "release-390", route: "/", width: 390, height: 844, mobile: true, anchor: "#release" });

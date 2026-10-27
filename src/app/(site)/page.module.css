@@ -211,7 +211,6 @@
  */
 .artPanel {
   display: grid;
-  grid-template-rows: 1fr auto 1fr;
   place-items: center;
   aspect-ratio: 1 / 1;
   padding: var(--space-6);
@@ -235,26 +234,12 @@
  * the mark stayed ink on navy — the shot proved it. `.artPanel .artPanelMark` is (0,2,0) and wins.
  */
 .artPanel .artPanelMark {
-  grid-row: 1;
-  align-self: end;
-  width: min(34%, 12rem);
+  grid-row: auto;
+  align-self: center;
+  width: min(38%, 13rem);
   height: auto;
   filter: brightness(0) invert(1);
   opacity: 0.92;
-}
-
-.artPanelTitle {
-  grid-row: 2;
-  margin: var(--space-6) 0 0;
-  font-family: var(--font-display-stack);
-  font-size: var(--text-title);
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-title);
-  text-transform: uppercase;
-  text-align: center;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-  color: var(--color-text-primary);
 }
 
 .releaseDeck {
@@ -284,13 +269,21 @@
   background: var(--color-signal-blue);
 }
 
-/* The record's name, at takeover scale: the second-largest type on the page, after the wordmark. */
+/*
+ * The record's name — round 39: the body face, at reading scale.
+ *
+ * It was set in the display face at takeover size, which put three different letterforms (the hero
+ * wordmark, the release title, the ledger rows) into the same visual weight. The display face is the
+ * artist's name and nothing else now. This is title type: Relidux at 1.5–1.85rem, uppercase, with
+ * enough leading that a two-line title reads as a title rather than as a banner.
+ */
 .releaseTitle {
   margin: 0;
-  font-family: var(--font-display-stack);
-  font-size: var(--text-takeover);
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-title);
+  font-family: var(--font-body-stack);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  line-height: 1.28;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   text-wrap: balance;
   overflow-wrap: anywhere;
@@ -397,12 +390,14 @@
   border-bottom: 1px solid var(--color-hairline);
 }
 
+/* Section heading, not a wordmark: body face, one step down, tracked for caps. */
 .discographyTitle {
   margin: 0;
-  font-family: var(--font-display-stack);
-  font-size: var(--text-display);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
+  font-family: var(--font-body-stack);
+  font-weight: 500;
+  font-size: var(--text-title);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
 }
 

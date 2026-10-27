@@ -67,11 +67,12 @@
   padding-bottom: var(--space-3);
 }
 
+/* Round 39 — the same title size as the homepage spotlight, so the two read as one system. */
 .featuredTitle {
   font-family: var(--font-body-stack);
-  font-size: var(--text-takeover);
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-title);
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  line-height: 1.28;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   font-weight: 400;
   overflow-wrap: anywhere;
