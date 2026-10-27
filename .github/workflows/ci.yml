@@ -32,6 +32,14 @@ jobs:
 
       - run: npm ci
 
+      # Phase 1 (audit remediation): a critical advisory shipped in this repo for a while without a
+      # single gate noticing, because none of the existing checks look at the dependency graph.
+      # `--omit=dev` on purpose: a dev-server advisory is not what runs in production, and failing the
+      # build on one trains people to ignore the step. High and critical only — a moderate advisory in
+      # a transitive build tool is not worth blocking a release over.
+      - name: Security audit (dependencies)
+        run: npm audit --audit-level=high --omit=dev
+
       - name: Typecheck
         run: npm run typecheck
 
