@@ -549,11 +549,12 @@ try {
    * check failed a band that works. The still is the anchor now; scrolling it into view is what a
    * reader does.
    */
-  await canvasProbe.evaluate(() => {
+  /* The main tab, not the canvas probe: that one was closed the moment it had its answer. */
+  await page.evaluate(() => {
     document.querySelector('img[src*="liquid-metal-wide"]')?.scrollIntoView({ block: "center" });
   });
   await sleep(2200);
-  const monogram = await canvasProbe.evaluate(() => {
+  const monogram = await page.evaluate(() => {
     const img = document.querySelector('img[src*="liquid-metal-wide"]');
     const band = img?.closest("section") ?? null;
     const canvases = [...document.querySelectorAll("canvas")];
