@@ -81,7 +81,7 @@ export default async function MusicPage() {
               <Link
                 className={styles.featuredSleeve}
                 href={lead.href}
-                aria-label={`Buka rilis ${lead.title}`}
+                aria-label={`Buka Rilis ${lead.title}`}
               >
                 <ReleaseCover artwork={lead.artwork} title={lead.title} showTitle={false} />
               </Link>
@@ -89,10 +89,10 @@ export default async function MusicPage() {
                 <p className={styles.featuredMeta}>{lead.meta}</p>
                 <div className={styles.featuredActions}>
                   <ButtonLink href={lead.href} variant="primary">
-                    Buka rilis
+                    Buka Rilis
                   </ButtonLink>
                   <ButtonLink href="#katalog" variant="secondary">
-                    Lihat dinding
+                    Lihat Dinding
                   </ButtonLink>
                 </div>
               </div>

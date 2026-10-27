@@ -42,7 +42,7 @@ export default function VisualsPage() {
             <p className={styles.noteLabel}>Untuk apa</p>
             <ul className={styles.uses}>
               <li>
-                <span>Potret studio</span> pers, EPK, halaman artis
+                <span>Potret studio</span> pers, press kit, halaman artis
               </li>
               <li>
                 <span>Panggung kosong</span> latar lebar beranda

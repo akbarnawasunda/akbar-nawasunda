@@ -41,6 +41,9 @@ const ALLOWED_UNUSED = new Set([
   "--color-signal-purple",
   "--color-poster-yellow",
   "--color-signal-blue-hover",
+  // The BackSide colophon (its only consumer) was removed in the 2026-10-27 copy cleanup; kept
+  // beside poster-yellow until the owner confirms deletion.
+  "--color-poster-red",
   // Legacy aliases from the v2 ramp. They are defined once and inherited by the Studio; the public
   // pages now reference the semantic names directly.
   "--color-bg-surface-2",

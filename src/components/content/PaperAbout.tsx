@@ -13,9 +13,9 @@ import styles from "./PaperAbout.module.css";
  * which meant the one animated moment on this sheet did not exist on Safari or Firefox. The path is
  * already drawn when the observer never fires, so the fallback is the finished state.
  *
- * Copy is the owner's own biography, verbatim, plus the verified timeline. The 2021–2023 row stays
- * dashed and says it is not documented — a gap printed honestly reads as confidence; an invented
- * milestone reads as a template.
+ * Copy is the owner's own biography, verbatim, plus the verified timeline. The 2021–2023 row now
+ * carries the owner's own line (2026-10-27 copy cleanup); the `!pending` filter stays so any future
+ * undocumented year is still withheld instead of invented.
  */
 export function PaperAbout() {
   return (

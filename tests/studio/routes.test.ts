@@ -26,10 +26,10 @@ describe("public routing", () => {
     }
   });
 
-  it("keeps the sitemap order Music, Visuals, Artist, EPK", () => {
+  it("keeps the sitemap order Music, Visuals, Artist, Press Kit", () => {
     assert.deepEqual(
       primaryNav.map((item) => item.label),
-      ["Music", "Visuals", "Artist", "EPK"],
+      ["Music", "Visuals", "Artist", "Press Kit"],
     );
   });
 

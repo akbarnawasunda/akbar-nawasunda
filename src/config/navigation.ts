@@ -4,16 +4,17 @@ export interface NavItem {
 }
 
 /**
- * Primary navigation — the final sitemap (SITEMAP.md): Music / Visuals / Artist / EPK.
+ * Primary navigation — the final sitemap (SITEMAP.md): Music / Visuals / Artist / Press Kit.
  *
  * Every entry points at a route that exists (D-016): /visuals and /artist are real pages since
- * Phase 5, and /about is a 308 to /artist (D-024), so it is no longer linked anywhere.
+ * Phase 5, and /about is a 308 to /artist (D-024), so it is no longer linked anywhere. The /epk
+ * route keeps its path; its public label is "Press Kit" everywhere (copy cleanup, 2026-10-27).
  */
 export const primaryNav: readonly NavItem[] = [
   { href: "/music", label: "Music" },
   { href: "/visuals", label: "Visuals" },
   { href: "/artist", label: "Artist" },
-  { href: "/epk", label: "EPK" },
+  { href: "/epk", label: "Press Kit" },
 ];
 
 /**
@@ -30,6 +31,6 @@ export const footerNav: readonly NavItem[] = [
   { href: "/music", label: "Music" },
   { href: "/visuals", label: "Visuals" },
   { href: "/artist", label: "Artist" },
-  { href: "/epk", label: "Press kit" },
+  { href: "/epk", label: "Press Kit" },
   { href: "/contact", label: "Kontak" },
 ];

@@ -13,7 +13,6 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader, type DrawerLatest } from "@/components/layout/SiteHeader";
 import { resolveCover, resolveSleeve } from "@/content/covers";
 import { releaseEyebrow, releases } from "@/content/releases";
-import { buildLabel } from "@/config/build";
 import { contactEmail, listenLinks, socialLinks } from "@/config/socials";
 import { designAttributes } from "@/studio/design";
 import { getPublicDesign } from "@/studio/public";
@@ -49,7 +48,6 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
    * a back cover that drifts out of sync with the front is worse than no back cover.
    */
   const sheet: SheetData = {
-    run: buildLabel,
     releases: releases.map((release, index) => ({
       index: String(index + 1).padStart(2, "0"),
       title: release.title,
@@ -61,9 +59,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
     open: [
       "Tujuh sampul asli masih menunggu `covers:fetch` di mesin pemilik.",
       "Teks halaman kebijakan privasi belum diserahkan.",
-      "Milestone 2021–2023 belum dikonfirmasi.",
     ],
-    totalLinks: releases.reduce((total, release) => total + release.links.length, 0),
   };
 
   return (

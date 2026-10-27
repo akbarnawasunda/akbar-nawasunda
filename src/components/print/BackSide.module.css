@@ -184,16 +184,6 @@
   color: var(--color-paper);
 }
 
-/* The run number sits under the lead, small, like the imprint line of a print. */
-.run {
-  margin: 0;
-  font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-paper-muted);
-}
-
 /* ---------------------------------------------------------------- the columns */
 
 .columns {
@@ -364,84 +354,14 @@
   color: var(--color-paper-muted);
 }
 
-/* ----------------------------------------------------------------- the colophon */
-
-.colophon {
-  display: grid;
-  gap: var(--space-3);
-  margin: 0;
-}
-
-.colophon div {
-  display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
-  gap: var(--space-3);
-  align-items: baseline;
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-paper-ink) 14%, transparent);
-}
-
-.colophon dt {
-  font-family: var(--font-body-stack);
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--color-paper-muted);
-}
-
-.colophon dd {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-}
-
-.inks {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-/* A swatch is a printed chip: flat, square, hairlined. */
-.swatch {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  flex: none;
-  border: 1px solid var(--color-paper-ink);
-}
-
-.swatch[data-ink="brand"] {
-  background: var(--color-text-primary);
-}
-
-.swatch[data-ink="red"] {
-  background: var(--color-poster-red);
-}
-
-.swatch[data-ink="ink"] {
-  background: var(--color-ink-black);
-}
-
-.run {
-  font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.footnote {
-  margin: var(--space-4) 0 0;
-  max-width: 40ch;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--color-paper-muted);
-}
+/* The colophon column (inks, paper, type, run number) was retired in the 2026-10-27 copy cleanup;
+   the sheet now prints two columns: the catalogue and the platforms. */
 
 @media (min-width: 960px) {
   /* No gap between columns: the gutter *is* the column padding, so the hairline between two
      columns sits exactly in the fold and nothing can be pulled over its neighbour. */
   .columns {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) minmax(0, 0.9fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     gap: 0;
   }
 

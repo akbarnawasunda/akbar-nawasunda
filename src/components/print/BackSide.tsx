@@ -12,14 +12,11 @@ export interface SheetRelease {
 }
 
 export interface SheetData {
-  /** Build stamp, printed as the run number. */
-  run: string;
   releases: readonly SheetRelease[];
   platforms: readonly { label: string; href: string }[];
   email: string;
   /** Everything the site still needs from the owner, in the owner's terms. */
   open: readonly string[];
-  totalLinks: number;
 }
 
 /**
@@ -28,8 +25,9 @@ export interface SheetData {
  * A printed sheet has two sides, and a website never does: you get the designed face and nothing
  * else. This one has a verso, and it is not a menu, a cookie panel or an "about this site" modal —
  * it is the other side of the same print run: the whole catalogue as an index with its real links,
- * every platform, the inks by name, the run number, and the list of things still missing. The
- * unglamorous side of the object, printed in the same ink.
+ * every platform, and the list of things still missing. The unglamorous side of the object, printed
+ * in the same ink. (The colophon — inks by name, paper, type, run number — was retired in the
+ * 2026-10-27 copy cleanup: meta-tech text does not belong on a public sheet.)
  *
  * Mechanically it is one fixed sheet hinged on its left edge. Turning it is the whole interaction:
  * `rotateY(-104deg)` → `rotateY(0)` with the transform origin at the spine, so the paper swings in
@@ -115,9 +113,8 @@ export function BackSide({ data }: { data: SheetData }) {
               Indeks<span aria-hidden="true">.</span>
             </h2>
             <p className={styles.lead}>
-              Seluruh katalog dengan tautan aslinya, daftar platform, dan nomor edisi situs ini.
+              Seluruh katalog dengan tautan aslinya dan daftar platform.
             </p>
-            <p className={styles.run}>{data.run}</p>
           </div>
 
           <div className={styles.columns}>
@@ -185,55 +182,6 @@ export function BackSide({ data }: { data: SheetData }) {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-            </section>
-
-            <section className={styles.column} aria-labelledby="sheet-colophon">
-              <h3 className={styles.columnTitle} id="sheet-colophon">
-                Kolofon
-              </h3>
-              <dl className={styles.colophon}>
-                <div>
-                  <dt>Tinta</dt>
-                  <dd className={styles.inks}>
-                    <span className={styles.swatch} data-ink="brand" aria-hidden="true" />
-                    <span>Cyan cetak #2E8C86</span>
-                  </dd>
-                </div>
-                <div>
-                  <dt>&nbsp;</dt>
-                  <dd className={styles.inks}>
-                    <span className={styles.swatch} data-ink="red" aria-hidden="true" />
-                    <span>Merah poster #C93A22</span>
-                  </dd>
-                </div>
-                <div>
-                  <dt>&nbsp;</dt>
-                  <dd className={styles.inks}>
-                    <span className={styles.swatch} data-ink="ink" aria-hidden="true" />
-                    <span>Tinta hitam #050507</span>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Kertas</dt>
-                  <dd>#E8E6E1</dd>
-                </div>
-                <div>
-                  <dt>Huruf</dt>
-                  <dd>Excess-V-Straight · Relidux</dd>
-                </div>
-                <div>
-                  <dt>Tautan</dt>
-                  <dd>{data.totalLinks} tautan resmi, semuanya menuju kanal pemilik</dd>
-                </div>
-                <div>
-                  <dt>Cetakan</dt>
-                  <dd className={styles.run}>{data.run}</dd>
-                </div>
-              </dl>
-              <p className={styles.footnote}>
-                Tidak ada angka pendengar, tidak ada penghargaan, tidak ada rilis yang tidak
-                diserahkan pemiliknya. Yang belum ada ditulis apa adanya.
-              </p>
             </section>
           </div>
         </div>

@@ -12,7 +12,7 @@ import { pageMetadata } from "@/lib/metadata";
 import styles from "./epk.module.css";
 
 export const metadata: Metadata = pageMetadata({
-  title: "EPK",
+  title: "Press Kit",
   description:
     "Electronic press kit Akbar Nawasunda: potret resmi, logo transparan, fakta terverifikasi, dan tautan platform. Satu paket unduhan.",
   path: "/epk",
@@ -42,8 +42,8 @@ export default function EpkPage() {
     <Container>
       <header className={styles.head}>
         <div className={styles.headCopy}>
-          <p className={styles.eyebrow}>Press kit</p>
-          <h1 className={`${styles.title} ink`}>Press kit</h1>
+          <p className={styles.eyebrow}>Press Kit</p>
+          <h1 className={`${styles.title} ink`}>Press Kit</h1>
           <p className={styles.lead}>
             Potret resmi, logo transparan, fakta terverifikasi, dan tautan platform. Satu unduhan.
           </p>
@@ -51,7 +51,7 @@ export default function EpkPage() {
 
         <div className={styles.actions}>
           <ButtonLink href={PACK_URL} variant="primary" external>
-            Unduh press kit (.zip, {PACK_SIZE})
+            Unduh Press Kit (.zip, {PACK_SIZE})
           </ButtonLink>
           <ButtonLink href={listenUrl} variant="secondary" external>
             Spotify

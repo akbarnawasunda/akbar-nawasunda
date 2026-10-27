@@ -1,6 +1,5 @@
 import Image from "next/image";
 
-import { ContentRequirement } from "@/components/content/ContentRequirement";
 import { PageIntro } from "@/components/content/PageIntro";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
@@ -14,12 +13,12 @@ import styles from "./about.module.css";
 // never caches the static fallback.
 export const dynamic = "force-dynamic";
 
-const defaultDescription = `About ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`;
+const defaultDescription = `Profil ${siteConfig.name} — ${siteConfig.role}.`;
 
 export async function generateMetadata() {
   const published = await getPublicPage("about");
   const description = published?.seoDescription.trim() || defaultDescription;
-  return pageMetadata({ title: "About", description, path: "/about" });
+  return pageMetadata({ title: "Profil", description, path: "/about" });
 }
 
 const portrait = getImage("portrait-optimized");
@@ -33,7 +32,7 @@ export default async function AboutPage() {
     <Container>
       <PageIntro
         eyebrow="Profile"
-        title={published?.title || "About"}
+        title={published?.title || "Profil"}
         lead={published?.lead.trim() || siteConfig.role}
       />
 
@@ -49,18 +48,12 @@ export default async function AboutPage() {
         />
       </figure>
 
-      {published && hasVisibleContent ? (
-        <SectionsView sections={published.sections} />
-      ) : (
-        <ContentRequirement
-          title="Biography pending"
-          description="The biography and career history will be published once they have been written and approved by the artist."
-          items={[
-            "Approved biography in English",
-            "Career timeline with verified dates and projects",
-          ]}
-        />
-      )}
+      {/*
+        Copy cleanup 2026-10-27: the English "Biography pending" placeholder is gone. /about is a
+        308 to /artist, so this component only renders for a direct hit in development; when no
+        page is published it shows the intro and the portrait, and nothing invented.
+      */}
+      {published && hasVisibleContent ? <SectionsView sections={published.sections} /> : null}
     </Container>
   );
 }

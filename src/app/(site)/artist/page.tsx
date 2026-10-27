@@ -36,8 +36,8 @@ export const metadata: Metadata = pageMetadata({
  *
  * Layout follows the same editorial rules as the rest of the site: an asymmetric split (portrait
  * right, facts left) and a hairline timeline whose year column is mono. The biography is the owner's
- * own text (D-090); the two things they have not supplied — 2021–2023 and the story behind the name —
- * are listed as gaps rather than written into the prose.
+ * own text (D-090), including the 2021–2023 line supplied in the 2026-10-27 copy cleanup; the one
+ * thing still not supplied — the story behind the name — stays a gap rather than invented prose.
  */
 /** "Permintaan remix, aransemen khusus, kolaborasi, dan lisensi musik" — no hard-coded last item. */
 function formatServices(): string {
@@ -75,7 +75,7 @@ export default async function ArtistPage() {
               Dengar Sekarang
             </ButtonLink>
             <ButtonLink href="/epk" variant="secondary">
-              Press kit
+              Press Kit
             </ButtonLink>
           </div>
 
@@ -213,7 +213,7 @@ export default async function ArtistPage() {
             Monogram AN dan lockup penuh, tersedia sebagai PNG transparan di press kit.
           </p>
           <ButtonLink href="/epk" variant="ghost">
-            Unduh aset logo
+            Unduh Aset Logo
           </ButtonLink>
         </div>
 

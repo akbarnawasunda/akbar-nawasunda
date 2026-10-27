@@ -34,13 +34,12 @@ export function NotFoundView() {
             Sinyal <span className={styles.faded}>hilang</span>
           </h1>
           <p className={styles.lead}>
-            Halaman ini tidak ada, sudah dipindahkan, atau belum pernah terbit. Coba salah satu jalur
-            di bawah.
+            Sinyal terputus. Halaman yang Anda cari tidak ditemukan. Silakan kembali ke jalur utama.
           </p>
 
           <nav aria-label="Jalur alternatif" className={styles.links}>
             <Link href="/" className={styles.primary}>
-              Kembali ke beranda <span aria-hidden="true">→</span>
+              Kembali ke Beranda <span aria-hidden="true">→</span>
             </Link>
             <ul>
               {footerNav.map((item) => (

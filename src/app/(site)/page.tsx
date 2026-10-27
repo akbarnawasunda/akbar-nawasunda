@@ -266,7 +266,7 @@ export default async function HomePage() {
               <div className={styles.transmissionActions}>
                 <Magnetic>
                   <ButtonLink href={featured.href} variant="primary">
-                    Buka rilis
+                    Buka Rilis
                   </ButtonLink>
                 </Magnetic>
               </div>
@@ -357,7 +357,7 @@ export default async function HomePage() {
         <Container>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
-              <p className={styles.pressEyebrow}>Press kit</p>
+              <p className={styles.pressEyebrow}>Press Kit</p>
               <h2 id="press-title" className={styles.pressTitle}>
                 Akbar Nawasunda
               </h2>
@@ -378,10 +378,10 @@ export default async function HomePage() {
                   "Press kit" one section lower said the same thing twice. */}
               <div className={styles.pressActions}>
                 <ButtonLink href="/epk/akbar-nawasunda-epk.zip" variant="primary">
-                  Unduh EPK (.zip)
+                  Unduh Press Kit (.zip)
                 </ButtonLink>
                 <ButtonLink href="/epk" variant="secondary">
-                  Isi press kit
+                  Isi Press Kit
                 </ButtonLink>
               </div>
             </div>
