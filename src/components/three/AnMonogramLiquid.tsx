@@ -187,7 +187,7 @@ void main() {
   float hy = liquidHeight(uv + vec2(0.0, e)) - liquidHeight(uv - vec2(0.0, e));
   /* A gentler slope (3.2, not 5.5) keeps the skin under tension: the highlight rolls across it
      instead of splintering on every crease. */
-  vec3 normal = normalize(vec3(-hx * 3.2, -hy * 3.2, 1.0));
+  vec3 normal = normalize(vec3(-hx * 6.0, -hy * 6.0, 1.0));
 
   vec3 viewDir = vec3(0.0, 0.0, 1.0);
   vec3 lightDir = normalize(vec3(-0.42, 0.58, 0.70));
@@ -211,14 +211,20 @@ void main() {
    * the crest of a lobe catches the light, its underside falls to black, and that contrast (not a
    * grey ramp) is what reads as polished metal.
    */
-  float env = clamp(normal.y * 0.5 + 0.5, 0.0, 1.0);
   /*
-   * The ramp is steep on purpose. At 1.7 the whole surface climbed into the top of the range and the
-   * mark photographed as flat white — a painted letterform, not a metal one. 2.6 keeps the underside
-   * of every lobe in the valley, so the gradient that says "chrome" is actually visible, and the
-   * highlight has somewhere to come *from*.
+   * The environment, as a horizon.
+   *
+   * This is what a chrome object actually shows: not a grey ramp but the world — a dark floor below
+   * the horizon line, a bright sky above it, and a hard band of light right at the line where the
+   * two meet. Mapping the vertical normal through a smoothstep gives exactly that, and it is the reason a
+   * smooth surface can still read as metal: the *reflection* carries the shape, not the shading.
    */
-  vec3 colour = mix(valley, silver, pow(env, 2.6));
+  float horizon = smoothstep(-0.20, 0.22, normal.y);
+  vec3 ground = vec3(0.012, 0.016, 0.024);
+  vec3 colour = mix(ground, silver, horizon);
+  /* The band at the horizon line: one bright stripe, narrow, white. */
+  float band = exp(-pow((normal.y - 0.02) * 7.5, 2.0));
+  colour += vec3(1.0) * band * 0.55;
   colour += silver * diffuse * 0.12;
   /*
    * Two lobes, on purpose. A single 32-exponent highlight is a pin-prick that reads as brushed steel;
