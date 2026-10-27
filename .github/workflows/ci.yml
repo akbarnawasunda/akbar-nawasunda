@@ -56,7 +56,7 @@ jobs:
       # Real Chrome for axe-core; scripts/a11y-audit.mjs reads CHROME_PATH.
       - name: Install Chrome
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
 
