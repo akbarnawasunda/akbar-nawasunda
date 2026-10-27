@@ -246,8 +246,45 @@ try {
       check("reel sleeves answer hover", false, "no [data-pin-card] link inside the viewport at mid-travel");
     }
   } else {
-    check("the pinned catalogue reel translates as --pin crosses the band", false, "no [data-catalogue-pin] found");
-    check("reel sleeves answer hover", false, "no [data-catalogue-pin] found");
+    /*
+     * Round 35 replaced the pinned reel with a grid in the document flow, so the two reel checks no
+     * longer have a subject. The *property* they protected still matters — the catalogue band has to
+     * exist on the page and answer the pointer — so it is asserted against the grid instead of being
+     * dropped: every release is in the DOM without any scrolling, and a sleeve lifts under the hand.
+     */
+    const grid = await page.evaluate(() => {
+      const cards = [...document.querySelectorAll("[data-release]")];
+      return { cards: cards.length, sleeves: document.querySelectorAll("[data-release] a[aria-label]").length };
+    });
+    check(
+      "the catalogue grid renders every release without a scroll driver",
+      grid.cards >= 10 && grid.sleeves === grid.cards,
+      `${grid.cards} cards, ${grid.sleeves} named sleeves`,
+    );
+
+    const box = await page.evaluate(() => {
+      const link = document.querySelector("[data-release] a[aria-label]");
+      if (!link) return null;
+      link.scrollIntoView({ block: "center" });
+      const r = link.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    });
+    if (box) {
+      await sleep(300);
+      const read = () =>
+        page.evaluate(() => {
+          const link = document.querySelector("[data-release] a[aria-label]");
+          return link ? getComputedStyle(link).translate : "none";
+        });
+      const before = await read();
+      await page.mouse.move(box.x, box.y, { steps: 6 });
+      await sleep(450);
+      const after = await read();
+      check("grid sleeves answer hover", before !== after, `${before} → ${after}`);
+      await shot(page, "qa-grid-hover");
+    } else {
+      check("grid sleeves answer hover", false, "no [data-release] sleeve link found");
+    }
   }
 
   /*
@@ -510,23 +547,48 @@ try {
       const measurement = await sweeper.evaluate(() => {
         const delta = document.documentElement.scrollWidth - window.innerWidth;
         if (delta <= 0) return { delta, culprits: [] };
-        const vw = window.innerWidth;
+
+        /*
+         * Only unclipped boxes can widen the document. A marquee track inside `overflow: hidden`
+         * reports a right edge of 3000 px and contributes nothing, and blaming it sends the reader
+         * after a bug that does not exist — so walk the ancestor chain and drop anything a scroller,
+         * a clip or a fixed-position layer is already holding in.
+         */
+        const clipped = (el) => {
+          for (let node = el.parentElement; node; node = node.parentElement) {
+            const style = getComputedStyle(node);
+            if (style.position === "fixed") return true;
+            if (style.overflowX !== "visible") return true;
+            if (style.contain.includes("paint") || style.contain.includes("strict")) return true;
+          }
+          return false;
+        };
+
+        const vw = document.documentElement.clientWidth;
         const culprits = [];
         for (const el of document.querySelectorAll("body *")) {
           const box = el.getBoundingClientRect();
           if (box.width === 0 || box.height === 0) continue;
-          if (getComputedStyle(el).position === "fixed") continue;
           if (box.right <= vw + 0.5) continue;
+          if (getComputedStyle(el).position === "fixed") continue;
+          if (clipped(el)) continue;
           const id = el.id ? `#${el.id}` : "";
-          const cls = typeof el.className === "string" && el.className ? `.${el.className.split(" ")[0]}` : "";
-          culprits.push(`${el.tagName.toLowerCase()}${id}${cls} right=${Math.round(box.right)}`);
+          const cls = typeof el.className === "string" && el.className ? `.${el.className.split(" ").join(".")}` : "";
+          const parent = el.parentElement;
+          const parentCls =
+            parent && typeof parent.className === "string" && parent.className
+              ? `.${parent.className.split(" ")[0]}`
+              : "";
+          culprits.push(
+            `${el.tagName.toLowerCase()}${id}${cls} right=${Math.round(box.right)} left=${Math.round(box.left)} in ${parent ? parent.tagName.toLowerCase() : "?"}${parentCls}`,
+          );
           if (culprits.length >= 4) break;
         }
-        return { delta, culprits };
+        return { delta, culprits, client: vw, inner: window.innerWidth };
       });
       if (measurement.delta > 0) {
         overflows.push(
-          `${route} @${width} +${measurement.delta}px${measurement.culprits.length ? ` [${measurement.culprits.join(" | ")}]` : ""}`,
+          `${route} @${width} +${measurement.delta}px (client ${measurement.client} / inner ${measurement.inner})${measurement.culprits.length ? ` [${measurement.culprits.join(" | ")}]` : ""}`,
         );
       }
     }
