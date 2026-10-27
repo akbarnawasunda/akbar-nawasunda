@@ -33,7 +33,7 @@
 
 .heroInner {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   /*
    * The name owns a full-width row and is still flush left; the mark floats in the right column of
    * the row below it, and the status deck holds the left column of that row. That is the asymmetry —
@@ -104,7 +104,13 @@
   position: relative;
   align-self: center;
   justify-self: stretch;
-  min-height: clamp(11rem, 19vw, 16rem);
+  /*
+   * Round 38 — bigger and closer to the middle. At 0.85fr the mark's column started at 852px of a
+   * 1440px screen, which left it stranded against the right edge; equal columns start it at 756px,
+   * so the object sits in the outer half of the page rather than the last tenth of it, and it has
+   * room to be large enough to answer the wordmark above it.
+   */
+  min-height: clamp(13rem, 23vw, 19rem);
   overflow: hidden;
   background: var(--color-band-monogram);
 }

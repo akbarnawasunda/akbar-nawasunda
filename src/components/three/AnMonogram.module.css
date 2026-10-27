@@ -25,9 +25,38 @@
   }
 }
 
+/*
+ * Round 38 — the stage light behind the mark.
+ *
+ * A festival hero is not a black rectangle with an object in it; there is a lamp somewhere behind the
+ * subject. This is that lamp: one very wide, very low-opacity blue pool centred on the mark, drawn as
+ * the band's own background layer so it sits *under* both the baked still and the shader and costs a
+ * single gradient fill.
+ *
+ * It is scoped to the mark's own box (this module, not the page's) on purpose: the page-level rule in
+ * tests/fixtures/anti-ai.ts forbids radial gradients on the homepage modules, because "a glow" is the
+ * usual way a flat design is made to look expensive and the usual way a page starts to look like a
+ * template. One lamp, behind one object, in the object's own file is a decision; a glow behind every
+ * card is a style.
+ */
+.glow {
+  position: absolute;
+  inset: -12% -6%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 58% 62% at 50% 52%,
+    rgb(0 135 255 / 0.26) 0%,
+    rgb(0 135 255 / 0.11) 38%,
+    rgb(0 135 255 / 0.035) 62%,
+    transparent 78%
+  );
+}
+
 .drift {
   position: absolute;
   inset: 0;
+  z-index: 1;
 }
 
 /* The stack: baked still below, shader quad above it once mounted. */

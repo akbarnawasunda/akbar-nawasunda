@@ -57,12 +57,22 @@ const SIZE = 1000;
  * crop mark, the ghost mark a little louder, and the misregistration rule in press cyan at the
  * bottom edge. Still no type, still no invented artwork: ground, frame, ghost, rule.
  */
+/*
+ * Round 38 — the series is ink, not paper.
+ *
+ * The bone ground was a print decision from a page that still had a paper series (round 24). On a
+ * page that is now black from the hero to the footer, thirteen bone sleeves in a ledger read as
+ * thirteen broken images — the owner's words, and right: a light box on an ink ground has no edge to
+ * hold it. The ground is `--color-bg-surface-2` (#0B0B0B) with a hairline frame, the ghost monogram
+ * is the metal grey rather than ink, and the misregistration rule is the one chromatic value on the
+ * site. Same anatomy, same die-cut, inverted stock.
+ */
 const SERIES = {
-  ground: "#E8E6E1",
-  frame: "#0A0A0E",
-  ghost: "#0A0A0E",
-  ghostOpacity: 0.26,
-  rule: "#2E8C86",
+  ground: "#0B0B0B",
+  frame: "#1C1D21",
+  ghost: "#C3CAD3",
+  ghostOpacity: 0.62,
+  rule: "#0087FF",
 };
 
 
@@ -145,12 +155,20 @@ async function render() {
    * placeholder; a cropped one reads as a design decision, because only a designer pushes a mark
    * off its own frame on purpose.
    */
-  const width = 760;
+  /*
+   * Round 38 — the mark is small, centred and metallic.
+   *
+   * The bone series pushed a 760px ghost off the bottom-right corner, which works on paper (an ink
+   * signature on stock) and fails on an ink ground (a dark shape on a dark field is a smudge). On the
+   * ledger the sleeves sit at 4.5rem, so the one thing that has to survive the scale is a legible
+   * mark in the middle of the tile: 360px, centred, in a metal grey at just over half strength —
+   * the same object as an audio rack's badge.
+   */
+  const width = 360;
   const ghost = await faded(await ghostMark(width, SERIES.ghost), SERIES.ghostOpacity);
-  /* Bleeding off the bottom-right, opposite the spine: the mark is the label's signature on the
-     jacket, and a signature that fits inside its own frame reads as a logo, not as ink. */
-  const left = SIZE - 520;
-  const top = SIZE - 470;
+  const meta = await sharp(ghost).metadata();
+  const left = Math.round((SIZE - (meta.width ?? width)) / 2);
+  const top = Math.round((SIZE - (meta.height ?? width)) / 2);
 
   const composed = await sharp(svg)
     .composite([{ input: ghost, left, top }])

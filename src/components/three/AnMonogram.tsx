@@ -145,6 +145,8 @@ export function AnMonogram() {
         asked for a mark that holds still. The wrapper is a plain box now; the object's motion, when
         the shader is running, comes from the mark itself.
       */}
+      {/* The lamp behind the mark: a wide, low blue pool, under the still and the shader alike. */}
+      <div className={styles.glow} />
       <div className={styles.drift}>
         <div className={styles.liquid}>
           <Image

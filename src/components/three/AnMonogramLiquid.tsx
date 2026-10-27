@@ -142,29 +142,37 @@ ${SIMPLEX}
  * outside the strokes the fragment writes nothing at all, so the page under the band is untouched.
  */
 
-/* The height field: two noise octaves for the body, the pointer ripple riding on top. */
+/*
+ * The height field (round 38).
+ *
+ * Round 37 ran two octaves at 2.4 and 6.1, and the result read as crumpled foil. Mercury does not
+ * wrinkle — it has a very high surface tension, so its skin is a few large, soft, slowly bending
+ * lobes. The frequencies are therefore an order of magnitude lower (0.85 and 1.9), and the second
+ * octave, the one that made the creases, is down to a quarter of the first one's amplitude. The
+ * pointer ripple stays on top and stays wide: a rolling ring, not a comb.
+ */
 float liquidHeight(vec2 p) {
-  float body = snoise3(vec3(p * 2.4, uTime * 0.18)) * 0.55
-             + snoise3(vec3(p * 6.1, uTime * 0.32)) * 0.22;
+  float body = snoise3(vec3(p * 0.85, uTime * 0.10)) * 0.55
+             + snoise3(vec3(p * 1.90, uTime * 0.17)) * 0.14;
   vec2 toPointer = p - uMouse;
   toPointer.x *= 1.25;
   float d = length(toPointer);
   /* The brief's ripple, with a decay so it does not ring across the whole band forever. */
-  float ripple = sin(d * 20.0 - uTime * 5.0) * uHover * exp(-d * 2.4);
-  return body + ripple * 0.075;
+  float ripple = sin(d * 12.0 - uTime * 4.0) * uHover * exp(-d * 2.2);
+  return body + ripple * 0.085;
 }
 
 void main() {
-  /* Small flow, not the old 0.048 wash: the mark keeps its shape and the *surface* moves. */
-  vec3 field = vec3((vUv - 0.5) * 2.6, uTime * 0.16);
-  vec2 flow = vec2(snoise3(field), snoise3(field * 2.9 + vec3(11.3, 4.7, -uTime * 0.1))) * 0.016;
+  /* Small and slow: the mark keeps its shape and the *surface* moves, in soft lobes. */
+  vec3 field = vec3((vUv - 0.5) * 1.1, uTime * 0.10);
+  vec2 flow = vec2(snoise3(field), snoise3(field * 1.7 + vec3(11.3, 4.7, -uTime * 0.08))) * 0.010;
 
   vec2 toPointer = vUv - uMouse;
   toPointer.x *= 1.25;
   float dist = length(toPointer);
   /* normalize() on a zero-length vector is the classic NaN in a shader; clamp the divisor. */
   vec2 direction = toPointer / max(dist, 0.0005);
-  flow += direction * sin(dist * 20.0 - uTime * 5.0) * uHover * exp(-dist * 3.0) * 0.02;
+  flow += direction * sin(dist * 12.0 - uTime * 4.0) * uHover * exp(-dist * 3.0) * 0.02;
 
   vec2 uv = vUv + flow;
 
@@ -174,17 +182,20 @@ void main() {
   if (coverage < 0.004) discard;
 
   /* The surface normal, from the gradient of the height field (central difference). */
-  float e = 0.0035;
+  float e = 0.0050;
   float hx = liquidHeight(uv + vec2(e, 0.0)) - liquidHeight(uv - vec2(e, 0.0));
   float hy = liquidHeight(uv + vec2(0.0, e)) - liquidHeight(uv - vec2(0.0, e));
-  vec3 normal = normalize(vec3(-hx * 5.5, -hy * 5.5, 1.0));
+  /* A gentler slope (3.2, not 5.5) keeps the skin under tension: the highlight rolls across it
+     instead of splintering on every crease. */
+  vec3 normal = normalize(vec3(-hx * 3.2, -hy * 3.2, 1.0));
 
   vec3 viewDir = vec3(0.0, 0.0, 1.0);
   vec3 lightDir = normalize(vec3(-0.42, 0.58, 0.70));
   vec3 halfDir = normalize(lightDir + viewDir);
 
   float diffuse = max(dot(normal, lightDir), 0.0);
-  float specular = pow(max(dot(normal, halfDir), 0.0), 32.0);
+  float sheen = pow(max(dot(normal, halfDir), 0.0), 12.0);
+  float glint = pow(max(dot(normal, halfDir), 0.0), 90.0);
   float facing = max(dot(normal, viewDir), 0.0);
   float fresnel = pow(1.0 - facing, 3.0);
 
@@ -197,21 +208,30 @@ void main() {
   /*
    * Chrome has almost no diffuse colour: it shows what is around it. The band's surroundings are ink
    * below and a soft grey sky above, so the reflection is driven by how far the normal points up —
-   * the crest of a ripple catches the light, its underside falls to black, and that contrast (not a
+   * the crest of a lobe catches the light, its underside falls to black, and that contrast (not a
    * grey ramp) is what reads as polished metal.
    */
   float env = clamp(normal.y * 0.5 + 0.5, 0.0, 1.0);
-  vec3 colour = mix(valley, silver, pow(env, 2.2));
-  colour += silver * diffuse * 0.22;
-  /* The glint. Sharp, white, and additive — the thing the eye reads as "wet". */
-  colour += vec3(1.0) * specular * 2.4;
-  /* The rim. Neon blue at grazing angles only, so it traces the edge of the mark. */
-  colour = mix(colour, neon, fresnel * 0.85);
-  colour += neon * fresnel * 0.28;
+  vec3 colour = mix(valley, silver, pow(env, 1.7));
+  colour += silver * diffuse * 0.30;
+  /*
+   * Two lobes, on purpose. A single 32-exponent highlight is a pin-prick that reads as brushed steel;
+   * mercury pools light, so the broad 12-exponent sheen carries the wet look and the tight 90 one
+   * keeps a single crisp glint inside it.
+   */
+  colour += vec3(1.0) * (sheen * 1.55 + glint * 1.60);
+  /*
+   * The rim light. A tight, bright neon contour rather than a wash: it has to read as a blue lamp
+   * standing behind the letters, so it lives on the grazing band and brightens towards the edge.
+   */
+  float rimBand = smoothstep(0.30, 0.95, fresnel);
+  colour += neon * rimBand * 1.15;
+  colour = mix(colour, neon, rimBand * 0.35);
 
   /* A ripple crest picks up the lamp. Cheap, and it makes the wave visible on a black band. */
-  float crest = smoothstep(0.35, 1.0, sin(dist * 20.0 - uTime * 5.0)) * uHover * exp(-dist * 2.4);
+  float crest = smoothstep(0.35, 1.0, sin(dist * 12.0 - uTime * 4.0)) * uHover * exp(-dist * 2.2);
   colour += neon * crest * 0.30;
+
 
   float alpha = coverage * (0.90 + 0.10 * fresnel);
   if (alpha < 0.004) discard;

@@ -13,29 +13,31 @@
  * artist's own name: sleeve left, type right, one hairline under the masthead. On a phone the
  * sleeve leads and the type follows, because a sleeve is the one object that survives a thumb.
  */
+/*
+ * Round 38 — the takeover is ink, like the rest of the site.
+ *
+ * Round 24 printed this band on bone, which was right when the homepage still had a paper series. It
+ * does not any more: the homepage is black from the hero to the footer, so `/music` opened with a
+ * cream slab that read as a different website. The band is now the same `--color-night` step the
+ * homepage spotlight uses — one step off the ink ground, no paper, no rotated sleeve.
+ *
+ * Nothing here repaints a token any more. The old version replaced `--color-text-primary`,
+ * `--color-hairline` and friends *inside* the section so the children would flip with the stock; with
+ * the stock gone, that indirection is gone too, and the band inherits the site's own values.
+ */
 .featured {
   border-top: 1px solid var(--color-hairline);
   border-bottom: 1px solid var(--color-hairline);
-  padding-block: var(--space-12);
-  /* Round 24: the catalogue's poster prints on bone, same four-token flip as the home takeover. */
-  background: var(--color-bone);
-  /* Inherited color is a *computed* value, not a variable: without this line every descendant
-     that does not set its own color keeps the body's white. The section must read the flipped
-     token itself and hand the result down. */
+  padding-block: var(--section-padding);
+  background: var(--color-night);
   color: var(--color-text-primary);
-  --color-text-primary: var(--color-bone-ink);
-  --color-text-secondary: var(--color-bone-muted);
-  --color-text-muted: var(--color-bone-muted);
-  --color-ink-black: var(--color-bone);
-  --color-hairline: var(--color-bone-line);
-  --color-border: var(--color-bone-line);
 }
 
 .featuredSleeve {
-  background: var(--color-bone-ink);
+  display: block;
+  background: var(--color-bg-surface-2);
   padding: var(--space-3);
-  /* Same half-degree language as the home poster: one series, one hand. */
-  rotate: 1.5deg;
+  outline: 1px solid var(--color-signal-blue);
 }
 
 .featuredHead {
