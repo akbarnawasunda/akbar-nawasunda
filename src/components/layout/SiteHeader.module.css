@@ -192,6 +192,19 @@
 }
 
 /*
+ * And Listen moves out of the way too.
+ *
+ * With the dialog open the bar's only job is to hold the brand and the way out. Leaving Listen in
+ * place put a bordered button immediately beside the close control — the shot of the open menu showed
+ * "LISTEN ↗ TUTUP ✕" crowded into the same corner, which reads as two equal choices when one of them
+ * leaves the site. The drawer carries its own "Listen di Spotify" call to action, so nothing is lost.
+ */
+.header:has(.toggle[aria-expanded="true"]) .listen {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/*
  * The close control: fixed, top-right, above everything.
  *
  * Three rounds of "tombol menu hilang" reports all had the same shape — a control that scrolls with
