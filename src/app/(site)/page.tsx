@@ -13,6 +13,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
 import { AnMonogram } from "@/components/three/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Reveal } from "@/components/zine/Reveal";
 import { getCatalogue } from "@/content/catalogue";
 import { tourDates } from "@/content/tour";
 import { visualItems } from "@/content/visuals";
@@ -227,12 +228,20 @@ export default async function HomePage() {
       {/* ---------------------------------------------------------------- archive */}
       <section className={styles.archive} id="visuals" aria-labelledby="visuals-title">
         <Container>
-          <SectionHeader
-            eyebrow="Arsip"
-            title="Visual"
-            id="visuals-title"
-            action={{ href: getPlatformLink("youtube").href, label: "YouTube" }}
-          />
+          {/*
+            The archive header keeps its entrance — it is five bands below the fold, so a block that
+            rises once as it arrives is a courtesy, not a gate. The catalogue above is deliberately
+            *not* wrapped: a reveal is an `opacity: 0` that waits for JavaScript, and the songs are
+            the one thing on this page that must never wait for anything.
+          */}
+          <Reveal>
+            <SectionHeader
+              eyebrow="Arsip"
+              title="Visual"
+              id="visuals-title"
+              action={{ href: getPlatformLink("youtube").href, label: "YouTube" }}
+            />
+          </Reveal>
         </Container>
         <VisualRail items={visualItems} />
       </section>

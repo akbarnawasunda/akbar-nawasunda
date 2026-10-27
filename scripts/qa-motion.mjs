@@ -542,13 +542,20 @@ try {
   check("no horizontal overflow at 320–1920", overflows.length === 0, overflows.join(", "));
   await sweeper.close();
 
-  // Read last, after the band has been reached: the lazy still has had every chance to decode.
-  await page.evaluate(() => window.scrollTo(0, 2000));
-  await settleScroll(page);
-  await sleep(1800);
-  const monogram = await page.evaluate(() => {
-    const band = document.querySelector('[class*="signature"]');
-    const img = band ? band.querySelector("img") : null;
+  /*
+   * Read last, after the band has been reached — and reach it by the band, not by a guessed offset.
+   * Round 36 shortened the page above the mark (a hero with no photograph), and a hard-coded
+   * `scrollTo(0, 2000)` stopped landing on it: the lazy still was never asked to decode, and the
+   * check failed a band that works. The still is the anchor now; scrolling it into view is what a
+   * reader does.
+   */
+  await canvasProbe.evaluate(() => {
+    document.querySelector('img[src*="liquid-metal-wide"]')?.scrollIntoView({ block: "center" });
+  });
+  await sleep(2200);
+  const monogram = await canvasProbe.evaluate(() => {
+    const img = document.querySelector('img[src*="liquid-metal-wide"]');
+    const band = img?.closest("section") ?? null;
     const canvases = [...document.querySelectorAll("canvas")];
     return {
       canvases: canvases.length,
