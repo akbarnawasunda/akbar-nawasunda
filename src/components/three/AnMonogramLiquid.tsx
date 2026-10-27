@@ -219,9 +219,12 @@ void main() {
    * this single smoothstep is what draws the large soft pools of light that make mercury look like
    * mercury — the reflection carries the form, not the shading.
    */
-  float sky = smoothstep(-0.42, 0.46, normal.x);
+  float sky = smoothstep(-0.30, 0.26, normal.x);
   vec3 ink = vec3(0.010, 0.014, 0.022);
   vec3 colour = mix(ink, silver, sky);
+  /* A second, tighter step where the facet turns square to the lamp: the reflected sky has an edge,
+     and that edge is what separates "polished" from "airbrushed". */
+  colour = mix(colour, silver, smoothstep(0.10, 0.30, normal.x) * 0.35);
   /* The horizon of that reflection: one narrow bright band where the facets are square-on. */
   float line = exp(-pow((normal.x - 0.02) * 4.2, 2.0));
   colour += vec3(1.0) * line * 0.60;
@@ -231,7 +234,7 @@ void main() {
    * mercury pools light, so the broad 12-exponent sheen carries the wet look and the tight 90 one
    * keeps a single crisp glint inside it.
    */
-  colour += vec3(1.0) * (sheen * 0.75 + glint * 0.85);
+  colour += vec3(1.0) * (sheen * 0.55 + glint * 1.70);
   /*
    * The rim light. A tight, bright neon contour rather than a wash: it has to read as a blue lamp
    * standing behind the letters.
