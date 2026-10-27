@@ -212,21 +212,35 @@ void main() {
    * grey ramp) is what reads as polished metal.
    */
   float env = clamp(normal.y * 0.5 + 0.5, 0.0, 1.0);
-  vec3 colour = mix(valley, silver, pow(env, 1.7));
-  colour += silver * diffuse * 0.30;
+  /*
+   * The ramp is steep on purpose. At 1.7 the whole surface climbed into the top of the range and the
+   * mark photographed as flat white — a painted letterform, not a metal one. 2.6 keeps the underside
+   * of every lobe in the valley, so the gradient that says "chrome" is actually visible, and the
+   * highlight has somewhere to come *from*.
+   */
+  vec3 colour = mix(valley, silver, pow(env, 2.6));
+  colour += silver * diffuse * 0.12;
   /*
    * Two lobes, on purpose. A single 32-exponent highlight is a pin-prick that reads as brushed steel;
    * mercury pools light, so the broad 12-exponent sheen carries the wet look and the tight 90 one
    * keeps a single crisp glint inside it.
    */
-  colour += vec3(1.0) * (sheen * 1.55 + glint * 1.60);
+  colour += vec3(1.0) * (sheen * 0.85 + glint * 0.95);
   /*
    * The rim light. A tight, bright neon contour rather than a wash: it has to read as a blue lamp
-   * standing behind the letters, so it lives on the grazing band and brightens towards the edge.
+   * standing behind the letters.
+   *
+   * Round 38.1 — measured from the stroke boundary, not from the shading normal. The new surface is
+   * deliberately smooth, so its normals barely turn at the edge and a fresnel term produced almost no
+   * rim at all; the mark's own alpha does know where the contour is (the texture is anti-aliased
+   * there), and the band between "just inside the stroke" and "solid stroke" is exactly the outline
+   * the brief asks for.
    */
-  float rimBand = smoothstep(0.30, 0.95, fresnel);
-  colour += neon * rimBand * 1.15;
-  colour = mix(colour, neon, rimBand * 0.35);
+  float solid = smoothstep(0.05, 0.55, mark.a);
+  float contour = (1.0 - solid) * smoothstep(0.004, 0.06, mark.a);
+  float rimBand = clamp(contour * 1.6 + fresnel * 0.55, 0.0, 1.0);
+  colour += neon * rimBand * 1.25;
+  colour = mix(colour, neon, rimBand * 0.42);
 
   /* A ripple crest picks up the lamp. Cheap, and it makes the wave visible on a black band. */
   float crest = smoothstep(0.35, 1.0, sin(dist * 12.0 - uTime * 4.0)) * uHover * exp(-dist * 2.2);
