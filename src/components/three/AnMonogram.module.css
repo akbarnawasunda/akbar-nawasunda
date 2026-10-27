@@ -51,8 +51,19 @@
   transition: opacity 700ms var(--ease);
 }
 
-/* The shader is live: the still steps back under it instead of doubling the mark. */
-.canvas[data-liquid="on"] .still {
+/*
+ * Round 35 — the still steps back only once the shader has actually PAINTED the mark, not when its
+ * chunk mounts.
+ *
+ * The old rule was `.canvas[data-liquid="on"] .still { opacity: 0 }`, and `data-liquid` is set the
+ * moment the dynamic chunk is requested. Between that moment and the first painted frame there is a
+ * network fetch, a shader compile and a texture decode — hundreds of milliseconds during which the
+ * band held a fully transparent still and a blank canvas. That is the "logo hilang / flicker"
+ * report. `data-shader="on"` is written by the chunk itself, from its second rendered frame, and it
+ * is cleared again if the GPU drops the context, so the still is always either covered by the mark
+ * or showing it.
+ */
+.canvas[data-shader="on"] .still {
   opacity: 0;
 }
 

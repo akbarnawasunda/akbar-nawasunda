@@ -1,7 +1,7 @@
 import "server-only";
 
 import { coverArtwork, resolveCover, type CoverArtwork } from "./covers";
-import { releaseTypeLabel, releases as staticReleases, type Release } from "./releases";
+import { catalogueFloor, releaseTypeLabel, type Release } from "./releases";
 import { RELEASE_TYPE_LABELS, publicReleaseDate, type ReleaseDocument } from "@/studio/releases";
 import { getPublishedReleases } from "@/studio/public";
 
@@ -96,13 +96,37 @@ function fromDocument(slug: string, doc: ReleaseDocument): CatalogueItem {
 /**
  * The whole catalogue, Studio order (newest verified date first) or the owner's static order.
  * Callers pass their own copy where they need to slice it; the array itself is frozen by convention.
+ *
+ * Round 35 — this function may not return an empty list.
+ *
+ * The failure it guards against is not hypothetical: publish nothing in a fresh Studio install, or
+ * let the Turso read fall through, and the old version returned `[]` and every page below it
+ * printed an empty catalogue. "The songs disappeared" is the one bug a music site cannot ship. So:
+ *
+ *   1. the database read is wrapped — an unexpected throw (a schema drift, a network timeout that
+ *      is not swallowed inside `public.ts`) falls back instead of propagating;
+ *   2. published rows that fail to map (a document missing a title, say) are dropped individually
+ *      rather than taking the list down with them;
+ *   3. when the result is empty, `catalogueFloor()` — the verified static list — is the answer.
  */
 export async function getCatalogue(): Promise<CatalogueItem[]> {
-  const published = await getPublishedReleases();
-  if (published.length > 0) {
-    return published.map(({ slug, doc }) => fromDocument(slug, doc));
+  const floor = catalogueFloor().map(fromStatic);
+
+  try {
+    const published = await getPublishedReleases();
+    const managed = published.flatMap(({ slug, doc }) => {
+      try {
+        return [fromDocument(slug, doc)];
+      } catch {
+        return [];
+      }
+    });
+    if (managed.length > 0) return managed;
+  } catch {
+    /* Fall through to the floor. Never rethrow: a public page must render. */
   }
-  return staticReleases.map(fromStatic);
+
+  return floor;
 }
 
 /** The release that owns the homepage spotlight: first in the same order `/music` prints. */

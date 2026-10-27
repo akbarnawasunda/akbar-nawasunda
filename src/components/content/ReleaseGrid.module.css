@@ -1,0 +1,193 @@
+/*
+  The catalogue grid (homepage, round 35).
+
+  A record shop wall, not a blog index: every cell is a square sleeve, the type underneath is three
+  short lines, and nothing is framed. There is no radius anywhere in this file and no surface fill —
+  the sleeve's own hairline (drawn inside ReleaseCover) is the edge, which is what keeps a dark cover
+  from dissolving into a dark page.
+
+  The grid is `auto-fill` on a 12.5rem floor: four columns on a laptop, three on a tablet, two on a
+  phone held upright, one below ~340px. `min(100%, …)` is what lets the track survive a container
+  narrower than the floor — without it a 320px screen gets a horizontal scrollbar instead of a
+  narrower column.
+*/
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+  gap: var(--space-8) var(--space-4);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+}
+
+/* The sleeve is the link. One hairline appears on hover only, so at rest the wall is artwork. */
+.sleeve {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: translate var(--duration-base) var(--ease-out);
+}
+
+.sleeveInner {
+  display: block;
+  /* A future-proof square: the artwork itself is 1:1 too, so this only matters while it loads. */
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--color-cover-fallback);
+}
+
+.sleeveInner > span {
+  display: block;
+  height: 100%;
+}
+
+.sleeveInner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sleeve:hover,
+.sleeve:focus-visible {
+  /* Two pixels up on hover — the sleeve being picked out of the bin. Never a scale: a scaled grid
+     cell overlaps its neighbour and the wall stops reading as a grid. */
+  translate: 0 calc(var(--space-1) * -1);
+}
+
+.sleeve:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+/* The catalogue position, printed on the corner of the sleeve like a bin number. */
+.ordinal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-primary);
+  background: var(--color-ink-950);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.sleeve:hover .ordinal,
+.sleeve:focus-visible .ordinal {
+  opacity: 1;
+}
+
+/* The "Baru" tab on the release the spotlight above is showing. */
+.flag {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-signal-blue);
+  color: var(--color-ink-black);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Year · format, one mono line, muted: the footnote above the title. */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  /* Bold, as asked: at 14–16px on a dark ground the weight is what carries the row. */
+  font-weight: 700;
+  /* The MB titles include parentheses and a multiplication sign; they must wrap, not overflow. */
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.title a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.title a:hover,
+.title a:focus-visible {
+  color: var(--color-signal-blue);
+}
+
+.streams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stream {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.stream:hover,
+.stream:focus-visible {
+  border-color: var(--color-signal-blue);
+  background: var(--color-signal-blue);
+  color: var(--color-ink-black);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sleeve,
+  .ordinal,
+  .stream,
+  .title a {
+    transition: none;
+  }
+
+  .sleeve:hover,
+  .sleeve:focus-visible {
+    translate: none;
+  }
+}

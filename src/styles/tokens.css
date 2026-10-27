@@ -267,7 +267,8 @@
   --duration-reveal: 600ms;
   --duration-image: 700ms;
   --reveal-shift: 30px;
-  --duration-cursor-dot: 50ms;
+  /* Round 35: the dot has no transition at all — it IS the pointer, and a pointer that lags is a
+     bug. Only the ring trails. */
   --duration-cursor-ring: 180ms;
   --cursor-dot: 6px;
   --cursor-ring: 36px;

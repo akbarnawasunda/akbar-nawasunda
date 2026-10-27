@@ -55,9 +55,28 @@
  */
 .fallback {
   display: grid;
+  grid-template-rows: 1fr auto;
   place-items: center;
   background: var(--color-cover-fallback);
   box-shadow: inset 0 0 0 1px var(--color-hairline);
+}
+
+/*
+ * The fallback sleeve's own type: the title, bottom-left, mono and small. It is what tells a visitor
+ * that the sleeve loaded badly rather than that the record is gone.
+ */
+.fallbackTitle {
+  align-self: end;
+  justify-self: start;
+  padding: var(--space-3);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
 }
 
 /* Two classes deep: `.cover > img` stretches every sleeve image to fill its box. */

@@ -136,7 +136,11 @@ void main() {
   toPointer.x *= 1.25;
   float dist = length(toPointer);
   float ripple = sin(dist * 24.0 - uTime * 5.0) * exp(-dist * 5.0) * 0.075 * uHover;
-  flow += normalize(toPointer + 1e-5) * ripple;
+  /* normalize() on a vector of length ~0 is the classic NaN in a shader: it divides by zero and
+     the whole fragment turns into a white or black hole. Clamping the divisor keeps the direction
+     finite at the exact centre of the band. */
+  vec2 direction = toPointer / max(dist, 0.0005);
+  flow += direction * ripple;
 
   vec2 uv = vUv + flow;
 
@@ -173,17 +177,32 @@ void main() {
 }
 `;
 
-function LiquidMark({ pointer }: { pointer: RefObject<PointerState> }) {
+function LiquidMark({
+  pointer,
+  onReady,
+}: {
+  pointer: RefObject<PointerState>;
+  onReady: () => void;
+}) {
   const texture = useLoader(THREE.TextureLoader, MARK_URL);
   const meshRef = useRef<THREE.Mesh | null>(null);
   const mouse = useRef(new THREE.Vector2(0.5, 0.5));
   const hover = useRef(0);
+  const painted = useRef(0);
   const viewport = useThree((state) => state.viewport);
 
   /* The shader reads only the texture's alpha (the strokes' coverage), never its colour: the
      chrome and the neon are generated in the fragment stage. That is why the loaded texture needs no
      re-configuration at all — no colour-space rewrite, no filter swap, nothing to keep in sync. */
 
+  /*
+   * Round 35 — every uniform starts at a value that is *safe on its own*.
+   *
+   * A shader that receives `undefined`, a `NaN` from a divide-by-zero in JS, or a zero-length vector
+   * does not throw: it renders a black sheet, a white sheet, or nothing at all, and the console stays
+   * quiet. So the initial state is the neutral state — pointer in the middle of the band, no hover
+   * ripple, time at zero — and every write below is guarded by `Number.isFinite`.
+   */
   const uniforms = useMemo(
     () => ({
       uTexture: { value: texture },
@@ -206,9 +225,25 @@ function LiquidMark({ pointer }: { pointer: RefObject<PointerState> }) {
     const mesh = meshRef.current;
     if (!mesh) return;
 
-    u.uTime.value += Math.min(delta, 0.05);
-    mouse.current.lerp(new THREE.Vector2(pointer.current.x, pointer.current.y), 0.075);
-    hover.current += (pointer.current.hover - hover.current) * 0.06;
+    /* A tab that was backgrounded for an hour hands back a huge `delta`; clamping to one frame keeps
+       the melt from jumping. Time itself wraps: a float uniform that grows for hours loses its
+       fractional precision and the noise field starts to stutter. */
+    const step = Number.isFinite(delta) ? Math.min(Math.max(delta, 0), 0.05) : 0;
+    u.uTime.value = (u.uTime.value + step) % 1000;
+
+    const px = Number.isFinite(pointer.current.x) ? pointer.current.x : 0.5;
+    const py = Number.isFinite(pointer.current.y) ? pointer.current.y : 0.5;
+    const target = new THREE.Vector2(
+      Math.min(1, Math.max(0, px)),
+      Math.min(1, Math.max(0, py)),
+    );
+    mouse.current.lerp(target, 0.075);
+    if (!Number.isFinite(mouse.current.x) || !Number.isFinite(mouse.current.y)) mouse.current.set(0.5, 0.5);
+
+    const hoverTarget = Number.isFinite(pointer.current.hover) ? pointer.current.hover : 0;
+    hover.current += (hoverTarget - hover.current) * 0.06;
+    if (!Number.isFinite(hover.current)) hover.current = 0;
+
     u.uMouse.value.copy(mouse.current);
     u.uHover.value = hover.current;
 
@@ -223,6 +258,14 @@ function LiquidMark({ pointer }: { pointer: RefObject<PointerState> }) {
       Math.sin(state.clock.elapsedTime * 0.18) * 0.08 + (mouse.current.x - 0.5) * 0.14;
     mesh.rotation.x =
       Math.cos(state.clock.elapsedTime * 0.14) * 0.04 + (mouse.current.y - 0.5) * 0.1;
+
+    /* Tell the band the mark is genuinely on the glass. One frame is not enough — the first frame of
+       a fresh context is often the compile frame — so the second one reports. Until then the baked
+       still underneath stays at full strength, which is why a slow texture load never shows a gap. */
+    if (painted.current < 2) {
+      painted.current += 1;
+      if (painted.current === 2) onReady();
+    }
   });
 
   return (
@@ -241,6 +284,25 @@ function LiquidMark({ pointer }: { pointer: RefObject<PointerState> }) {
   );
 }
 
+/**
+ * Watches the GPU. A lost context (driver reset, tab evicted by the OS, too many live contexts) does
+ * not throw: the canvas simply goes blank and stays blank. Reporting it lets the band put the baked
+ * still back on top, which is the difference between "the logo is a shader" and "the logo is there".
+ */
+function ContextWatch({ onLost }: { onLost?: () => void }) {
+  const gl = useThree((state) => state.gl);
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const handle = (event: Event) => {
+      event.preventDefault();
+      onLost?.();
+    };
+    canvas.addEventListener("webglcontextlost", handle);
+    return () => canvas.removeEventListener("webglcontextlost", handle);
+  }, [gl, onLost]);
+  return null;
+}
+
 function webglAvailable(): boolean {
   try {
     const probe = document.createElement("canvas");
@@ -252,7 +314,14 @@ function webglAvailable(): boolean {
 
 const WRAP_STYLE = { position: "absolute", inset: 0 } as const;
 
-export default function AnMonogramLiquid() {
+interface AnMonogramLiquidProps {
+  /** Fires once the mark has actually painted — not when the chunk mounts. */
+  onReady?: () => void;
+  /** Fires if the GPU drops the context; the baked still takes over again. */
+  onLost?: () => void;
+}
+
+export default function AnMonogramLiquid({ onReady, onLost }: AnMonogramLiquidProps = {}) {
   const [supported] = useState(() => webglAvailable());
   const [inView, setInView] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -308,7 +377,8 @@ export default function AnMonogramLiquid() {
           touchAction: "pan-y",
         }}
       >
-        <LiquidMark pointer={pointer} />
+        <LiquidMark pointer={pointer} onReady={() => onReady?.()} />
+        <ContextWatch onLost={onLost} />
       </Canvas>
     </div>
   );

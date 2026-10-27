@@ -3,14 +3,31 @@
   by one transition. Both are `position: fixed` at the origin and live entirely in `transform` —
   no top/left writes, no layout, one composite layer each.
 
-  The magnetic read is the ring's transition: 180 ms is long enough that the hand notices the ring
-  *arrive* at a button, which is the whole trick. Locked, it also takes the brand blue.
+  Round 35 — "it must never eat a click".
+
+  The cursor is a full-viewport fixed layer sitting above the page at `--z-cursor`. That is exactly
+  the geometry of an invisible wall, and a single missing `pointer-events` declaration turns the
+  whole site unclickable — which is the "mouse nge-bug" report, verbatim. The three rules below are
+  therefore `!important` on purpose: a decoration must not be able to outrank the hand, whatever a
+  future layer, `will-change` or `z-index` does to it.
+
+  The dot carries no transition at all — it is the pointer, and a lagging pointer reads as a broken
+  mouse. The ring keeps the short trail that makes the magnet visible; that transition is CSS, so
+  the compositor runs it and no JavaScript executes between frames.
 */
 .cursor {
   position: fixed;
   inset: 0;
   z-index: var(--z-cursor);
-  pointer-events: none;
+  pointer-events: none !important;
+  /* No hit-testing, no paint containment surprises: the layer is decoration, not a surface. */
+  user-select: none;
+  transition: opacity var(--duration-fast) linear;
+}
+
+/* The pointer left the window: park both shapes rather than leaving them stuck mid-screen. */
+.cursor[data-hidden="true"] {
+  opacity: 0;
 }
 
 .dot,
@@ -19,6 +36,7 @@
   left: 0;
   top: 0;
   border-radius: 50%;
+  pointer-events: none !important;
   will-change: transform;
 }
 
@@ -27,7 +45,6 @@
   height: var(--cursor-dot);
   margin: calc(var(--cursor-dot) / -2) 0 0 calc(var(--cursor-dot) / -2);
   background: var(--color-text-primary);
-  transition: transform var(--duration-cursor-dot) linear;
 }
 
 .ring {
@@ -41,4 +58,11 @@
 
 .ring[data-state="lock"] {
   border-color: var(--color-signal-blue);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring,
+  .cursor {
+    transition: none;
+  }
 }

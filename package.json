@@ -29,6 +29,7 @@
     "check:web": "node scripts/check-web.mjs",
     "check:web:external": "node scripts/check-web.mjs --external",
     "covers:plan": "node scripts/fetch-release-artwork.mjs --dry-run",
+    "releases:sync": "tsx scripts/musicbrainz-sync.ts",
     "qa:motion": "node scripts/qa-motion.mjs",
     "perf:audit": "node scripts/perf-audit.mjs",
     "audit:tokens": "node scripts/token-audit.mjs",

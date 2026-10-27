@@ -539,10 +539,9 @@
 }
 
 /*
- * Round 29 — the discography rail moved: it is a pinned horizontal reel now (see
- * CataloguePin.module.css — 300vh wrapper, sticky 100vh flex row, the engine's --pin becomes one
- * translateX, and under 768px it dissolves back to a vertical column). What stays here is the
- * count above it: a section title's understudy, not a hero.
+ * Round 35 — the reel is gone. The catalogue is a grid in the document flow (ReleaseGrid.module.css):
+ * it renders on the server, it needs no scroll driver, and it cannot leave the sleeves off-screen.
+ * What stays here is the count above it: a section title's understudy, not a hero.
  */
 .railCount {
   margin: calc(var(--space-2) * -1) 0 var(--space-4);
@@ -552,6 +551,14 @@
   text-transform: uppercase;
   color: var(--color-text-muted);
   text-align: right;
+}
+
+.catalogueFoot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
 }
 
 .indexTitle {

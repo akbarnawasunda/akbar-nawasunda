@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { editorialFrame } from "@/assets/web";
-import { CataloguePin } from "@/components/content/CataloguePin";
+import { ReleaseGrid, type ReleaseCard } from "@/components/content/ReleaseGrid";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
@@ -136,6 +136,26 @@ export default async function HomePage() {
     streamLinks.length > 0 ? streamLinks : [{ label: "Dengar Sekarang", href: listenUrl }];
   const catalogueIndex = String(1).padStart(2, "0");
   const catalogueTotal = String(catalogue.length).padStart(2, "0");
+
+  /*
+   * Round 35 — the catalogue grid.
+   *
+   * Every release in the same list `/music` prints, rendered as a card: sleeve, year · format, bold
+   * title, and the stream buttons. A release with no link of its own falls back to the artist's
+   * verified profiles — the record is on those pages even when the catalogue row does not carry the
+   * per-track URL — which is why no card is ever a dead end.
+   */
+  const artistStreams = listenFallbacks.slice(0, 3).map((link) => ({ label: link.label, href: link.href }));
+  const cards: ReleaseCard[] = catalogue.map((item, index) => ({
+    slug: item.slug,
+    href: item.href,
+    title: item.title,
+    year: item.year,
+    format: item.format,
+    artwork: item.artwork,
+    streams: item.links.length > 0 ? item.links.slice(0, 3) : artistStreams,
+    featured: index === 0,
+  }));
 
   return (
     <>
@@ -341,25 +361,29 @@ export default async function HomePage() {
       <TourSection dates={tourDates} />
 
       {/* ---------------------------------------------------------------- catalogue */}
+      {/*
+        Round 35 — the grid, not the reel. The full catalogue is on the page as plain markup: no
+        sticky row, no 300vh scroll driver, nothing that can leave the sleeves off-screen. If this
+        band renders, the songs are on the front page.
+      */}
       <section className={styles.indexBand} id="catalogue" aria-labelledby="catalogue-title">
         <Container>
           <Reveal>
             <h2 id="catalogue-title" className={styles.indexTitle}>
-              Indeks
+              Katalog
             </h2>
           </Reveal>
           <p className={styles.railCount}>
             {catalogue.length} rilis · sejak {siteConfig.since}
           </p>
-          <CataloguePin
-            items={catalogue.map((item) => ({
-              slug: item.slug,
-              href: item.href,
-              title: item.title,
-              meta: item.meta,
-              artwork: item.artwork,
-            }))}
-          />
+          <ReleaseGrid items={cards} />
+          <div className={styles.catalogueFoot}>
+            <Magnetic>
+              <ButtonLink href="/music" variant="secondary">
+                Semua Rilis
+              </ButtonLink>
+            </Magnetic>
+          </div>
         </Container>
       </section>
 

@@ -78,6 +78,9 @@ export function ReleaseCover({
           height={anMark.height}
           sizes="(min-width: 1024px) 14vw, 40vw"
         />
+        {/* Round 35: the fallback names the record. A missing file is a missing picture, not a
+            missing release — the sleeve still has to say which song it belongs to. */}
+        <span className={styles.fallbackTitle}>{title}</span>
       </span>
     );
   }

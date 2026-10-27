@@ -37,7 +37,9 @@ describe("release view mapping", () => {
     const view = fromStaticRelease(release, null);
     assert.equal(view.coverUrl, null);
     assert.equal(view.title, "Cinta Terbuang");
-    assert.equal(view.meta, "Rilis");
+    /* Round 35: MusicBrainz knows this one as a Single first released 2025-05-10, so the eyebrow is
+       no longer the fallback word "Rilis" — the catalogue states the verified type and year. */
+    assert.equal(view.meta, "Single · 2025");
     assert.equal(view.href, "/music/cinta-terbuang");
   });
 
@@ -58,12 +60,18 @@ describe("release view mapping", () => {
     assert.equal(release.year, undefined);
   });
 
-  it("keeps a year but no type where the owner's two sources disagree", () => {
+  it("resolves the owner's disagreement from MusicBrainz instead of guessing", () => {
+    /*
+     * One owner file called this a remix, the other listed it under originals, so round 34 kept the
+     * year and left the type empty. Round 35 asks a third party: MusicBrainz files it as a Single
+     * with the Remix secondary type (release group 9c0d7ad1-…), which is what the catalogue now says.
+     */
     const release = releases.find((item) => item.slug === "dj-rantau-den-panjauah");
     assert.ok(release);
     assert.equal(release.year, 2024);
-    assert.equal(release.type, undefined, "one file calls it a remix, the other an original");
-    assert.equal(releaseEyebrow(release), "2024");
+    assert.equal(release.type, "remix");
+    assert.equal(release.mbid, "9c0d7ad1-c678-4ea1-9133-c571feb3ed5f");
+    assert.equal(releaseEyebrow(release), "Remix · 2024");
   });
 
   it("never invents a listening link", () => {

@@ -1,9 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
+
+import { anMark } from "@/assets/web";
 
 import styles from "./AnMonogram.module.css";
 import { Depth } from "../zine/Depth";
@@ -36,6 +38,35 @@ const Liquid = dynamic(() => import("./AnMonogramLiquid"), {
   loading: () => null,
 });
 
+/**
+ * Round 35 — the shader is not allowed to take the band down with it.
+ *
+ * A three.js chunk that fails to evaluate, a texture that 404s inside the loader (which *suspends*
+ * and then throws), or a driver that refuses a context all end the same way in React: an error
+ * thrown during render, up the tree, and the nearest boundary unmounts the subtree. Without a
+ * boundary that means the whole band disappears and the page loses its mark. This boundary keeps the
+ * failure local: the shader layer is dropped, the baked still underneath is put back at full
+ * strength, and the band looks exactly like it does on a device without WebGL.
+ */
+class ShaderBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onError();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 const WIDE = {
   src: "/assets/monogram/liquid-metal-wide.webp",
   width: 2160,
@@ -45,20 +76,30 @@ const WIDE = {
 export function AnMonogram() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [liquid, setLiquid] = useState(false);
+  /* The shader reports when it has *painted*, not when it has mounted. Until then the still carries
+     the band; if the GPU drops the context later, the still comes back. */
+  const [shaderReady, setShaderReady] = useState(false);
+  /* The wide bake is the intended still. If that file is missing from the deploy — a moved asset, a
+     partial upload — the mark falls back to the mark itself instead of an empty frame. */
+  const [stillSrc, setStillSrc] = useState(WIDE.src);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    const reveal = () => {
+      host.dataset.ready = "true";
+    };
     const img = host.querySelector("img");
     if (img) {
-      const reveal = () => {
-        host.dataset.ready = "true";
-      };
       /* A cached image is already complete before the effect runs on a second visit; listening for
          a `load` that already fired would leave the band invisible forever. */
       if (img.complete) reveal();
       else img.addEventListener("load", reveal, { once: true });
     }
+    /* Round 35 failsafe: `.canvas` is opacity 0 until `data-ready`, and the `load` event is not
+       guaranteed — a decode error, a blocked request, an image already failed before this effect
+       ran. A band that never fades in is a missing logo, so it fades in anyway after 1.2s. */
+    const readyTimer = window.setTimeout(reveal, 1200);
 
     /* Round 32, owner's correction: mobile is not a lesser citizen — the majority of this site's
        visitors hold it in a hand. The liquid mounts on phones exactly as on desktop (DPR is capped
@@ -79,7 +120,10 @@ export function AnMonogram() {
       { rootMargin: "0px", threshold: 0.01 },
     );
     observer.observe(host);
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(readyTimer);
+      observer.disconnect();
+    };
     /* Mount-only: the host ref is set before effects run, refs and setters are stable, and the
        observer disconnects itself once it has done its single job. */
   }, []);
@@ -89,7 +133,10 @@ export function AnMonogram() {
     if (!host) return;
     if (liquid) host.dataset.liquid = "on";
     else delete host.dataset.liquid;
-  }, [liquid]);
+    /* The still steps back only when the shader has actually drawn the mark. */
+    if (liquid && shaderReady) host.dataset.shader = "on";
+    else delete host.dataset.shader;
+  }, [liquid, shaderReady]);
 
   return (
     <div ref={hostRef} className={styles.canvas} aria-hidden="true">
@@ -97,12 +144,13 @@ export function AnMonogram() {
         <div className={styles.liquid}>
           <Image
             className={styles.still}
-            src={WIDE.src}
+            src={stillSrc}
             alt=""
-            width={WIDE.width}
-            height={WIDE.height}
+            width={stillSrc === WIDE.src ? WIDE.width : anMark.width}
+            height={stillSrc === WIDE.src ? WIDE.height : anMark.height}
             sizes="100vw"
             loading="lazy"
+            onError={() => setStillSrc(anMark.src)}
           />
         </div>
       </Depth>
@@ -115,9 +163,19 @@ export function AnMonogram() {
       */}
       {liquid ? (
         <div className={styles.liquidLayer}>
-          <Suspense fallback={null}>
-            <Liquid />
-          </Suspense>
+          <ShaderBoundary
+            onError={() => {
+              setShaderReady(false);
+              setLiquid(false);
+            }}
+          >
+            <Suspense fallback={null}>
+              <Liquid
+                onReady={() => setShaderReady(true)}
+                onLost={() => setShaderReady(false)}
+              />
+            </Suspense>
+          </ShaderBoundary>
         </div>
       ) : null}
     </div>

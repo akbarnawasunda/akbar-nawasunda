@@ -122,7 +122,10 @@ persisten di database untuk konten & desain. Sinkronisasi lintas komponen lewat 
 3. **Satu pintu katalog publik**: `src/content/catalogue.ts` (`getCatalogue()` / `getFeaturedRelease()`)
    menggabungkan keduanya untuk `/` dan `/music`. Halaman publik **tidak boleh** mengimpor
    `releases.ts` langsung — itulah cara rilis yang dipublikasikan dari Studio dulu tidak sampai ke
-   beranda.
+   beranda. `getCatalogue()` tidak pernah mengembalikan array kosong: lantainya
+   `catalogueFloor()` di `releases.ts` (14 rilis terverifikasi, 10 dari pemilik + 4 dari MusicBrainz).
+   `npm run releases:sync` membandingkan katalog dengan MusicBrainz (artist
+   `bb843d35-fc0a-4d3b-b445-390b9b299812`); jalankan saat ada rilis baru.
 Semua route yang bisa berubah `force-dynamic`; tidak ada `fetch()` ke API sendiri, tidak ada
 `revalidate` manual selain `revalidatePath()` di server action. Gambar diselesaikan di server
 (`src/content/covers.ts` memakai `node:fs`, karena itu `server-only`).
