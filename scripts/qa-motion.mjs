@@ -262,22 +262,35 @@ try {
       `${grid.cards} cards, ${grid.sleeves} named sleeves`,
     );
 
+    /*
+     * Scroll first, measure second. Lenis eases the scroll, so a rect taken immediately after
+     * `scrollIntoView` is a rect the sleeve has already left by the time the mouse arrives — the
+     * first version of this check hovered empty space and read "none → none".
+     */
+    await page.evaluate(() => {
+      document.querySelector("[data-release] a[aria-label]")?.scrollIntoView({ block: "center" });
+    });
+    await settleScroll(page);
+    await sleep(700);
     const box = await page.evaluate(() => {
       const link = document.querySelector("[data-release] a[aria-label]");
       if (!link) return null;
-      link.scrollIntoView({ block: "center" });
       const r = link.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return null;
       return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     });
     if (box) {
-      await sleep(300);
       const read = () =>
         page.evaluate(() => {
           const link = document.querySelector("[data-release] a[aria-label]");
-          return link ? getComputedStyle(link).translate : "none";
+          if (!link) return "missing";
+          const style = getComputedStyle(link);
+          return `${style.translate} / ${style.transform}`;
         });
+      await page.mouse.move(1, 1);
       const before = await read();
-      await page.mouse.move(box.x, box.y, { steps: 6 });
+      await page.mouse.move(box.x, box.y, { steps: 8 });
+      await page.mouse.move(box.x, box.y + 1, { steps: 2 });
       await sleep(450);
       const after = await read();
       check("grid sleeves answer hover", before !== after, `${before} → ${after}`);

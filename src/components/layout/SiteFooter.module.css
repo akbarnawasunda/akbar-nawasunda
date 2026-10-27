@@ -37,10 +37,20 @@
   gap: var(--space-2);
 }
 
+.column li {
+  /* A grid item's automatic minimum size is its content, so an address with no break opportunity
+     widened the fourth column past the page and the whole document scrolled sideways — by exactly
+     the 22 px that fit the difference at a 1024 px viewport. `min-width: 0` lets the column be as
+     narrow as the grid says it is. */
+  min-width: 0;
+}
+
 .column a {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  /* The email is one unbreakable token in Chrome; without this it overflows its column silently. */
+  overflow-wrap: anywhere;
   font-family: var(--font-body-stack);
   font-size: var(--text-small);
   line-height: var(--leading-title);
