@@ -29,6 +29,15 @@
   margin: 0;
 }
 
+/*
+ * The sleeve's box: the link fills it, and the two badges are positioned against it rather than
+ * against the card, so they stay on the artwork instead of drifting down to the title row.
+ */
+.sleeveWrap {
+  position: relative;
+  display: block;
+}
+
 /* The sleeve is the link. One hairline appears on hover only, so at rest the wall is artwork. */
 .sleeve {
   position: relative;
@@ -85,8 +94,8 @@
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.sleeve:hover .ordinal,
-.sleeve:focus-visible .ordinal {
+.card:hover .ordinal,
+.card:focus-within .ordinal {
   opacity: 1;
 }
 
@@ -117,6 +126,13 @@
   text-transform: uppercase;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+/* Both badges are decoration over the sleeve: they must never intercept the click that opens the
+   release. */
+.ordinal,
+.flag {
+  pointer-events: none;
 }
 
 .title {

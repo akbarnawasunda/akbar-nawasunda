@@ -51,19 +51,23 @@ export function ReleaseGrid({ items }: ReleaseGridProps) {
     <ol className={styles.grid}>
       {items.map((item, index) => (
         <li key={item.slug} className={styles.card} data-release={item.slug}>
-          <Link
-            href={item.href}
-            className={styles.sleeve}
-            /* WCAG 2.5.3: every word printed inside the link has to appear in its accessible name.
-               The ordinal is already hidden; the "Baru" badge is visual shorthand for the phrase
-               below, which is what a screen reader hears instead. */
-            aria-label={item.featured ? `Buka rilis ${item.title} — rilis terbaru` : `Buka rilis ${item.title}`}
-          >
-            <span className={styles.sleeveInner}>
-              {/* The link above already names the release; a second name on the picture would
-                  fail WCAG 2.5.3 for no gain. */}
-              <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} alt="" />
-            </span>
+          {/*
+            Round 35.1 — nothing that is *printed* lives inside this link.
+
+            WCAG 2.5.3 (axe's label-content-name-mismatch) compares a link's visible text with its
+            accessible name, and it counts text that is merely `aria-hidden` as visible — hiding the
+            "Baru" badge from screen readers did not stop it from being a visible word the name did
+            not contain. The badge and the catalogue number are therefore siblings of the link, laid
+            over it, with `pointer-events: none` so the whole sleeve still answers a click.
+          */}
+          <span className={styles.sleeveWrap}>
+            <Link href={item.href} className={styles.sleeve} aria-label={`Buka rilis ${item.title}`}>
+              <span className={styles.sleeveInner}>
+                {/* The link already names the release; a second name on the picture would fail the
+                    same rule for no gain. */}
+                <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} alt="" />
+              </span>
+            </Link>
             <span className={styles.ordinal} aria-hidden="true">
               {String(index + 1).padStart(2, "0")}
             </span>
@@ -72,7 +76,7 @@ export function ReleaseGrid({ items }: ReleaseGridProps) {
                 Baru
               </span>
             ) : null}
-          </Link>
+          </span>
 
           <p className={styles.meta}>
             <span>{item.year ?? "—"}</span>
