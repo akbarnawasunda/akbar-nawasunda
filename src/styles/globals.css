@@ -68,12 +68,19 @@ h3 {
   text-wrap: balance;
 }
 
-/* The site's own name: the hero, the footer wordmark, the loading curtain. Nowhere else. */
+/*
+ * Round 39 — the display face belongs to one line of type: the artist's name on the homepage.
+ *
+ * The rule used to be on the h1 *element*, which quietly set every page title on the site in Excess V
+ * Straight — /contact, /epk, /artist, the 404. The owner's direction is that the display face is the
+ * name and nothing else, so the element rule is reading type now, and `.heroName` in the page module
+ * is the one place that asks for the display stack by name.
+ */
 h1 {
-  font-family: var(--font-display-stack);
+  font-family: var(--font-body-stack);
   font-weight: 400;
-  letter-spacing: var(--tracking-hero);
-  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
 }
 
 /* Every other heading is reading type set large: Relidux at full size, a touch of negative
