@@ -15,8 +15,19 @@ import { releaseEyebrow, releases } from "@/content/releases";
 import { designAttributes } from "@/studio/design";
 import { getPublicDesign } from "@/studio/public";
 
-// Design settings come from the published Studio state, so this layout is read per request.
-export const dynamic = "force-dynamic";
+/**
+ * Round 40 (audit P1-5) — this used to be `force-dynamic`, to keep published design settings fresh,
+ * and that one line made *every* page on the site uncacheable: twenty-one routes answering
+ * `Cache-Control: private, no-cache`, a DB round-trip per visitor for a document that changes when
+ * the owner presses publish and at no other time.
+ *
+ * The site was already written for the other contract — every publish action in
+ * src/studio/actions.ts calls `revalidatePath("/", "layout")` (design, photos) or
+ * `revalidatePath("/music/<slug>")` (releases), which did nothing at all on a dynamic route. So: the
+ * layout is cached, and publishing invalidates it immediately. `revalidate` is only the safety net
+ * for a write that happened without going through an action.
+ */
+export const revalidate = 3600;
 
 /**
  * Shared chrome for the artist website: header, main landmark and footer. The wrapper carries only
@@ -26,9 +37,9 @@ export const dynamic = "force-dynamic";
  * lerping after the pointer, and the lerp is exactly what "kursor rusak" describes: every frame the
  * decoration was a little behind the hand, so aiming at a 40px button felt like dragging something.
  * The reference site this page is measured against uses the pointer the operating system draws, at
- * the refresh rate of the display, with no JavaScript in the path — so that is what ships. The
- * component file and its stylesheet are still in the tree (with the round-35 pointer-events and
- * touch-disarm fixes in them) should the owner ever want it back; nothing imports it.
+ * the refresh rate of the display, with no JavaScript in the path — so that is what ships. Round 40
+ * removed the component and its stylesheet, along with the four tokens they were the only readers
+ * of: a comment is not a reason to keep a file nothing can reach.
  */
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const design = await getPublicDesign();

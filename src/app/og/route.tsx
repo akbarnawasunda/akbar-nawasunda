@@ -30,7 +30,14 @@ export const runtime = "nodejs";
 const WIDTH = 1200;
 const HEIGHT = 630;
 
-const BLUE = "#2E8C86";
+/*
+ * Round 40 (audit P1-1): this was `#2E8C86`, a teal that appears nowhere in the design system — not
+ * in tokens.css, not in the mark, not on any page. Every shared link therefore carried an accent the
+ * site itself never uses, at 5.91:1 against black it is not even the right blue. The accent is
+ * `--color-signal-blue` (#0087FF, tokens.css), and satori cannot resolve a CSS custom property, so
+ * the one place a raw hex is legitimate is here: the token is quoted beside it.
+ */
+const BLUE = "#0087FF";
 const INK = "#0A0A0E";
 const PAPER = "#E8E6E1";
 const SECONDARY = "#A1A1B5";
@@ -56,7 +63,9 @@ async function readAsset(path: string): Promise<Buffer | null> {
 
 export async function GET(request: Request) {
   const slug = new URL(request.url).searchParams.get("slug");
-  const release = slug ? releases.find((candidate) => candidate.slug === slug) : undefined;
+  const release = slug
+    ? releases.find((candidate) => candidate.slug === slug)
+    : undefined;
 
   const fontBytes = await readAsset("fonts/anton-og.ttf");
   if (!fontBytes) return new Response("OG font missing", { status: 500 });
@@ -82,7 +91,8 @@ export async function GET(request: Request) {
    * apart. The sleeve is typography this card can reproduce itself, so a sleeve release gets the
    * large title and the AN mark instead.
    */
-  const rawCover = artwork?.kind === "image" ? await readAsset(artwork.src) : null;
+  const rawCover =
+    artwork?.kind === "image" ? await readAsset(artwork.src) : null;
   /**
    * Satori (the renderer behind ImageResponse) only decodes PNG and JPEG. Our sleeves and the
    * owner's artwork are WebP, which satori accepts without error and then draws as an empty box —
@@ -91,110 +101,134 @@ export async function GET(request: Request) {
    */
   const coverUrl = rawCover
     ? `data:image/png;base64,${(
-        await sharp(rawCover).resize(470, 470, { fit: "cover" }).png().toBuffer()
+        await sharp(rawCover)
+          .resize(470, 470, { fit: "cover" })
+          .png()
+          .toBuffer()
       ).toString("base64")}`
     : null;
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        background: INK,
+        color: PAPER,
+        fontFamily: "Anton",
+        position: "relative",
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
-          background: INK,
-          color: PAPER,
-          fontFamily: "Anton",
-          position: "relative",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          flex: 1,
+          padding: "64px 56px",
         }}
       >
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <div style={{ width: 14, height: 14, background: BLUE }} />
+          <div style={{ fontSize: 24, letterSpacing: 8, color: SECONDARY }}>
+            AKBAR NAWASUNDA
+          </div>
+        </div>
+
+        {/*
+            No slab behind the title any more (D-108): on the card it read as a stray rectangle that
+            only lined up on two-line titles, and the site it links to no longer uses it either.
+          */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-            flex: 1,
-            padding: "64px 56px",
+            gap: 30,
+            position: "relative",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ width: 14, height: 14, background: BLUE }} />
-            <div style={{ fontSize: 24, letterSpacing: 8, color: SECONDARY }}>AKBAR NAWASUNDA</div>
-          </div>
-
-          {/*
-            No slab behind the title any more (D-108): on the card it read as a stray rectangle that
-            only lined up on two-line titles, and the site it links to no longer uses it either.
-          */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 30, position: "relative" }}>
-            <div
-              style={{
-                fontSize: titleSize,
-                /* 0.92 measured wrong on the card: satori lays the caps ink outside a sub-1 line box,
+          <div
+            style={{
+              fontSize: titleSize,
+              /* 0.92 measured wrong on the card: satori lays the caps ink outside a sub-1 line box,
                    so the meta line collided with the last baseline. 1.0 keeps the block exact. */
-                lineHeight: 1,
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
-                maxWidth: 660,
-                display: "flex",
-                position: "relative",
-              }}
-            >
-              {title}
+              lineHeight: 1,
+              letterSpacing: 0.5,
+              textTransform: "uppercase",
+              maxWidth: 660,
+              display: "flex",
+              position: "relative",
+            }}
+          >
+            {title}
+          </div>
+          {meta ? (
+            <div style={{ fontSize: 26, letterSpacing: 4, color: SECONDARY }}>
+              {meta.toUpperCase()}
             </div>
-            {meta ? (
-              <div style={{ fontSize: 26, letterSpacing: 4, color: SECONDARY }}>{meta.toUpperCase()}</div>
-            ) : null}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <div style={{ width: 120, height: 4, background: BLUE }} />
-            <div style={{ fontSize: 22, letterSpacing: 4, color: SECONDARY }}>AKBARNAWASUNDA.MY.ID</div>
-          </div>
+          ) : null}
         </div>
 
-        {coverUrl ? (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 630,
-              paddingRight: 64,
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- satori renders this, not a browser */}
-            <img
-              src={coverUrl}
-              alt=""
-              width={470}
-              height={470}
-              style={{ objectFit: "cover", border: "1px solid #2A2A38" }}
-            />
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <div style={{ width: 120, height: 4, background: BLUE }} />
+          <div style={{ fontSize: 22, letterSpacing: 4, color: SECONDARY }}>
+            AKBARNAWASUNDA.MY.ID
           </div>
-        ) : (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 560,
-              paddingRight: 80,
-            }}
-          >
-            {/* The mark as type, not as a raster: the card must stay sharp at any size. */}
-            <div style={{ fontSize: 300, letterSpacing: -24, color: "#1A2430", lineHeight: 1 }}>AN</div>
-          </div>
-        )}
+        </div>
       </div>
-    ),
+
+      {coverUrl ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 630,
+            paddingRight: 64,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- satori renders this, not a browser */}
+          <img
+            src={coverUrl}
+            alt=""
+            width={470}
+            height={470}
+            style={{ objectFit: "cover", border: "1px solid #2A2A38" }}
+          />
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 560,
+            paddingRight: 80,
+          }}
+        >
+          {/* The mark as type, not as a raster: the card must stay sharp at any size. */}
+          <div
+            style={{
+              fontSize: 300,
+              letterSpacing: -24,
+              color: "#1A2430",
+              lineHeight: 1,
+            }}
+          >
+            AN
+          </div>
+        </div>
+      )}
+    </div>,
     {
       width: WIDTH,
       height: HEIGHT,
       fonts: [{ name: "Anton", data: font, weight: 400, style: "normal" }],
       headers: {
         // Cards change only when the catalogue does; let the CDN hold them for a day.
-        "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800",
+        "cache-control":
+          "public, s-maxage=86400, stale-while-revalidate=604800",
       },
     },
   );
