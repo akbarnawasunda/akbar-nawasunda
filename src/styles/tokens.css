@@ -63,6 +63,11 @@
    */
   --color-night: #050507;
   --color-cover-fallback: #14263a;
+  /* Row wash for tabular lists (tour dates, index rows). A step, not a glow: on #000 a 4.5% white
+     wash is visible at the edge of peripheral vision and never competes with the type. */
+  --color-row-hover: rgb(255 255 255 / 0.045);
+  /* The neon edge a hovered row draws. Signal blue at low alpha, used only as a 1px box-shadow. */
+  --color-laser: rgb(0 135 255 / 0.85);
 
   /*
    * Structure is one hairline in white. At 16% it is invisible until you look for it, which is
@@ -125,6 +130,15 @@
      the one that will be there once the real files land — and one generic. */
   --font-display-stack: var(--font-display), "Excess V Straight", sans-serif;
   --font-body-stack: var(--font-body), "Relidux", sans-serif;
+  /*
+   * Round 34 — the tabular voice.
+   *
+   * A tour table and a catalogue index are read in columns, and columns need digits that do not
+   * shift width between "14" and "07". No monospace binary is licensed on this site, so this is the
+   * system stack: it renders instantly, costs zero bytes, and every OS has a good one. It is used
+   * for numbers and codes only — never for a sentence.
+   */
+  --font-mono-stack: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /*
    * Poster metrics, on purpose.
@@ -169,6 +183,16 @@
    * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
    */
   --text-hero: clamp(2rem, 4vw, 4rem);
+  /*
+   * Round 34 — the festival scale.
+   *
+   * The hero name is the one piece of type on this site that has to work as a poster: it is read
+   * from across a room before anything else on the page is read at all. `--text-mega` is fitted to
+   * the display face (NAWASUNDA measures ~8.4 × font-size, so 9.2vw keeps it inside one line on a
+   * 320px phone *and* on a 1440px laptop) with a floor that stays legible on a handset and a
+   * ceiling that stops a 2560px monitor from getting a 250px word.
+   */
+  --text-mega: clamp(2.75rem, 9.2vw, 7.5rem);
   /* Round 22: the takeover voice — one step under the hero name, for the release that owns the
      screen right now (home transmission band, catalogue featured block). A major-label site gives
      the current release almost the same type as the artist's own name; this is that move. */

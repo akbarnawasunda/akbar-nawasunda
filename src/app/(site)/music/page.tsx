@@ -6,11 +6,8 @@ import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/layout/Container";
 import { PageMasthead } from "@/components/layout/PageMasthead";
-import { coverArtwork, resolveCover } from "@/content/covers";
-import { fromReleaseDocument, fromStaticRelease, type ReleaseView } from "@/content/release-view";
-import { releases as staticReleases } from "@/content/releases";
+import { getCatalogue } from "@/content/catalogue";
 import { pageMetadata } from "@/lib/metadata";
-import { getPublishedReleases } from "@/studio/public";
 import styles from "./music.module.css";
 
 export const dynamic = "force-dynamic";
@@ -22,9 +19,9 @@ export const metadata = pageMetadata({
 });
 
 /**
- * Published Studio releases take precedence. If none are published, the verified static list in
- * src/content/releases.ts is shown; if that is empty too, the honest "pending" notice shows.
- * Artwork is picked up from public/assets/covers/<slug>.* in both cases.
+ * One catalogue, one order: `getCatalogue()` asks the Studio first and falls back to the verified
+ * static list (round 34). The homepage reads the exact same function, so a release can no longer be
+ * published here and missing from the front page.
  *
  * The page head is a printed blue sleeve (R8, D-121) and the catalogue is a wall of sleeves you can
  * put your pointer through, instead of the three-column card grid it used to be. Two reasons:
@@ -32,17 +29,10 @@ export const metadata = pageMetadata({
  * tiles makes ten releases look like ten blog posts.
  */
 export default async function MusicPage() {
-  const published = await getPublishedReleases();
-  const items: ReleaseView[] =
-    published.length > 0
-      ? published.map(({ slug, doc }) => fromReleaseDocument(slug, doc, resolveCover(slug)))
-      : staticReleases.map((release) => fromStaticRelease(release, resolveCover(release.slug)));
+  const items = await getCatalogue();
 
-  // The artwork is resolved here, on the server, and handed to the wall as a value.
-  const wallItems: WallItem[] = items.map((item) => ({
-    ...item,
-    artwork: item.coverUrl ? { kind: "image", src: item.coverUrl } : coverArtwork(item.slug),
-  }));
+  // The artwork is resolved in the loader, on the server, and handed to the wall as a value.
+  const wallItems: WallItem[] = items;
   const count = String(items.length).padStart(2, "0");
   /* The takeover needs a first release; `?? null` keeps noUncheckedIndexedAccess honest. */
   const lead = wallItems[0] ?? null;

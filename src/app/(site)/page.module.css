@@ -1,20 +1,27 @@
 /*
- * Homepage — "HUD" (round 16).
+ * Homepage — "platform" (round 34).
  *
- * Three ideas carry this page, and they are the owner's, not the stylesheet's:
+ * The reference is a festival headliner's front page, and what is borrowed from it is order, not
+ * ornament: a release-first page answers "what came out?" in the first screen and "are you playing
+ * near me?" in the second. The stylesheet serves that with four rules:
  *
- *   1. **The type is the layout.** The name is set at --text-hero (round 29: clamp(2rem, 4vw,
- *      4rem), 1.1 leading, -0.02em) in uppercase, one word per line. Nothing else competes:
- *      the facts are 0.625rem mono, the buttons are 0.6875rem mono, and the photograph is behind
- *      and grayscale.
- *   2. **Structure is a hairline and a mark.** Bands are separated by a 1px white line at 16%; the
- *      corners of the two full-bleed bands carry a `+` and an `×` (HudMarks). No panel has a fill,
- *      no corner has a radius.
- *   3. **Black is black.** The ground is #000000 everywhere, including behind the 3D monogram, so
- *      the metal is the only light source on the page. The accent appears exactly twice: the full
- *      stop after the name, and the monogram's own bloom.
+ *   1. **The type is the layout.** The name is set at --text-mega (a poster-scale clamp) in uppercase,
+ *      one word per line, and nothing in the band competes with it. Everything functional — buttons,
+ *      metadata, tour rows — is mono, small, and letter-spaced.
+ *   2. **Structure is a hairline and a mark.** Bands are separated by a 1px rule at
+ *      --color-hairline; no panel has a fill except the sleeve's offset plate, and no corner has a
+ *      radius (--radius-sm is 0).
+ *   3. **Black is black.** The ground is ink everywhere, including behind the 3D monogram, so the
+ *      metal is the only light source. Accent blue appears exactly where something is actionable:
+ *      the live dot, the catalogue counter, hover on a streaming pill, the tour laser.
+ *   4. **Two vocabularies of small controls.** Streaming pills and tour status cells share the mono
+ *      face, the 1px border and the invert-on-hover, so the page reads as one interface.
  *
- * Everything below is sized in rem/clamp so a 320px phone gets a 44px name and a 2560px monitor
+ * What is *not* here any more, and why: the facts bar (release count and years active are a résumé),
+ * the paper About spread (the long bio belongs on /artist and /epk), the press sheet (/epk is a
+ * route), and the full-bleed night photograph that carried one quote and no information.
+ *
+ * Everything below is sized in rem/clamp so a 320px phone gets a readable name and a 2560px monitor
  * does not get a 330px one; the only viewport unit in the file is inside those clamps.
  */
 
@@ -26,8 +33,8 @@
   display: flex;
   flex-direction: column;
   /* A definite height, not a min-height: flex children only grow into free space the container
-     actually has, and `min-height` leaves the container content-high — which is exactly how the
-     facts strip ended up floating mid-screen with dead ink below it (round 28). */
+     actually has, and `min-height` leaves the container content-high, which floats the type block
+     mid-screen with dead ink below it (round 28). */
   height: min(100svh, 58rem);
   overflow: hidden;
   /* The hero writes transforms every frame while it is in view; this keeps that work inside the
@@ -66,7 +73,7 @@
   /*
    * Round 24: the scrim used to bury the photograph — an "image-led" site whose image nobody can
    * see is a black rectangle with type on it. Lighter at the top and middle so the stage reads as
-   * a place; the floor still falls to ink so the facts bar sits on solid ground.
+   * a place; the floor still falls to ink so the monogram band starts on solid ground with no seam.
    */
   background:
     linear-gradient(
@@ -175,7 +182,9 @@
  * tracking would otherwise push the full stop off-screen.
  */
 .name {
-  font-size: var(--text-hero);
+  /* Round 34: poster scale. The name is the poster the rest of the page hangs from, so it takes the
+     mega clamp rather than the display clamp the section titles use. */
+  font-size: var(--text-mega);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
@@ -242,56 +251,6 @@
   gap: var(--space-3);
 }
 
-/*
- * The facts, as one ruled line: a figure, a label, a figure. They are the only numbers on the page
- * and they are set at 2rem in the display face, because a figure set in 11px mono reads as a
- * footnote and these are the argument.
- */
-.factsBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-6);
-  margin-top: var(--space-8);
-  padding: var(--space-4) var(--space-6);
-  background: var(--color-bone);
-  color: var(--color-bone-ink);
-}
-
-.facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(1.5rem, 5vw, 4.5rem);
-  margin: 0;
-}
-
-.fact {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-1);
-}
-
-.fact dt {
-  font-family: var(--font-body-stack);
-  font-size: var(--text-micro);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--color-bone-muted);
-}
-
-.fact dd {
-  margin: 0;
-  font-family: var(--font-body-stack);
-  font-weight: 400;
-  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
-  line-height: 1;
-  color: var(--color-bone-ink);
-  letter-spacing: var(--tracking-tight);
-}
-
-
-
 /* -------------------------------------------------------------------------------- monogram */
 
 /*
@@ -318,106 +277,81 @@
 }
 
 
-/* ----------------------------------------------------------------------------- transmission */
+/* ------------------------------------------------------------------------------- spotlight */
 
-.transmission {
-  /*
-   * Round 33 — "Sedang Beredar" is the void, not a poster.
-   *
-   * The bone sheet was the loudest light surface on the site and it fought the monogram band above
-   * it. It is now the deepest surface instead (#050507) inside one neon-blue frame, which is the
-   * only line of colour on the page and the reason the section reads as "this release is live".
-   */
+/*
+ * Round 34 — the release spotlight.
+ *
+ * This band replaces round 33's bone "transmission" sheet. The move is the reference site's, and it
+ * is structural rather than cosmetic: the latest release is not an announcement *about* a record,
+ * it is the record. So the sleeve is a full square at roughly half the width of the page, it is the
+ * only image in the band, and the type beside it is a specification sheet — title, one metadata
+ * line, three facts (year, format, position in the catalogue), the places to hear it, two actions.
+ *
+ * No panel, no frame, no card. The band is ink with a single hairline on top, so it reads as the
+ * next page of one poster rather than a widget embedded in a page.
+ */
+.spotlight {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  margin: var(--space-6) var(--gutter);
-  padding: var(--space-12) var(--space-6);
-  border: 1px solid var(--color-signal-blue);
+  /* The header is fixed, so a jump to #music (from the hero's first button) has to stop one header
+     below the viewport's top edge or it parks the band's running head underneath the chrome. */
+  scroll-margin-top: var(--header-height);
+  padding-block: var(--section-padding);
+  border-top: 1px solid var(--color-hairline);
+  /* The deepest surface on the site (#050507), one step off the ink ground. The spotlight is a lit
+     stage floor under the sleeve, not another black band: the difference is almost invisible
+     head-on, which is the point — it reads as depth, not as a panel. */
   background: var(--color-night);
-  color: var(--color-text-primary);
 }
 
-/* The sleeve is bone stock too, so on a bone band it needs an ink plinth to sit on — the same
-   move a gallery makes hanging a light print on a light wall. */
-.transmissionArt {
-  background: var(--color-bone-ink);
-  padding: var(--space-3);
-  /* A pasted poster is never perfectly square on the wall. One and a half degrees, no more. */
-  rotate: -1.5deg;
+/* The running head of the band: "Sedang Beredar" on the left, the catalogue position on the right,
+   one rule between them and the sleeve. Two mono lines, no title — the title is the record. */
+.spotlightHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-.sectionLink,
+.spotlightFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
 
-.sectionLink:hover,
-.sectionLink:focus-visible {
-  color: var(--color-text-primary);
+/* Position in the catalogue, as a counter: "01 / 07". The mono face keeps the digits from sliding
+   when the count changes, which is the whole reason a schedule and an index use it. */
+.spotlightIndex {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-signal-blue);
 }
 
 /*
- * Two columns, and the asymmetry is deliberate: the title takes 7 of 12 and the sleeve 5, so the
- * type stays the subject even when the artwork is the loudest object in the row.
+ * 50/50, and it stays 50/50. The asymmetry of the old takeover (7/5 toward the type) existed to keep
+ * a bone sheet from out-shouting the name above it; here the sleeve *is* the content, so the two
+ * halves earn the same width. Below 900px the band stacks sleeve-first.
  */
-.transmissionBody {
+.spotlightBody {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
   gap: clamp(2rem, 5vw, 5rem);
   padding-top: var(--space-8);
 }
 
-.transmissionCopy {
-  min-width: 0;
-}
-
-.transmissionTitle {
-  position: relative;
-  z-index: 1;
-  text-align: right;
-  font-family: var(--font-body-stack);
-  /* Round 22 takeover: the release that owns the screen prints almost as loud as the name. */
-  font-size: var(--text-takeover);
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-title);
-  text-transform: uppercase;
-  font-weight: 400;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
-}
-
-/* The "out now" flag: one mono line with the hero's live dot, because a takeover that does not
-   say it is current is just a big title. */
-.transmissionFlag {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  padding-bottom: var(--space-3);
-}
-
-.transmissionMeta {
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-hairline);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-meta);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.transmissionActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-8);
-}
-
-.transmissionArt {
+.spotlightCover {
   min-width: 0;
 }
 
@@ -457,11 +391,130 @@
   border: 1px solid var(--color-border);
 }
 
+.spotlightCopy {
+  min-width: 0;
+}
+
+.spotlightTitle {
+  font-size: var(--text-takeover);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.spotlightMeta {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-meta);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
 /*
- * Round 32: the phone gets the sleeve edge to edge — a record held to the glass, not framed on a
- * table. The offset plate (the one "shadow" on the site) stays on wider screens; at this width its
- * overhang would push the document sideways.
+ * The facts, as three labelled cells in one ruled row — not a table, because this is a
+ * description list and there is no row below it to align to. `column-reverse` puts the value above
+ * its label: the number is the reading order, the label is the footnote.
  */
+.gear {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-8) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.gearItem {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.gearItem dt {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.gearItem dd {
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-size: var(--text-title);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.gearOf {
+  color: var(--color-text-muted);
+}
+
+/*
+ * Streaming pills: a row of small rectangles, 0 radius, one hairline each. They are not cards —
+ * they are buttons with a service name — so they share the mono face and the border with the tour
+ * matrix's status column, which is the point: the page has one vocabulary of small controls.
+ */
+.streams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+}
+
+.stream {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 0;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.stream:hover,
+.stream:focus-visible {
+  border-color: var(--color-signal-blue);
+  background: var(--color-signal-blue);
+  color: var(--color-on-brand);
+}
+
+.streamArrow {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+.spotlightActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+/* Round 32: the phone gets the sleeve edge to edge — a record held to the glass, not framed on a
+   table. The offset plate (the one "shadow" on the site) stays on wider screens; at this width its
+   overhang would push the document sideways. */
 @media (max-width: 767px) {
   .sleeveStage {
     width: 100vw;
@@ -480,6 +533,7 @@
 /* ------------------------------------------------------------------------------------ index */
 
 .indexBand {
+  scroll-margin-top: var(--header-height);
   padding-block: var(--section-padding);
   border-top: 1px solid var(--color-hairline);
 }
@@ -510,187 +564,13 @@
   overflow-wrap: anywhere;
 }
 
-/* ------------------------------------------------------------------------------------ night */
-
-/*
- * One full-bleed photograph and one sentence. No interface on it at all — this is the band that
- * tells a visitor there is a room behind the catalogue.
- */
-.night {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 78svh;
-  overflow: hidden;
-  border-top: 1px solid var(--color-hairline);
-  background: var(--color-bg);
-}
-
-.nightMedia {
-  position: absolute;
-  inset: 0;
-}
-
-.nightImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 42%;
-  opacity: 0.7;
-}
-
-.nightQuote {
-  /*
-   * Round 28: the pull-quote is a sheet of the label's stock laid over the photograph, offset to
-   * the left edge instead of centred — type never sits on a photograph, but paper can.
-   */
-  position: relative;
-  z-index: 2;
-  max-width: min(34ch, calc(100% - var(--space-12)));
-  margin: 0 auto var(--space-8) var(--gutter);
-  padding: var(--space-4) var(--space-6);
-  background: var(--color-bone);
-  color: var(--color-bone-ink);
-  font-family: var(--font-body-stack);
-  font-weight: 400;
-  font-size: clamp(1.5rem, 3.6vw, 2.9rem);
-  line-height: 1.3;
-  letter-spacing: var(--tracking-tight);
-  text-wrap: balance;
-  text-shadow: 0 1px 40px rgb(0 0 0 / 0.65);
-}
-
-.nightCaption {
-  position: relative;
-  z-index: 2;
-  padding-bottom: var(--space-6);
-  text-align: center;
-  font-family: var(--font-body-stack);
-  font-size: var(--text-micro);
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
 /* ---------------------------------------------------------------------------------- archive */
 
 .archive {
+  scroll-margin-top: var(--header-height);
   padding-block: var(--section-padding) 0;
   border-top: 1px solid var(--color-hairline);
 }
-
-/* ------------------------------------------------------------------------------------ press */
-
-.pressBand {
-  padding-block: var(--section-padding);
-  border-top: 1px solid var(--color-hairline);
-}
-
-.pressWrap {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: start;
-}
-
-.press {
-  padding: var(--space-8);
-  border: 1px solid var(--color-hairline);
-}
-
-.pressEyebrow {
-  font-family: var(--font-body-stack);
-  font-size: var(--text-caption);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.pressActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-}
-
-.pressTitle {
-  margin-top: var(--space-3);
-  padding-bottom: var(--space-6);
-  border-bottom: 1px solid var(--color-hairline);
-  font-size: var(--text-display);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
-  text-transform: uppercase;
-}
-
-/*
- * The timeline is a table of two columns, not a vertical line with dots: at 0.625rem the years line
- * up down the left edge and read as a chronology, where a drawn rail beside display type reads as a
- * decorative flourish.
- */
-.timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-}
-
-.timeline li {
-  display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
-  gap: var(--space-4);
-  padding-block: var(--space-4);
-  border-bottom: 1px solid var(--color-hairline);
-}
-
-.timelineYear {
-  font-family: var(--font-body-stack);
-  font-size: var(--text-caption);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.timelineBody {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.timelineTitle {
-  font-family: var(--font-body-stack);
-  font-weight: 400;
-  font-size: var(--text-title);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-}
-
-.timelineDetail {
-  color: var(--color-text-secondary);
-  font-size: var(--text-small);
-  line-height: 1.55;
-}
-
-.pressPhoto {
-  border: 1px solid var(--color-hairline);
-}
-
-.pressPhoto img {
-  width: 100%;
-  height: auto;
-}
-
-.pressPhotoCaption {
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-hairline);
-  font-family: var(--font-body-stack);
-  font-size: var(--text-micro);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
 
 .notesBand {
   padding-block: var(--section-padding);
@@ -704,21 +584,8 @@
  * type spec floors it at 2rem, so a 390px phone reads the same hierarchy, just smaller).
  */
 @media (max-width: 899px) {
-  .transmission {
-    margin-inline: var(--gutter);
-    padding: var(--space-8) var(--space-4);
-  }
-
   .hero {
     height: auto;
-    min-height: auto;
-  }
-
-  .transmissionTitle {
-    text-align: left;
-  }
-
-  .hero {
     min-height: auto;
   }
 
@@ -727,13 +594,10 @@
     padding-top: var(--space-4);
   }
 
-  .transmissionBody,
-  .pressWrap {
+  /* The sleeve leads on a phone: a visitor who came for the record meets the record first, and the
+     specification sheet follows it instead of pushing it below the fold. */
+  .spotlightBody {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .press {
-    padding: var(--space-4);
   }
 
   .signature {
@@ -742,17 +606,13 @@
 }
 
 @media (max-width: 560px) {
-  .timeline li {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-2);
-  }
-
   .heroActions {
     width: 100%;
   }
 
-  .nightQuote {
-    max-width: calc(100% - var(--space-8));
-    margin-inline: var(--gutter);
+  /* Three facts do not fit across a 320px screen at a readable size; two columns of equal width
+     wrap the third onto its own row instead of shrinking every value to a caption. */
+  .gear {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

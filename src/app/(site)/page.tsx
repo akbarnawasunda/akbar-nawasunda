@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
-import { PaperAbout } from "@/components/content/PaperAbout";
+import { editorialFrame } from "@/assets/web";
 import { CataloguePin } from "@/components/content/CataloguePin";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
+import { TourSection } from "@/components/content/TourSection";
 import { Container } from "@/components/layout/Container";
 import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
@@ -19,14 +19,11 @@ import { Depth } from "@/components/zine/Depth";
 import { Magnetic } from "@/components/zine/Magnetic";
 import { Plate3D } from "@/components/zine/Plate3D";
 import { Reveal } from "@/components/zine/Reveal";
-import { coverArtwork } from "@/content/covers";
-import { fromStaticRelease } from "@/content/release-view";
-import { releases } from "@/content/releases";
-import { heroStats } from "@/content/stats";
+import { getCatalogue } from "@/content/catalogue";
+import { tourDates } from "@/content/tour";
 import { visualItems } from "@/content/visuals";
-import { artistTimeline } from "@/content/artist";
 import { siteConfig } from "@/config/site";
-import { listenUrl, socialLinks } from "@/config/socials";
+import { getPlatformLink, listenUrl } from "@/config/socials";
 import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
 import { getPublicPage, getPublicPhotos } from "@/studio/public";
@@ -34,27 +31,28 @@ import { getPublicPage, getPublicPhotos } from "@/studio/public";
 import styles from "./page.module.css";
 
 /**
- * Homepage — "HUD" (round 16).
+ * Homepage — "platform" (round 34).
  *
- * The owner handed over a set of screenshots from a world-class artist site and named the standard:
- * pure black, pure white, type at 12vw in uppercase, thin cross marks, and nothing else. This page
- * is that standard applied to a ten-release catalogue:
+ * The reference is martingarrix.com, and the structural lesson from it is not decoration: a festival
+ * artist's front page is *release-first and date-first*. A visitor arrives from a poster or a story
+ * with two questions — "what came out?" and "are you playing near me?" — and a page that answers
+ * them in the first two screens is doing its job. So the order is:
  *
- *   1. the hero — the name at 12.5vw in two lines over a monochrome photograph, the facts on a rule;
- *   2. the monogram — the 3D mark, full-bleed, on black, immediately after the name. It is the
- *      centrepiece, so it comes second: a visitor sees the name, then the object, then the work;
- *   3. the running head — the catalogue as one scrub-scrolled line of display type;
- *   4. the transmission — the newest release as a spread;
- *   5. the index — all ten releases as ruled rows that invert under the pointer;
- *   6. the bands — night frame, platforms, genres, about, archive, press, press kit.
+ *   1. the name, at poster scale, with the two actions that matter (Latest Release · Tour Dates);
+ *   2. the liquid AN band, flush under the hero — the mark is the identity, not an illustration;
+ *   3. the running head (every release, scrubbed by the scroll);
+ *   4. the release spotlight: one square sleeve, its year and format, and the places to hear it;
+ *   5. the tour matrix: four columns, one hairline per row;
+ *   6. the catalogue reel, the genre tape, the visual archive, the platform strip;
+ *   7. whatever the owner has published in the Studio as extra notes.
  *
- * What is deliberately absent: every sentence that explains the website to the reader ("dihitung
- * dari katalog", "sengaja tidak ada formulir"), every `[NEEDS OWNER]` marker, any rounded corner,
- * any coloured panel. A missing fact is now simply not printed; the Studio still tracks it.
+ * What left this round, on purpose: the facts bar (release counts and years active are a résumé, not
+ * a mainstage), the paper About spread (the long bio lives on /artist and /epk), the press sheet
+ * (/epk is a real route), and the night photograph that carried one quote and no information.
  *
- * Copy rules that remain non-negotiable: counts are derived (src/content/stats.ts), every platform
- * link comes from the owner's own files (D-090), and nothing unverified is stated. No stream totals,
- * no awards, no tour dates — there are none to show.
+ * Catalogue source: `getCatalogue()` — the same function `/music` reads, Studio-published rows first
+ * with the verified static list as the fallback. Before round 34 this page built its own list, which
+ * is exactly how a release could ship to the catalogue and never reach the front page.
  */
 export const metadata: Metadata = {
   title: {
@@ -79,36 +77,65 @@ export const metadata: Metadata = {
   },
 };
 
-const youtube = socialLinks.find((link) => link.platform === "youtube");
-const catalogue = releases.map((release) => ({
-  ...fromStaticRelease(release, null),
-  artwork: coverArtwork(release.slug),
-}));
-const featured = catalogue[0];
-const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
-const officialLinkCount = releases.length + socialLinks.length;
+/*
+ * The artist's own listening pages, in the order a visitor looks for them. These are the owner's
+ * verified profiles (`src/config/socials.ts`), not links invented for a release: they are used only
+ * to fill the spotlight pill row when the featured release does not carry its own destination for
+ * that service.
+ */
+const listenFallbacks = (["spotify", "appleMusic", "youtube", "soundcloud"] as const).map((platform) =>
+  getPlatformLink(platform),
+);
 
-/** One sleeve path per release, for the index preview. `release.cover` first, then the waterfall. */
-
-const tickerItems = catalogue.map((item) => ({
-  slug: item.slug,
-  title: item.title,
-  meta: item.meta,
-}));
-
-/** Only the milestones that are documented; a gap is silent, not a stamped hole. */
-const timeline = artistTimeline.filter((entry) => !entry.pending);
+/** The desktop-safe key for a service name: "Apple Music" and "appleMusic" are the same pill. */
+function serviceKey(label: string): string {
+  return label.toLowerCase().replace(/[^a-z]/g, "");
+}
 
 /* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
  * filled slot appear within a minute (and immediately after the studio's revalidatePath). */
 export const revalidate = 60;
 
 export default async function HomePage() {
+  const catalogue = await getCatalogue();
+  const featured = catalogue[0] ?? null;
   if (!featured) return null;
+
   const home = await getPublicPage("home");
   /* Round 26 photo slots: a studio upload wins, the repository asset is the fallback. */
   const photos = await getPublicPhotos();
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
+
+  const tickerItems = catalogue.map((item) => ({
+    slug: item.slug,
+    title: item.title,
+    meta: item.meta,
+  }));
+
+  /*
+   * Where to hear it. Two sources, one order, no invention:
+   *
+   *   1. the release's own links (the loader has already sorted them streaming-first), then
+   *   2. the artist's verified profiles for any of the four headline services the release does not
+   *      carry itself.
+   *
+   * Round 34 fixed a quiet bug here: the previous code looked YouTube up in `socialLinks`, the social
+   * block, where no YouTube entry exists — so the pill and the archive header action never rendered.
+   * The channel lives in `listenLinks`; `getPlatformLink` is the accessor that knows that.
+   */
+  const streamLinks: { label: string; href: string }[] = [];
+  const seenServices = new Set<string>();
+  for (const link of [...featured.links, ...listenFallbacks]) {
+    const key = serviceKey(link.label);
+    if (seenServices.has(key)) continue;
+    seenServices.add(key);
+    streamLinks.push({ label: link.label, href: link.href });
+    if (streamLinks.length === 4) break;
+  }
+  const streams =
+    streamLinks.length > 0 ? streamLinks : [{ label: "Dengar Sekarang", href: listenUrl }];
+  const catalogueIndex = String(1).padStart(2, "0");
+  const catalogueTotal = String(catalogue.length).padStart(2, "0");
 
   return (
     <>
@@ -173,53 +200,32 @@ export default async function HomePage() {
                 </h1>
 
                 <div className={styles.heroFoot} data-depth="hero-foot">
-                  <p className={styles.heroSub}>
-                    Breakbeat, Indo Bass, Jedag Jedug. Direkam di studio rumah, Bandung Barat.
-                  </p>
+                  <p className={styles.heroSub}>Breakbeat, Indo Bass, Jedag Jedug. Live set dari Bandung Barat.</p>
 
                   <div className={styles.heroActions}>
                     <Magnetic>
-                      <ButtonLink href={listenUrl} variant="primary" external>
-                        Dengar Sekarang
+                      <ButtonLink href="#music" variant="primary">
+                        Latest Release
                       </ButtonLink>
                     </Magnetic>
                     <Magnetic>
-                      <ButtonLink href="#music" variant="secondary">
-                        Lihat Katalog
+                      <ButtonLink href="#tour" variant="secondary">
+                        Tour Dates
                       </ButtonLink>
                     </Magnetic>
                   </div>
                 </div>
               </div>
             </Depth>
-
-            <div className={styles.factsBar} data-depth="hero-facts">
-              <dl className={styles.facts}>
-                <div className={styles.fact}>
-                  <dt>Rilis</dt>
-                  <dd>{stats.releaseCount}</dd>
-                </div>
-                <div className={styles.fact}>
-                  <dt>Tahun aktif</dt>
-                  <dd>{stats.yearsActive}</dd>
-                </div>
-                <div className={styles.fact}>
-                  <dt>Tautan resmi</dt>
-                  <dd>{officialLinkCount}</dd>
-                </div>
-              </dl>
-            </div>
           </div>
         </Plate3D>
       </section>
 
       {/* --------------------------------------------------------------- monogram */}
       {/*
-        The centrepiece, second only to the name.
-
-        It is a full-bleed black band with the 3D mark as the only object on it and one line of
-        mono copy at the bottom edge. No photograph, no gradient, no rule behind it: the metal is
-        the light source, and a second bright thing on the same screen would halve it.
+        The mark sits flush against the hero: both bands are the same ink, and any margin between
+        them would draw a seam the page does not want. `display: block` + no margin is the whole
+        contract; the band itself owns its height and its clip.
       */}
       <section className={styles.signature} aria-label="Monogram">
         <AnMonogram />
@@ -228,48 +234,114 @@ export default async function HomePage() {
       {/* ----------------------------------------------------------- running head */}
       <ReleaseTicker items={tickerItems} />
 
-      {/* ------------------------------------------------------------- transmission */}
-      <section className={styles.transmission} id="music" aria-labelledby="music-title">
+      {/* ------------------------------------------------------------- spotlight */}
+      {/*
+        The latest release, as a poster: one square sleeve at half the page, the facts a record has
+        (year, format, position in the catalogue) and the places to hear it. This replaces the bone
+        "transmission" sheet — same idea, no paper, no second title, and the sleeve is the object
+        rather than an illustration beside copy.
+      */}
+      <section className={styles.spotlight} id="music" aria-labelledby="music-title">
         <Container>
-          <Reveal>
-
-          <p className={styles.transmissionFlag}>
+          <div className={styles.spotlightHead}>
+            <p className={styles.spotlightFlag}>
               <span className={styles.live} aria-hidden="true" />
-              Sedang beredar
+              Sedang Beredar
             </p>
-            <h2 id="music-title" className={styles.transmissionTitle}>
-              {featured.title}
-            </h2>
+            <p className={styles.spotlightIndex}>
+              {catalogueIndex} / {catalogueTotal}
+            </p>
+          </div>
 
-            <div className={styles.transmissionBody}>
-              <div className={styles.transmissionCopy}>
-                <p className={styles.transmissionMeta}>{featured.meta}</p>
-              <div className={styles.transmissionActions}>
+          <div className={styles.spotlightBody}>
+            <Reveal className={styles.spotlightCover}>
+              <Plate3D
+                className={styles.sleeveStage}
+                data-plate="featured-sleeve"
+                tiltY={9}
+                tiltX={6}
+                shift={10}
+                perspective={1000}
+              >
+                <Link
+                  href={featured.href}
+                  className={styles.sleeveLink}
+                  data-sleeve
+                  aria-label={`Buka rilis ${featured.title}`}
+                >
+                  <span className={styles.sleeveEdge} aria-hidden="true" />
+                  <span className={styles.sleeveFace}>
+                    <ReleaseCover artwork={featured.artwork} title={featured.title} showTitle={false} />
+                  </span>
+                </Link>
+              </Plate3D>
+            </Reveal>
+
+            <div className={styles.spotlightCopy}>
+              <h2 id="music-title" className={styles.spotlightTitle}>
+                {featured.title}
+              </h2>
+              <p className={styles.spotlightMeta}>{featured.meta}</p>
+
+              <dl className={styles.gear}>
+                <div className={styles.gearItem}>
+                  <dt>Tahun</dt>
+                  <dd>{featured.year ?? "—"}</dd>
+                </div>
+                <div className={styles.gearItem}>
+                  <dt>Format</dt>
+                  <dd>{featured.format}</dd>
+                </div>
+                <div className={styles.gearItem}>
+                  <dt>Katalog</dt>
+                  <dd>
+                    {catalogueIndex}
+                    <span className={styles.gearOf}> / {catalogueTotal}</span>
+                  </dd>
+                </div>
+              </dl>
+
+              <ul className={styles.streams} aria-label="Dengarkan rilisan ini">
+                {streams.map((link) => (
+                  <li key={`${link.label}-${link.href}`}>
+                    <a
+                      className={styles.stream}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.label}
+                      <span className={styles.streamArrow} aria-hidden="true">
+                        ↗
+                      </span>
+                      <span className="sr-only"> (membuka tab baru)</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <div className={styles.spotlightActions}>
                 <Magnetic>
                   <ButtonLink href={featured.href} variant="primary">
                     Buka Rilis
                   </ButtonLink>
                 </Magnetic>
+                <Magnetic>
+                  <ButtonLink href="/music" variant="secondary">
+                    Semua Rilis
+                  </ButtonLink>
+                </Magnetic>
               </div>
             </div>
-
-            <Reveal className={styles.transmissionArt}>
-              <Plate3D className={styles.sleeveStage} data-plate="featured-sleeve" tiltY={11} tiltX={7} shift={12} perspective={1000}>
-                <Link href={featured.href} className={styles.sleeveLink} data-sleeve aria-label={`Buka rilis ${featured.title}`}>
-                  <span className={styles.sleeveEdge} aria-hidden="true" />
-                  <span className={styles.sleeveFace}>
-                    <ReleaseCover artwork={featured.artwork} title={featured.title} shape="square" showTitle={false} />
-                  </span>
-                </Link>
-              </Plate3D>
-            </Reveal>
-            </div>
-          </Reveal>
+          </div>
         </Container>
       </section>
 
-      {/* ------------------------------------------------------------------ index */}
-      <section className={styles.indexBand} aria-labelledby="catalogue-title">
+      {/* ------------------------------------------------------------------- tour */}
+      <TourSection dates={tourDates} />
+
+      {/* ---------------------------------------------------------------- catalogue */}
+      <section className={styles.indexBand} id="catalogue" aria-labelledby="catalogue-title">
         <Container>
           <Reveal>
             <h2 id="catalogue-title" className={styles.indexTitle}>
@@ -277,15 +349,8 @@ export default async function HomePage() {
             </h2>
           </Reveal>
           <p className={styles.railCount}>
-            {stats.releaseCount} rilis · sejak {siteConfig.since}
+            {catalogue.length} rilis · sejak {siteConfig.since}
           </p>
-          {/*
-            Round 29: the index is the data, the rail is the object — and the object is a pinned
-            reel now. A 300vh wrapper, a sticky 100vh flex row, and the page's own scroll engine
-            turning the pinned travel into one translateX; under 768px it dissolves back into a
-            vertical column, because a discography you can push sideways with a thumb is the one
-            catalogue gesture a major label site never drops.
-          */}
           <CataloguePin
             items={catalogue.map((item) => ({
               slug: item.slug,
@@ -298,28 +363,7 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* ------------------------------------------------------------------- night */}
-      <section className={styles.night} aria-label="Malam" data-section="night">
-        <Depth className={styles.nightMedia} y={-90} perspective={1200}>
-          <Image
-            src={photos.malam ?? "/media/stage-700.webp"}
-            alt=""
-            fill
-            sizes="100vw"
-            loading="lazy"
-            className={styles.nightImage}
-          />
-        </Depth>
-        <p className={styles.nightQuote}>
-          “Tiga bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.”
-        </p>
-        <p className={styles.nightCaption}>Bandung Barat · rekaman studio rumah</p>
-      </section>
-
-      <PlatformRow />
       <GenreTape />
-
-      <PaperAbout />
 
       {/* ---------------------------------------------------------------- archive */}
       <section className={styles.archive} id="visuals" aria-labelledby="visuals-title">
@@ -329,63 +373,14 @@ export default async function HomePage() {
               eyebrow="Arsip"
               title="Visual"
               id="visuals-title"
-              action={youtube ? { href: youtube.href, label: "YouTube" } : undefined}
+              action={{ href: getPlatformLink("youtube").href, label: "YouTube" }}
             />
           </Depth>
         </Container>
         <VisualRail items={visualItems} />
       </section>
 
-      {/* ------------------------------------------------------------------ press */}
-      <section className={styles.pressBand} id="press" aria-labelledby="press-title">
-        <Container>
-          <Reveal>
-          <div className={styles.pressWrap}>
-            <div className={`paper ${styles.press}`}>
-              <p className={styles.pressEyebrow}>Press Kit</p>
-              <h2 id="press-title" className={styles.pressTitle}>
-                Akbar Nawasunda
-              </h2>
-
-              <ol className={styles.timeline}>
-                {timeline.map((entry) => (
-                  <li key={`${entry.marker}-${entry.title}`}>
-                    <span className={styles.timelineYear}>{entry.marker}</span>
-                    <span className={styles.timelineBody}>
-                      <span className={styles.timelineTitle}>{entry.title}</span>
-                      <span className={styles.timelineDetail}>{entry.detail}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-
-              {/* Round 27: the press sheet absorbs the booking/EPK actions — a second band titled
-                  "Press kit" one section lower said the same thing twice. */}
-              <div className={styles.pressActions}>
-                <ButtonLink href="/epk/akbar-nawasunda-epk.zip" variant="primary">
-                  Unduh Press Kit (.zip)
-                </ButtonLink>
-                <ButtonLink href="/epk" variant="secondary">
-                  Isi Press Kit
-                </ButtonLink>
-              </div>
-            </div>
-
-            <figure className={styles.pressPhoto}>
-              <Image
-                src={portraitSources[1].webp}
-                alt={portraitAlt}
-                width={portraitSize.width}
-                height={portraitSize.height}
-                sizes="(min-width: 1024px) 32vw, 86vw"
-                loading="lazy"
-              />
-              <figcaption className={styles.pressPhotoCaption}>Potret resmi</figcaption>
-            </figure>
-          </div>
-          </Reveal>
-        </Container>
-      </section>
+      <PlatformRow />
 
       {homeSections.length > 0 ? (
         <section className={styles.notesBand} aria-labelledby="catatan-title">

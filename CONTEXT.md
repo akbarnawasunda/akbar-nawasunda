@@ -116,9 +116,13 @@ persisten di database untuk konten & desain. Sinkronisasi lintas komponen lewat 
 `<html>`/`<header>` (`data-menu`, `data-sheet`, `--ink-*`), bukan provider.
 
 **Data** — dua sumber, satu arah baca:
-1. **Statis** di `src/content/*` (`releases`, `artist`, `visuals`, `stats`) — fallback yang selalu ada.
+1. **Statis** di `src/content/*` (`releases`, `artist`, `visuals`, `stats`, `tour`) — fallback yang selalu ada.
 2. **Turso/libSQL** lewat `src/studio`: `db.ts` (client) → `repository.ts` (SQL) → `store.ts`
    (dokumen draf/publish) → `public.ts` (pembaca **hanya published**, aman-gagal → jatuh ke statis).
+3. **Satu pintu katalog publik**: `src/content/catalogue.ts` (`getCatalogue()` / `getFeaturedRelease()`)
+   menggabungkan keduanya untuk `/` dan `/music`. Halaman publik **tidak boleh** mengimpor
+   `releases.ts` langsung — itulah cara rilis yang dipublikasikan dari Studio dulu tidak sampai ke
+   beranda.
 Semua route yang bisa berubah `force-dynamic`; tidak ada `fetch()` ke API sendiri, tidak ada
 `revalidate` manual selain `revalidatePath()` di server action. Gambar diselesaikan di server
 (`src/content/covers.ts` memakai `node:fs`, karena itu `server-only`).
