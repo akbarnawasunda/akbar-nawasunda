@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+
+import { anMark } from "@/assets/web";
 
 import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseLedger, type LedgerItem } from "@/components/content/ReleaseLedger";
@@ -116,6 +119,17 @@ export default async function HomePage() {
   const featured = catalogue[0];
   const rest = catalogue.slice(1);
 
+  /*
+   * Is the spotlight's sleeve a real cover, or the generated plate?
+   *
+   * `@sleeve.webp` is the offline-rendered placeholder: by design it carries no type (round 19), which
+   * is fine at 4rem in a list and wrong at 700px on a stage — photographed, it is a large empty bone
+   * square. The owner's rule for that case is exact: a #14263A panel with the song's title in the
+   * middle. So the placeholder is not used as the hero image; the panel is.
+   */
+  const featuredArt = featured?.artwork ?? null;
+  const realArtwork = featuredArt?.kind === "image" && !featuredArt.src.includes("@sleeve");
+
   const streams = streamLinksFor(featured);
   const genreLine = genres.slice(0, 3).join(" / ");
 
@@ -197,19 +211,38 @@ export default async function HomePage() {
           <Container>
             <div className={styles.releaseGrid}>
               <div className={styles.releaseArt}>
-                <Link
-                  href={featured.href}
-                  className={styles.artLink}
-                  aria-label={`Buka rilis ${featured.title}`}
-                >
-                  <ReleaseCover
-                    artwork={featured.artwork}
-                    title={featured.title}
-                    showTitle={false}
-                    alt=""
-                    priority
-                  />
-                </Link>
+                {realArtwork ? (
+                  <Link
+                    href={featured.href}
+                    className={styles.artLink}
+                    aria-label={`Buka rilis ${featured.title}`}
+                  >
+                    <ReleaseCover
+                      artwork={featured.artwork}
+                      title={featured.title}
+                      showTitle={false}
+                      alt=""
+                      priority
+                    />
+                  </Link>
+                ) : (
+                  /*
+                   * The panel from the brief: #14263A, the AN mark, the track title centred. It is
+                   * deliberately NOT a link — the words inside it are visible text, so wrapping it in
+                   * an `aria-label`led anchor would fail WCAG 2.5.3 again. The link is the button below.
+                   */
+                  <div className={styles.artPanel} data-cover="fallback">
+                    <Image
+                      className={styles.artPanelMark}
+                      src={anMark.src}
+                      alt=""
+                      width={anMark.width}
+                      height={anMark.height}
+                      sizes="(min-width: 1024px) 12rem, 30vw"
+                    />
+                    <p className={styles.artPanelTitle}>{featured.title}</p>
+                  </div>
+                )}
               </div>
 
               <div className={styles.releaseDeck}>

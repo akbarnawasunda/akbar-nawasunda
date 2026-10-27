@@ -198,6 +198,44 @@
   outline-color: var(--color-signal-icy);
 }
 
+/*
+ * The missing-cover panel. The one surface on the site that is not ink: `--color-cover-fallback`
+ * (#14263A), the mark at a quarter width, and the track title centred under it. A square box with a
+ * hairline, so it still reads as a sleeve and not as a hole in the page.
+ */
+.artPanel {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  padding: var(--space-6);
+  outline: 1px solid var(--color-signal-blue);
+  background: var(--color-cover-fallback);
+}
+
+.artPanelMark {
+  grid-row: 1;
+  align-self: end;
+  width: min(34%, 12rem);
+  height: auto;
+  filter: none;
+  opacity: 0.9;
+}
+
+.artPanelTitle {
+  grid-row: 2;
+  margin: var(--space-6) 0 0;
+  font-family: var(--font-display-stack);
+  font-size: var(--text-title);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+
 .releaseDeck {
   min-width: 0;
   display: flex;
