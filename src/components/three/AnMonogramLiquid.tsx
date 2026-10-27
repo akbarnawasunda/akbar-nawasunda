@@ -181,13 +181,20 @@ void main() {
   float coverage = smoothstep(0.02, 0.30, mark.a);
   if (coverage < 0.004) discard;
 
-  /* The surface normal, from the gradient of the height field (central difference). */
+  /*
+   * The surface normal, from the gradient of the height field (central difference).
+   *
+   * Round 38.5 — this was the real reason the mark read as flat paint. The difference was taken over
+   * 2e but never divided by 2e, so the "gradient" was a hundred times too small: multiplying it by
+   * 6.0 still left normal.z at 0.998, the entire mark facing the camera at one angle, and every
+   * normal-driven term collapsing to a constant. Dividing by the sample spacing gives the true slope
+   * (order 1.0), and the small multipliers below then shape it rather than rescuing it.
+   */
   float e = 0.0050;
-  float hx = liquidHeight(uv + vec2(e, 0.0)) - liquidHeight(uv - vec2(e, 0.0));
-  float hy = liquidHeight(uv + vec2(0.0, e)) - liquidHeight(uv - vec2(0.0, e));
-  /* A gentler slope (3.2, not 5.5) keeps the skin under tension: the highlight rolls across it
-     instead of splintering on every crease. */
-  vec3 normal = normalize(vec3(-hx * 6.0, -hy * 6.0, 1.0));
+  float hx = (liquidHeight(uv + vec2(e, 0.0)) - liquidHeight(uv - vec2(e, 0.0))) / (2.0 * e);
+  float hy = (liquidHeight(uv + vec2(0.0, e)) - liquidHeight(uv - vec2(0.0, e))) / (2.0 * e);
+  /* Under tension: the highlight rolls across the skin instead of splintering on every crease. */
+  vec3 normal = normalize(vec3(-hx * 0.55, -hy * 0.45, 1.0));
 
   vec3 viewDir = vec3(0.0, 0.0, 1.0);
   vec3 lightDir = normalize(vec3(-0.42, 0.58, 0.70));
@@ -199,39 +206,32 @@ void main() {
   float facing = max(dot(normal, viewDir), 0.0);
   float fresnel = pow(1.0 - facing, 3.0);
 
-  /* Chrome: a dark valley that rises to a near-white reflection. The metal has no hue of its own —
-     the hue is the environment, which here is ink and one neon lamp. */
-  vec3 valley = vec3(0.045, 0.050, 0.060);
-  vec3 silver = vec3(0.930, 0.955, 1.000);
+  /* The metal has no hue of its own — the hue is the environment: ink on one side, one neon lamp. */
+  vec3 silver = vec3(0.940, 0.965, 1.000);
   vec3 neon = vec3(0.000, 0.529, 1.000);
 
   /*
-   * Chrome has almost no diffuse colour: it shows what is around it. The band's surroundings are ink
-   * below and a soft grey sky above, so the reflection is driven by how far the normal points up —
-   * the crest of a lobe catches the light, its underside falls to black, and that contrast (not a
-   * grey ramp) is what reads as polished metal.
-   */
-  /*
-   * The environment, as a horizon.
+   * The environment, as a landscape.
    *
-   * This is what a chrome object actually shows: not a grey ramp but the world — a dark floor below
-   * the horizon line, a bright sky above it, and a hard band of light right at the line where the
-   * two meet. Mapping the vertical normal through a smoothstep gives exactly that, and it is the reason a
-   * smooth surface can still read as metal: the *reflection* carries the shape, not the shading.
+   * This is what a chrome object actually shows: not a grey ramp but the world. The lamp stands to
+   * the left, so a facet leaning that way catches the sky and reads near-white, while the facet
+   * leaning away falls into the ink. Because the ripples now genuinely turn the normal (see above),
+   * this single smoothstep is what draws the large soft pools of light that make mercury look like
+   * mercury — the reflection carries the form, not the shading.
    */
-  float horizon = smoothstep(-0.20, 0.22, normal.y);
-  vec3 ground = vec3(0.012, 0.016, 0.024);
-  vec3 colour = mix(ground, silver, horizon);
-  /* The band at the horizon line: one bright stripe, narrow, white. */
-  float band = exp(-pow((normal.y - 0.02) * 7.5, 2.0));
-  colour += vec3(1.0) * band * 0.55;
-  colour += silver * diffuse * 0.12;
+  float sky = smoothstep(-0.42, 0.46, normal.x);
+  vec3 ink = vec3(0.010, 0.014, 0.022);
+  vec3 colour = mix(ink, silver, sky);
+  /* The horizon of that reflection: one narrow bright band where the facets are square-on. */
+  float line = exp(-pow((normal.x - 0.02) * 4.2, 2.0));
+  colour += vec3(1.0) * line * 0.60;
+  colour += silver * diffuse * 0.10;
   /*
    * Two lobes, on purpose. A single 32-exponent highlight is a pin-prick that reads as brushed steel;
    * mercury pools light, so the broad 12-exponent sheen carries the wet look and the tight 90 one
    * keeps a single crisp glint inside it.
    */
-  colour += vec3(1.0) * (sheen * 0.85 + glint * 0.95);
+  colour += vec3(1.0) * (sheen * 0.75 + glint * 0.85);
   /*
    * The rim light. A tight, bright neon contour rather than a wash: it has to read as a blue lamp
    * standing behind the letters.
@@ -260,8 +260,13 @@ void main() {
   float inner = smoothstep(0.10, 0.45, min(min(n1, n2), min(n3, n4)));
   float contour = (1.0 - inner) * coverage;
   float rimBand = clamp(contour * 1.35 + fresnel * 0.45, 0.0, 1.0);
-  colour += neon * rimBand * 1.25;
-  colour = mix(colour, neon, rimBand * 0.42);
+  /*
+   * And it has to stay *blue*. Adding neon to a near-white base washes it out to pale cyan — the
+   * first attempt produced exactly that. Mixing is what holds the chroma: at full band the rim is
+   * 92% #0087FF, and the small additive term only keeps it luminous against the black.
+   */
+  colour = mix(colour, neon, rimBand * 0.92);
+  colour += neon * rimBand * 0.35;
 
   /* A ripple crest picks up the lamp. Cheap, and it makes the wave visible on a black band. */
   float crest = smoothstep(0.35, 1.0, sin(dist * 12.0 - uTime * 4.0)) * uHover * exp(-dist * 2.2);
