@@ -403,17 +403,30 @@ try {
     `layers ${flat?.layers} · plates ${flat?.plates} · transformed ${flat?.transformed}`,
   );
 
-  /* The ticker: a scroll-scrubbed band has to actually be scrubbed. */
-  const tickerAt = async (y) => {
-    await page.evaluate((y) => window.scrollTo(0, y), y);
+  /*
+   * The ticker: a scroll-scrubbed band has to actually be scrubbed.
+   *
+   * The two sample points are taken from the band, not from hard-coded scroll offsets. Round 37 moved
+   * the ticker below the discography, so y=200 and y=1200 both landed far above it and the engine —
+   * which only writes while the band is in view — correctly reported 0.0000 twice. A scrub test has to
+   * scroll *the band* through the viewport.
+   */
+  const tickerAt = async (ratio) => {
+    await page.evaluate((r) => {
+      const node = document.querySelector("[data-ticker]");
+      if (!node) return;
+      const top = node.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, Math.max(0, top - window.innerHeight * r));
+    }, ratio);
     await settleScroll(page);
+    await sleep(320);
     return page.evaluate(() => {
       const node = document.querySelector("[data-ticker]");
       return node ? node.style.getPropertyValue("--ticker") : "";
     });
   };
-  const tickerA = await tickerAt(200);
-  const tickerB = await tickerAt(1200);
+  const tickerA = await tickerAt(0.9);
+  const tickerB = await tickerAt(0.1);
   check(
     "the catalogue ticker is scrubbed by the scroll",
     tickerA !== "" && tickerB !== "" && tickerA !== tickerB,

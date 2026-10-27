@@ -46,7 +46,7 @@
     "deck  mark";
   align-items: start;
   column-gap: clamp(2rem, 5vw, 5rem);
-  row-gap: var(--space-8);
+  row-gap: var(--space-6);
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
@@ -104,7 +104,7 @@
   position: relative;
   align-self: center;
   justify-self: stretch;
-  min-height: clamp(14rem, 26vw, 22rem);
+  min-height: clamp(11rem, 19vw, 16rem);
   overflow: hidden;
   background: var(--color-band-monogram);
 }

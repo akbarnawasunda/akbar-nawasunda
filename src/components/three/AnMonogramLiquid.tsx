@@ -194,12 +194,20 @@ void main() {
   vec3 silver = vec3(0.930, 0.955, 1.000);
   vec3 neon = vec3(0.000, 0.529, 1.000);
 
-  vec3 colour = mix(valley, silver, smoothstep(0.05, 0.95, diffuse));
+  /*
+   * Chrome has almost no diffuse colour: it shows what is around it. The band's surroundings are ink
+   * below and a soft grey sky above, so the reflection is driven by how far the normal points up —
+   * the crest of a ripple catches the light, its underside falls to black, and that contrast (not a
+   * grey ramp) is what reads as polished metal.
+   */
+  float env = clamp(normal.y * 0.5 + 0.5, 0.0, 1.0);
+  vec3 colour = mix(valley, silver, pow(env, 2.2));
+  colour += silver * diffuse * 0.22;
   /* The glint. Sharp, white, and additive — the thing the eye reads as "wet". */
-  colour += vec3(1.0) * specular * 1.35;
+  colour += vec3(1.0) * specular * 2.4;
   /* The rim. Neon blue at grazing angles only, so it traces the edge of the mark. */
-  colour = mix(colour, neon, fresnel * 0.75);
-  colour += neon * fresnel * 0.22;
+  colour = mix(colour, neon, fresnel * 0.85);
+  colour += neon * fresnel * 0.28;
 
   /* A ripple crest picks up the lamp. Cheap, and it makes the wave visible on a black band. */
   float crest = smoothstep(0.35, 1.0, sin(dist * 20.0 - uTime * 5.0)) * uHover * exp(-dist * 2.4);
