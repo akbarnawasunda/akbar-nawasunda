@@ -34,7 +34,7 @@
 
 .eyebrow {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -93,7 +93,7 @@
 
 .fact dt {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -151,7 +151,7 @@
   gap: var(--space-2);
   margin-top: var(--space-4);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -206,7 +206,7 @@
 
 .sectionNote {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -229,7 +229,7 @@
 
 .marker {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -293,7 +293,7 @@
 
 .markLabel {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -302,7 +302,7 @@
 .contactHint {
   padding-block: var(--space-8);
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-muted);

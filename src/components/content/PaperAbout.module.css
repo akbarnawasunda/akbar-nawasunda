@@ -21,7 +21,7 @@
 
 .kicker {
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
@@ -59,7 +59,7 @@
 
 .meta {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--color-paper-ink) 62%, transparent);
@@ -149,14 +149,14 @@
 
 .year {
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .title {
   font-family: var(--font-body-stack);
-  font-size: 1.0625rem;
+  font-size: var(--text-lead);
   font-weight: 400;
   letter-spacing: var(--tracking-tight);
   line-height: 1.15;
@@ -164,7 +164,7 @@
 }
 
 .detail {
-  font-size: 0.8125rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   color: color-mix(in srgb, var(--color-paper-ink) 78%, transparent);
   text-wrap: pretty;
@@ -176,7 +176,7 @@
 
 .flag {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.16em;
   /* 70% ink on paper clears AA at 9px; 55% did not (axe, 2026-10-24). */
   color: color-mix(in srgb, var(--color-paper-ink) 72%, transparent);

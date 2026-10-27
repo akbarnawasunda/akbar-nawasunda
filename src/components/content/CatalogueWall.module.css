@@ -93,7 +93,7 @@
 .ordinal {
   grid-row: 1 / span 2;
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.18em;
   color: var(--color-text-secondary);
   padding-top: 0.5em;
@@ -114,7 +114,7 @@
 
 .meta {
   font-family: var(--font-body-stack);
-  font-size: 0.5rem;
+  font-size: var(--text-fine);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-secondary);

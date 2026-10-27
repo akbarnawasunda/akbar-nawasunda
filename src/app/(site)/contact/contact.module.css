@@ -19,7 +19,7 @@
 
 .eyebrow {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -65,7 +65,7 @@
   max-width: 44ch;
   margin-top: var(--space-6);
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -121,7 +121,7 @@
 .label {
   margin-bottom: var(--space-3);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);

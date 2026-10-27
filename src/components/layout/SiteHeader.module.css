@@ -108,7 +108,7 @@
 .wordmark {
   font-family: var(--font-body-stack);
   font-weight: 500;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
   white-space: nowrap;
@@ -138,7 +138,7 @@
   color: var(--color-text-primary);
   font-weight: 500;
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
   text-decoration: none;
@@ -173,7 +173,7 @@
   color: var(--color-fg);
   cursor: pointer;
   font-family: var(--font-body-stack);
-  font-size: 1.125rem;
+  font-size: var(--text-lead);
   font-weight: 400;
   letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
@@ -188,7 +188,7 @@
 .menuWord {
   font-family: var(--font-body-stack);
   text-transform: uppercase;
-  font-size: 1.125rem;
+  font-size: var(--text-lead);
   line-height: 1;
   letter-spacing: var(--tracking-nav);
 }
@@ -318,7 +318,7 @@
 .drawerLatestLabel {
   margin: 0;
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -357,7 +357,7 @@
 .drawerLatestTitle {
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: 1.25rem;
+  font-size: var(--text-lead);
   line-height: var(--leading-title);
   letter-spacing: var(--tracking-title);
   text-transform: uppercase;
@@ -365,7 +365,7 @@
 
 .drawerLatestMeta {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -379,7 +379,7 @@
   border: 1px solid var(--color-text-primary);
   color: var(--color-text-primary);
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   text-decoration: none;
@@ -398,7 +398,7 @@
   /* Pinned to the bottom: the list is the menu, the colophon is the edge of the page. */
   margin: auto 0 0;
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -447,7 +447,7 @@
   }
 
   .menuWord {
-    font-size: 1rem;
+    font-size: var(--text-small);
   }
 }
 

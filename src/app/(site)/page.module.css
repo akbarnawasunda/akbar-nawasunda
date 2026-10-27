@@ -143,7 +143,7 @@
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -274,7 +274,7 @@
 
 .fact dt {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-bone-muted);
@@ -303,7 +303,12 @@
  * an illustration beside some text.
  */
 .signature {
+  /* The band is the canvas's containing block: `position: relative`, its own stacking context
+     (`isolation`), and a hard clip. Without all three the shader layer used to paint past the band
+     and sit on top of the ticker underneath it. */
   position: relative;
+  isolation: isolate;
+  z-index: var(--z-content);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -313,55 +318,24 @@
 }
 
 
-/* The static stand-in for the renderer, phone-width only. */
-.signatureFallback {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: none;
-  place-items: center;
-  padding: 0 12%;
-}
-
-/* Two classes deep on purpose: `.site-main img` in globals.css filters every photograph, and this
-   file must not be grayscaled — the mark's blue tips are the only colour in the band. */
-.signature .signatureFallback img {
-  width: 100%;
-  height: auto;
-  filter: none;
-  opacity: 0.9;
-}
-
-@media (max-width: 767px) {
-  .signatureFallback {
-    display: grid;
-  }
-}
-
-
 /* ----------------------------------------------------------------------------- transmission */
 
 .transmission {
-  position: relative;
-  overflow: hidden;
-  padding-block: var(--section-padding);
-  border-top: 1px solid var(--color-hairline);
   /*
-   * Round 24 — the takeover prints on bone, like a street poster pasted over the ink page.
-   * The flip is four local token re-declarations: every descendant (type, hairlines, buttons)
-   * inverts by reading the same names it always read. No per-child classes, no theme prop.
+   * Round 33 — "Sedang Beredar" is the void, not a poster.
+   *
+   * The bone sheet was the loudest light surface on the site and it fought the monogram band above
+   * it. It is now the deepest surface instead (#050507) inside one neon-blue frame, which is the
+   * only line of colour on the page and the reason the section reads as "this release is live".
    */
-  background: var(--color-bone);
-  /* Inherited color is a *computed* value, not a variable: without this line every descendant
-     that does not set its own color keeps the body's white. The section must read the flipped
-     token itself and hand the result down. */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: var(--space-6) var(--gutter);
+  padding: var(--space-12) var(--space-6);
+  border: 1px solid var(--color-signal-blue);
+  background: var(--color-night);
   color: var(--color-text-primary);
-  --color-text-primary: var(--color-bone-ink);
-  --color-text-secondary: var(--color-bone-muted);
-  --color-text-muted: var(--color-bone-muted);
-  --color-ink-black: var(--color-bone);
-  --color-hairline: var(--color-bone-line);
-  --color-border: var(--color-bone-line);
 }
 
 /* The sleeve is bone stock too, so on a bone band it needs an ink plinth to sit on — the same
@@ -372,18 +346,6 @@
   /* A pasted poster is never perfectly square on the wall. One and a half degrees, no more. */
   rotate: -1.5deg;
 }
-
-.transmissionGhost {
-  position: absolute;
-  top: var(--space-8);
-  right: calc(var(--gutter) * -1);
-  z-index: 0;
-  width: clamp(16rem, 34vw, 34rem);
-  height: auto;
-  opacity: 0.06;
-  pointer-events: none;
-}
-
 
 .sectionLink,
 
@@ -442,7 +404,7 @@
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -605,7 +567,7 @@
   padding-bottom: var(--space-6);
   text-align: center;
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -639,7 +601,7 @@
 
 .pressEyebrow {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -684,7 +646,7 @@
 
 .timelineYear {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -723,7 +685,7 @@
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -742,6 +704,11 @@
  * type spec floors it at 2rem, so a 390px phone reads the same hierarchy, just smaller).
  */
 @media (max-width: 899px) {
+  .transmission {
+    margin-inline: var(--gutter);
+    padding: var(--space-8) var(--space-4);
+  }
+
   .hero {
     height: auto;
     min-height: auto;
@@ -749,11 +716,6 @@
 
   .transmissionTitle {
     text-align: left;
-  }
-
-  .transmissionGhost {
-    width: 16rem;
-    top: var(--space-4);
   }
 
   .hero {

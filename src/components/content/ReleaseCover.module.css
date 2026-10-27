@@ -49,6 +49,26 @@
   filter: none;
 }
 
+/*
+ * The floor of the waterfall (round 33): a file that failed to load. Deep blue-black, the mark at
+ * full strength, square to the blade — a designed sleeve for a missing sleeve, never a white box.
+ */
+.fallback {
+  display: grid;
+  place-items: center;
+  background: var(--color-cover-fallback);
+  box-shadow: inset 0 0 0 1px var(--color-hairline);
+}
+
+/* Two classes deep: `.cover > img` stretches every sleeve image to fill its box. */
+.fallback .fallbackMark {
+  width: min(46%, 400px);
+  height: auto;
+  object-fit: contain;
+  opacity: 0.92;
+  filter: none;
+}
+
 /* Level 3 sleeve: surface colour, AN mark at 10%, title at 24px, 4px signal rule. */
 .generated {
   display: grid;
@@ -84,7 +104,7 @@
   position: relative;
   font-family: var(--font-body-stack);
   font-weight: 400;
-  font-size: 1.5rem;
+  font-size: var(--text-quote);
   line-height: var(--leading-title);
   letter-spacing: var(--tracking-title);
   text-transform: uppercase;

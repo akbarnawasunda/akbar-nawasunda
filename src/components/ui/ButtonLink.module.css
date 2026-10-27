@@ -19,7 +19,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 500;
   letter-spacing: var(--tracking-nav);
   line-height: 1;

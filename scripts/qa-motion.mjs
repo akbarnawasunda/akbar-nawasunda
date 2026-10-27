@@ -690,10 +690,9 @@ try {
       !closedVerso.locked && closedVerso.focusOnToggle,
       JSON.stringify(closedVerso),
     );
-  } else {
-    check("the back of the sheet opens, covers the screen, locks the page and returns focus", false, "no [data-sheet-toggle]");
-    check("Escape closes the back of the sheet and unlocks the page", false, "no [data-sheet-toggle]");
   }
+  /* Round 33 retired the floating "Indeks" tab (and with it the verso sheet), so the two assertions
+     that used to run here are gone by design, not by regression. */
   await pressProof.close();
 
   // three.js reports an unavailable context itself when the machine has no GPU; that is the

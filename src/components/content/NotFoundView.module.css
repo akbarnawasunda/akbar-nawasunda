@@ -99,7 +99,7 @@
   /* Black on white is the highest-contrast pairing in the palette. */
   color: var(--color-ink-black);
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
@@ -121,7 +121,7 @@
 
 .links ul a {
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-secondary);

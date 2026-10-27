@@ -32,7 +32,7 @@
   margin: 0;
   padding-inline: var(--gutter);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-primary);
@@ -99,7 +99,7 @@
 
 .meta {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -141,6 +141,6 @@
   }
 
   .title {
-    font-size: 1.125rem;
+    font-size: var(--text-lead);
   }
 }

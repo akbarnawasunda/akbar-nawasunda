@@ -31,11 +31,10 @@ export function NotFoundView() {
         <div className={styles.copy}>
           <p className={styles.code}>Error 404</p>
           <h1 className={`${styles.title} ink`}>
-            Sinyal <span className={styles.faded}>hilang</span>
+            Sinyal <span className={styles.faded}>terputus</span>
           </h1>
           <p className={styles.lead}>
-            Halaman ini tidak ada, sudah dipindahkan, atau belum pernah terbit. Coba salah satu jalur
-            di bawah.
+            Halaman yang Anda cari tidak ditemukan. Silakan kembali ke jalur utama.
           </p>
 
           <nav aria-label="Jalur alternatif" className={styles.links}>

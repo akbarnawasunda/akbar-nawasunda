@@ -43,7 +43,7 @@ drizzle            migrasi + seed
 
 | Route | Fungsi | Library / catatan |
 | --- | --- | --- |
-| `layout.tsx` | Chrome situs: header, footer, grain, kursor, scroll progress, curtain loader, `InkPress`, `BackSide`. `force-dynamic` | React server component; membaca `getPublicDesign()` |
+| `layout.tsx` | Chrome situs: header, footer, grain, kursor, scroll progress, curtain loader, `InkPress`, `ImageFade`. `force-dynamic` | React server component; membaca `getPublicDesign()` |
 | `page.tsx` | Beranda 5 band: hero, ticker, indeks katalog, band malam, tentang/kertas, rail visual, monogram 3D, press sheet, EPK | `three` (lazy, via `AnMonogram`), CSS Modules |
 | `music/page.tsx` | Katalog: kepala halaman biru + `CatalogueWall` (wall 3D ikut pointer) | React client state; `force-dynamic` |
 | `music/[slug]/page.tsx` | Satu rilis sebagai sampul: judul, artwork di `Plate3D`, baris dengar, lembar data, rilis tetangga | `force-dynamic`, `notFound()`, waterfall cover |
@@ -81,24 +81,23 @@ drizzle            migrasi + seed
 
 **layout/**
 - `SiteHeader` — bar 72→56 px, hide-on-scroll, drawer ponsel (portal + fokus + scroll lock), memakai `next/navigation` `usePathname`.
-- `SiteFooter` — kolofon: monogram besar, empat kolom tautan, build stamp.
+- `SiteFooter` — empat kolom tautan (Navigasi, Sosial, Rilis, Kontak) dengan efek glitch saat hover.
 - `PageMasthead` — kepala halaman biru (dipakai /music, /visuals) + tanda register.
 - `SectionHeader`, `Container`, `PlatformRow`, `GenreTape` — kepala section seragam, pembatas lebar, baris 10 platform, tape genre.
 
 **zine/** (gerak)
 - `scroll-engine.ts` — satu loop rAF + satu listener scroll untuk seluruh situs (read→write berkelompok).
-- `SmoothScroll` — Lenis `lerp 0.085`, mati untuk sentuh & reduced motion. **Satu-satunya pemakai `lenis`.**
+- `SmoothScroll` — Lenis `lerp 0.08`, mati untuk sentuh & reduced motion. **Satu-satunya pemakai `lenis`.**
 - `Plate3D` — panggung 3D: `perspective` + `preserve-3d`, menulis `--plate-rx/ry/…` untuk lapisan-lapisannya.
-- `Depth`, `Tilt3D`, `Reveal`, `DrawOnView`, `Magnetic` — parallax scroll, tilt pointer, reveal IntersectionObserver, animasi sekali jalan, tarikan magnetik.
+- `Depth`, `Tilt3D`, `Reveal`, `DrawOnView`, `Magnetic`, `ImageFade` — parallax scroll, tilt pointer, reveal (opacity 0 → 1, `translateY(30px)`, 600 ms), animasi sekali jalan, tarikan magnetik, fade-in gambar setelah decode.
 - `LoadingCurtain` — title sequence: dua baris nama, penghitung 000→100, dua lembar keluar, sekali per sesi.
 - `CursorDot`, `ScrollProgress` — kursor titik+cincin, bar progres 2 px.
 
 **print/** (ronde 9)
 - `InkPress` — menulis `--ink-x/--ink-y` dari pointer (rAF ber-lerp, berhenti saat settle, batal di reduced motion).
 - `Registration` — tanda register + nama cetakan, murni dekoratif (`aria-hidden`).
-- `BackSide` — sisi belakang lembar: dialog kertas yang berputar pada engsel, berisi seluruh katalog + tautan asli.
 
-**three/** — `AnMonogram`: satu-satunya `<canvas>`, `three` + `RoomEnvironment` diimpor dinamis setelah band mendekat.
+**three/** — `AnMonogram`: satu-satunya `<canvas>`. Round 33: `PlaneGeometry` + fragmen shader kustom (simplex noise, tekstur logo AN sebagai `uTexture`, chrome + neon blue, alpha 0 di luar logo), diimpor dinamis setelah band mendekat, `dpr` maksimal 1.5, `frameloop` parkir saat keluar layar.
 
 **media/** — `VisualGrid` (kisi 2×2 + lightbox), `VisualRail` (rail horizontal, rasio asli).
 **ui/** — `ButtonLink` (satu-satunya tautan-berbentuk-tombol), `PlatformIcon` (ikon platform 20 px buatan sendiri).

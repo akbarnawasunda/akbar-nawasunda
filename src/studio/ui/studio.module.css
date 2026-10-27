@@ -17,7 +17,7 @@
 }
 
 .brand {
-  font-size: 0.95rem;
+  font-size: var(--text-body);
   font-weight: 400;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -89,7 +89,7 @@
 }
 
 .sectionTitle {
-  font-size: 1.125rem;
+  font-size: var(--text-lead);
   font-weight: 400;
 }
 
@@ -125,7 +125,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.875rem;
+  font-size: var(--text-small);
   color: var(--color-bone-300);
 }
 
@@ -151,7 +151,7 @@
 
 .muted {
   color: var(--color-muted);
-  font-size: 0.875rem;
+  font-size: var(--text-small);
 }
 
 .field {
@@ -160,7 +160,7 @@
 }
 
 .label {
-  font-size: 0.875rem;
+  font-size: var(--text-small);
   color: var(--color-bone-300);
 }
 
@@ -169,7 +169,7 @@
   width: 100%;
   font: inherit;
   /* 16px minimum prevents iOS Safari from zooming when the field is focused. */
-  font-size: 1rem;
+  font-size: var(--text-small);
   color: var(--color-fg);
   background: var(--color-ink-950);
   border: 1px solid rgba(236, 232, 223, 0.25);
@@ -190,12 +190,12 @@
 }
 
 .hint {
-  font-size: 0.8125rem;
+  font-size: var(--text-meta);
   color: var(--color-muted);
 }
 
 .error {
-  font-size: 0.875rem;
+  font-size: var(--text-small);
   color: var(--color-signal);
 }
 
@@ -253,7 +253,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--text-small);
 }
 
 .table th,
@@ -309,7 +309,7 @@
   min-width: 44px;
   padding-inline: var(--space-3);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: var(--text-small);
   color: var(--color-fg);
   background: transparent;
   border: 1px solid rgba(236, 232, 223, 0.35);
@@ -333,7 +333,7 @@
   align-items: center;
   gap: var(--space-3);
   min-height: 44px;
-  font-size: 0.9375rem;
+  font-size: var(--text-lead);
   color: var(--color-bone-300);
 }
 

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { anMark } from "@/assets/web";
 import type { CoverArtwork } from "@/content/covers";
@@ -24,8 +27,13 @@ interface ReleaseCoverProps {
  * (`<slug>@sleeve.webp`) is also served as an image — it was rendered offline by
  * scripts/generate-placeholder-covers.mjs, which is why it can print the title without a layout
  * shift. Only when no file exists at all does the sleeve get drawn in the browser, from the three
- * things that are definitely true: the title, the AN mark and the brand palette, on #101014 with a
- * 4px #0087FF → #7800FF rule along the bottom edge.
+ * things that are definitely true: the title, the AN mark and the brand palette.
+ *
+ * Round 33: the waterfall has a floor. A file whose URL 404s (a cover named in the catalogue but
+ * never copied into `public/`) used to render the browser's empty white box — the one thing no
+ * sleeve should be. `onError` now swaps in the fallback panel: `--color-cover-fallback` (#14263A)
+ * with the mark on it, square to the blade, always dark so it still reads as a sleeve on a dark
+ * page. That is why this is a client component: an error can only be seen at runtime.
  */
 export function ReleaseCover({
   artwork,
@@ -34,9 +42,12 @@ export function ReleaseCover({
   priority = false,
   showTitle = true,
 }: ReleaseCoverProps) {
-  if (artwork.kind !== "generated") {
+  const [failed, setFailed] = useState(false);
+  const shapeClass = shape === "wide" ? styles.wide : styles.square;
+
+  if (artwork.kind !== "generated" && !failed) {
     return (
-      <span className={`${styles.cover} ${shape === "wide" ? styles.wide : styles.square}`}>
+      <span className={`${styles.cover} ${shapeClass}`}>
         <Image
           src={artwork.src}
           /* A sleeve carries no type at all (round 19), so every alt names the release. */
@@ -45,6 +56,27 @@ export function ReleaseCover({
           height={shape === "wide" ? 675 : 600}
           sizes="(min-width: 1024px) 30vw, 80vw"
           priority={priority}
+          onError={() => setFailed(true)}
+        />
+      </span>
+    );
+  }
+
+  if (artwork.kind !== "generated" && failed) {
+    return (
+      <span
+        className={`${styles.cover} ${styles.fallback} ${shapeClass}`}
+        data-cover="fallback"
+        role="img"
+        aria-label={`Artwork ${title}`}
+      >
+        <Image
+          className={styles.fallbackMark}
+          src={anMark.src}
+          alt=""
+          width={anMark.width}
+          height={anMark.height}
+          sizes="(min-width: 1024px) 14vw, 40vw"
         />
       </span>
     );
@@ -52,7 +84,7 @@ export function ReleaseCover({
 
   return (
     <span
-      className={`${styles.cover} ${styles.generated} ${shape === "wide" ? styles.wide : styles.square}`}
+      className={`${styles.cover} ${styles.generated} ${shapeClass}`}
       data-cover="generated"
       aria-hidden="true"
     >

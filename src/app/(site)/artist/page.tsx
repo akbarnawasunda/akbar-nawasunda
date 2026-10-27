@@ -75,7 +75,7 @@ export default async function ArtistPage() {
               Dengar Sekarang
             </ButtonLink>
             <ButtonLink href="/epk" variant="secondary">
-              Press kit
+              Press Kit
             </ButtonLink>
           </div>
 
@@ -182,7 +182,7 @@ export default async function ArtistPage() {
               DJ Akbar Remix ke Akbar Nawasunda
             </h2>
           </div>
-          <p className={styles.sectionNote}>Tonggak terverifikasi</p>
+          <p className={styles.sectionNote}>Tonggak karier</p>
         </div>
 
         <ol className={styles.timeline}>
@@ -213,7 +213,7 @@ export default async function ArtistPage() {
             Monogram AN dan lockup penuh, tersedia sebagai PNG transparan di press kit.
           </p>
           <ButtonLink href="/epk" variant="ghost">
-            Unduh aset logo
+            Unduh Aset Logo
           </ButtonLink>
         </div>
 
@@ -236,7 +236,7 @@ export default async function ArtistPage() {
       </section>
 
       <p className={styles.contactHint}>
-        Pers dan wawancara: <a href="/epk">press kit</a>
+        Pers dan wawancara: <a href="/epk">Press Kit</a>
       </p>
 
     </Container>

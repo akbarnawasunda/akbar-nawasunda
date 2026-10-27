@@ -1,10 +1,10 @@
 import Image from "next/image";
 
-import { ContentRequirement } from "@/components/content/ContentRequirement";
 import { PageIntro } from "@/components/content/PageIntro";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
 import { getAsset, getImage } from "@/assets/manifest";
+import { artistLongBio } from "@/content/artist";
 import { siteConfig } from "@/config/site";
 import { pageMetadata } from "@/lib/metadata";
 import { getPublicPage } from "@/studio/public";
@@ -52,14 +52,9 @@ export default async function AboutPage() {
       {published && hasVisibleContent ? (
         <SectionsView sections={published.sections} />
       ) : (
-        <ContentRequirement
-          title="Biography pending"
-          description="The biography and career history will be published once they have been written and approved by the artist."
-          items={[
-            "Approved biography in English",
-            "Career timeline with verified dates and projects",
-          ]}
-        />
+        /* No English placeholder here any more: the artist's own biography is the fallback, so this
+           route never shows a "pending" notice in a language the site does not use. */
+        <p>{artistLongBio}</p>
       )}
     </Container>
   );

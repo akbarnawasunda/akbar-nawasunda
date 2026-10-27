@@ -1,83 +1,51 @@
 "use client";
 
 /**
- * The liquid AN — round 31: real 3D mercury, on the owner's absolute spec.
+ * The liquid AN — round 33: a transparent sheet of mercury, not a block of metal.
  *
- * Round 29 shipped a displaced texture on a flat quad; read against a scrolling page it looked
- * like a sticker, and the frozen frame under a parallax transform left a trail. This is the object
- * itself now:
+ * Round 31 built the monogram out of `ExtrudeGeometry` under a studio environment. It read as a
+ * machined badge dropped onto the page: opaque, hard, and always in front of whatever the band was
+ * saying. Round 33 asks for the opposite — the mark should behave like mercury spilled on glass. It
+ * melts, it ripples, it never becomes a solid object, and **outside the logo it is transparent**, so
+ * the page underneath stays visible through it.
  *
- * - the monogram is solid geometry — every stroke of the A and the N is an extruded shape with a
- *   bevel (`ExtrudeGeometry`), one mesh, one material;
- * - the material is `MeshPhysicalMaterial` at metalness 1 / roughness 0.05, lit by a drei
- *   `<Environment>` built from in-scene Lightformers (a cube-camera bake at mount, no network
- *   fetch, no HDR download), so it reflects like mercury under studio strips;
- * - the melt is a vertex-stage simplex field injected with `onBeforeCompile`: vertices slide along
- *   their normals and the object normal is perturbed by the noise gradient, so the *reflections*
- *   ripple even across the flat caps — liquid metal, not a moving picture;
- * - the cursor is a raycaster: R3F's pointer events carry the hit point in 3D, and a decaying
- *   radial wave pushes the surface away from it;
- * - memory and trails: `frameloop` drops to "demand" the moment the band leaves the viewport (no
- *   frame is rendered off screen, so nothing stale can smear), DPR is capped at 1.5, and the
- *   geometry, material and environment dispose on unmount.
+ * So the geometry is gone. What is left is one `<PlaneGeometry>` filling the band with a custom
+ * fragment shader:
  *
- * This file remains the quarantine: the only module importing three / fiber / drei, loaded through
- * `next/dynamic(ssr:false)` when the band approaches, never on phones, never under reduced motion,
- * never without WebGL.
+ * - the AN mark (`/brand/an-mark.webp`, the same file the header and the footer use) is `uTexture`;
+ * - its UVs are pushed around by a two-octave simplex field plus a pointer ripple, so the silhouette
+ *   itself melts and the surface reacts to the hand;
+ * - the colour is a chrome ramp (steel → white) crossed with the one chromatic value on this site,
+ *   `--color-signal-blue` (#0087FF), so the highlights read as neon, not as studio steel;
+ * - `alpha` comes from the texture's own alpha, so outside the strokes the fragment is literally
+ *   zero: nothing covers the copy, and `gl.setClearAlpha(0)` keeps the band behind it visible.
+ *
+ * Contract compliance:
+ * - the only module that imports three / fiber, loaded through `next/dynamic(ssr:false)` once the
+ *   band approaches — never on the critical path;
+ * - it mounts on phones as well as desktops (DPR capped at 1.5), with `onPointerMove` on the band;
+ * - `frameloop` parks off screen, so a band that is not visible costs zero frames;
+ * - no rAF loop of our own: the shader's own frame eases the pointer uniform;
+ * - reduced motion and a missing WebGL context never mount it (see AnMonogram.tsx).
  */
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
-import { Environment, Lightformer } from "@react-three/drei";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-/* ------------------------------------------------------------------ the mark as solid strokes */
+/** The mark, as a texture. Loaded through fiber's loader cache, so a remount is free. */
+const MARK_URL = "/brand/an-mark.webp";
 
-type Quad = [number, number, number, number, number, number, number, number];
+/* The plane is cut to the mark's own ratio (174 × 112) with a little bleed on each side, because
+   the melt runs past the strokes. */
+const PLANE_WIDTH = 4.6;
+const PLANE_HEIGHT = 3.05;
 
-/**
- * The monogram as stroke quads in a 0..1 box per letter (N offset by 1.28): two legs and a crossbar
- * for the A, two uprights and a diagonal for the N. Extruding strokes instead of outlining glyphs
- * keeps the silhouette exactly the label's angular mark — and overlapping quads share one
- * position-based displacement field, so the unions stay seamless while the metal melts.
- */
-const STROKES: Quad[] = [
-  // A — left leg, right leg, crossbar
-  [0.0, 0.0, 0.17, 0.0, 0.57, 1.0, 0.4, 1.0],
-  [0.83, 0.0, 1.0, 0.0, 0.6, 1.0, 0.43, 1.0],
-  [0.24, 0.34, 0.76, 0.34, 0.7, 0.5, 0.3, 0.5],
-  // N — left upright, diagonal, right upright
-  [1.28, 0.0, 1.45, 0.0, 1.45, 1.0, 1.28, 1.0],
-  [1.28, 1.0, 1.46, 1.0, 2.28, 0.0, 2.1, 0.0],
-  [2.11, 0.0, 2.28, 0.0, 2.28, 1.0, 2.11, 1.0],
-];
-
-function buildMonogramGeometry() {
-  const shapes = STROKES.map(([x1, y1, x2, y2, x3, y3, x4, y4]) => {
-    const shape = new THREE.Shape();
-    shape.moveTo(x1, y1);
-    shape.lineTo(x2, y2);
-    shape.lineTo(x3, y3);
-    shape.lineTo(x4, y4);
-    shape.closePath();
-    return shape;
-  });
-  const geometry = new THREE.ExtrudeGeometry(shapes, {
-    depth: 0.34,
-    steps: 8,
-    bevelEnabled: true,
-    bevelThickness: 0.07,
-    bevelSize: 0.055,
-    bevelSegments: 5,
-    curveSegments: 2,
-  });
-  geometry.center();
-  /* The band is wide and short: the mark stands at ~1.9 world units tall and reads against the
-     perspective camera at z 4.6. */
-  geometry.scale(1.9, 1.9, 1.9);
-  return geometry;
+/** What the band writes and the shader reads. One object, mutated in place, no React state. */
+interface PointerState {
+  x: number;
+  y: number;
+  hover: number;
 }
-
-/* ------------------------------------------------------------------ the melt, in the vertex stage */
 
 const SIMPLEX = /* glsl */ `
 vec3 mod289v3(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -131,220 +99,145 @@ float snoise3(vec3 v) {
 }
 `;
 
-interface MeltUniforms {
-  uTime: { value: number };
-  uHit: { value: THREE.Vector3 };
-  uHitStrength: { value: number };
+const VERTEX = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
+`;
 
-/**
- * Injected into MeshPhysicalMaterial: the surface breathes along its normals, the cursor's hit
- * point raises a decaying radial wave, and the object normal is bent by the noise gradient so the
- * environment reflection shivers like mercury even where the tessellation is coarse.
- */
-function applyMelt(material: THREE.MeshPhysicalMaterial) {
-  /* The uniform cells live on the material's userData, created here in the factory: the frame
-     loop reaches them through `meshRef.current.material`, a ref chain, which is the only mutation
-     path the React Compiler allows. */
-  const uniforms: MeltUniforms = {
-    uTime: { value: 0 },
-    uHit: { value: new THREE.Vector3(99, 99, 99) },
-    uHitStrength: { value: 0 },
-  };
-  material.userData.melt = uniforms;
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = uniforms.uTime;
-    shader.uniforms.uHit = uniforms.uHit;
-    shader.uniforms.uHitStrength = uniforms.uHitStrength;
+const FRAGMENT = /* glsl */ `
+precision highp float;
 
-    shader.vertexShader =
-      /* glsl */ `
-      uniform float uTime;
-      uniform vec3 uHit;
-      uniform float uHitStrength;
-      ${SIMPLEX}
-      float meltAt(vec3 p) {
-        float t = uTime * 0.32;
-        float n = snoise3(p * 0.62 + vec3(0.0, t * 0.8, t * 0.55));
-        float n2 = snoise3(p * 1.45 - vec3(t * 0.7, 0.0, t * 0.5));
-        return n * 0.075 + n2 * 0.035;
-      }
-      ` + shader.vertexShader;
+uniform sampler2D uTexture;
+uniform float uTime;
+uniform vec2 uMouse;
+uniform float uHover;
 
-    shader.vertexShader = shader.vertexShader.replace(
-      "#include <beginnormal_vertex>",
-      /* glsl */ `
-      #include <beginnormal_vertex>
-      {
-        float e = 0.09;
-        float base = meltAt(position);
-        vec3 grad = vec3(
-          meltAt(position + vec3(e, 0.0, 0.0)) - base,
-          meltAt(position + vec3(0.0, e, 0.0)) - base,
-          meltAt(position + vec3(0.0, 0.0, e)) - base
-        ) / e;
-        objectNormal = normalize(objectNormal - grad * 0.5);
-      }
-      `,
-    );
+varying vec2 vUv;
 
-    shader.vertexShader = shader.vertexShader.replace(
-      "#include <begin_vertex>",
-      /* glsl */ `
-      #include <begin_vertex>
-      {
-        float melt = meltAt(position);
-        vec3 toHit = position - uHit;
-        float d = length(toHit);
-        float ripple = sin(d * 5.5 - uTime * 6.5) * exp(-d * 1.5) * uHitStrength;
-        transformed += normal * (melt + ripple * 0.22);
-        /* The whole mark recoils a little from the hand, in 3D. */
-        transformed += normalize(toHit + vec3(0.0001)) * ripple * 0.12;
-      }
-      `,
-    );
-  };
-  material.customProgramCacheKey = () => "an-melt-v1";
-  return uniforms;
+${SIMPLEX}
+
+void main() {
+  vec2 centred = vUv - 0.5;
+
+  /* Two octaves at different speeds: the slow one sags the whole mark, the fast one breaks the
+     edges into droplets. Time is the third dimension, so the field drifts instead of cycling. */
+  vec3 field = vec3(centred * 2.6, uTime * 0.16);
+  float slow = snoise3(field);
+  float fast = snoise3(field * 2.9 + vec3(11.3, 4.7, -uTime * 0.1));
+
+  vec2 flow = vec2(slow, fast) * 0.048;
+
+  /* The pointer: a decaying ring travelling away from the hand along the radial direction, so
+     dragging across the band pushes a wave through the mercury. */
+  vec2 toPointer = vUv - uMouse;
+  toPointer.x *= 1.25;
+  float dist = length(toPointer);
+  float ripple = sin(dist * 24.0 - uTime * 5.0) * exp(-dist * 5.0) * 0.075 * uHover;
+  flow += normalize(toPointer + 1e-5) * ripple;
+
+  vec2 uv = vUv + flow;
+
+  /* Three taps: the centre carries the colour, the offset samples give a cheap surface normal. */
+  vec4 mark = texture2D(uTexture, uv);
+  float left = texture2D(uTexture, uv - vec2(0.0035, 0.0)).a;
+  float right = texture2D(uTexture, uv + vec2(0.0035, 0.0)).a;
+  float up = texture2D(uTexture, uv + vec2(0.0, 0.0055)).a;
+  float down = texture2D(uTexture, uv - vec2(0.0, 0.0055)).a;
+
+  float mask = smoothstep(0.015, 0.32, mark.a);
+
+  /* Normals off the alpha gradient: strokes facing the light go white, the rest fall to steel. */
+  float slope = ((right - left) * 0.75 + (up - down)) * 2.4;
+  float light = clamp(0.52 + slope + slow * 0.22 + fast * 0.12, 0.0, 1.0);
+
+  vec3 steel = vec3(0.56, 0.62, 0.72);
+  vec3 chrome = vec3(0.97, 0.99, 1.0);
+  vec3 neon = vec3(0.0, 0.529, 1.0);
+
+  vec3 colour = mix(steel, chrome, light);
+  /* The blue lives on the steepest faces and in the troughs, the way a neon tube shows up in the
+     crease of a chrome object. */
+  colour = mix(colour, neon, smoothstep(0.32, 0.95, abs(fast) + max(0.0, -slope)) * 0.55);
+  /* A faint halo under the strokes: light bleeding through the water, never a filled panel. */
+  colour += neon * pow(max(0.0, 1.0 - length(centred) * 1.35), 3.0) * 0.16;
+
+  /* The point of the round: outside the mark the alpha is zero, so the band's copy and the page
+     underneath stay visible. */
+  float alpha = mask * (0.82 + 0.18 * light);
+  if (alpha < 0.004) discard;
+
+  gl_FragColor = vec4(colour, alpha);
 }
+`;
 
-/* ------------------------------------------------------------------ the scene */
+function LiquidMark({ pointer }: { pointer: RefObject<PointerState> }) {
+  const texture = useLoader(THREE.TextureLoader, MARK_URL);
+  const meshRef = useRef<THREE.Mesh | null>(null);
+  const mouse = useRef(new THREE.Vector2(0.5, 0.5));
+  const hover = useRef(0);
+  const viewport = useThree((state) => state.viewport);
 
-function meltOf(mesh: THREE.Mesh | null): MeltUniforms | null {
-  const material = mesh?.material as THREE.MeshPhysicalMaterial | undefined;
-  return (material?.userData.melt as MeltUniforms | undefined) ?? null;
-}
+  /* The shader reads only the texture's alpha (the strokes' coverage), never its colour: the
+     chrome and the neon are generated in the fragment stage. That is why the loaded texture needs no
+     re-configuration at all — no colour-space rewrite, no filter swap, nothing to keep in sync. */
 
-/** iOS 13+ ships device orientation behind a permission that only a user gesture may request. */
-function askGyro(asked: { current: boolean }) {
-  if (asked.current) return;
-  asked.current = true;
-  const ctor = window.DeviceOrientationEvent as unknown as
-    | { requestPermission?: () => Promise<string> }
-    | undefined;
-  if (ctor && typeof ctor.requestPermission === "function") {
-    ctor.requestPermission().catch(() => {
-      /* declined or blocked: the mark simply keeps its own slow turn */
-    });
-  }
-}
-
-function MercuryMonogram() {
-  const geometry = useMemo(() => buildMonogramGeometry(), []);
-  const material = useMemo(() => {
-    const metal = new THREE.MeshPhysicalMaterial({
-      color: "#0b0e13",
-      metalness: 1,
-      roughness: 0.05,
-      envMapIntensity: 1.9,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.12,
-    });
-    applyMelt(metal);
-    return metal;
-  }, []);
-
-  useEffect(
-    () => () => {
-      geometry.dispose();
-      material.dispose();
-    },
-    [geometry, material],
+  const uniforms = useMemo(
+    () => ({
+      uTexture: { value: texture },
+      uTime: { value: 0 },
+      uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+      uHover: { value: 0 },
+    }),
+    [texture],
   );
 
-  const meshRef = useRef<THREE.Mesh | null>(null);
-  const hitTarget = useRef(0);
-  /*
-   * Round 32, the gyroscope: a phone knows which way gravity pulls, and a native app uses that.
-   * `deviceorientation` writes a target tilt into a ref (no loop of our own — the R3F frame below
-   * eases towards it), so tilting the phone leans the mark the way a card leans in a hand.
-   * Android delivers the events outright; iOS gates them behind a permission that may only be
-   * asked for inside a user gesture, which is what `askGyro` on the wrapper's pointerdown does.
-   */
-  const tiltTarget = useRef({ x: 0, y: 0 });
-  const tilt = useRef({ x: 0, y: 0 });
-
+  /* The frame loop reads the uniforms through a ref: writing `uTime` is a mutation of a shader
+     uniform, which is what the loop is *for*, but it must not look like a render-time mutation. */
+  const uniformsRef = useRef(uniforms);
   useEffect(() => {
-    const onTilt = (event: DeviceOrientationEvent) => {
-      const gamma = event.gamma ?? 0;
-      const beta = event.beta ?? 0;
-      tiltTarget.current.y = Math.max(-1, Math.min(1, gamma / 26));
-      tiltTarget.current.x = Math.max(-1, Math.min(1, (beta - 42) / 26));
-    };
-    window.addEventListener("deviceorientation", onTilt, { passive: true });
-    return () => window.removeEventListener("deviceorientation", onTilt);
-  }, []);
+    uniformsRef.current = uniforms;
+  }, [uniforms]);
 
   useFrame((state, delta) => {
+    const u = uniformsRef.current;
     const mesh = meshRef.current;
-    const uniforms = meltOf(mesh);
-    if (!uniforms) return;
-    /*
-     * Round 32: a phone holds the band portrait. The camera's vertical fov is fixed, so on a
-     * narrow aspect the *width* is what runs out — without this fit the mark overflows the glass
-     * on exactly the screen the owner cares about most. `viewport` is the world size at z=0,
-     * recomputed by R3F on every resize; the mark scales to the smaller of the two axes.
-     */
-    uniforms.uTime.value += Math.min(delta, 0.05);
-    uniforms.uHitStrength.value += (hitTarget.current - uniforms.uHitStrength.value) * 0.1;
-    tilt.current.x += (tiltTarget.current.x - tilt.current.x) * 0.06;
-    tilt.current.y += (tiltTarget.current.y - tilt.current.y) * 0.06;
-    if (mesh) {
-      const fit = Math.max(0.42, Math.min(1, state.viewport.width / 5.1, state.viewport.height / 2.5));
-      mesh.scale.setScalar(fit);
-      /* A slow turn so the metal catches different strips of the environment — the read that
-         separates an object from a decal. */
-      mesh.rotation.y = Math.sin(state.clock.elapsedTime * 0.16) * 0.22 + tilt.current.y * 0.42;
-      mesh.rotation.x = Math.cos(state.clock.elapsedTime * 0.12) * 0.07 + tilt.current.x * 0.24;
-    }
+    if (!mesh) return;
+
+    u.uTime.value += Math.min(delta, 0.05);
+    mouse.current.lerp(new THREE.Vector2(pointer.current.x, pointer.current.y), 0.075);
+    hover.current += (pointer.current.hover - hover.current) * 0.06;
+    u.uMouse.value.copy(mouse.current);
+    u.uHover.value = hover.current;
+
+    /* A phone holds the band portrait, where the *width* is what runs out first: fit the sheet to
+       the smaller of the two axes so the mark never leaves the glass. */
+    const fit = Math.min(
+      1,
+      Math.max(0.4, Math.min(viewport.width / PLANE_WIDTH, viewport.height / PLANE_HEIGHT)),
+    );
+    mesh.scale.setScalar(fit);
+    mesh.rotation.y =
+      Math.sin(state.clock.elapsedTime * 0.18) * 0.08 + (mouse.current.x - 0.5) * 0.14;
+    mesh.rotation.x =
+      Math.cos(state.clock.elapsedTime * 0.14) * 0.04 + (mouse.current.y - 0.5) * 0.1;
   });
 
-  const onMove = (event: ThreeEvent<PointerEvent>) => {
-    const uniforms = meltOf(meshRef.current);
-    if (!uniforms) return;
-    uniforms.uHit.value.copy(event.point);
-    hitTarget.current = 1;
-  };
-  const onOut = () => {
-    hitTarget.current = 0;
-  };
-
   return (
-    <mesh
-      ref={meshRef}
-      geometry={geometry}
-      material={material}
-      onPointerMove={onMove}
-      onPointerOut={onOut}
-    />
-  );
-}
-
-/**
- * The environment is baked in-scene: three light strips and one blue edge, rendered once into a
- * cube map by drei. Mercury needs something to reflect — and this needs no download.
- */
-function StudioEnvironment() {
-  return (
-    <Environment resolution={96} frames={1}>
-      {/*
-        A metal with metalness 1 has no diffuse term at all: it shows ONLY what the cube sees.
-        Round 31's first bake had four strips in a void, so the faces pointing at the camera
-        reflected the void — black on black. Now the cube has a floor-to-ceiling studio: a dim
-        gradient wall behind the camera for the front faces to catch, a hot key above, cool and
-        signal-blue strips on the flanks for the mercury edges, and a near-black floor so the
-        undersides stay heavy. Every Lightformer aims at the origin.
-      */}
-      <color attach="background" args={["#1a212c"]} />
-      <Lightformer intensity={3} position={[0, 0.6, 8]} target={[0, 0, 0]} scale={[14, 9, 1]} color="#98a5b8" />
-      {/* the horizon streak: one thin hot line behind the camera that every front face drags
-          across itself as the mark turns — the signature read of liquid chrome */}
-      <Lightformer intensity={4} position={[0, -1.4, 7.5]} target={[0, 0, 0]} scale={[13, 0.9, 1]} color="#eaf3ff" />
-      <Lightformer intensity={3.4} position={[0, 4, 3]} target={[0, 0, 0]} scale={[9, 3.4, 1]} color="#ffffff" />
-      <Lightformer intensity={2.4} position={[-6, 0.4, 1]} target={[0, 0, 0]} scale={[7, 2.6, 1]} color="#dff9ff" />
-      <Lightformer intensity={2.1} position={[6, -0.6, 1]} target={[0, 0, 0]} scale={[7, 2.6, 1]} color="#0087FF" />
-      <Lightformer intensity={0.8} position={[0, -5, -2]} target={[0, 0, 0]} scale={[10, 4, 1]} color="#0a0a0c" />
-    </Environment>
+    <mesh ref={meshRef}>
+      <planeGeometry args={[PLANE_WIDTH, PLANE_HEIGHT, 1, 1]} />
+      <shaderMaterial
+        uniforms={uniforms}
+        vertexShader={VERTEX}
+        fragmentShader={FRAGMENT}
+        transparent
+        depthWrite={false}
+        depthTest={false}
+        toneMapped={false}
+      />
+    </mesh>
   );
 }
 
@@ -360,25 +253,20 @@ function webglAvailable(): boolean {
 const WRAP_STYLE = { position: "absolute", inset: 0 } as const;
 
 export default function AnMonogramLiquid() {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(false);
   const [supported] = useState(() => webglAvailable());
-  const gyroAsked = useRef(false);
+  const [inView, setInView] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const pointer = useRef<PointerState>({ x: 0.5, y: 0.5, hover: 0 });
 
   useEffect(() => {
     if (!supported) return;
     const wrap = wrapRef.current;
     if (!wrap) return;
-    /*
-     * Strict edges, no margin: this gate drives the render loop, not the chunk fetch (the fetch
-     * has its own observer one section up). A margin here would keep a software rasteriser burning
-     * full tilt for a band that is still a viewport away — round 31 measured the whole page dropping
-     * to 3 fps under SwiftShader with a 15% margin, because "almost in view" still renders.
-     */
-    const observer = new IntersectionObserver(
-      (entries) => setInView(entries[0]?.isIntersecting ?? false),
-      { rootMargin: "0px 0px" },
-    );
+    /* Strict edges, no margin: this gate drives the render loop, not the chunk fetch. Off screen
+       the canvas is parked (`frameloop="demand"`), so a band that is not visible draws nothing. */
+    const observer = new IntersectionObserver((entries) => setInView(entries[0]?.isIntersecting ?? false), {
+      rootMargin: "0px 0px",
+    });
     observer.observe(wrap);
     return () => observer.disconnect();
   }, [supported]);
@@ -386,33 +274,41 @@ export default function AnMonogramLiquid() {
   if (!supported) return null;
 
   return (
-    <div ref={wrapRef} style={WRAP_STYLE} onPointerDown={() => askGyro(gyroAsked)}>
+    <div
+      ref={wrapRef}
+      style={WRAP_STYLE}
+      onPointerMove={(event) => {
+        const wrap = wrapRef.current;
+        if (!wrap) return;
+        const rect = wrap.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        pointer.current.x = (event.clientX - rect.left) / rect.width;
+        pointer.current.y = 1 - (event.clientY - rect.top) / rect.height;
+        pointer.current.hover = 1;
+      }}
+      onPointerLeave={() => {
+        pointer.current.hover = 0;
+      }}
+    >
       <Canvas
-        /* "demand" off screen: the loop is parked, no frame is drawn, nothing stale can trail
-           across the band while the reader scrolls. Back in view it runs again. */
         frameloop={inView ? "always" : "demand"}
         dpr={[1, 1.5]}
-        camera={{ position: [0, 0, 4.6], fov: 38 }}
+        camera={{ position: [0, 0, 4.2], fov: 38 }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
           gl.setClearAlpha(0);
-          /* ACES eats mid-tones hard; the mercury needs its greys pushed back up or every face
-             that is not a strip highlight collapses to ink. */
-          gl.toneMappingExposure = 1.25;
         }}
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
-          /* A finger dragging across the band should ripple the metal, not be eaten by the
-             canvas — but the page must still scroll: pan-y hands vertical gestures back to the
-             browser and keeps horizontal ones for the raycaster. */
+          /* A finger dragging across the band ripples the water without trapping the page's
+             vertical scroll. */
           touchAction: "pan-y",
         }}
       >
-        <MercuryMonogram />
-        <StudioEnvironment />
+        <LiquidMark pointer={pointer} />
       </Canvas>
     </div>
   );

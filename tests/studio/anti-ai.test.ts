@@ -78,7 +78,7 @@ describe("no generated visual effects ship", () => {
    * the fallback, the owner's "no rigid 3D" rules out extruded/box geometry, and drei/babylon/gsap
    * stay banned outright — a dependency that arrives "just for the signal" is how this started.
    */
-  it("keeps the 3D stack quarantined in the lazy liquid chunk, solid and reflective per spec", () => {
+  it("keeps the 3D stack quarantined in the lazy liquid chunk, transparent and shader-driven", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
@@ -105,21 +105,30 @@ describe("no generated visual effects ship", () => {
     );
     assert.match(orchestrator, /loading="lazy"/, "the baked still fallback is gone");
 
-    /* Round 31 reversed round 29's flat-quad rule: the mark must be SOLID — extruded strokes in a
-       mercury physical material, melted in the vertex stage, lit by an in-scene environment that
-       fetches nothing. These are the assertions that the object stays an object. */
+    /*
+     * Round 33, the owner's spec: the mark is a TRANSPARENT liquid sheet, not a solid object.
+     * One plane, a custom fragment shader, the AN logo as `uTexture`, simplex displacement, and an
+     * alpha that is literally zero outside the strokes so the copy underneath stays readable.
+     * Extruded geometry, drei environments and physical materials are now the thing being banned —
+     * they are what made the band read as a metal badge instead of as mercury.
+     */
     const chunk = readFileSync(join(root, LIQUID_CHUNK), "utf8");
-    assert.match(chunk, /ExtrudeGeometry/, "the monogram is no longer solid geometry");
-    assert.match(chunk, /MeshPhysicalMaterial/, "the mercury material is gone");
-    assert.match(chunk, /metalness: 1/, "metalness is not 1");
-    assert.match(chunk, /roughness: 0.05/, "roughness is not 0.05");
-    assert.match(chunk, /onBeforeCompile/, "the melt no longer runs in the vertex stage");
-    assert.match(chunk, /<Environment/, "the drei environment is gone");
-    assert.match(chunk, /onPointerMove/, "the raycaster ripple is gone");
+    assert.match(chunk, /planeGeometry/, "the liquid is no longer a plane");
+    assert.match(chunk, /shaderMaterial/, "the liquid is no longer a custom shader");
+    assert.match(chunk, /snoise3/, "the simplex field is gone");
+    assert.match(chunk, /uTexture/, "the mark is no longer the texture");
+    assert.match(chunk, /an-mark\.webp/, "the AN mark file is not the texture source");
+    assert.match(chunk, /transparent/, "the material is not transparent");
+    assert.match(chunk, /discard/, "outside the mark the shader does not discard: it would cover the text");
+    assert.match(chunk, /setClearAlpha\(0\)/, "the canvas is not cleared to alpha 0");
+    assert.match(chunk, /onPointerMove/, "the pointer ripple is gone");
     assert.match(chunk, /dpr=\{\[1, 1.5\]\}/, "DPR is not capped at 1.5");
     assert.match(chunk, /frameloop=\{inView \? "always" : "demand"\}/, "the loop is not parked off screen");
-    for (const banned of [/BoxGeometry/, /TextGeometry/, /TubeGeometry/]) {
-      assert.ok(!banned.test(chunk), `${banned.source}: the spec is extruded strokes, not primitives`);
+    /* Comments name the retired approach on purpose (the file explains what it replaced), so the
+       ban is checked against the code only. */
+    const code = chunk.replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const banned of [/ExtrudeGeometry/, /MeshPhysicalMaterial/, /BoxGeometry/, /TextGeometry/, /TubeGeometry/, /<Environment/]) {
+      assert.ok(!banned.test(code), `${banned.source}: round 33 bans the rigid 3D object`);
     }
   });
 

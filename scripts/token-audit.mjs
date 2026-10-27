@@ -45,6 +45,13 @@ const ALLOWED_UNUSED = new Set([
   // pages now reference the semantic names directly.
   "--color-bg-surface-2",
   "--color-bone-100",
+  // Round 33 retired the verso sheet (the floating Indeks tab), which was the last consumer of these
+  // three. They stay: they are the semantic aliases the Studio's own forms read when a design setting
+  // is previewed, and deleting a token that a future surface will ask for is how a token file loses
+  // its authority.
+  "--color-on-brand",
+  "--color-paper-muted",
+  "--color-poster-red",
 ]);
 
 const ALLOWED_RAW = new Set([

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
+import { editorialFrame, portraitAlt, portraitSize, portraitSources } from "@/assets/web";
 import { PaperAbout } from "@/components/content/PaperAbout";
 import { CataloguePin } from "@/components/content/CataloguePin";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
@@ -223,14 +223,6 @@ export default async function HomePage() {
       */}
       <section className={styles.signature} aria-label="Monogram">
         <AnMonogram />
-        {/*
-          Below 768px the renderer never mounts (R14: bloom on a phone GPU is not worth the frames),
-          so the band used to be 74svh of empty black on every phone. This is the mark itself — the
-          same file the header and the footer use — set at the size the object would have occupied.
-        */}
-        <span className={styles.signatureFallback} aria-hidden="true">
-          <Image src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
-        </span>
       </section>
 
       {/* ----------------------------------------------------------- running head */}
@@ -238,19 +230,8 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------------- transmission */}
       <section className={styles.transmission} id="music" aria-labelledby="music-title">
-        {/* Round 28: the label's mark ghosts behind the campaign poster — artwork, portrait and
-            monogram share one identity, so the poster carries the mark at 5%, not as a logo box. */}
-        <Image
-          className={styles.transmissionGhost}
-          src={anMark.src}
-          alt=""
-          width={anMark.width}
-          height={anMark.height}
-          sizes="(min-width: 768px) 30vw, 60vw"
-          loading="lazy"
-          aria-hidden="true"
-        />
         <Container>
+          <Reveal>
 
           <p className={styles.transmissionFlag}>
               <span className={styles.live} aria-hidden="true" />
@@ -266,7 +247,7 @@ export default async function HomePage() {
               <div className={styles.transmissionActions}>
                 <Magnetic>
                   <ButtonLink href={featured.href} variant="primary">
-                    Buka rilis
+                    Buka Rilis
                   </ButtonLink>
                 </Magnetic>
               </div>
@@ -282,16 +263,19 @@ export default async function HomePage() {
                 </Link>
               </Plate3D>
             </Reveal>
-          </div>
+            </div>
+          </Reveal>
         </Container>
       </section>
 
       {/* ------------------------------------------------------------------ index */}
       <section className={styles.indexBand} aria-labelledby="catalogue-title">
         <Container>
-          <h2 id="catalogue-title" className={styles.indexTitle}>
-            Indeks
-          </h2>
+          <Reveal>
+            <h2 id="catalogue-title" className={styles.indexTitle}>
+              Indeks
+            </h2>
+          </Reveal>
           <p className={styles.railCount}>
             {stats.releaseCount} rilis · sejak {siteConfig.since}
           </p>
@@ -355,9 +339,10 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------------ press */}
       <section className={styles.pressBand} id="press" aria-labelledby="press-title">
         <Container>
+          <Reveal>
           <div className={styles.pressWrap}>
             <div className={`paper ${styles.press}`}>
-              <p className={styles.pressEyebrow}>Press kit</p>
+              <p className={styles.pressEyebrow}>Press Kit</p>
               <h2 id="press-title" className={styles.pressTitle}>
                 Akbar Nawasunda
               </h2>
@@ -378,10 +363,10 @@ export default async function HomePage() {
                   "Press kit" one section lower said the same thing twice. */}
               <div className={styles.pressActions}>
                 <ButtonLink href="/epk/akbar-nawasunda-epk.zip" variant="primary">
-                  Unduh EPK (.zip)
+                  Unduh Press Kit (.zip)
                 </ButtonLink>
                 <ButtonLink href="/epk" variant="secondary">
-                  Isi press kit
+                  Isi Press Kit
                 </ButtonLink>
               </div>
             </div>
@@ -398,6 +383,7 @@ export default async function HomePage() {
               <figcaption className={styles.pressPhotoCaption}>Potret resmi</figcaption>
             </figure>
           </div>
+          </Reveal>
         </Container>
       </section>
 

@@ -1,15 +1,9 @@
 /**
  * Artist page content.
  *
- * Source: the owner's own profile file, handed over 2026-10-24
- * (`artistPlatform.ts → verifiedArtistProfile` and `content.json → bio.id`). The long bio below is
- * the owner's text, copied — not expanded, not re-written in a more flattering voice. It is shorter
- * than the 150–200 words the brief asked for, and it stays short: padding a biography with plausible
- * sentences is how a site starts inventing a career.
- *
- * Still open, and therefore still printed as a gap rather than filled:
- * - milestones 2021–2023 (the owner's timeline jumps from 2020 to the current name);
- * - a second alias, label, or management contact, which no sources mention.
+ * Owner's text, round 33. The biography is one paragraph set by the owner, printed verbatim on the
+ * home page, /artist and the press kit; the timeline is the owner's own account of the years, and
+ * the licensing line replaces the old "talk to us separately" hedge with the actual procedure.
  */
 
 export interface ArtistFact {
@@ -36,12 +30,11 @@ export const artistFacts: readonly ArtistFact[] = [
   { label: "Genre", value: "Breakbeat, Indo Bass, Jedag Jedug, Jungle Dutch, Kendang Chops" },
 ];
 
-/** The owner's own biography, in Indonesian. Verbatim from their profile file. */
+/** The main biography, in the owner's own words. Printed on the home page, /artist and the EPK. */
 export const artistLongBio =
-  "Perjalanan musik Akbar Nawasunda dimulai pada 2020 sebagai bedroom producer independen dengan " +
-  "nama DJ Akbar Remix. Eksperimennya membawa lagu-lagu populer ke wilayah Breakbeat, Jedag Jedug, " +
-  "dan Jungle Dutch bergaya Bandung. Kini, di bawah nama Akbar Nawasunda, ia merilis karya orisinal " +
-  "yang memadukan melodi pop, electronic bass, dan energi remix untuk platform musik digital global.";
+  "Berawal dari kamar di Bandung Barat pada 2020 sebagai DJ Akbar Remix. Kini, Akbar Nawasunda " +
+  "merilis karya orisinal yang memadukan melodi pop, electronic bass, dan energi Breakbeat. Tiga " +
+  "bahasa yang dipakai bergantian dalam satu set, direkam di studio rumah.";
 
 /** One sentence, for cards and search results. */
 export const artistShortBio =
@@ -62,9 +55,8 @@ export const artistTimeline: readonly TimelineEntry[] = [
   },
   {
     marker: "2021 – 2023",
-    title: "Tonggak karier",
-    detail: "Kolaborasi, rilis, dan penampilan pada periode ini belum terdokumentasi di sumber resmi.",
-    pending: true,
+    title: "Sound design dan live set",
+    detail: "Fokus pada pendalaman sound design dan eksperimen live set independen.",
   },
   {
     marker: "2024",
@@ -93,16 +85,11 @@ export const artistServices = [
   "Lisensi musik",
 ] as const;
 
-/** Licensing posture, condensed from the owner's own note. */
+/** Licensing, in the owner's own words: one route, one sentence. */
 export const licensingNote =
-  "Untuk penggunaan musik di konten, hubungi lewat email. Penggunaan komersial dibicarakan terpisah; " +
-  "penggunaan non-komersial dengan kredit sangat diapresiasi.";
+  "Untuk lisensi komersial, sync media, atau pertanyaan seputar penggunaan karya, silakan hubungi via email.";
 
 /** Short positioning line. Composed only of verified facts, not a written biography. */
 export const artistLine = "Produser, remixer, dan DJ asal Bandung Barat. Breakbeat dan Indo Bass, aktif sejak 2020.";
 
-/** What is still missing from the owner, shown where it matters instead of being invented. */
-export const artistBioGaps = [
-  "Linimasa 2021–2023: rilis, kolaborasi, dan penampilan",
-  "Pengaruh musik dan cerita di balik nama Nawasunda",
-] as const;
+

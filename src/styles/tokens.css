@@ -56,6 +56,15 @@
   --color-field: #000000;
 
   /*
+   * Round 33 — the takeover ground. "Sedang Beredar" is no longer a bone poster pasted over the
+   * page: it is the darkest surface on the site (#050507, a hair off pure black so its neon edge
+   * reads) with the signal blue as its only rule. `--color-cover-fallback` is the sleeve that stands
+   * in when an artwork file 404s: a deep blue-black panel with the AN mark on it, never a white box.
+   */
+  --color-night: #050507;
+  --color-cover-fallback: #14263a;
+
+  /*
    * Structure is one hairline in white. At 16% it is invisible until you look for it, which is
    * exactly the job a HUD grid does; the strong step is for a hovered or active rule.
    */
@@ -167,8 +176,23 @@
   --text-display: clamp(1.5rem, 2.5vw, 2.5rem);
   --text-title: clamp(1.2rem, 1.8vw, 1.6rem);
   --text-body: clamp(0.9rem, 1vw, 1rem);
-  --text-small: 0.875rem;
-  --text-label: 0.75rem;
+  /*
+   * Round 33 — no font size on this site is a fixed number any more.
+   *
+   * The owner's note was that the type felt "kaku dan raksasa": a 9px label stayed 9px from a 320px
+   * phone to a 2560px monitor, and a 60px headline stayed 60px on a phone. Every step below is a
+   * clamp, every one of them grows with the viewport, and every ceiling is a step below the display
+   * scale. `--text-hero` is capped at 4rem for the same reason: the name is loud because it is the
+   * only thing at that size, not because the number is large.
+   */
+  --text-fine: clamp(0.5rem, 0.46rem + 0.16vw, 0.625rem);
+  --text-micro: clamp(0.5625rem, 0.52rem + 0.18vw, 0.6875rem);
+  --text-caption: clamp(0.625rem, 0.58rem + 0.2vw, 0.75rem);
+  --text-meta: clamp(0.6875rem, 0.64rem + 0.22vw, 0.8125rem);
+  --text-small: clamp(0.875rem, 0.84rem + 0.24vw, 1rem);
+  --text-label: clamp(0.75rem, 0.71rem + 0.2vw, 0.875rem);
+  --text-lead: clamp(0.9375rem, 0.89rem + 0.3vw, 1.125rem);
+  --text-quote: clamp(1.25rem, 1.05rem + 0.9vw, 1.625rem);
 
   /* --- Spacing (4px base) ----------------------------------------------------------- */
   --space-1: 0.25rem;
@@ -214,6 +238,11 @@
   --delay-curtain-fade: 700ms;
   --duration-eq: 850ms;
   --duration-press: 100ms;
+  /* Scroll reveal and image load: one 30 px rise and one fade, both short enough to read as
+     "arrived", not as an animation to wait for. */
+  --duration-reveal: 600ms;
+  --duration-image: 700ms;
+  --reveal-shift: 30px;
   --duration-cursor-dot: 50ms;
   --duration-cursor-ring: 180ms;
   --cursor-dot: 6px;

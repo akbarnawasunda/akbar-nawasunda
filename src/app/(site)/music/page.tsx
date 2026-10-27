@@ -89,10 +89,10 @@ export default async function MusicPage() {
                 <p className={styles.featuredMeta}>{lead.meta}</p>
                 <div className={styles.featuredActions}>
                   <ButtonLink href={lead.href} variant="primary">
-                    Buka rilis
+                    Buka Rilis
                   </ButtonLink>
                   <ButtonLink href="#katalog" variant="secondary">
-                    Lihat dinding
+                    Lihat Dinding
                   </ButtonLink>
                 </div>
               </div>

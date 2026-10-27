@@ -25,7 +25,7 @@
 .noteLabel {
   margin: 0;
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-primary);
@@ -44,7 +44,7 @@
   padding: 0;
   list-style: none;
   font-family: var(--font-body-stack);
-  font-size: 0.625rem;
+  font-size: var(--text-caption);
   line-height: 1.6;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
@@ -58,7 +58,7 @@
 .uses span {
   display: block;
   font-family: var(--font-body-stack);
-  font-size: 1.0625rem;
+  font-size: var(--text-lead);
   font-weight: 400;
   letter-spacing: var(--tracking-nav);
   text-transform: uppercase;
@@ -74,14 +74,14 @@
 
 .noteText code {
   font-family: var(--font-body-stack);
-  font-size: 0.75rem;
+  font-size: var(--text-label);
   letter-spacing: var(--tracking-nav);
   color: var(--color-text-primary);
 }
 
 .needs {
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.08em;
   color: var(--color-stamp-ink);
   border-bottom: 1px solid var(--color-stamp);

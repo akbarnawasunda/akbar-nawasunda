@@ -115,7 +115,7 @@
 .note {
   padding-block: var(--space-8) var(--space-12);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
+  font-size: var(--text-micro);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-muted);

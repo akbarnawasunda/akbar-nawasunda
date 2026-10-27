@@ -1,30 +1,36 @@
 .reveal {
   /* Set inline per instance (stagger). Declared here so the value always resolves. */
   --reveal-delay: 0ms;
-  /* The parent gives the vanishing point: without perspective, rotateX is a flat scale. */
-  perspective: 1100px;
   transition:
-    opacity 700ms var(--ease-out),
-    transform 820ms var(--ease-out);
+    opacity var(--duration-reveal) var(--ease-out),
+    transform var(--duration-reveal) var(--ease-out);
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-/* Only once JS has armed the observer. Without it, content simply sits in place. */
+/*
+ * The rest state before the observer fires: opacity 0, 30 px down.
+ *
+ * Only the *entrance* is reset. A browser without JS, or a reader who asked for stillness, never
+ * gets `.armed`, so the content is simply there — the failure mode of a reveal library is an empty
+ * page, and that is not a risk worth taking for an entrance.
+ */
 .armed {
   opacity: 0;
-  transform: translate3d(0, 34px, -40px) rotateX(7deg) scale(0.985);
-  transform-origin: 50% 0%;
+  transform: translate3d(0, var(--reveal-shift), 0);
 }
 
 .armed[data-visible="true"] {
   opacity: 1;
-  transform: none;
+  transform: translate3d(0, 0, 0);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition: none;
+  }
+
   .armed {
     opacity: 1;
     transform: none;
-    transition: none;
   }
 }

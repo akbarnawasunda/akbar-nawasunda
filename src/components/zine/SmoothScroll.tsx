@@ -10,8 +10,9 @@ import { useEffect } from "react";
  * timelines on the header all keep working. That is the whole reason it is allowed here while a
  * `body { overflow: hidden }` scroll-jacker is not (D-096).
  *
- * Off for reduced motion and off for touch: a phone already has the platform's own inertia, and
- * overriding it makes the page feel slower, not more expensive.
+ * `lerp: 0.08` is the owner's number: short enough that the page answers the wheel immediately,
+ * long enough that a long jump still glides. Off for reduced motion and off for touch: a phone
+ * already has the platform's own inertia, and overriding it makes the page feel slower.
  */
 export function SmoothScroll() {
   useEffect(() => {
@@ -27,7 +28,7 @@ export function SmoothScroll() {
       if (cancelled) return;
       const instance = new Lenis({
         // A long, slow tail: the "expensive" part of a smooth scroll is that it keeps coasting.
-        lerp: 0.085,
+        lerp: 0.08,
         duration: 1.15,
         smoothWheel: true,
         syncTouch: false,

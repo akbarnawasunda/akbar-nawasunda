@@ -244,7 +244,10 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
                         aria-current={isActive(item.href) ? "page" : undefined}
                         onClick={() => setOpen(false)}
                       >
-                        <span className={styles.drawerLabel}>
+                        <span
+                          className={`${styles.drawerLabel} glitch`}
+                          data-glitch={item.label}
+                        >
                           <Scramble text={item.label} />
                         </span>
                       </Link>

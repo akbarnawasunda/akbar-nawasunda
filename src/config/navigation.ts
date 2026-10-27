@@ -4,7 +4,7 @@ export interface NavItem {
 }
 
 /**
- * Primary navigation — the final sitemap (SITEMAP.md): Music / Visuals / Artist / EPK.
+ * Primary navigation: Music / Visuals / Artist / Press Kit.
  *
  * Every entry points at a route that exists (D-016): /visuals and /artist are real pages since
  * Phase 5, and /about is a 308 to /artist (D-024), so it is no longer linked anywhere.
@@ -13,7 +13,7 @@ export const primaryNav: readonly NavItem[] = [
   { href: "/music", label: "Music" },
   { href: "/visuals", label: "Visuals" },
   { href: "/artist", label: "Artist" },
-  { href: "/epk", label: "EPK" },
+  { href: "/epk", label: "Press Kit" },
 ];
 
 /**

@@ -203,14 +203,6 @@ a {
 }
 
 /*
- * The verso owns the screen while it is open, the same way the phone menu does.
- */
-html[data-sheet="open"],
-html[data-sheet="open"] body {
-  overflow: hidden;
-}
-
-/*
  * The phone menu owns the screen while it is open. Set on the root element rather than the body so
  * it also stops the document from rubber-banding behind the drawer on iOS; removed on close, so the
  * reader's scroll position is never lost.
@@ -273,6 +265,90 @@ html[data-cursor="on"] [role="button"] {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
+  }
+}
+
+/*
+ * Glitch on hover, for navigation only (round 33).
+ *
+ * Two offset copies of the label, clipped to the top and bottom thirds and stepped a few pixels
+ * sideways. It is the one "wow" effect on the site that costs nothing: the copies are `content:
+ * attr(data-glitch)`, so no extra markup, and the animation only exists while the pointer is on the
+ * link. Reduced motion removes it entirely — the link keeps its colour change.
+ */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-glitch);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  color: var(--color-signal-blue);
+}
+
+.glitch::after {
+  color: var(--color-stamp);
+}
+
+.glitch:hover::before,
+.glitch:focus-visible::before {
+  opacity: 0.9;
+  animation: glitch-top 460ms steps(2, end) infinite;
+}
+
+.glitch:hover::after,
+.glitch:focus-visible::after {
+  opacity: 0.75;
+  animation: glitch-bottom 380ms steps(2, end) infinite;
+}
+
+@keyframes glitch-top {
+  0% { clip-path: inset(0 0 62% 0); translate: -2px -1px; }
+  25% { clip-path: inset(18% 0 44% 0); translate: 3px 1px; }
+  50% { clip-path: inset(0 0 74% 0); translate: -3px 0; }
+  75% { clip-path: inset(30% 0 32% 0); translate: 2px -2px; }
+  100% { clip-path: inset(0 0 62% 0); translate: -2px -1px; }
+}
+
+@keyframes glitch-bottom {
+  0% { clip-path: inset(58% 0 0 0); translate: 2px 1px; }
+  25% { clip-path: inset(40% 0 12% 0); translate: -3px -1px; }
+  50% { clip-path: inset(70% 0 0 0); translate: 3px 0; }
+  75% { clip-path: inset(48% 0 24% 0); translate: -2px 2px; }
+  100% { clip-path: inset(58% 0 0 0); translate: 2px 1px; }
+}
+
+/*
+ * Image fade-in on decode. `ImageFade` marks every image it can see once the browser has the bytes,
+ * so a slow sleeve arrives as a fade instead of a white flash — and a *cached* image is marked on
+ * the same tick, so the rule can never leave a picture invisible.
+ */
+img[data-img="pending"] {
+  opacity: 0;
+}
+
+img[data-img] {
+  transition: opacity var(--duration-image) var(--ease-out);
+}
+
+img[data-img="loaded"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch::before,
+  .glitch::after {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  img[data-img] {
+    transition: none;
   }
 }
 

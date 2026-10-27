@@ -7,7 +7,6 @@ import { siteConfig } from "@/config/site";
 import { contactEmail, contactHref, listenUrl, socialLinks } from "@/config/socials";
 import { platformIcons, type PlatformKey } from "@/components/ui/PlatformIcon";
 import { Equalizer } from "@/components/ui/Equalizer";
-import { buildLabel } from "@/config/build";
 import { releases, releaseDisplayTitle } from "@/content/releases";
 import styles from "./SiteFooter.module.css";
 
@@ -29,7 +28,9 @@ export function SiteFooter() {
           <ul>
             {footerNav.map((item) => (
               <li key={item.href}>
-                <Link href={item.href}>{item.label}</Link>
+                <Link href={item.href} className="glitch" data-glitch={item.label}>
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -58,7 +59,13 @@ export function SiteFooter() {
           <ul>
             {releases.slice(0, 5).map((release) => (
               <li key={release.slug}>
-                <Link href={`/music/${release.slug}`}>{releaseDisplayTitle(release)}</Link>
+                <Link
+                  href={`/music/${release.slug}`}
+                  className="glitch"
+                  data-glitch={releaseDisplayTitle(release)}
+                >
+                  {releaseDisplayTitle(release)}
+                </Link>
               </li>
             ))}
             <li>
@@ -74,7 +81,9 @@ export function SiteFooter() {
               <a href={contactHref}>{contactEmail}</a>
             </li>
             <li>
-              <Link href="/epk">Press kit</Link>
+              <Link href="/epk" className="glitch" data-glitch="Press Kit">
+                Press Kit
+              </Link>
             </li>
             <li>
               <Link href="/contact">Halaman kontak</Link>
@@ -103,9 +112,6 @@ export function SiteFooter() {
           <span>
             {siteConfig.origin} · sejak {siteConfig.since}
           </span>
-        </p>
-        <p className={styles.mono} data-build={buildLabel}>
-          {buildLabel}
         </p>
       </div>
     </footer>

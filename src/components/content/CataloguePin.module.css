@@ -89,13 +89,17 @@
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
     scrollbar-color: var(--color-border) transparent;
     -webkit-overflow-scrolling: touch;
+    /* The snap line is the centre of the screen, so the first and last sleeve need half a screen of
+       runway — otherwise the first card simply cannot reach the centre and a centred snap fights
+       the scroller. */
+    scroll-padding-inline: calc((100% - min(72vw, 20rem)) / 2);
     flex-direction: row;
     align-items: stretch;
     gap: var(--space-4);
-    padding-block: var(--space-6);
+    padding-block: var(--space-6) var(--space-8);
+    padding-inline: calc((100% - min(72vw, 20rem)) / 2);
     transform: none;
   }
 
@@ -103,5 +107,9 @@
     width: min(72vw, 20rem);
     flex: none;
     scroll-snap-align: center;
+    /* A long title ("Masih Mencintainya") has to break inside the card, not run under the next
+       sleeve or off the edge of the screen. */
+    padding-inline: var(--space-1);
+    overflow-wrap: break-word;
   }
 }
