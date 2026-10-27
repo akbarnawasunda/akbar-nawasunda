@@ -325,7 +325,16 @@
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: var(--z-chrome);
+  /*
+   * Round 39 — the dialog's stacking context has to be above the bar's.
+   *
+   * The close control is `position: fixed; top: 0` and lives *inside* the dialog, so it can never
+   * paint higher than its own stacking context. With the dialog at `--z-chrome` (50) and the bar at
+   * 51, the fixed X was rendered underneath the sticky header — present, focusable, and invisible,
+   * which the shot of the open menu caught immediately. Two steps above the bar puts the X on the
+   * glass; the dialog's own box starts below the bar, so nothing else changes.
+   */
+  z-index: calc(var(--z-chrome) + 2);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
