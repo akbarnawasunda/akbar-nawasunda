@@ -19,8 +19,11 @@ npm-debug.log*
 # vercel / deploy metadata
 .vercel
 
-# local playwright / screenshot artifacts (kept out of git)
-/artifacts/
+# Local playwright / screenshot artefacts. Everything in here is scratch space except the review
+# screenshots, which the Review shots workflow commits so the owner can look at them without a token
+# (round 40: they used to live in public/, which meant 6.8 MB of QA PNGs were served from production).
+/artifacts/*
+!/artifacts/review-shots/
 /.playwright-cli/
 
 # local database for NAWA STUDIO development (never commit)

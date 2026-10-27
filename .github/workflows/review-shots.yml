@@ -16,7 +16,12 @@ on:
 # The screenshots are committed back to the branch by the job itself. The artifact is still uploaded,
 # but the sandbox this was written in cannot download artifacts (the signed blob host is outside its
 # egress allowlist), and a picture nobody can open is not evidence. Committing them means anyone —
-# the owner, the sandbox, the preview server at /review-shots/ — can see them without a token.
+# the owner and the sandbox — can see them without a token.
+#
+# Round 40 (audit P0-3): the shots moved from public/review-shots to artifacts/review-shots. They were
+# being served from the production origin — 6.8 MB of internal QA PNGs at /review-shots/*.png — which
+# is a deploy of scratch space. `artifacts/` is git-ignored except for this one folder and is excluded
+# from the Vercel upload, so the pictures stay in the repo and off the CDN.
 permissions:
   contents: write
 
@@ -56,7 +61,7 @@ jobs:
           echo "server did not start"; cat /tmp/next.log; exit 1
 
       - name: Capture
-        run: node scripts/review-shots.mjs --out public/review-shots
+        run: node scripts/review-shots.mjs --out artifacts/review-shots
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
 
@@ -67,7 +72,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: review-shots
-          path: public/review-shots/*.png
+          path: artifacts/review-shots/*.png
           if-no-files-found: error
           retention-days: 30
 
@@ -75,7 +80,7 @@ jobs:
         run: |
           git config user.name "review shots"
           git config user.email "actions@users.noreply.github.com"
-          git add public/review-shots
+          git add artifacts/review-shots
           if git diff --cached --quiet; then
             echo "screenshots unchanged"
             exit 0

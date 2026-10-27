@@ -1,0 +1,37 @@
+# What does NOT get uploaded to Vercel.
+#
+# Round 40 (audit P0-3): the deployment used to carry the whole repo — 38 MB of docs, 124 MB of git
+# pack history, 6.8 MB of review screenshots and the owner's master originals. None of that is needed
+# to build or run the site; the source of truth for the build is `src/`, `public/`, the config files
+# and the handful of assets that `src/assets/manifest.ts` imports directly.
+
+# Review / QA artefacts. They are committed on purpose (the owner reads them in the PR), but they are
+# not part of the site; serving them from production was the P0 this rule closes.
+artifacts/
+
+# Documentation. Not a route, not imported, and 522 files of it.
+docs/
+
+# Root markdown: prompts, handoffs, readme variants.
+*.md
+!README.md
+
+# Local scratch and editor noise.
+.git/
+.github/
+.vercel
+.vscode/
+.idea/
+.DS_Store
+*.tsbuildinfo
+
+# Never upload local state.
+.env
+.env*.local
+/data/
+
+# Test harness sources. The `npm test` suite runs in CI, not on the deploy.
+tests/
+
+# NOTE: `AKBAR-NAWASUNDA-ASSETS/` must NOT be listed here. `src/assets/manifest.ts` imports those
+# webp/jpg files directly, so excluding the folder fails the build with a module-not-found error.

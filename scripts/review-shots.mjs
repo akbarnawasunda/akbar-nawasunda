@@ -3,12 +3,17 @@
  * Review shots — real pixels, from a real browser, written where the site can serve them.
  *
  *   CHROME_PATH=/path/to/chrome node scripts/review-shots.mjs
- *   node scripts/review-shots.mjs --base http://127.0.0.1:3000 --out public/review-shots
+ *   node scripts/review-shots.mjs --base http://127.0.0.1:3000 --out artifacts/review-shots
  *
  * Why this exists: this sandbox has no Chromium and no apt, so the only honest way to show the owner
  * what the page looks like is to have CI — which already installs Chrome for axe and the motion QA —
- * take the pictures and hand them back as an artifact. The output directory is inside `public/`, so
- * the shots are also served by the site itself at `/review-shots/<file>.png`.
+ * take the pictures and hand them back as an artifact.
+ *
+ * Round 40 (audit P0-3) — the output directory moved OUT of `public/`. It used to be
+ * `public/review-shots`, which meant every deploy published 6.8 MB of internal QA screenshots at
+ * `/review-shots/*.png` for anyone (and any crawler — robots allowed `/`). They are review artefacts,
+ * not site assets: they live in `artifacts/`, which is git-ignored except for this one folder and is
+ * excluded from the Vercel upload.
  *
  * What is captured, and why these four:
  *
@@ -44,7 +49,7 @@ const argValue = (flag, fallback) => {
 };
 
 const base = argValue("--base", process.env.AUDIT_BASE ?? "http://127.0.0.1:3000").replace(/\/$/, "");
-const outDir = argValue("--out", "public/review-shots");
+const outDir = argValue("--out", "artifacts/review-shots");
 
 function findChrome() {
   const candidates = [

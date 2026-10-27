@@ -1,6 +1,11 @@
 {
   "generatedBy": "scripts/check-assets.mjs --update",
   "files": {
+    "akbar-an-mark-transparent.png": {
+      "sha256": "e0f94ea5179187432d74bda14d867f285f40aad5e7577892f68cf8ae59d3bf31",
+      "bytes": 674941,
+      "detected": "png"
+    },
     "akbar-editorial-stage-bg.webp": {
       "sha256": "1d3845fd4c665b6f166377353585fbd51450928ed18859f7e55733b6e24b75ff",
       "bytes": 63686,
@@ -41,9 +46,19 @@
       "bytes": 13006,
       "detected": "webp"
     },
+    "akbar-nawasunda-full-transparent.png": {
+      "sha256": "4a3db7b49e323b2781f6266e414300045dc32bad54a9bb0ec1d2891ae88087ad",
+      "bytes": 787092,
+      "detected": "png"
+    },
     "akbar-nawasunda-official-portrait-1000.webp": {
       "sha256": "c2284acc559d9d5f672f321e280a31e7f013d9ababa2b41f22b4df2ed245bbb3",
       "bytes": 83564,
+      "detected": "webp"
+    },
+    "akbar-nawasunda-official-portrait-1200.webp": {
+      "sha256": "5e2d16aa60d9949ee670144991aeebe76810abf0e901835f7c505fa78653258f",
+      "bytes": 302498,
       "detected": "webp"
     },
     "akbar-nawasunda-official-portrait.jpg": {
@@ -59,7 +74,7 @@
     "akbar-nawasunda-sticker-portrait.png": {
       "sha256": "22267df5fb8ef4410c3aed26c243f353b15e633b4e66034e9def3afcf9d4acb8",
       "bytes": 1534941,
-      "detected": "unknown"
+      "detected": "png"
     },
     "akbar-night-frequency-hero-mobile-optimized.webp": {
       "sha256": "8a826dec08e448d5d98c3c49ce7dc81931b226179f59dc3f8dc1c1b3e41a5bf2",

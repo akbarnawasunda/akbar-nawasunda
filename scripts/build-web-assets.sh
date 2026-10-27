@@ -9,7 +9,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC="$ROOT/docs/05-CONTENT-AND-ASSETS/assets"
+# Round 40 (audit P0-3): one master folder. The three files this script used to read from
+# docs/05-CONTENT-AND-ASSETS/assets now sit beside the stage originals in AKBAR-NAWASUNDA-ASSETS/,
+# which is also what src/assets/manifest.ts imports directly.
+SRC="$ROOT/AKBAR-NAWASUNDA-ASSETS"
 STAGE_SRC="$ROOT/AKBAR-NAWASUNDA-ASSETS"
 BRAND="$ROOT/public/brand"
 MEDIA="$ROOT/public/media"

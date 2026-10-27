@@ -11,7 +11,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC="$ROOT/docs/05-CONTENT-AND-ASSETS/assets"
+# Round 40 (audit P0-3): the owner's originals live in ONE place, AKBAR-NAWASUNDA-ASSETS/, outside
+# public/ and outside docs/. They used to be split — the two logo PNGs and the 1200 px portrait in
+# docs/05-CONTENT-AND-ASSETS/assets, the rest here — so "which copy is the master?" had two answers.
+SRC="$ROOT/AKBAR-NAWASUNDA-ASSETS"
 MEDIA="$ROOT/public/media"
 OUT="$ROOT/public/epk"
 TMP="$(mktemp -d)"

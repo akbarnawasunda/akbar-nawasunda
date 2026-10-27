@@ -23,7 +23,21 @@ const update = process.argv.includes("--update");
 function sniff(buf) {
   if (buf.length >= 12 && buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") return "webp";
   if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "jpeg";
-  if (buf.length >= 8 && buf.toString("ascii", 0, 4) === "\x89PNG") return "png";
+  /*
+   * Round 40 — a real bug in the gate, found by moving files.
+   *
+   * `buf.toString("ascii", 0, 4) === "\x89PNG"` can never be true: Node's ascii decoder masks the high
+   * bit, so the PNG signature byte 0x89 comes back as 0x09. Every genuine PNG in the asset folder was
+   * therefore reported as "not a recognised image" — three warnings nobody could act on, and no way to
+   * catch a corrupt PNG (the whole point of this check). Compared as bytes instead.
+   */
+  if (
+    buf.length >= 8 &&
+    buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47 &&
+    buf[4] === 0x0d && buf[5] === 0x0a && buf[6] === 0x1a && buf[7] === 0x0a
+  ) {
+    return "png";
+  }
   if (buf.length >= 12 && buf.toString("ascii", 4, 8) === "ftyp" && buf.toString("ascii", 8, 12).startsWith("avif")) return "avif";
   return null;
 }
