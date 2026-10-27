@@ -34,9 +34,15 @@
 .heroInner {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  /*
+   * The name owns a full-width row and is still flush left; the mark floats in the right column of
+   * the row below it, and the status deck holds the left column of that row. That is the asymmetry —
+   * a heavy left edge with an object hanging beside it — without forcing the wordmark into a narrow
+   * column, which broke "NAWASUNDA" across two lines and left a stray "A" under the name.
+   */
   grid-template-areas:
     "label label"
-    "name  mark"
+    "name  name"
     "deck  mark";
   align-items: start;
   column-gap: clamp(2rem, 5vw, 5rem);
@@ -51,6 +57,9 @@
 .heroLabel {
   grid-area: label;
   margin: 0;
+  /* `globals.css` caps every paragraph at a 60ch reading measure; a credit line is one line by
+     definition, so it opts out. */
+  max-width: none;
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-hairline);
   font-family: var(--font-mono-stack);
@@ -70,11 +79,18 @@
   margin: 0;
   font-family: var(--font-display-stack);
   font-size: var(--text-wordmark);
-  line-height: 0.86;
+  line-height: 0.9;
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
   text-align: left;
-  overflow-wrap: anywhere;
+  /*
+   * A wordmark may not break. `overflow-wrap: anywhere` was here first and it split "NAWASUNDA"
+   * into "NAWASUND" + "A" the moment the column was a few pixels narrower than the word — the clamp
+   * is sized so the longest word always fits, and this is the belt to that brace.
+   */
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
   color: var(--color-text-primary);
 }
 

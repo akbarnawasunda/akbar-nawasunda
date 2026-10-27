@@ -193,7 +193,7 @@
    * from across a room before anything else is read at all — so it has its own token instead of
    * borrowing a section title's scale.
    */
-  --text-wordmark: clamp(3.5rem, 8.4vw, 6rem);
+  --text-wordmark: clamp(3.5rem, 7.2vw, 6rem);
   --text-display: clamp(1.5rem, 2.5vw, 2.5rem);
   --text-title: clamp(1.2rem, 1.8vw, 1.6rem);
   --text-body: clamp(0.9rem, 1vw, 1rem);
@@ -289,7 +289,7 @@
      */
     --text-hero: clamp(2.5rem, 9.6vw, 3.6rem);
     /* A 320px hand cannot hold 3.5rem × 15 characters; the floor steps down with the room. */
-    --text-wordmark: clamp(2.6rem, 11.4vw, 3.6rem);
+    --text-wordmark: clamp(2.4rem, 9.6vw, 3.4rem);
     --text-takeover: clamp(1.7rem, 7.4vw, 2.5rem);
     --text-display: clamp(1.45rem, 6.2vw, 2.2rem);
     --text-title: clamp(1.15rem, 4.8vw, 1.5rem);

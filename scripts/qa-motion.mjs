@@ -216,7 +216,7 @@ try {
   );
   check(
     "the wordmark lands inside the 3.5–6rem clamp",
-    Boolean(wide) && Boolean(narrow) && wide.nameFont >= 56 && wide.nameFont <= 96 && narrow.nameFont >= 40,
+    Boolean(wide) && Boolean(narrow) && wide.nameFont >= 56 && wide.nameFont <= 96 && narrow.nameFont >= 32 && narrow.nameFont <= 60,
     `1440 ${wide?.nameFont}px · 390 ${narrow?.nameFont}px`,
   );
   check(
