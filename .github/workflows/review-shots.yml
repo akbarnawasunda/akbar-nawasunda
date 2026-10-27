@@ -1,0 +1,65 @@
+name: Review shots
+
+# Screenshots of the built site, taken by a real Chrome, uploaded as an artifact.
+#
+# Why this is not part of `ci.yml`: it needs a full build plus a running server plus ~40 s of
+# browsing, and nothing in it is an assertion — a failed shot should never turn a red build redder.
+# It is on demand, and the owner can also trigger it from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["arena/**"]
+    paths:
+      - "src/**"
+      - "scripts/review-shots.mjs"
+
+jobs:
+  shots:
+    name: capture 390 / 1440
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          PREVIEW_FRAMING: "1"
+
+      - name: Install Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Start the site
+        run: |
+          npx next start -H 127.0.0.1 -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 40); do
+            curl -sf -o /dev/null http://127.0.0.1:3000/ && exit 0
+            sleep 1
+          done
+          echo "server did not start"; cat /tmp/next.log; exit 1
+
+      - name: Capture
+        run: node scripts/review-shots.mjs --out public/review-shots
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
+      - name: Server log
+        if: always()
+        run: cat /tmp/next.log || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: review-shots
+          path: public/review-shots/*.png
+          if-no-files-found: error
+          retention-days: 30

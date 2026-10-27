@@ -119,58 +119,93 @@ varying vec2 vUv;
 
 ${SIMPLEX}
 
+/*
+ * Liquid chrome (round 37).
+ *
+ * Round 33–36 pushed the silhouette around with two octaves of simplex noise. It read as a wobbling
+ * sticker: the field moved the whole mark on a slow sine and the surface, having no normal, was a flat
+ * ramp of grey. This is a different model — the noise is a *height field*, not a displacement, and the
+ * mark is shaded as a real metal surface:
+ *
+ *   1. RIPPLE — a wave that leaves the pointer and decays: sin(length(uv - uMouse) * 20 - t * 5) is the
+ *      brief's own formula; it is added to the height field, so the ring catches the light instead of
+ *      merely sliding the artwork.
+ *   2. NORMAL — taken from the gradient of that height field by finite difference, which is what makes
+ *      a chrome surface possible: a metal has almost no diffuse colour, it has reflections of what is
+ *      around it, and those come from the normal.
+ *   3. SPECULAR — a Blinn-Phong lobe at exponent 32: a small, hard, white highlight, the glint of
+ *      mercury. A wide lobe reads as brushed steel; a tight one reads as liquid.
+ *   4. FRESNEL — the rim turns neon blue (#0087FF), because at grazing angles a chrome edge reflects
+ *      its surroundings, and this site's surroundings are black with one blue lamp.
+ *
+ * Coverage still comes from the mark's own alpha, and it is still discarded below one percent:
+ * outside the strokes the fragment writes nothing at all, so the page under the band is untouched.
+ */
+
+/* The height field: two noise octaves for the body, the pointer ripple riding on top. */
+float liquidHeight(vec2 p) {
+  float body = snoise3(vec3(p * 2.4, uTime * 0.18)) * 0.55
+             + snoise3(vec3(p * 6.1, uTime * 0.32)) * 0.22;
+  vec2 toPointer = p - uMouse;
+  toPointer.x *= 1.25;
+  float d = length(toPointer);
+  /* The brief's ripple, with a decay so it does not ring across the whole band forever. */
+  float ripple = sin(d * 20.0 - uTime * 5.0) * uHover * exp(-d * 2.4);
+  return body + ripple * 0.075;
+}
+
 void main() {
-  vec2 centred = vUv - 0.5;
+  /* Small flow, not the old 0.048 wash: the mark keeps its shape and the *surface* moves. */
+  vec3 field = vec3((vUv - 0.5) * 2.6, uTime * 0.16);
+  vec2 flow = vec2(snoise3(field), snoise3(field * 2.9 + vec3(11.3, 4.7, -uTime * 0.1))) * 0.016;
 
-  /* Two octaves at different speeds: the slow one sags the whole mark, the fast one breaks the
-     edges into droplets. Time is the third dimension, so the field drifts instead of cycling. */
-  vec3 field = vec3(centred * 2.6, uTime * 0.16);
-  float slow = snoise3(field);
-  float fast = snoise3(field * 2.9 + vec3(11.3, 4.7, -uTime * 0.1));
-
-  vec2 flow = vec2(slow, fast) * 0.048;
-
-  /* The pointer: a decaying ring travelling away from the hand along the radial direction, so
-     dragging across the band pushes a wave through the mercury. */
   vec2 toPointer = vUv - uMouse;
   toPointer.x *= 1.25;
   float dist = length(toPointer);
-  float ripple = sin(dist * 24.0 - uTime * 5.0) * exp(-dist * 5.0) * 0.075 * uHover;
-  /* normalize() on a vector of length ~0 is the classic NaN in a shader: it divides by zero and
-     the whole fragment turns into a white or black hole. Clamping the divisor keeps the direction
-     finite at the exact centre of the band. */
+  /* normalize() on a zero-length vector is the classic NaN in a shader; clamp the divisor. */
   vec2 direction = toPointer / max(dist, 0.0005);
-  flow += direction * ripple;
+  flow += direction * sin(dist * 20.0 - uTime * 5.0) * uHover * exp(-dist * 3.0) * 0.02;
 
   vec2 uv = vUv + flow;
 
-  /* Three taps: the centre carries the colour, the offset samples give a cheap surface normal. */
   vec4 mark = texture2D(uTexture, uv);
-  float left = texture2D(uTexture, uv - vec2(0.0035, 0.0)).a;
-  float right = texture2D(uTexture, uv + vec2(0.0035, 0.0)).a;
-  float up = texture2D(uTexture, uv + vec2(0.0, 0.0055)).a;
-  float down = texture2D(uTexture, uv - vec2(0.0, 0.0055)).a;
+  /* Outside the strokes: nothing. Never a filled panel over the page. */
+  float coverage = smoothstep(0.02, 0.30, mark.a);
+  if (coverage < 0.004) discard;
 
-  float mask = smoothstep(0.015, 0.32, mark.a);
+  /* The surface normal, from the gradient of the height field (central difference). */
+  float e = 0.0035;
+  float hx = liquidHeight(uv + vec2(e, 0.0)) - liquidHeight(uv - vec2(e, 0.0));
+  float hy = liquidHeight(uv + vec2(0.0, e)) - liquidHeight(uv - vec2(0.0, e));
+  vec3 normal = normalize(vec3(-hx * 5.5, -hy * 5.5, 1.0));
 
-  /* Normals off the alpha gradient: strokes facing the light go white, the rest fall to steel. */
-  float slope = ((right - left) * 0.75 + (up - down)) * 2.4;
-  float light = clamp(0.52 + slope + slow * 0.22 + fast * 0.12, 0.0, 1.0);
+  vec3 viewDir = vec3(0.0, 0.0, 1.0);
+  vec3 lightDir = normalize(vec3(-0.42, 0.58, 0.70));
+  vec3 halfDir = normalize(lightDir + viewDir);
 
-  vec3 steel = vec3(0.56, 0.62, 0.72);
-  vec3 chrome = vec3(0.97, 0.99, 1.0);
-  vec3 neon = vec3(0.0, 0.529, 1.0);
+  float diffuse = max(dot(normal, lightDir), 0.0);
+  float specular = pow(max(dot(normal, halfDir), 0.0), 32.0);
+  float facing = max(dot(normal, viewDir), 0.0);
+  float fresnel = pow(1.0 - facing, 3.0);
 
-  vec3 colour = mix(steel, chrome, light);
-  /* The blue lives on the steepest faces and in the troughs, the way a neon tube shows up in the
-     crease of a chrome object. */
-  colour = mix(colour, neon, smoothstep(0.32, 0.95, abs(fast) + max(0.0, -slope)) * 0.55);
-  /* A faint halo under the strokes: light bleeding through the water, never a filled panel. */
-  colour += neon * pow(max(0.0, 1.0 - length(centred) * 1.35), 3.0) * 0.16;
+  /* Chrome: a dark valley that rises to a near-white reflection. The metal has no hue of its own —
+     the hue is the environment, which here is ink and one neon lamp. */
+  vec3 valley = vec3(0.045, 0.050, 0.060);
+  vec3 silver = vec3(0.930, 0.955, 1.000);
+  vec3 neon = vec3(0.000, 0.529, 1.000);
 
-  /* The point of the round: outside the mark the alpha is zero, so the band's copy and the page
-     underneath stay visible. */
-  float alpha = mask * (0.82 + 0.18 * light);
+  vec3 colour = mix(valley, silver, smoothstep(0.05, 0.95, diffuse));
+  /* The glint. Sharp, white, and additive — the thing the eye reads as "wet". */
+  colour += vec3(1.0) * specular * 1.35;
+  /* The rim. Neon blue at grazing angles only, so it traces the edge of the mark. */
+  colour = mix(colour, neon, fresnel * 0.75);
+  colour += neon * fresnel * 0.22;
+
+  /* A ripple crest picks up the lamp. Cheap, and it makes the wave visible on a black band. */
+  float crest = smoothstep(0.35, 1.0, sin(dist * 20.0 - uTime * 5.0)) * uHover * exp(-dist * 2.4);
+  colour += neon * crest * 0.30;
+
+  float alpha = coverage * (0.90 + 0.10 * fresnel);
   if (alpha < 0.004) discard;
 
   gl_FragColor = vec4(colour, alpha);
@@ -254,10 +289,13 @@ function LiquidMark({
       Math.max(0.4, Math.min(viewport.width / PLANE_WIDTH, viewport.height / PLANE_HEIGHT)),
     );
     mesh.scale.setScalar(fit);
-    mesh.rotation.y =
-      Math.sin(state.clock.elapsedTime * 0.18) * 0.08 + (mouse.current.x - 0.5) * 0.14;
-    mesh.rotation.x =
-      Math.cos(state.clock.elapsedTime * 0.14) * 0.04 + (mouse.current.y - 0.5) * 0.1;
+    /*
+     * Round 37 — the idle wobble is gone. The sheet used to rock on two slow sine waves whether or not
+     * anyone was there, which is what "goyangan kaku" described: motion with no cause. Now the only
+     * rotation is the one the pointer earns, and it is small — the surface itself is what moves.
+     */
+    mesh.rotation.y = (mouse.current.x - 0.5) * 0.12;
+    mesh.rotation.x = (mouse.current.y - 0.5) * 0.08;
 
     /* Tell the band the mark is genuinely on the glass. One frame is not enough — the first frame of
        a fresh context is often the compile frame — so the second one reports. Until then the baked

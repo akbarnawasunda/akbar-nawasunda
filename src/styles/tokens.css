@@ -183,20 +183,17 @@
    * display face it broke the name into "AKBAR / NAWASUND / A" on the hero.
    */
   --text-hero: clamp(2rem, 4vw, 4rem);
-  /*
-   * Round 34 — the festival scale.
-   *
-   * The hero name is the one piece of type on this site that has to work as a poster: it is read
-   * from across a room before anything else on the page is read at all. `--text-mega` is fitted to
-   * the display face (NAWASUNDA measures ~8.4 × font-size, so 9.2vw keeps it inside one line on a
-   * 320px phone *and* on a 1440px laptop) with a floor that stays legible on a handset and a
-   * ceiling that stops a 2560px monitor from getting a 250px word.
-   */
-  --text-mega: clamp(2.75rem, 9.2vw, 7.5rem);
   /* Round 22: the takeover voice — one step under the hero name, for the release that owns the
      screen right now (home transmission band, catalogue featured block). A major-label site gives
      the current release almost the same type as the artist's own name; this is that move. */
   --text-takeover: clamp(1.5rem, 2.5vw, 2.5rem);
+  /*
+   * Round 37 — the wordmark clamp for the editorial hero, on the owner's spec: 3.5rem at the bottom,
+   * 6rem at the top. This is the one piece of type on the site that has to work as a poster — read
+   * from across a room before anything else is read at all — so it has its own token instead of
+   * borrowing a section title's scale.
+   */
+  --text-wordmark: clamp(3.5rem, 8.4vw, 6rem);
   --text-display: clamp(1.5rem, 2.5vw, 2.5rem);
   --text-title: clamp(1.2rem, 1.8vw, 1.6rem);
   --text-body: clamp(0.9rem, 1vw, 1rem);
@@ -291,6 +288,8 @@
      * phone from shouting.
      */
     --text-hero: clamp(2.5rem, 9.6vw, 3.6rem);
+    /* A 320px hand cannot hold 3.5rem × 15 characters; the floor steps down with the room. */
+    --text-wordmark: clamp(2.6rem, 11.4vw, 3.6rem);
     --text-takeover: clamp(1.7rem, 7.4vw, 2.5rem);
     --text-display: clamp(1.45rem, 6.2vw, 2.2rem);
     --text-title: clamp(1.15rem, 4.8vw, 1.5rem);

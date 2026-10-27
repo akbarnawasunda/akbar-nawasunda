@@ -1,0 +1,146 @@
+/*
+  The discography ledger (homepage, round 37).
+
+  A running order, not a wall of cards: one row per release, one hairline between rows, a small
+  sleeve, and the title set in the one weight that carries a row. There is no radius, no card
+  surface, no shadow and no absolutely positioned furniture — the row is a three-column grid and the
+  sleeve sits in its own cell.
+
+  Column sizes: the number is fixed-width, the sleeve is fixed, the copy takes what is left, and the
+  open affordance is content-sized. On a phone the "Buka" column folds away and the copy keeps the
+  room.
+*/
+
+.ledger {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-hairline);
+  min-width: 0;
+}
+
+/* The catalogue number: the only place the ledger speaks in digits. */
+.number {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/*
+  The row link is the whole row's hit area. It is a grid of its own so the sleeve, the copy and the
+  "Buka" hint stay aligned while the anchor stretches across all of them.
+*/
+.rowLink {
+  grid-column: 2 / -1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  transition: translate var(--duration-base) var(--ease-out);
+}
+
+/* The one movement in the band: the row steps out of the line by 4px under the hand. */
+.rowLink:hover,
+.rowLink:focus-visible {
+  translate: var(--space-1) 0;
+}
+
+.rowLink:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.sleeve {
+  display: block;
+  width: clamp(3rem, 6vw, 4.5rem);
+  flex: none;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-body-stack);
+  font-size: var(--text-title);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.rowLink:hover .title,
+.rowLink:focus-visible .title {
+  color: var(--color-signal-blue);
+}
+
+.meta {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.arrow {
+  font-size: 1em;
+  line-height: 1;
+  color: var(--color-signal-blue);
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+  }
+
+  /* The hint is a courtesy on a wide row; on a hand it costs a column the title needs. */
+  .open {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowLink,
+  .title {
+    transition: none;
+  }
+
+  .rowLink:hover,
+  .rowLink:focus-visible {
+    translate: none;
+  }
+}

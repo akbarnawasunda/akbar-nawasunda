@@ -121,62 +121,108 @@ try {
   await settle(page);
 
   /*
-   * R36 — the hero is a single column, and "single column" is measured, not assumed.
+   * R37 — the hero is asymmetric by design, and "nothing overlaps" is measured, not assumed.
    *
-   * Round 35's hero stacked a −70px translated photograph, a scrim and a tilting plate; at 390px the
-   * photograph crossed the type and the tilt pushed the foot of the name into the buttons. The
-   * replacement is four grid rows, so the assertion is geometric: each row starts below the previous
-   * one ends, at both widths, with no transform anywhere in the band and nothing taken out of flow.
-   * An overlap is exactly a row whose top lands above its predecessor's bottom, which is what this
-   * reads. A layout can be pretty and still be broken; this catches the broken half.
+   * Round 36 made the hero a centred column (safe, but a template); round 37 moved it to a two-column
+   * poster: label across the top, the name flush left, the chrome mark floating in the right column,
+   * the status deck under the name. That layout is only correct if the blocks do not intersect, so the
+   * check is a pairwise rectangle test at both widths rather than a stack of tops — a two-column hero
+   * has no "previous row" to compare against, and pretending otherwise would test the old design.
+   *
+   * It also asserts the asymmetry itself: on a wide screen the name's left edge is at the gutter
+   * while the mark's left edge is past the middle of the page. A centred hero fails that.
    */
-  const heroRows = async (width) => {
+  const heroLayout = async (width) => {
     await page.setViewport({ width, height: width < 700 ? 780 : 900, deviceScaleFactor: 1 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await settleScroll(page);
-    await sleep(400);
+    await sleep(500);
     return page.evaluate(() => {
       const hero = document.querySelector("section[aria-labelledby=\"hero-title\"]");
       if (!hero) return null;
-      const rows = [hero.querySelector("h1"), hero.querySelector("h1 + div"), hero.querySelector("[class*=\"heroCta\"]")]
-        .filter(Boolean)
-        .map((node) => {
+      const blocks = [
+        ["label", hero.querySelector("p")],
+        ["name", hero.querySelector("h1")],
+        ["mark", hero.querySelector("[data-shader-band]")],
+        ["deck", hero.querySelector("[class*=\"heroDeck\"]")],
+      ]
+        .filter(([, node]) => node)
+        .map(([name, node]) => {
           const box = node.getBoundingClientRect();
           const style = getComputedStyle(node);
           return {
-            top: box.top,
-            bottom: box.bottom,
+            name,
+            left: Math.round(box.left),
+            right: Math.round(box.right),
+            top: Math.round(box.top),
+            bottom: Math.round(box.bottom),
             transform: style.transform,
             position: style.position,
           };
         });
+
+      const overlaps = [];
+      for (let i = 0; i < blocks.length; i += 1) {
+        for (let j = i + 1; j < blocks.length; j += 1) {
+          const a = blocks[i];
+          const b = blocks[j];
+          const x = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+          const y = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+          if (x > 1 && y > 1) overlaps.push(`${a.name}×${b.name} ${Math.round(x)}×${Math.round(y)}`);
+        }
+      }
+
+      /*
+       * Everything positioned inside the chrome band belongs to the shader (its canvas and the baked
+       * still under it). The hero's own furniture must not be absolutely positioned at all.
+       */
+      const band = hero.querySelector("[data-shader-band]");
       const offenders = [...hero.querySelectorAll("*")]
+        .filter((node) => !band || !band.contains(node))
         .filter((node) => getComputedStyle(node).position === "absolute")
         .filter((node) => {
           const box = node.getBoundingClientRect();
           return box.width > 0 && box.height > 0;
         })
         .map((node) => node.tagName.toLowerCase());
-      return { rows, offenders, cursor: getComputedStyle(document.documentElement).cursor };
+
+      return {
+        blocks,
+        overlaps,
+        offenders,
+        viewport: window.innerWidth,
+        nameFont: parseFloat(getComputedStyle(hero.querySelector("h1")).fontSize),
+      };
     });
   };
 
-  const wide = await heroRows(1440);
-  const narrow = await heroRows(390);
+  const wide = await heroLayout(1440);
+  const narrow = await heroLayout(390);
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  const gaps = (state) =>
-    state.rows.slice(1).map((row, i) => Math.round(row.top - state.rows[i].bottom));
+  const heroBlock = (state, name) => state.blocks.find((block) => block.name === name) ?? null;
   check(
-    "the hero stacks in one column with nothing overlapping, wide and narrow",
-    Boolean(wide && narrow) &&
-      [...gaps(wide), ...gaps(narrow)].every((gap) => gap >= 0) &&
-      wide.rows.every((row) => row.transform === "none" && row.position !== "absolute"),
-    `1440 gaps ${gaps(wide).join(" / ")}px · 390 gaps ${gaps(narrow).join(" / ")}px`,
+    "the hero's blocks never intersect, wide or narrow",
+    Boolean(wide && narrow) && wide.overlaps.length === 0 && narrow.overlaps.length === 0,
+    `${(wide?.overlaps ?? []).concat(narrow?.overlaps ?? []).join(", ") || "no intersections"} · 1440 ${wide?.blocks.length} blocks / 390 ${narrow?.blocks.length} blocks`,
+  );
+  check(
+    "the hero is asymmetric: the name is flush left and the mark floats right",
+    Boolean(wide) &&
+      Boolean(heroBlock(wide, "name")) &&
+      Boolean(heroBlock(wide, "mark")) &&
+      heroBlock(wide, "name").left <= 48 &&
+      heroBlock(wide, "mark").left > wide.viewport / 2,
+    `name left ${heroBlock(wide, "name")?.left}px · mark left ${heroBlock(wide, "mark")?.left}px of ${wide?.viewport}px`,
+  );
+  check(
+    "the wordmark lands inside the 3.5–6rem clamp",
+    Boolean(wide) && Boolean(narrow) && wide.nameFont >= 56 && wide.nameFont <= 96 && narrow.nameFont >= 40,
+    `1440 ${wide?.nameFont}px · 390 ${narrow?.nameFont}px`,
   );
   check(
     "the hero has no absolutely positioned furniture left",
     Boolean(wide && narrow) && wide.offenders.length === 0 && narrow.offenders.length === 0,
-    `${(wide?.offenders ?? []).concat(narrow?.offenders ?? []).join(", ") || "none"}`,
+    `${(wide?.offenders ?? []).concat(narrow?.offenders ?? []).join(", ") || "none"} (shader band excluded)`,
   );
 
   /*
@@ -274,42 +320,62 @@ try {
   }
 
   /*
-   * The call to action, end to end.
+   * The status deck, end to end.
    *
-   * The hero's only button is the promise the page makes: "Dengarkan Musik" has to land on the
-   * catalogue, not near it and not on a different band. A real click is dispatched, Lenis is allowed
-   * to finish, and the band's top is compared with the scroll position — the anchor exists, it is
-   * wired, and the section it names is the one that arrives.
+   * The hero's two links are the promise the page makes: "latest release" has to land on the record,
+   * "live schedule" on the tour. A real click is dispatched, Lenis is allowed to finish, and each
+   * target's top edge is compared with the scroll position — the anchor exists, it is wired, and the
+   * band it names is the band that arrives.
    */
   await page.evaluate(() => window.scrollTo(0, 0));
   await settleScroll(page);
   await sleep(300);
-  const cta = await page.evaluate(() => {
+  const deckLinks = await page.evaluate(() => {
     const hero = document.querySelector("section[aria-labelledby=\"hero-title\"]");
-    const link = hero ? [...hero.querySelectorAll("a")].find((a) => a.hash === "#catalogue") : null;
-    if (!link) return null;
-    const box = link.getBoundingClientRect();
-    return { x: box.left + box.width / 2, y: box.top + box.height / 2, label: link.textContent.trim() };
+    if (!hero) return [];
+    return [...hero.querySelectorAll("a[href^='#']")].map((link) => {
+      const box = link.getBoundingClientRect();
+      return {
+        hash: link.hash,
+        label: link.textContent.trim(),
+        x: box.left + box.width / 2,
+        y: box.top + box.height / 2,
+      };
+    });
   });
-  if (cta) {
-    await page.mouse.click(cta.x, cta.y);
+  const landed = [];
+  for (const link of deckLinks) {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await settleScroll(page);
+    await sleep(250);
+    const point = await page.evaluate((hash) => {
+      const link = [...document.querySelectorAll("section[aria-labelledby='hero-title'] a")].find(
+        (a) => a.hash === hash,
+      );
+      if (!link) return null;
+      const box = link.getBoundingClientRect();
+      return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+    }, link.hash);
+    if (!point) continue;
+    await page.mouse.click(point.x, point.y);
     await settleScroll(page);
     await sleep(900);
-    const landed = await page.evaluate(() => {
-      const band = document.querySelector("#catalogue");
+    const state = await page.evaluate((hash) => {
+      const band = document.querySelector(hash);
       if (!band) return null;
       const box = band.getBoundingClientRect();
-      return { top: Math.round(box.top), bottom: Math.round(box.bottom), y: Math.round(window.scrollY) };
-    });
-    check(
-      "the hero's button lands on the catalogue",
-      Boolean(landed) && landed.top <= 160 && landed.bottom > 0,
-      `${cta.label} → #catalogue top ${landed?.top}px at scrollY ${landed?.y}`,
-    );
-    await shot(page, "qa-hero-cta");
-  } else {
-    check("the hero's button lands on the catalogue", false, "no #catalogue link in the hero");
+      return { top: Math.round(box.top), bottom: Math.round(box.bottom) };
+    }, link.hash);
+    landed.push({ ...link, ...state });
   }
+  check(
+    "both hero deck links land on the band they name",
+    deckLinks.length >= 2 &&
+      landed.length === deckLinks.length &&
+      landed.every((item) => item && item.top <= 200 && item.bottom > 0),
+    landed.map((item) => `${item.label || item.hash} → ${item.hash} top ${item.top}px`).join(" · "),
+  );
+  await shot(page, "qa-hero-deck");
 
   /*
    * No tilted plate, no depth layer, no transformed sheet — the hero is flat on purpose, so the
@@ -319,13 +385,16 @@ try {
   const flat = await page.evaluate(() => {
     const hero = document.querySelector("section[aria-labelledby=\"hero-title\"]");
     if (!hero) return null;
+    const band = hero.querySelector("[data-shader-band]");
     return {
       layers: hero.querySelectorAll("[data-layer]").length,
       plates: hero.querySelectorAll("[data-plate]").length,
-      transformed: [...hero.querySelectorAll("*")].filter((node) => {
-        const style = getComputedStyle(node);
-        return style.transform !== "none" && !node.closest("svg");
-      }).length,
+      transformed: [...hero.querySelectorAll("*")]
+        .filter((node) => !band || !band.contains(node))
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          return style.transform !== "none" && !node.closest("svg");
+        }).length,
     };
   });
   check(
@@ -378,28 +447,27 @@ try {
   check("header hides on scroll down and returns on scroll up", headerDown.hidden === "true" && headerUp === "false");
 
   /*
-   * Zero canvases, everywhere, forever (round 20, owner's instruction: "jangan 3D berat jir").
+   * The chrome mark, and the floor under it.
    *
-   * The contract used to be "at most one canvas, and nothing allocated before its band is on
-   * screen" (D-102) — a lazy WebGL monogram. Round 20 baked that monogram into WebP stills and
-   * deleted the renderer, so the contract is now absolute: no `<canvas>` element exists at scroll 0
-   * on any viewport. Round 29 replaced the baked still with a lazy shader quad: the canvas the
-   * band may own is imported dynamically only when the band approaches, only above 768px, only
-   * with motion allowed and only where WebGL exists — so at scroll 0 the count is still zero, and
-   * after the band it is at most one, and only inside the band. The probe also asserts the
-   * fallback floor never moved: a lazy image with real decoded pixels underneath, because "we
-   * added the heavy thing" is only half the change; the band must survive without it.
+   * The contract used to be "no canvas at scroll 0" — the monogram band sat below the fold and its
+   * shader was fetched only when it approached. Round 37 put the liquid AN *in the hero*, on the
+   * owner's instruction, so a canvas at scroll 0 is now the design rather than a regression. What
+   * still has to hold is narrower and more useful: at most one canvas exists, it lives inside the
+   * band that declares itself a shader band, and the baked still underneath is real decoded pixels —
+   * because a shader that fails to compile on a driver must not be a missing logo.
    */
   const canvasProbe = await browser.newPage();
   await canvasProbe.setViewport({ width: 1440, height: 900 });
   await canvasProbe.goto(`${base}/`, { waitUntil: "load" });
-  await sleep(1600);
+  await sleep(2400);
   const canvasBefore = await canvasProbe.evaluate(() => {
-    const band = document.querySelector('[class*="signature"]');
-    const box = band?.getBoundingClientRect();
+    const band = document.querySelector("[data-shader-band]");
+    const canvases = [...document.querySelectorAll("canvas")];
+    const img = band?.querySelector("img") ?? null;
     return {
-      count: document.querySelectorAll("canvas").length,
-      onScreen: Boolean(box && box.top < window.innerHeight && box.bottom > 0),
+      count: canvases.length,
+      inBand: canvases.every((node) => Boolean(band && band.contains(node))),
+      still: Boolean(img && img.complete && img.naturalWidth > 0),
     };
   });
   await canvasProbe.close();
@@ -549,26 +617,33 @@ try {
    * check failed a band that works. The still is the anchor now; scrolling it into view is what a
    * reader does.
    */
-  /* The main tab, not the canvas probe: that one was closed the moment it had its answer. */
-  await page.evaluate(() => {
-    document.querySelector('img[src*="liquid-metal-wide"]')?.scrollIntoView({ block: "center" });
-  });
-  await sleep(2200);
   const monogram = await page.evaluate(() => {
-    const img = document.querySelector('img[src*="liquid-metal-wide"]');
-    const band = img?.closest("section") ?? null;
+    const band = document.querySelector("[data-shader-band]");
+    const img = band?.querySelector("img") ?? null;
     const canvases = [...document.querySelectorAll("canvas")];
+    const box = band?.getBoundingClientRect();
     return {
       canvases: canvases.length,
       inBand: canvases.every((node) => Boolean(band && band.contains(node))),
       still: Boolean(img && img.complete && img.naturalWidth > 0),
-      lazy: img?.loading === "lazy",
+      sized: Boolean(box && box.width > 120 && box.height > 120),
+      /* The shader writes `data-shader="on"` on its host only after it has painted; the still steps
+         back at that moment. If the GLSL failed to compile the flag never appears and the mark on
+         screen is the baked image — which is a working fallback, but a failed shader. */
+      painted: Boolean(band && band.querySelector('[data-shader="on"]')),
     };
   });
   check(
-    "no canvas before the band, at most one inside it, and the band ships a decoded lazy still",
-    canvasBefore.count === 0 && monogram.canvases <= 1 && monogram.inBand && monogram.still && monogram.lazy,
-    `canvases at scroll 0: ${canvasBefore.count} (band on screen: ${canvasBefore.onScreen}) · after the band: ${monogram.canvases} (all inside it: ${monogram.inBand}) · still decoded: ${monogram.still} · lazy: ${monogram.lazy}`,
+    "the chrome mark is one canvas inside its band, with a decoded still under it",
+    canvasBefore.count <= 1 &&
+      canvasBefore.inBand &&
+      canvasBefore.still &&
+      monogram.canvases <= 1 &&
+      monogram.inBand &&
+      monogram.still &&
+      monogram.sized &&
+      monogram.painted,
+    `canvas ${canvasBefore.count} (in band ${canvasBefore.inBand}, still decoded ${canvasBefore.still}) · still ${monogram.still} · sized ${monogram.sized} · shader painted ${monogram.painted}`,
   );
   await shot(page, "qa-monogram");
 

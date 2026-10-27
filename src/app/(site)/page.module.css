@@ -1,31 +1,18 @@
 /*
- * Homepage — "panggung" (round 36).
+ * Homepage — mainstage editorial (round 37).
  *
- * This file is deliberately small, and the smallness is the design. Round 35's hero was a photograph
- * with a negative translate, a three-dimensional plate and a scrim stacked in one box; the layers
- * overlapped at narrow widths and the composition had to be rescued with z-indexes. What is left is
- * one grid: four rows in a single column, gaps between them, and nothing that leaves the flow.
+ * The rule this file is built on: **asymmetry, not centring**. Round 36 answered the overlap bug by
+ * stacking four centred rows, which is safe and reads like a template. A festival poster does not
+ * centre anything — the name is flush left at poster scale, something heavy floats beside it, and a
+ * small technical credit line sits above both.
  *
- * The rules:
+ * So the hero is a two-column grid with named areas. The label spans both columns, the name is in the
+ * left column, the chrome mark is in the right one, and the status deck closes the left column. On a
+ * phone the areas collapse into a single column in reading order.
  *
- *   1. **No element is taken out of the flow to be positioned over another.** There is no `position:
- *      absolute` in the hero and no transform on any of its rows. If two things need space between
- *      them, they get a `gap`.
- *   2. **Every band breathes.** `padding-block: var(--section-padding)` is the stage floor, and a
- *      hairline plus a one-step surface change is the only separation between bands — no panels, no
- *      shadows, no radii (`--radius-sm` is 0).
- *   3. **The type is the layout.** The wordmark takes `--text-mega` in the display face; everything
- *      functional is mono, small and letter-spaced, so the page has exactly two voices.
- *   4. **Black is black, blue is for action.** The ground is ink, the accent appears on the live dot
- *      and on hover, and nowhere else.
- *
- * Everything is sized in rem/clamp, so a 320px phone gets a legible wordmark and a 2560px monitor does
- * not get a 330px one.
- *
- * What is *not* here any more, and why: the hero photograph and its scrim (the name is the poster; a
- * photograph behind it was a second subject fighting the first), the paper About spread and the night
- * sheet (both were duplicates of /artist and /epk), the release spotlight (the grid below prints the
- * same record with the same links), and the tilt wrappers, which are gone from the components too.
+ * Everything else is a band in the normal flow, separated by a hairline and `--section-padding`.
+ * There is no `position: absolute` outside the shader's own box, no transform on any text, no radius
+ * (`--radius-sm` is 0) and no shadow.
  */
 
 /* ------------------------------------------------------------------------------------ hero */
@@ -34,153 +21,306 @@
   position: relative;
   isolation: isolate;
   /*
-   * `contain: layout paint` is kept from round 11 and is the only containment on the page: the hero's
-   * own repaint stays inside the band. It is layout containment, never size — a `contain: size` hero
-   * would be treated as empty for intrinsic sizing and collapse on a phone.
+   * `contain: layout paint` keeps the hero's own repaint inside the band. Layout containment only —
+   * never `size`, which would treat the box as empty for intrinsic sizing.
    */
   contain: layout paint;
-  background: var(--color-bg);
-  /* The header is fixed; the hero starts under it rather than behind it. */
-  padding-top: var(--header-height);
+  padding-top: calc(var(--header-height) + var(--space-8));
+  padding-bottom: var(--section-padding);
   border-bottom: 1px solid var(--color-hairline);
+  background: var(--color-bg);
 }
 
 .heroInner {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  align-items: center;
-  justify-items: center;
-  gap: var(--space-6);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-areas:
+    "label label"
+    "name  mark"
+    "deck  mark";
+  align-items: start;
+  column-gap: clamp(2rem, 5vw, 5rem);
+  row-gap: var(--space-8);
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  min-height: min(100svh - var(--header-height), 58rem);
-  padding: var(--space-6) var(--gutter) var(--section-padding);
-  text-align: center;
+  padding-inline: var(--gutter);
 }
 
-/* The running head: two mono lines on one rule, the way a poster credits its venue. */
-.masthead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
+/* The technical credit line: small, mono, wide tracking, muted steel — the poster's credit block. */
+.heroLabel {
+  grid-area: label;
+  margin: 0;
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-hairline);
-  text-align: left;
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: 0.2em;
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
-.kicker {
+/*
+ * The name. Flush left, two lines, the clamp the owner specified (3.5rem → 6rem, `--text-wordmark`),
+ * set tight so the two words read as one block of type rather than two lines of text.
+ */
+.heroName {
+  grid-area: name;
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-size: var(--text-wordmark);
+  line-height: 0.86;
+  letter-spacing: var(--tracking-hero);
+  text-transform: uppercase;
+  text-align: left;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+
+/*
+ * The mark's box. It is the shader's containing block — `position: relative`, its own stacking
+ * context, a hard clip — and it is sized by the column, so the object floats beside the type instead
+ * of being pushed under it. `pointer-events: auto` is required: the surface answers the pointer.
+ */
+.heroMark {
+  grid-area: mark;
+  position: relative;
+  align-self: center;
+  justify-self: stretch;
+  min-height: clamp(14rem, 26vw, 22rem);
+  overflow: hidden;
+  background: var(--color-band-monogram);
+}
+
+/*
+ * The status deck: two links, one hairline each, no radius, mono and wide-tracked. This is the only
+ * place in the hero that states what the page wants the visitor to do, so it stays quiet until it is
+ * hovered — then it fills with the one accent colour.
+ */
+.heroDeck {
+  grid-area: deck;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-self: end;
+}
+
+.deckLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.deckLink:hover,
+.deckLink:focus-visible {
+  border-color: var(--color-signal-blue);
+  background: var(--color-signal-blue);
+  color: var(--color-on-brand);
+}
+
+.deckArrow {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* -------------------------------------------------------------------------------- release */
+
+/*
+ * The spotlight: a 50/50 split. The artwork is the object — square, full width of its half, edged
+ * with a single neon hairline — and the right half is a technical deck. No card, no panel, no shadow;
+ * the split itself is the layout.
+ */
+.release {
+  position: relative;
+  scroll-margin-top: var(--header-height);
+  padding-block: var(--section-padding);
+  border-bottom: 1px solid var(--color-hairline);
+  background: var(--color-night);
+}
+
+.releaseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(2rem, 5vw, 5rem);
+}
+
+.releaseArt {
+  min-width: 0;
+}
+
+/*
+ * The neon edge. `outline` rather than `border` so the artwork keeps its exact 1:1 box (a border
+ * would subtract from the image), and an outline follows the square with no radius.
+ */
+.artLink {
+  display: block;
+  outline: 1px solid var(--color-signal-blue);
+  outline-offset: 0;
+  color: inherit;
+  text-decoration: none;
+  transition: outline-color var(--duration-base) var(--ease-out);
+}
+
+.artLink:hover,
+.artLink:focus-visible {
+  outline-color: var(--color-signal-icy);
+}
+
+.releaseDeck {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.trackLabel {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: var(--text-caption);
-  letter-spacing: 0.22em;
+  font-size: var(--text-micro);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
 
-.live {
+.trackDot {
   width: 5px;
   height: 5px;
   border-radius: var(--radius-pill);
   background: var(--color-signal-blue);
 }
 
-/*
- * The wordmark.
- *
- * One element, two words, set in the display face at poster scale and centred. It is not split into
- * masked lines any more: a line-rise animation needs each line in an overflow mask, and a mask is a
- * box that clips — which is exactly the sort of box that produced the overlap this round removed. The
- * name simply is there when the page paints.
- */
-.name {
+/* The record's name, at takeover scale: the second-largest type on the page, after the wordmark. */
+.releaseTitle {
   margin: 0;
-  max-width: 18ch;
   font-family: var(--font-display-stack);
-  font-size: var(--text-mega);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
+  font-size: var(--text-takeover);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
   text-transform: uppercase;
   text-wrap: balance;
   overflow-wrap: anywhere;
   color: var(--color-text-primary);
 }
 
-/*
- * The AN mark, between the name and the button.
- *
- * A plain image in its own grid row: `width` in rem so it stays a logo rather than a band, its own
- * aspect ratio so the row reserves the right height before the file decodes, no transform, and
- * `pointer-events: none` because a logo is not a control. Two classes deep on purpose —
- * `globals.css` greyscales every photograph under `.site-main img`, which is right for the archive
- * and wrong for the mark.
- */
-.heroMark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.heroMark .heroMarkImage {
-  display: block;
-  width: min(55vw, 22rem);
-  height: auto;
-  filter: none;
-  opacity: 1;
-}
-
-/*
- * The call to action. One button, then the one line of copy the site actually owns. Both sit in the
- * bottom row of the grid, so the button can never land on the mark above it.
- */
-.heroCta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Three specs in one ruled row — a description list, not a table: there is no row below to align to. */
+.specs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
+  width: 100%;
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-hairline);
 }
 
-.heroSub {
-  max-width: 42ch;
+.spec {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.spec dt {
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.spec dd {
+  margin: 0;
   font-family: var(--font-body-stack);
   font-size: var(--text-body);
-  color: var(--color-text-secondary);
-  text-wrap: balance;
+  line-height: var(--leading-tight);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
 }
 
-/* ------------------------------------------------------------------------------- catalogue */
-
 /*
- * The releases band. It is the second band on the page and the destination of the hero's button, so
- * it carries the count and nothing else above the grid — a heading, one mono line, then artwork.
- *
- * The surface is one step off the ink ground (`--color-night`). It is almost invisible head-on, which
- * is the point: the band reads as a change of floor, not as a panel with an edge.
+ * The laser buttons: one hairline each, mono, uppercase, 0 radius. The accent lives on the left edge
+ * at rest, which is what makes the row read as a rack of controls rather than three chips.
  */
-.catalogue {
+.lasers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.laser {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-left: 2px solid var(--color-signal-blue);
+  border-radius: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono-stack);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.laser:hover,
+.laser:focus-visible {
+  border-color: var(--color-signal-blue);
+  background: var(--color-signal-blue);
+  color: var(--color-on-brand);
+}
+
+.releaseActions {
+  margin-top: var(--space-2);
+}
+
+/* ----------------------------------------------------------------------------- discography */
+
+.discography {
   position: relative;
   scroll-margin-top: var(--header-height);
   padding-block: var(--section-padding);
-  background: var(--color-night);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-.catalogueHead {
+.discographyHead {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
+  margin-bottom: var(--space-6);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-hairline);
 }
 
-.catalogueTitle {
+.discographyTitle {
   margin: 0;
   font-family: var(--font-display-stack);
   font-size: var(--text-display);
@@ -189,44 +329,20 @@
   text-transform: uppercase;
 }
 
-.catalogueCount {
+.discographyCount {
   margin: 0;
   font-family: var(--font-mono-stack);
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
-  /* The brand alias, not the signal value: the counter is decoration on the section, and the signal
-     blue is spent on the live dot at the top of the page. */
   color: var(--color-brand);
 }
 
-.catalogueFoot {
+.discographyFoot {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--space-8);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-hairline);
-}
-
-/* -------------------------------------------------------------------------------- monogram */
-
-/*
- * The liquid mark, in its own band. The canvas is `position: absolute; inset: 0` inside
- * AnMonogram.module.css, so this band only has to provide height and a stacking context — the height
- * is what gives the object room to be the subject rather than an illustration.
- */
-.signature {
-  position: relative;
-  isolation: isolate;
-  z-index: var(--z-content);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 68svh;
-  overflow: hidden;
-  border-top: 1px solid var(--color-hairline);
-  background: var(--color-band-monogram);
 }
 
 /* ---------------------------------------------------------------------------------- archive */
@@ -245,37 +361,56 @@
 /* ----------------------------------------------------------------------------------- phones */
 
 @media (max-width: 899px) {
-  .heroInner {
-    /*
-     * `auto` rows instead of a `1fr` middle: on a phone the four rows have to be content-high, or the
-     * wordmark and the mark get pushed apart until the button falls below the fold.
-     */
-    grid-template-rows: auto auto auto auto;
-    min-height: 0;
-    gap: var(--space-8);
+  .hero {
+    padding-top: calc(var(--header-height) + var(--space-4));
     padding-bottom: var(--space-8);
   }
 
-  .signature {
-    min-height: 56svh;
+  /*
+   * One column, in reading order. The mark keeps its own box between the name and the deck — it is
+   * the identity, not a background — and nothing overlaps because nothing is positioned.
+   */
+  .heroInner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "label"
+      "name"
+      "mark"
+      "deck";
+    row-gap: var(--space-6);
+  }
+
+  .heroMark {
+    min-height: clamp(12rem, 52vw, 18rem);
+  }
+
+  /* The split stacks: artwork first, then the deck. */
+  .releaseGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .specs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
-  .masthead {
-    justify-content: flex-start;
+  .deckLink {
+    flex: 1 1 auto;
+    justify-content: space-between;
   }
 
-  .catalogueHead {
+  .discographyHead {
     flex-direction: column;
     align-items: flex-start;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Nothing in this file animates. The declaration is here so the promise is visible. */
-  .hero,
-  .heroInner {
+  .deckLink,
+  .laser,
+  .artLink {
     transition: none;
   }
 }
