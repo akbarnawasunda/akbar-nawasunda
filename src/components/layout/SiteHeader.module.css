@@ -238,29 +238,44 @@
   color: var(--color-signal-blue);
 }
 
-.drawerClose .burger span:first-child {
-  transform: translateY(3.5px) rotate(45deg);
+/*
+ * The X, built so it cannot be ambiguous.
+ *
+ * The bar's own control crosses its two lines with `translateY` on a grid gap, which is fine when the
+ * pointer is elsewhere — but the drawer's close button is *under the cursor* the moment the menu
+ * opens, and the shared hover rule (`transform-origin: left center`, `scaleX(0.72)`) then pivots both
+ * lines around their left ends. The X collapsed into a "<". So this one is two absolutely positioned
+ * bars in a fixed 18×12 box, rotated about their own centres, with no hover transform at all.
+ */
+.drawerClose .burger {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 12px;
+  flex: none;
 }
 
-.drawerClose .burger span:last-child {
-  transform: translateY(-3.5px) rotate(-45deg);
-}
-
+.drawerClose .burger span,
 .drawerClose:hover .burger span,
 .drawerClose:focus-visible .burger span {
-  transform: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin-top: -1px;
+  transform-origin: center center;
 }
 
+.drawerClose .burger span:first-child,
 .drawerClose:hover .burger span:first-child,
 .drawerClose:focus-visible .burger span:first-child {
-  transform: translateY(3.5px) rotate(45deg) scaleX(0.72);
-  transform-origin: left center;
+  transform: rotate(45deg);
 }
 
+.drawerClose .burger span:last-child,
 .drawerClose:hover .burger span:last-child,
 .drawerClose:focus-visible .burger span:last-child {
-  transform: translateY(-3.5px) rotate(-45deg) scaleX(0.72);
-  transform-origin: left center;
+  transform: rotate(-45deg);
 }
 
 .toggle:hover .burger span,
