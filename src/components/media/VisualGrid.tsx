@@ -56,12 +56,14 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [openId, close]);
 
-  const open = items.find((item) => item.id === openId) ?? null;
+  /* Same rule as the homepage wall: a slot without artwork is not a slot. */
+  const present = items.filter((item) => Boolean(item.src));
+  const open = present.find((item) => item.id === openId) ?? null;
 
   return (
     <>
       <ul className={variant === "masonry" ? `${styles.grid} ${styles.masonry}` : styles.grid}>
-        {items.map((item, index) => (
+        {present.map((item, index) => (
           <li key={item.id} className={item.onSurface ? styles.surfaceTile : styles.photoTile}>
             <button
               type="button"

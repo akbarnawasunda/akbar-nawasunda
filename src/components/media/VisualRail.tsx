@@ -19,10 +19,12 @@ import styles from "./VisualRail.module.css";
  * sit on a surface step because they are line art on transparency, not photographs.
  */
 export function VisualRail({ items }: { items: readonly VisualItem[] }) {
+  /* A tile is only worth a frame if there is a file behind it: no `src`, no card. */
+  const present = items.filter((item) => Boolean(item.src));
   return (
     <div className={styles.wall}>
       <ul className={styles.grid} aria-label="Arsip visual">
-        {items.map((item, index) => (
+        {present.map((item, index) => (
           <li key={item.id} className={styles.panel}>
             <figure className={styles.figure}>
               <span className={styles.frame}>

@@ -90,14 +90,41 @@ async function prepare(page) {
   await page.reload({ waitUntil: "load" });
   await page.evaluate(() => document.fonts.ready);
   await sleep(1200);
-  /* Scroll the whole page once so every lazy image is requested, then come back to the top. */
+  /*
+   * Round 38 — force the deferred images, do not try to scroll them into view.
+   *
+   * This used to walk the page with window.scrollTo on a timer, which does not work here: Lenis owns
+   * the scroll position and writes its own animated value on every rAF, so each manual step was
+   * overwritten a frame later. The visible symptom was the archive wall's last three tiles
+   * (Jalan Malam, Panggung, Maskot) arriving empty in the full-page shot — not missing files, just
+   * `loading="lazy"` images that never entered the viewport.
+   *
+   * So: ask the browser to load them. Clearing `loading` and re-assigning the src restarts a deferred
+   * request, and `decode()` resolves only once the bitmap is ready to paint, which is the thing the
+   * screenshot actually needs. Errors resolve too — a genuinely broken file must show up as broken,
+   * not as a hang.
+   */
   await page.evaluate(async () => {
-    const step = window.innerHeight * 0.8;
-    for (let y = 0; y < document.body.scrollHeight; y += step) {
-      window.scrollTo(0, y);
-      await new Promise((resolve) => setTimeout(resolve, 120));
-    }
-    window.scrollTo(0, 0);
+    const images = Array.from(document.images);
+    await Promise.all(
+      images.map(async (img) => {
+        img.loading = "eager";
+        if (!img.complete) {
+          const src = img.getAttribute("src");
+          if (src) img.setAttribute("src", src);
+          await new Promise((resolve) => {
+            img.addEventListener("load", resolve, { once: true });
+            img.addEventListener("error", resolve, { once: true });
+            setTimeout(resolve, 8000);
+          });
+        }
+        try {
+          await img.decode();
+        } catch {
+          /* a decode failure is a real defect; it will be visible in the shot, which is the point. */
+        }
+      }),
+    );
   });
   await sleep(1600);
 }
