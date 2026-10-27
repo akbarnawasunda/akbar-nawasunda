@@ -18,6 +18,10 @@
  *   home-390-full     the whole phone page, top to bottom, at device scale 2.
  *   home-1440         the desktop first screen.
  *   home-1440-full    the whole desktop page.
+ *   release-1440      the spotlight band, scrolled into view (a `#release` URL is reset by the scroll
+ *   release-390       layer on load, so the anchor is applied after the page has settled).
+ *   discography-1440  the ledger band, at both widths.
+ *   discography-390
  *   music-1440        the catalogue route, for comparison with the homepage ledger.
  *
  * The intro curtain is skipped with the same session key the motion QA uses (`an-curtain`), so a
@@ -98,11 +102,23 @@ async function prepare(page) {
   await sleep(1600);
 }
 
-async function capture({ name, route, width, height, mobile = false, fullPage = false }) {
+async function capture({ name, route, width, height, mobile = false, fullPage = false, anchor = "" }) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile });
   await page.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
   await prepare(page);
+  /*
+   * `prepare()` scrolls the whole page and returns to the top, which is right for the hero shot and
+   * wrong for a band-specific one — a `#release` URL is also reset by the scroll layer on load. So the
+   * anchor is applied *after* preparation, and the scroll is allowed to settle before the shutter.
+   */
+  if (anchor) {
+    await page.evaluate((selector) => {
+      const node = document.querySelector(selector);
+      if (node) window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - 90);
+    }, anchor);
+    await sleep(1400);
+  }
   const path = join(outDir, `${name}.png`);
   await page.screenshot({ path, fullPage, captureBeyondViewport: fullPage });
   const size = await page.evaluate(() => ({
@@ -119,8 +135,10 @@ try {
   await capture({ name: "home-1440", route: "/", width: 1440, height: 900 });
   await capture({ name: "home-1440-full", route: "/", width: 1440, height: 900, fullPage: true });
   await capture({ name: "music-1440", route: "/music", width: 1440, height: 900 });
-  await capture({ name: "release-1440", route: "/#release", width: 1440, height: 900 });
-  await capture({ name: "discography-1440", route: "/#catalogue", width: 1440, height: 900 });
+  await capture({ name: "release-1440", route: "/", width: 1440, height: 900, anchor: "#release" });
+  await capture({ name: "release-390", route: "/", width: 390, height: 844, mobile: true, anchor: "#release" });
+  await capture({ name: "discography-1440", route: "/", width: 1440, height: 900, anchor: "#catalogue" });
+  await capture({ name: "discography-390", route: "/", width: 390, height: 844, mobile: true, anchor: "#catalogue" });
   console.log(`\nall shots written to ${outDir}/`);
 } finally {
   await browser.close();
