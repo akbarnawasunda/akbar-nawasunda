@@ -1,28 +1,31 @@
 /*
- * Homepage — "platform" (round 34).
+ * Homepage — "panggung" (round 36).
  *
- * The reference is a festival headliner's front page, and what is borrowed from it is order, not
- * ornament: a release-first page answers "what came out?" in the first screen and "are you playing
- * near me?" in the second. The stylesheet serves that with four rules:
+ * This file is deliberately small, and the smallness is the design. Round 35's hero was a photograph
+ * with a negative translate, a three-dimensional plate and a scrim stacked in one box; the layers
+ * overlapped at narrow widths and the composition had to be rescued with z-indexes. What is left is
+ * one grid: four rows in a single column, gaps between them, and nothing that leaves the flow.
  *
- *   1. **The type is the layout.** The name is set at --text-mega (a poster-scale clamp) in uppercase,
- *      one word per line, and nothing in the band competes with it. Everything functional — buttons,
- *      metadata, tour rows — is mono, small, and letter-spaced.
- *   2. **Structure is a hairline and a mark.** Bands are separated by a 1px rule at
- *      --color-hairline; no panel has a fill except the sleeve's offset plate, and no corner has a
- *      radius (--radius-sm is 0).
- *   3. **Black is black.** The ground is ink everywhere, including behind the 3D monogram, so the
- *      metal is the only light source. Accent blue appears exactly where something is actionable:
- *      the live dot, the catalogue counter, hover on a streaming pill, the tour laser.
- *   4. **Two vocabularies of small controls.** Streaming pills and tour status cells share the mono
- *      face, the 1px border and the invert-on-hover, so the page reads as one interface.
+ * The rules:
  *
- * What is *not* here any more, and why: the facts bar (release count and years active are a résumé),
- * the paper About spread (the long bio belongs on /artist and /epk), the press sheet (/epk is a
- * route), and the full-bleed night photograph that carried one quote and no information.
+ *   1. **No element is taken out of the flow to be positioned over another.** There is no `position:
+ *      absolute` in the hero and no transform on any of its rows. If two things need space between
+ *      them, they get a `gap`.
+ *   2. **Every band breathes.** `padding-block: var(--section-padding)` is the stage floor, and a
+ *      hairline plus a one-step surface change is the only separation between bands — no panels, no
+ *      shadows, no radii (`--radius-sm` is 0).
+ *   3. **The type is the layout.** The wordmark takes `--text-mega` in the display face; everything
+ *      functional is mono, small and letter-spaced, so the page has exactly two voices.
+ *   4. **Black is black, blue is for action.** The ground is ink, the accent appears on the live dot
+ *      and on hover, and nowhere else.
  *
- * Everything below is sized in rem/clamp so a 320px phone gets a readable name and a 2560px monitor
- * does not get a 330px one; the only viewport unit in the file is inside those clamps.
+ * Everything is sized in rem/clamp, so a 320px phone gets a legible wordmark and a 2560px monitor does
+ * not get a 330px one.
+ *
+ * What is *not* here any more, and why: the hero photograph and its scrim (the name is the poster; a
+ * photograph behind it was a second subject fighting the first), the paper About spread and the night
+ * sheet (both were duplicates of /artist and /epk), the release spotlight (the grid below prints the
+ * same record with the same links), and the tilt wrappers, which are gone from the components too.
  */
 
 /* ------------------------------------------------------------------------------------ hero */
@@ -30,126 +33,50 @@
 .hero {
   position: relative;
   isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  /* A definite height, not a min-height: flex children only grow into free space the container
-     actually has, and `min-height` leaves the container content-high, which floats the type block
-     mid-screen with dead ink below it (round 28). */
-  height: min(100svh, 58rem);
-  overflow: hidden;
-  /* The hero writes transforms every frame while it is in view; this keeps that work inside the
-     band instead of invalidating the whole document (R11). */
+  /*
+   * `contain: layout paint` is kept from round 11 and is the only containment on the page: the hero's
+   * own repaint stays inside the band. It is layout containment, never size — a `contain: size` hero
+   * would be treated as empty for intrinsic sizing and collapse on a phone.
+   */
   contain: layout paint;
   background: var(--color-bg);
+  /* The header is fixed; the hero starts under it rather than behind it. */
+  padding-top: var(--header-height);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-.heroMedia {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-/*
- * The photograph is cropped from the top third of the frame: the owner's shot is an empty stage
- * with the lamp high in the picture, and cropping from the bottom cut the lamp out of every
- * viewport shorter than 900px.
- */
-.heroImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 68% 40%;
-  opacity: 0.9;
-}
-
-/*
- * One scrim, one purpose: the name has to be readable over a photograph whose middle is a bright
- * lamp. It goes to solid black at the bottom edge so the next band starts without a seam.
- */
-.heroScrim {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  /*
-   * Round 24: the scrim used to bury the photograph — an "image-led" site whose image nobody can
-   * see is a black rectangle with type on it. Lighter at the top and middle so the stage reads as
-   * a place; the floor still falls to ink so the monogram band starts on solid ground with no seam.
-   */
-  background:
-    linear-gradient(
-      to right,
-      rgb(0 0 0 / 0.9) 0%,
-      rgb(0 0 0 / 0.62) 38%,
-      rgb(0 0 0 / 0.18) 72%,
-      rgb(0 0 0 / 0) 100%
-    ),
-    linear-gradient(
-      to bottom,
-      rgb(0 0 0 / 0.42) 0%,
-      rgb(0 0 0 / 0.18) 34%,
-    rgb(0 0 0 / 0.42) 62%,
-    var(--color-bg) 96%
-  );
-}
-
-
-.heroStage {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex: 1 1 auto;
-}
-
-/* Plate3D's own `.stage` rule sets display and lands later in the bundle, so the fold only closes
-   with a selector that out-ranks it: without these two rules the tilt wrapper stays a content-high
-   block and the facts strip floats mid-screen instead of closing the first fold. */
-.hero > .heroStage {
-  display: flex;
-  flex: 1 1 auto;
-}
-
-.heroStage > * {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-}
-
-/*
- * The sheet, and the one number worth explaining.
- *
- * R10 established that the hero's type block is a single rigid surface 40px behind the glass, and
- * that nothing inside it carries its own Z (the measured failure of per-layer depth is written up
- * in the R10 notes). This stylesheet keeps that contract: the transform lives here, on the block
- * that holds the masthead, the name and the facts, and no descendant sets one.
- */
 .heroInner {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-8);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: center;
+  gap: var(--space-6);
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: var(--space-6) var(--gutter) var(--space-8);
-  transform: translateZ(-40px);
+  min-height: min(100svh - var(--header-height), 58rem);
+  padding: var(--space-6) var(--gutter) var(--section-padding);
+  text-align: center;
 }
 
+/* The running head: two mono lines on one rule, the way a poster credits its venue. */
 .masthead {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
+  width: 100%;
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-hairline);
+  text-align: left;
 }
 
 .kicker {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: var(--font-body-stack);
+  font-family: var(--font-mono-stack);
   font-size: var(--text-caption);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -163,151 +90,87 @@
   background: var(--color-signal-blue);
 }
 
-.heroText {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: flex-end;
-}
-
-.heroBody {
-  width: 100%;
-  min-width: 0;
-}
-
 /*
- * The name.
+ * The wordmark.
  *
- * Two lines, each one word, each as wide as the container allows. `overflow-wrap` is the phone
- * guard: at 320px the second line is 273px of glyphs inside a 280px column, and one extra pixel of
- * tracking would otherwise push the full stop off-screen.
+ * One element, two words, set in the display face at poster scale and centred. It is not split into
+ * masked lines any more: a line-rise animation needs each line in an overflow mask, and a mask is a
+ * box that clips — which is exactly the sort of box that produced the overlap this round removed. The
+ * name simply is there when the page paints.
  */
 .name {
-  /* Round 34: poster scale. The name is the poster the rest of the page hangs from, so it takes the
-     mega clamp rather than the display clamp the section titles use. */
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--font-display-stack);
   font-size: var(--text-mega);
   line-height: var(--leading-hero);
   letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
+  text-wrap: balance;
   overflow-wrap: anywhere;
   color: var(--color-text-primary);
 }
 
 /*
- * Round 22 — the name arrives like a curtain call, not a paste-in.
+ * The AN mark, between the name and the button.
  *
- * Each line sits in its own overflow mask and rises out of it once, on load, 120 ms apart: the
- * oldest trick in title sequencing and still the one that reads as *produced* rather than
- * rendered. One-shot keyframes with `both`, never infinite — the anti-slop fixture bans looping
- * CSS animation, and a name that keeps re-entering would be a slot machine, not a marquee.
+ * A plain image in its own grid row: `width` in rem so it stays a logo rather than a band, its own
+ * aspect ratio so the row reserves the right height before the file decodes, no transform, and
+ * `pointer-events: none` because a logo is not a control. Two classes deep on purpose —
+ * `globals.css` greyscales every photograph under `.site-main img`, which is right for the archive
+ * and wrong for the mark.
  */
-.nameLine {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.06em;
-  margin-bottom: -0.06em;
-}
-
-.nameRise {
-  display: block;
-  animation: name-rise 900ms var(--ease) both;
-}
-
-.nameLine:nth-child(2) .nameRise {
-  animation-delay: 120ms;
-}
-
-@keyframes name-rise {
-  from {
-    transform: translateY(112%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-/* The one pixel of colour in the hero, and it is 12vw wide. */
-.stop {
-  color: var(--color-brand);
-}
-
-.heroFoot {
+.heroMark {
   display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-6);
-  margin-top: var(--space-6);
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.heroMark .heroMarkImage {
+  display: block;
+  width: min(55vw, 22rem);
+  height: auto;
+  filter: none;
+  opacity: 1;
+}
+
+/*
+ * The call to action. One button, then the one line of copy the site actually owns. Both sit in the
+ * bottom row of the grid, so the button can never land on the mark above it.
+ */
+.heroCta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .heroSub {
-  max-width: 34ch;
-  color: var(--color-text-secondary);
+  max-width: 42ch;
+  font-family: var(--font-body-stack);
   font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  text-wrap: balance;
 }
 
-.heroActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-/* -------------------------------------------------------------------------------- monogram */
+/* ------------------------------------------------------------------------------- catalogue */
 
 /*
- * The centrepiece.
+ * The releases band. It is the second band on the page and the destination of the hero's button, so
+ * it carries the count and nothing else above the grid — a heading, one mono line, then artwork.
  *
- * 92svh of black with the 3D mark on it and one line of copy at the bottom edge. The canvas is
- * `position: absolute; inset: 0` (AnMonogram.module.css), so this band only has to provide height
- * and a stacking context — and height is what gives the object room to be the subject rather than
- * an illustration beside some text.
+ * The surface is one step off the ink ground (`--color-night`). It is almost invisible head-on, which
+ * is the point: the band reads as a change of floor, not as a panel with an edge.
  */
-.signature {
-  /* The band is the canvas's containing block: `position: relative`, its own stacking context
-     (`isolation`), and a hard clip. Without all three the shader layer used to paint past the band
-     and sit on top of the ticker underneath it. */
+.catalogue {
   position: relative;
-  isolation: isolate;
-  z-index: var(--z-content);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 74svh;
-  overflow: hidden;
-  background: var(--color-band-monogram);
-}
-
-
-/* ------------------------------------------------------------------------------- spotlight */
-
-/*
- * Round 34 — the release spotlight.
- *
- * This band replaces round 33's bone "transmission" sheet. The move is the reference site's, and it
- * is structural rather than cosmetic: the latest release is not an announcement *about* a record,
- * it is the record. So the sleeve is a full square at roughly half the width of the page, it is the
- * only image in the band, and the type beside it is a specification sheet — title, one metadata
- * line, three facts (year, format, position in the catalogue), the places to hear it, two actions.
- *
- * No panel, no frame, no card. The band is ink with a single hairline on top, so it reads as the
- * next page of one poster rather than a widget embedded in a page.
- */
-.spotlight {
-  position: relative;
-  isolation: isolate;
-  /* The header is fixed, so a jump to #music (from the hero's first button) has to stop one header
-     below the viewport's top edge or it parks the band's running head underneath the chrome. */
   scroll-margin-top: var(--header-height);
   padding-block: var(--section-padding);
-  border-top: 1px solid var(--color-hairline);
-  /* The deepest surface on the site (#050507), one step off the ink ground. The spotlight is a lit
-     stage floor under the sleeve, not another black band: the difference is almost invisible
-     head-on, which is the point — it reads as depth, not as a panel. */
   background: var(--color-night);
 }
 
-/* The running head of the band: "Sedang Beredar" on the left, the catalogue position on the right,
-   one rule between them and the sleeve. Two mono lines, no title — the title is the record. */
-.spotlightHead {
+.catalogueHead {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -317,240 +180,25 @@
   border-bottom: 1px solid var(--color-hairline);
 }
 
-.spotlightFlag {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-mono-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-/* Position in the catalogue, as a counter: "01 / 07". The mono face keeps the digits from sliding
-   when the count changes, which is the whole reason a schedule and an index use it. */
-.spotlightIndex {
-  font-family: var(--font-mono-stack);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-signal-blue);
-}
-
-/*
- * 50/50, and it stays 50/50. The asymmetry of the old takeover (7/5 toward the type) existed to keep
- * a bone sheet from out-shouting the name above it; here the sleeve *is* the content, so the two
- * halves earn the same width. Below 900px the band stacks sleeve-first.
- */
-.spotlightBody {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
-  gap: clamp(2rem, 5vw, 5rem);
-  padding-top: var(--space-8);
-}
-
-.spotlightCover {
-  min-width: 0;
-}
-
-.sleeveStage {
-  width: 100%;
-}
-
-/*
- * A sleeve is a square object with an edge: the offset plate behind it is the only shadow on the
- * site, and it is not a shadow — it is a second, flat rectangle a few pixels down and right, which
- * is how a record sleeve sits on a table.
- */
-.sleeveLink {
-  position: relative;
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  transition: translate 260ms var(--ease-out);
-}
-
-.sleeveLink:hover,
-.sleeveLink:focus-visible {
-  translate: -4px -4px;
-}
-
-.sleeveEdge {
-  position: absolute;
-  inset: 0;
-  translate: 10px 10px;
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-bg-surface);
-}
-
-.sleeveFace {
-  position: relative;
-  display: block;
-  border: 1px solid var(--color-border);
-}
-
-.spotlightCopy {
-  min-width: 0;
-}
-
-.spotlightTitle {
-  font-size: var(--text-takeover);
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-title);
-  text-transform: uppercase;
-  font-weight: 400;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
-}
-
-.spotlightMeta {
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-hairline);
-  font-family: var(--font-mono-stack);
-  font-size: var(--text-meta);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-/*
- * The facts, as three labelled cells in one ruled row — not a table, because this is a
- * description list and there is no row below it to align to. `column-reverse` puts the value above
- * its label: the number is the reading order, the label is the footnote.
- */
-.gear {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin: var(--space-8) 0 0;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-hairline);
-}
-
-.gearItem {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-.gearItem dt {
-  font-family: var(--font-mono-stack);
-  font-size: var(--text-micro);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.gearItem dd {
+.catalogueTitle {
   margin: 0;
   font-family: var(--font-display-stack);
-  font-size: var(--text-title);
-  line-height: 1;
-  letter-spacing: var(--tracking-tight);
+  font-size: var(--text-display);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
   text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
 }
 
-.gearOf {
-  color: var(--color-text-muted);
-}
-
-/*
- * Streaming pills: a row of small rectangles, 0 radius, one hairline each. They are not cards —
- * they are buttons with a service name — so they share the mono face and the border with the tour
- * matrix's status column, which is the point: the page has one vocabulary of small controls.
- */
-.streams {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  list-style: none;
-  margin: var(--space-6) 0 0;
-  padding: 0;
-}
-
-.stream {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-primary);
+.catalogueCount {
+  margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: var(--text-caption);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: 0;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.stream:hover,
-.stream:focus-visible {
-  border-color: var(--color-signal-blue);
-  background: var(--color-signal-blue);
-  color: var(--color-on-brand);
-}
-
-.streamArrow {
-  font-size: 0.9em;
-  line-height: 1;
-}
-
-.spotlightActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-8);
-}
-
-/* Round 32: the phone gets the sleeve edge to edge — a record held to the glass, not framed on a
-   table. The offset plate (the one "shadow" on the site) stays on wider screens; at this width its
-   overhang would push the document sideways. */
-@media (max-width: 767px) {
-  .sleeveStage {
-    width: 100vw;
-    margin-inline: calc(50% - 50vw);
-  }
-
-  .sleeveEdge {
-    display: none;
-  }
-
-  .sleeveFace {
-    border: 0;
-  }
-}
-
-/* ------------------------------------------------------------------------------------ index */
-
-.indexBand {
-  scroll-margin-top: var(--header-height);
-  padding-block: var(--section-padding);
-  border-top: 1px solid var(--color-hairline);
-}
-
-/*
- * Round 35 — the reel is gone. The catalogue is a grid in the document flow (ReleaseGrid.module.css):
- * it renders on the server, it needs no scroll driver, and it cannot leave the sleeves off-screen.
- * What stays here is the count above it: a section title's understudy, not a hero.
- */
-.railCount {
-  margin: calc(var(--space-2) * -1) 0 var(--space-4);
-  font-family: var(--font-body-stack);
   font-size: var(--text-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  text-align: right;
+  font-variant-numeric: tabular-nums;
+  /* The brand alias, not the signal value: the counter is decoration on the section, and the signal
+     blue is spent on the live dot at the top of the page. */
+  color: var(--color-brand);
 }
 
 .catalogueFoot {
@@ -561,14 +209,24 @@
   border-top: 1px solid var(--color-hairline);
 }
 
-.indexTitle {
-  margin-top: var(--space-6);
-  margin-bottom: var(--space-4);
-  font-size: var(--text-display);
-  line-height: var(--leading-hero);
-  letter-spacing: var(--tracking-hero);
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
+/* -------------------------------------------------------------------------------- monogram */
+
+/*
+ * The liquid mark, in its own band. The canvas is `position: absolute; inset: 0` inside
+ * AnMonogram.module.css, so this band only has to provide height and a stacking context — the height
+ * is what gives the object room to be the subject rather than an illustration.
+ */
+.signature {
+  position: relative;
+  isolation: isolate;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 68svh;
+  overflow: hidden;
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-band-monogram);
 }
 
 /* ---------------------------------------------------------------------------------- archive */
@@ -586,40 +244,38 @@
 
 /* ----------------------------------------------------------------------------------- phones */
 
-/*
- * Every band stacks. The name rides the same clamp() scale as the desktop (round 29: the owner's
- * type spec floors it at 2rem, so a 390px phone reads the same hierarchy, just smaller).
- */
 @media (max-width: 899px) {
-  .hero {
-    height: auto;
-    min-height: auto;
-  }
-
   .heroInner {
-    gap: var(--space-6);
-    padding-top: var(--space-4);
-  }
-
-  /* The sleeve leads on a phone: a visitor who came for the record meets the record first, and the
-     specification sheet follows it instead of pushing it below the fold. */
-  .spotlightBody {
-    grid-template-columns: minmax(0, 1fr);
+    /*
+     * `auto` rows instead of a `1fr` middle: on a phone the four rows have to be content-high, or the
+     * wordmark and the mark get pushed apart until the button falls below the fold.
+     */
+    grid-template-rows: auto auto auto auto;
+    min-height: 0;
+    gap: var(--space-8);
+    padding-bottom: var(--space-8);
   }
 
   .signature {
-    min-height: 74svh;
+    min-height: 56svh;
   }
 }
 
 @media (max-width: 560px) {
-  .heroActions {
-    width: 100%;
+  .masthead {
+    justify-content: flex-start;
   }
 
-  /* Three facts do not fit across a 320px screen at a readable size; two columns of equal width
-     wrap the third onto its own row instead of shrinking every value to a caption. */
-  .gear {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .catalogueHead {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing in this file animates. The declaration is here so the promise is visible. */
+  .hero,
+  .heroInner {
+    transition: none;
   }
 }

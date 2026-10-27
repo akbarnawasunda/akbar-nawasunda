@@ -5,7 +5,6 @@ import { InkPress } from "@/components/print/InkPress";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { PerfSwitches } from "@/components/zine/PerfSwitches";
 import { ImageFade } from "@/components/zine/ImageFade";
-import { MagneticCursor } from "@/components/zine/MagneticCursor";
 import { TouchPress } from "@/components/zine/TouchPress";
 import { RouteCurtain } from "@/components/zine/RouteCurtain";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
@@ -22,6 +21,14 @@ export const dynamic = "force-dynamic";
 /**
  * Shared chrome for the artist website: header, main landmark and footer. The wrapper carries only
  * approved design attributes (see src/studio/design.ts); CSS for each value lives in globals.css.
+ *
+ * Round 36 — the custom cursor is unmounted, on the owner's instruction. It was a dot and a ring
+ * lerping after the pointer, and the lerp is exactly what "kursor rusak" describes: every frame the
+ * decoration was a little behind the hand, so aiming at a 40px button felt like dragging something.
+ * The reference site this page is measured against uses the pointer the operating system draws, at
+ * the refresh rate of the display, with no JavaScript in the path — so that is what ships. The
+ * component file and its stylesheet are still in the tree (with the round-35 pointer-events and
+ * touch-disarm fixes in them) should the owner ever want it back; nothing imports it.
  */
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const design = await getPublicDesign();
@@ -48,7 +55,6 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <LoadingCurtain />
       <SmoothScroll />
       <RouteCurtain />
-      <MagneticCursor />
       <ImageFade />
       <TouchPress />
       <a href="#main" className="skip-link">

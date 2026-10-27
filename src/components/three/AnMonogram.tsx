@@ -8,7 +8,6 @@ import dynamic from "next/dynamic";
 import { anMark } from "@/assets/web";
 
 import styles from "./AnMonogram.module.css";
-import { Depth } from "../zine/Depth";
 
 /**
  * The AN monogram band — round 29: the water is a shader now, on the owner's absolute spec.
@@ -140,7 +139,13 @@ export function AnMonogram() {
 
   return (
     <div ref={hostRef} className={styles.canvas} aria-hidden="true">
-      <Depth className={styles.drift} y={-26} scale={0.07} data-layer="monogram-still">
+      {/*
+        Round 36 — no parallax wrapper. The still used to sit inside a `Depth` layer that translated
+        it 26px as the band passed, which is a subtly moving logo: the owner read it as flicker and
+        asked for a mark that holds still. The wrapper is a plain box now; the object's motion, when
+        the shader is running, comes from the mark itself.
+      */}
+      <div className={styles.drift}>
         <div className={styles.liquid}>
           <Image
             className={styles.still}
@@ -153,7 +158,7 @@ export function AnMonogram() {
             onError={() => setStillSrc(anMark.src)}
           />
         </div>
-      </Depth>
+      </div>
       {/*
         Round 31: the shader lives in its own layer, OUTSIDE the parallax transform. Round 29 put
         the canvas under the depth drift, so a frozen frame travelled while the reader scrolled —

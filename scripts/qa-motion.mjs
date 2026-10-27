@@ -120,47 +120,85 @@ try {
   await page.goto(`${base}/`, { waitUntil: "load", timeout: 60000 });
   await settle(page);
 
-  const transformAt = async (scrollY) => {
-    await page.evaluate((y) => window.scrollTo(0, y), scrollY);
+  /*
+   * R36 — the hero is a single column, and "single column" is measured, not assumed.
+   *
+   * Round 35's hero stacked a −70px translated photograph, a scrim and a tilting plate; at 390px the
+   * photograph crossed the type and the tilt pushed the foot of the name into the buttons. The
+   * replacement is four grid rows, so the assertion is geometric: each row starts below the previous
+   * one ends, at both widths, with no transform anywhere in the band and nothing taken out of flow.
+   * An overlap is exactly a row whose top lands above its predecessor's bottom, which is what this
+   * reads. A layout can be pretty and still be broken; this catches the broken half.
+   */
+  const heroRows = async (width) => {
+    await page.setViewport({ width, height: width < 700 ? 780 : 900, deviceScaleFactor: 1 });
+    await page.evaluate(() => window.scrollTo(0, 0));
     await settleScroll(page);
+    await sleep(400);
     return page.evaluate(() => {
-      /* `data-layer` is set by the component, not by the CSS Module hash, so this selector survives
-         a rename. See the note in Depth.tsx. */
-      const pick = (name) => {
-        const node = document.querySelector(`[data-layer="${name}"]`);
-        return node ? node.style.transform : "";
-      };
-      return { type: pick("hero-type"), sticker: pick("hero-photo") };
+      const hero = document.querySelector("section[aria-labelledby=\"hero-title\"]");
+      if (!hero) return null;
+      const rows = [hero.querySelector("h1"), hero.querySelector("h1 + div"), hero.querySelector("[class*=\"heroCta\"]")]
+        .filter(Boolean)
+        .map((node) => {
+          const box = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return {
+            top: box.top,
+            bottom: box.bottom,
+            transform: style.transform,
+            position: style.position,
+          };
+        });
+      const offenders = [...hero.querySelectorAll("*")]
+        .filter((node) => getComputedStyle(node).position === "absolute")
+        .filter((node) => {
+          const box = node.getBoundingClientRect();
+          return box.width > 0 && box.height > 0;
+        })
+        .map((node) => node.tagName.toLowerCase());
+      return { rows, offenders, cursor: getComputedStyle(document.documentElement).cursor };
     });
   };
 
-  const at0 = await transformAt(0);
-  const at300 = await transformAt(300);
-  const at600 = await transformAt(600);
-
-  const stickerShift = [at0, at300, at600].map((state) => state.sticker);
+  const wide = await heroRows(1440);
+  const narrow = await heroRows(390);
+  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  const gaps = (state) =>
+    state.rows.slice(1).map((row, i) => Math.round(row.top - state.rows[i].bottom));
   check(
-    "depth engine moves the hero photograph",
-    new Set(stickerShift).size === 3 && stickerShift.every((value) => value.includes("translate3d")),
-    stickerShift.join(" → "),
+    "the hero stacks in one column with nothing overlapping, wide and narrow",
+    Boolean(wide && narrow) &&
+      [...gaps(wide), ...gaps(narrow)].every((gap) => gap >= 0) &&
+      wide.rows.every((row) => row.transform === "none" && row.position !== "absolute"),
+    `1440 gaps ${gaps(wide).join(" / ")}px · 390 gaps ${gaps(narrow).join(" / ")}px`,
   );
   check(
-    "the photograph travels further than the type (parallax, not a single slide)",
-    (() => {
-      const px = (value) => {
-        const match = /translate3d\([^,]+,\s*(-?[\d.]+)px/.exec(value);
-        return match ? Math.abs(Number(match[1])) : 0;
-      };
-      return px(at600.sticker) > px(at600.type) * 1.5;
-    })(),
-    `sticker ${at600.sticker} vs type ${at600.type}`,
+    "the hero has no absolutely positioned furniture left",
+    Boolean(wide && narrow) && wide.offenders.length === 0 && narrow.offenders.length === 0,
+    `${(wide?.offenders ?? []).concat(narrow?.offenders ?? []).join(", ") || "none"}`,
   );
 
-  await shot(page, "qa-depth-600");
+  /*
+   * The pointer. Round 35 shipped a lerping dot-and-ring cursor; every frame it was a little behind
+   * the hand, and the owner called it broken. It is unmounted now, which is observable: no
+   * `data-cursor` flag on the root, and the document's cursor is the browser's own `auto` rather
+   * than the `none` the custom cursor used to set.
+   */
+  const cursor = await page.evaluate(() => ({
+    flag: document.documentElement.dataset.cursor ?? "",
+    computed: getComputedStyle(document.documentElement).cursor,
+    dots: document.querySelectorAll("[data-cursor-root], .cursor-dot, .cursor-ring").length,
+  }));
+  check(
+    "the pointer is the browser's own again",
+    cursor.flag === "" && cursor.computed !== "none" && cursor.dots === 0,
+    `data-cursor "${cursor.flag}" · cursor ${cursor.computed} · custom nodes ${cursor.dots}`,
+  );
 
   // Reveal: the block must actually become visible, not sit at opacity 0 forever.
   await page.evaluate(() => {
-    const section = document.querySelector("#music");
+    const section = document.querySelector("#catalogue");
     if (section) window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 100);
   });
   await settleScroll(page);
@@ -181,225 +219,120 @@ try {
   );
 
   /*
-   * Hover behaviour, in both of the shapes this page now has:
-   * - the index row inverts (paper ground → ink ground), which is a background-colour change;
-   * - the featured sleeve lifts, which is a translate.
-   * Both are read from the element that owns the property, not assumed.
+   * The catalogue, as a wall of sleeves.
+   *
+   * Round 29's pinned reel is gone (round 35 replaced it, round 36 kept the replacement), so the
+   * checks that measured `--pin` and a translateX have nothing to measure. What they were protecting
+   * still matters — every release present, and the artwork answering the hand — so it is asserted
+   * against the grid instead of being dropped.
    */
+  const grid = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("[data-release]")];
+    return { cards: cards.length, sleeves: document.querySelectorAll("[data-release] a[aria-label]").length };
+  });
+  check(
+    "the catalogue grid renders every release without a scroll driver",
+    grid.cards >= 10 && grid.sleeves === grid.cards,
+    `${grid.cards} cards, ${grid.sleeves} named sleeves`,
+  );
+
   /*
-   * Round 29 — the rail is a pinned reel: the engine writes --pin across the wrapper's 200vh of
-   * travel and the stylesheet turns it into one translateX. Asserted from both ends: the number
-   * moves, and the row visibly moves with it. Then the sleeve still answers the hand.
+   * Scroll first, measure second. Lenis eases the scroll, so a rect taken immediately after
+   * `scrollIntoView` is a rect the sleeve has already left by the time the mouse arrives — the
+   * first version of this check hovered empty space and read "none → none".
    */
-  const pinWrap = await page.$("[data-catalogue-pin]");
-  if (pinWrap) {
-    await page.evaluate(() => {
-      const wrap = document.querySelector("[data-catalogue-pin]");
-      const top = wrap.getBoundingClientRect().top + window.scrollY;
-      const span = wrap.getBoundingClientRect().height - window.innerHeight;
-      window.scrollTo(0, top + span * 0.55);
-    });
-    await settleScroll(page);
-    await sleep(400);
-    const pinned = await page.evaluate(() => {
-      const wrap = document.querySelector("[data-catalogue-pin]");
-      const row = wrap?.firstElementChild;
-      const m = row ? new DOMMatrixReadOnly(getComputedStyle(row).transform) : null;
-      return {
-        pin: Number(getComputedStyle(wrap).getPropertyValue("--pin")),
-        tx: m ? m.m41 : 0,
-      };
-    });
-    check(
-      "the pinned catalogue reel translates as --pin crosses the band",
-      pinned.pin > 0.4 && pinned.pin < 0.7 && pinned.tx < -100,
-      `--pin ${pinned.pin.toFixed(4)} · translateX ${pinned.tx.toFixed(1)}px`,
-    );
-    await shot(page, "qa-pin-reel");
-
-    /* Mid-travel the first card is off screen — the row has translated. Hover the card that is
-       actually under the reader: find one fully inside the viewport, mark it, aim the mouse. */
-    const cardBox = await page.evaluate(() => {
-      const links = [...document.querySelectorAll("[data-pin-card] a")];
-      for (const link of links) {
-        const r = link.getBoundingClientRect();
-        if (r.left > 24 && r.right < window.innerWidth - 24 && r.top > 24 && r.bottom < window.innerHeight - 24) {
-          link.setAttribute("data-qa-hover", "");
-          return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-        }
-      }
-      return null;
-    });
-    if (cardBox) {
-      const readTransform = () =>
-        page.evaluate(() => {
-          const link = document.querySelector("[data-qa-hover]");
-          return link ? getComputedStyle(link).transform : "none";
-        });
-      const before = await readTransform();
-      await page.mouse.move(cardBox.x, cardBox.y, { steps: 6 });
-      await sleep(500);
-      const after = await readTransform();
-      check("reel sleeves answer hover", before !== after, `${before} → ${after}`);
-      await shot(page, "qa-rail-hover");
-    } else {
-      check("reel sleeves answer hover", false, "no [data-pin-card] link inside the viewport at mid-travel");
-    }
+  await page.evaluate(() => {
+    document.querySelector("[data-release] a[aria-label]")?.scrollIntoView({ block: "center" });
+  });
+  await settleScroll(page);
+  await sleep(700);
+  const box = await page.evaluate(() => {
+    const link = document.querySelector("[data-release] a[aria-label]");
+    if (!link) return null;
+    const r = link.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return null;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+  if (box) {
+    const read = () =>
+      page.evaluate(() => {
+        const link = document.querySelector("[data-release] a[aria-label]");
+        if (!link) return "missing";
+        const style = getComputedStyle(link);
+        return `${style.translate} / ${style.transform}`;
+      });
+    await page.mouse.move(1, 1);
+    const before = await read();
+    await page.mouse.move(box.x, box.y, { steps: 8 });
+    await page.mouse.move(box.x, box.y + 1, { steps: 2 });
+    await sleep(450);
+    const after = await read();
+    check("grid sleeves answer hover", before !== after, `${before} → ${after}`);
+    await shot(page, "qa-grid-hover");
   } else {
-    /*
-     * Round 35 replaced the pinned reel with a grid in the document flow, so the two reel checks no
-     * longer have a subject. The *property* they protected still matters — the catalogue band has to
-     * exist on the page and answer the pointer — so it is asserted against the grid instead of being
-     * dropped: every release is in the DOM without any scrolling, and a sleeve lifts under the hand.
-     */
-    const grid = await page.evaluate(() => {
-      const cards = [...document.querySelectorAll("[data-release]")];
-      return { cards: cards.length, sleeves: document.querySelectorAll("[data-release] a[aria-label]").length };
-    });
-    check(
-      "the catalogue grid renders every release without a scroll driver",
-      grid.cards >= 10 && grid.sleeves === grid.cards,
-      `${grid.cards} cards, ${grid.sleeves} named sleeves`,
-    );
-
-    /*
-     * Scroll first, measure second. Lenis eases the scroll, so a rect taken immediately after
-     * `scrollIntoView` is a rect the sleeve has already left by the time the mouse arrives — the
-     * first version of this check hovered empty space and read "none → none".
-     */
-    await page.evaluate(() => {
-      document.querySelector("[data-release] a[aria-label]")?.scrollIntoView({ block: "center" });
-    });
-    await settleScroll(page);
-    await sleep(700);
-    const box = await page.evaluate(() => {
-      const link = document.querySelector("[data-release] a[aria-label]");
-      if (!link) return null;
-      const r = link.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) return null;
-      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-    });
-    if (box) {
-      const read = () =>
-        page.evaluate(() => {
-          const link = document.querySelector("[data-release] a[aria-label]");
-          if (!link) return "missing";
-          const style = getComputedStyle(link);
-          return `${style.translate} / ${style.transform}`;
-        });
-      await page.mouse.move(1, 1);
-      const before = await read();
-      await page.mouse.move(box.x, box.y, { steps: 8 });
-      await page.mouse.move(box.x, box.y + 1, { steps: 2 });
-      await sleep(450);
-      const after = await read();
-      check("grid sleeves answer hover", before !== after, `${before} → ${after}`);
-      await shot(page, "qa-grid-hover");
-    } else {
-      check("grid sleeves answer hover", false, "no [data-release] sleeve link found");
-    }
+    check("grid sleeves answer hover", false, "no [data-release] sleeve link found");
   }
 
   /*
-   * R8 — the three-dimensional part.
+   * The call to action, end to end.
    *
-   * A pointer move has to do two things, and both are asserted separately because either one alone
-   * is easy to fake: (a) the stage writes a rotation to `--plate-ry` / `--plate-rx`, and (b) the
-   * layers inside it are displaced by *different* amounts, so the name and the masthead rule are at
-   * different distances rather than glued together.
+   * The hero's only button is the promise the page makes: "Dengarkan Musik" has to land on the
+   * catalogue, not near it and not on a different band. A real click is dispatched, Lenis is allowed
+   * to finish, and the band's top is compared with the scroll position — the anchor exists, it is
+   * wired, and the section it names is the one that arrives.
    */
   await page.evaluate(() => window.scrollTo(0, 0));
   await settleScroll(page);
+  await sleep(300);
+  const cta = await page.evaluate(() => {
+    const hero = document.querySelector("section[aria-labelledby=\"hero-title\"]");
+    const link = hero ? [...hero.querySelectorAll("a")].find((a) => a.hash === "#catalogue") : null;
+    if (!link) return null;
+    const box = link.getBoundingClientRect();
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2, label: link.textContent.trim() };
+  });
+  if (cta) {
+    await page.mouse.click(cta.x, cta.y);
+    await settleScroll(page);
+    await sleep(900);
+    const landed = await page.evaluate(() => {
+      const band = document.querySelector("#catalogue");
+      if (!band) return null;
+      const box = band.getBoundingClientRect();
+      return { top: Math.round(box.top), bottom: Math.round(box.bottom), y: Math.round(window.scrollY) };
+    });
+    check(
+      "the hero's button lands on the catalogue",
+      Boolean(landed) && landed.top <= 160 && landed.bottom > 0,
+      `${cta.label} → #catalogue top ${landed?.top}px at scrollY ${landed?.y}`,
+    );
+    await shot(page, "qa-hero-cta");
+  } else {
+    check("the hero's button lands on the catalogue", false, "no #catalogue link in the hero");
+  }
+
   /*
-   * R31 — the catalogue band above mounts a real WebGL object when it is seen, and compiling its
-   * physical material plus the environment bake blocks the main thread for a beat afterwards (long
-   * on software GL). Measuring the tilt inside that beat reads a half-finished lerp and fails a
-   * component that works, so the gesture waits until ten consecutive frames arrive on time again.
-   * The assertion below is untouched: it still demands a real rotation.
+   * No tilted plate, no depth layer, no transformed sheet — the hero is flat on purpose, so the
+   * assertion is the absence of the machinery the previous rounds installed. If a `Depth` or a
+   * `Plate3D` is mounted into the first band again, this fails before the overlap does.
    */
-  await page.evaluate(
-    () =>
-      new Promise((resolve) => {
-        let good = 0;
-        let prev = performance.now();
-        const loop = (now) => {
-          good = now - prev < 50 ? good + 1 : 0;
-          prev = now;
-          if (good >= 10) return resolve(null);
-          requestAnimationFrame(loop);
-        };
-        requestAnimationFrame(loop);
-        setTimeout(() => resolve(null), 8000);
-      }),
-  );
-  await page.mouse.move(320, 260);
-  await sleep(120);
-  await page.mouse.move(980, 700, { steps: 10 });
-  await sleep(600);
-  const plate = await page.evaluate(() => {
-    const host = document.querySelector('[data-plate="hero-stage"]');
-    const masthead = document.querySelector('[data-depth="hero-masthead"]');
-    const sheet = masthead?.parentElement ?? null;
-    /* m43 of a matrix3d is the element's own translateZ. Reading it is the only way to tell real
-       depth from a shadow: a layer that only looks deep still has m43 = 0. */
-    const zOf = (node) => {
-      if (!node) return null;
-      const m = getComputedStyle(node).transform;
-      if (!m || m === "none") return 0;
-      const n = m.match(/matrix3d\(([^)]+)\)/);
-      return n ? Number(n[1].split(",")[14]) : 0;
-    };
-    const own = (sel) => {
-      const node = document.querySelector(sel);
-      return { z: zOf(node), transform: node ? getComputedStyle(node).transform : null };
-    };
+  const flat = await page.evaluate(() => {
+    const hero = document.querySelector("section[aria-labelledby=\"hero-title\"]");
+    if (!hero) return null;
     return {
-      ry: host?.style.getPropertyValue("--plate-ry") ?? "",
-      rx: host?.style.getPropertyValue("--plate-rx") ?? "",
-      perspective: host ? getComputedStyle(host).perspective : "",
-      sheetZ: zOf(sheet),
-      name: own('[data-depth="hero-name"]'),
-      masthead: own('[data-depth="hero-masthead"]'),
-      /* Round 34 removed the facts bar from the hero, so the third layer is the foot now. If a
-         layer is missing entirely it is simply not part of the surface any more — `own()` returns
-         null and the check skips it instead of measuring a null as 0 px of depth. */
-      foot: own('[data-depth="hero-foot"]'),
+      layers: hero.querySelectorAll("[data-layer]").length,
+      plates: hero.querySelectorAll("[data-plate]").length,
+      transformed: [...hero.querySelectorAll("*")].filter((node) => {
+        const style = getComputedStyle(node);
+        return style.transform !== "none" && !node.closest("svg");
+      }).length,
     };
   });
-  const rotated = Math.abs(parseFloat(plate.ry)) > 0.2 || Math.abs(parseFloat(plate.rx)) > 0.2;
   check(
-    "the hero stage rotates towards the pointer",
-    rotated,
-    `rx ${plate.rx || "unset"} / ry ${plate.ry || "unset"}`,
+    "the hero ships no depth layer, no tilted plate and no transformed child",
+    Boolean(flat) && flat.layers === 0 && flat.plates === 0 && flat.transformed === 0,
+    `layers ${flat?.layers} · plates ${flat?.plates} · transformed ${flat?.transformed}`,
   );
-  /*
-   * R10 — the hero used to give every layer its own Z, which sounds like depth and measured like a
-   * broken layout: at −110 px the masthead rule stopped 48 px inside both gutters and the facts bar
-   * dropped 25 px below the paragraph it aligns to. The sheet is one surface now, and these two
-   * checks are what "one surface" means: the block itself carries the Z, and none of the type
-   * inside it does.
-   */
-  check(
-    "the hero's type sits behind the glass instead of on it",
-    plate.perspective !== "none" && typeof plate.sheetZ === "number" && plate.sheetZ <= -10,
-    `perspective ${plate.perspective}, sheet translateZ ${plate.sheetZ}px`,
-  );
-  const inner = [plate.name, plate.masthead, plate.foot].filter(Boolean);
-  check(
-    "the hero's sheet is one rigid surface, not a stack of layers",
-    inner.length > 0 && inner.every((n) => n.transform === "none" || n.z === 0),
-    inner.map((n) => `${n.z}px`).join(" / "),
-  );
-
-  const sleeve = await page.$('[data-sleeve]');
-  if (sleeve) {
-    await sleeve.hover();
-    await sleep(500);
-    const translate = await page.evaluate((el) => getComputedStyle(el).translate, sleeve);
-    check("the featured sleeve lifts on hover", translate !== "none" && translate !== "", translate);
-  } else {
-    check("the featured sleeve lifts on hover", false, "no [data-sleeve] found");
-  }
 
   /* The ticker: a scroll-scrubbed band has to actually be scrubbed. */
   const tickerAt = async (y) => {

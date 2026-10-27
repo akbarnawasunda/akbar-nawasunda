@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 
-import { editorialFrame } from "@/assets/web";
+import { anMark } from "@/assets/web";
 import { ReleaseGrid, type ReleaseCard } from "@/components/content/ReleaseGrid";
-import { ReleaseCover } from "@/components/content/ReleaseCover";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
 import { TourSection } from "@/components/content/TourSection";
@@ -15,44 +13,47 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
 import { AnMonogram } from "@/components/three/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { Depth } from "@/components/zine/Depth";
-import { Magnetic } from "@/components/zine/Magnetic";
-import { Plate3D } from "@/components/zine/Plate3D";
-import { Reveal } from "@/components/zine/Reveal";
 import { getCatalogue } from "@/content/catalogue";
 import { tourDates } from "@/content/tour";
 import { visualItems } from "@/content/visuals";
 import { siteConfig } from "@/config/site";
-import { getPlatformLink, listenUrl } from "@/config/socials";
+import { getPlatformLink } from "@/config/socials";
 import { brandCard } from "@/lib/social-card";
 import { artistJsonLd, serializeJsonLd } from "@/lib/structured-data";
-import { getPublicPage, getPublicPhotos } from "@/studio/public";
+import { getPublicPage } from "@/studio/public";
 
 import styles from "./page.module.css";
 
 /**
- * Homepage — "platform" (round 34).
+ * Homepage — "panggung" (round 36).
  *
- * The reference is martingarrix.com, and the structural lesson from it is not decoration: a festival
- * artist's front page is *release-first and date-first*. A visitor arrives from a poster or a story
- * with two questions — "what came out?" and "are you playing near me?" — and a page that answers
- * them in the first two screens is doing its job. So the order is:
+ * Round 35's page was built out of stacking contexts: a `Depth` layer that translated the photograph
+ * −70px, a `Plate3D` stage that rotated the type block in three dimensions, a scrim between them, and
+ * a magnetic cursor floating over all of it. Each piece worked in isolation and the composition did
+ * not: at phone widths the translated layers crossed into each other, the tilt pushed the foot of the
+ * name into the buttons, and the cursor lagged a frame behind the hand.
  *
- *   1. the name, at poster scale, with the two actions that matter (Latest Release · Tour Dates);
- *   2. the liquid AN band, flush under the hero — the mark is the identity, not an illustration;
- *   3. the running head (every release, scrubbed by the scroll);
- *   4. the release spotlight: one square sleeve, its year and format, and the places to hear it;
- *   5. the tour matrix: four columns, one hairline per row;
- *   6. the catalogue reel, the genre tape, the visual archive, the platform strip;
- *   7. whatever the owner has published in the Studio as extra notes.
+ * This page is the correction, and the correction is subtraction. There is no depth wrapper, no tilted
+ * plate, no scrim and no custom cursor. The hero is four rows in one column — running head, wordmark,
+ * the AN mark, one button — laid out by CSS Grid with a gap between each. Nothing translates, nothing
+ * rotates, nothing overlaps anything else, and the browser draws its own pointer.
  *
- * What left this round, on purpose: the facts bar (release counts and years active are a résumé, not
- * a mainstage), the paper About spread (the long bio lives on /artist and /epk), the press sheet
- * (/epk is a real route), and the night photograph that carried one quote and no information.
+ * The rest of the page is the same idea applied downwards: every band is in the normal flow, separated
+ * by a hairline and `--section-padding`, so the page has the breathing room of a festival stage
+ * instead of a collage.
  *
- * Catalogue source: `getCatalogue()` — the same function `/music` reads, Studio-published rows first
- * with the verified static list as the fallback. Before round 34 this page built its own list, which
- * is exactly how a release could ship to the catalogue and never reach the front page.
+ *   hero            the name, the mark, one call to action
+ *   running head    every title in the catalogue, scrubbed by the scroll
+ *   releases        the whole discography as a grid — the reason the page exists
+ *   tour            dates
+ *   monogram        the liquid AN band
+ *   visuals         the archive rail
+ *   platforms       where to listen
+ *   notes           whatever the owner published in the Studio
+ *
+ * Catalogue source: `getCatalogue()` — the same function `/music` reads. It cannot return an empty
+ * list (`catalogueFloor()` is its floor), and the grid it feeds is server-rendered markup with no
+ * `opacity: 0` anywhere on the path, so the songs are in the HTML even if every script fails.
  */
 export const metadata: Metadata = {
   title: {
@@ -79,18 +80,12 @@ export const metadata: Metadata = {
 
 /*
  * The artist's own listening pages, in the order a visitor looks for them. These are the owner's
- * verified profiles (`src/config/socials.ts`), not links invented for a release: they are used only
- * to fill the spotlight pill row when the featured release does not carry its own destination for
- * that service.
+ * verified profiles (`src/config/socials.ts`), not links invented for a release: they fill a card's
+ * stream row when that release does not carry its own destination for the service.
  */
-const listenFallbacks = (["spotify", "appleMusic", "youtube", "soundcloud"] as const).map((platform) =>
+const listenFallbacks = (["spotify", "appleMusic", "youtube"] as const).map((platform) =>
   getPlatformLink(platform),
 );
-
-/** The desktop-safe key for a service name: "Apple Music" and "appleMusic" are the same pill. */
-function serviceKey(label: string): string {
-  return label.toLowerCase().replace(/[^a-z]/g, "");
-}
 
 /* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
  * filled slot appear within a minute (and immediately after the studio's revalidatePath). */
@@ -98,12 +93,7 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   const catalogue = await getCatalogue();
-  const featured = catalogue[0] ?? null;
-  if (!featured) return null;
-
   const home = await getPublicPage("home");
-  /* Round 26 photo slots: a studio upload wins, the repository asset is the fallback. */
-  const photos = await getPublicPhotos();
   const homeSections = home?.sections.filter((section) => section.visible) ?? [];
 
   const tickerItems = catalogue.map((item) => ({
@@ -113,39 +103,14 @@ export default async function HomePage() {
   }));
 
   /*
-   * Where to hear it. Two sources, one order, no invention:
+   * Round 36 — the cards are built from the catalogue itself, not from a "featured" subset.
    *
-   *   1. the release's own links (the loader has already sorted them streaming-first), then
-   *   2. the artist's verified profiles for any of the four headline services the release does not
-   *      carry itself.
-   *
-   * Round 34 fixed a quiet bug here: the previous code looked YouTube up in `socialLinks`, the social
-   * block, where no YouTube entry exists — so the pill and the archive header action never rendered.
-   * The channel lives in `listenLinks`; `getPlatformLink` is the accessor that knows that.
-   */
-  const streamLinks: { label: string; href: string }[] = [];
-  const seenServices = new Set<string>();
-  for (const link of [...featured.links, ...listenFallbacks]) {
-    const key = serviceKey(link.label);
-    if (seenServices.has(key)) continue;
-    seenServices.add(key);
-    streamLinks.push({ label: link.label, href: link.href });
-    if (streamLinks.length === 4) break;
-  }
-  const streams =
-    streamLinks.length > 0 ? streamLinks : [{ label: "Dengar Sekarang", href: listenUrl }];
-  const catalogueIndex = String(1).padStart(2, "0");
-  const catalogueTotal = String(catalogue.length).padStart(2, "0");
-
-  /*
-   * Round 35 — the catalogue grid.
-   *
-   * Every release in the same list `/music` prints, rendered as a card: sleeve, year · format, bold
-   * title, and the stream buttons. A release with no link of its own falls back to the artist's
-   * verified profiles — the record is on those pages even when the catalogue row does not carry the
+   * Every release in the same list `/music` prints is a card: sleeve, year · format, bold title, and
+   * the stream buttons. A release with no link of its own falls back to the artist's verified
+   * profiles — the record is on those pages even when the catalogue row does not carry the
    * per-track URL — which is why no card is ever a dead end.
    */
-  const artistStreams = listenFallbacks.slice(0, 3).map((link) => ({ label: link.label, href: link.href }));
+  const artistStreams = listenFallbacks.map((link) => ({ label: link.label, href: link.href }));
   const cards: ReleaseCard[] = catalogue.map((item, index) => ({
     slug: item.slug,
     href: item.href,
@@ -166,193 +131,81 @@ export default async function HomePage() {
         }}
       />
 
-      {/* The hero image is the LCP element: preloaded, fetched at high priority, never lazy. */}
-      <link
-        rel="preload"
-        as="image"
-        type="image/avif"
-        href={photos.latar ?? editorialFrame.webp}
-        fetchPriority="high"
-      />
-
       {/* ------------------------------------------------------------------ hero */}
-      <section className={styles.hero} aria-labelledby="hero-title">
-        <Depth className={styles.heroMedia} y={-70} scale={0.05} perspective={1400} data-layer="hero-photo">
-          <Image
-            className={styles.heroImage}
-            src={photos.latar ?? editorialFrame.webp}
-            alt=""
-            fill
-            sizes="100vw"
-            priority
-          />
-        </Depth>
-        <div className={styles.heroScrim} aria-hidden="true" />
-
-        <Plate3D
-          className={styles.heroStage}
-          data-plate="hero-stage"
-          tiltY={2}
-          tiltX={0.5}
-          shift={6}
-          perspective={1300}
-        >
-          <div className={styles.heroInner}>
-            <div className={styles.masthead} data-depth="hero-masthead">
-              <p className={styles.kicker}>
-                <span className={styles.live} aria-hidden="true" />
-                {siteConfig.origin.replace(", Indonesia", "")} · sejak {siteConfig.since}
-              </p>
-              <p className={styles.kicker}>Produser · Remixer · DJ</p>
-            </div>
-
-            <Depth className={styles.heroText} y={-26} data-layer="hero-type">
-              <div className={styles.heroBody}>
-                <h1 id="hero-title" className={`${styles.name} ink`} data-depth="hero-name">
-                  <span className={styles.nameLine}>
-                    <span className={styles.nameRise}>Akbar</span>
-                  </span>
-                  <span className={styles.nameLine}>
-                    <span className={styles.nameRise}>
-                      Nawasunda<span className={styles.stop} aria-hidden="true">.</span>
-                    </span>
-                  </span>
-                </h1>
-
-                <div className={styles.heroFoot} data-depth="hero-foot">
-                  <p className={styles.heroSub}>Breakbeat, Indo Bass, Jedag Jedug. Live set dari Bandung Barat.</p>
-
-                  <div className={styles.heroActions}>
-                    <Magnetic>
-                      <ButtonLink href="#music" variant="primary">
-                        Latest Release
-                      </ButtonLink>
-                    </Magnetic>
-                    <Magnetic>
-                      <ButtonLink href="#tour" variant="secondary">
-                        Tour Dates
-                      </ButtonLink>
-                    </Magnetic>
-                  </div>
-                </div>
-              </div>
-            </Depth>
-          </div>
-        </Plate3D>
-      </section>
-
-      {/* --------------------------------------------------------------- monogram */}
       {/*
-        The mark sits flush against the hero: both bands are the same ink, and any margin between
-        them would draw a seam the page does not want. `display: block` + no margin is the whole
-        contract; the band itself owns its height and its clip.
+        Four rows, one column, a gap between each. The name is the top row, the mark is the middle,
+        the button is the bottom — and because they are grid rows in the normal flow, none of them can
+        land on top of another at any width. The old hero was a photograph with a −70px translate, a
+        scrim and a tilting plate; all three are gone.
       */}
-      <section className={styles.signature} aria-label="Monogram">
-        <AnMonogram />
+      <section className={styles.hero} aria-labelledby="hero-title">
+        <div className={styles.heroInner}>
+          <div className={styles.masthead}>
+            <p className={styles.kicker}>
+              <span className={styles.live} aria-hidden="true" />
+              {siteConfig.origin.replace(", Indonesia", "")} · sejak {siteConfig.since}
+            </p>
+            <p className={styles.kicker}>Produser · Remixer · DJ</p>
+          </div>
+
+          <h1 id="hero-title" className={`${styles.name} ink`}>
+            Akbar Nawasunda
+          </h1>
+
+          {/*
+            The mark, as a plain image. Round 35 tried to make the logos' own WebGL band do duty in
+            the first viewport; a shader that has to compile before it can paint is a logo that
+            flickers on a cold load. Here the mark is 174×112 of baked WebP with no wrapper, no
+            parallax and no canvas — it is on screen at the first paint and never moves.
+          */}
+          <div className={styles.heroMark}>
+            <Image
+              className={styles.heroMarkImage}
+              src={anMark.src}
+              alt=""
+              width={anMark.width}
+              height={anMark.height}
+              sizes="(min-width: 900px) 22rem, 55vw"
+              priority
+            />
+          </div>
+
+          <div className={styles.heroCta}>
+            <ButtonLink href="#catalogue" variant="primary">
+              Dengarkan Musik
+            </ButtonLink>
+            <p className={styles.heroSub}>Breakbeat, Indo Bass, Jedag Jedug — live dari Bandung Barat.</p>
+          </div>
+        </div>
       </section>
 
       {/* ----------------------------------------------------------- running head */}
       <ReleaseTicker items={tickerItems} />
 
-      {/* ------------------------------------------------------------- spotlight */}
+      {/* --------------------------------------------------------------- catalogue */}
       {/*
-        The latest release, as a poster: one square sleeve at half the page, the facts a record has
-        (year, format, position in the catalogue) and the places to hear it. This replaces the bone
-        "transmission" sheet — same idea, no paper, no second title, and the sleeve is the object
-        rather than an illustration beside copy.
+        Release-first: this band is the second thing on the page, directly under the hero, and the
+        hero's only button scrolls to it. No `Reveal` wraps the grid — a reveal is an `opacity: 0`
+        that waits for JavaScript, and the catalogue is the one thing on this page that must never
+        wait for anything.
       */}
-      <section className={styles.spotlight} id="music" aria-labelledby="music-title">
+      <section className={styles.catalogue} id="catalogue" aria-labelledby="catalogue-title">
         <Container>
-          <div className={styles.spotlightHead}>
-            <p className={styles.spotlightFlag}>
-              <span className={styles.live} aria-hidden="true" />
-              Sedang Beredar
-            </p>
-            <p className={styles.spotlightIndex}>
-              {catalogueIndex} / {catalogueTotal}
+          <div className={styles.catalogueHead}>
+            <h2 id="catalogue-title" className={styles.catalogueTitle}>
+              Rilisan
+            </h2>
+            <p className={styles.catalogueCount}>
+              {String(catalogue.length).padStart(2, "0")} rilis · sejak {siteConfig.since}
             </p>
           </div>
 
-          <div className={styles.spotlightBody}>
-            <Reveal className={styles.spotlightCover}>
-              <Plate3D
-                className={styles.sleeveStage}
-                data-plate="featured-sleeve"
-                tiltY={9}
-                tiltX={6}
-                shift={10}
-                perspective={1000}
-              >
-                <Link
-                  href={featured.href}
-                  className={styles.sleeveLink}
-                  data-sleeve
-                  aria-label={`Buka rilis ${featured.title}`}
-                >
-                  <span className={styles.sleeveEdge} aria-hidden="true" />
-                  <span className={styles.sleeveFace}>
-                    <ReleaseCover artwork={featured.artwork} title={featured.title} showTitle={false} />
-                  </span>
-                </Link>
-              </Plate3D>
-            </Reveal>
+          <ReleaseGrid items={cards} />
 
-            <div className={styles.spotlightCopy}>
-              <h2 id="music-title" className={styles.spotlightTitle}>
-                {featured.title}
-              </h2>
-              <p className={styles.spotlightMeta}>{featured.meta}</p>
-
-              <dl className={styles.gear}>
-                <div className={styles.gearItem}>
-                  <dt>Tahun</dt>
-                  <dd>{featured.year ?? "—"}</dd>
-                </div>
-                <div className={styles.gearItem}>
-                  <dt>Format</dt>
-                  <dd>{featured.format}</dd>
-                </div>
-                <div className={styles.gearItem}>
-                  <dt>Katalog</dt>
-                  <dd>
-                    {catalogueIndex}
-                    <span className={styles.gearOf}> / {catalogueTotal}</span>
-                  </dd>
-                </div>
-              </dl>
-
-              <ul className={styles.streams} aria-label="Dengarkan rilisan ini">
-                {streams.map((link) => (
-                  <li key={`${link.label}-${link.href}`}>
-                    <a
-                      className={styles.stream}
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {link.label}
-                      <span className={styles.streamArrow} aria-hidden="true">
-                        ↗
-                      </span>
-                      <span className="sr-only"> (membuka tab baru)</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-
-              <div className={styles.spotlightActions}>
-                <Magnetic>
-                  <ButtonLink href={featured.href} variant="primary">
-                    Buka Rilis
-                  </ButtonLink>
-                </Magnetic>
-                <Magnetic>
-                  <ButtonLink href="/music" variant="secondary">
-                    Semua Rilis
-                  </ButtonLink>
-                </Magnetic>
-              </div>
-            </div>
+          <div className={styles.catalogueFoot}>
+            <ButtonLink href="/music" variant="secondary">
+              Semua Rilis
+            </ButtonLink>
           </div>
         </Container>
       </section>
@@ -360,31 +213,13 @@ export default async function HomePage() {
       {/* ------------------------------------------------------------------- tour */}
       <TourSection dates={tourDates} />
 
-      {/* ---------------------------------------------------------------- catalogue */}
+      {/* --------------------------------------------------------------- monogram */}
       {/*
-        Round 35 — the grid, not the reel. The full catalogue is on the page as plain markup: no
-        sticky row, no 300vh scroll driver, nothing that can leave the sleeves off-screen. If this
-        band renders, the songs are on the front page.
+        The mark at full width, in its own band, where it has room to be an object rather than a
+        decoration behind the type. The horizontal rule above it is the only seam.
       */}
-      <section className={styles.indexBand} id="catalogue" aria-labelledby="catalogue-title">
-        <Container>
-          <Reveal>
-            <h2 id="catalogue-title" className={styles.indexTitle}>
-              Katalog
-            </h2>
-          </Reveal>
-          <p className={styles.railCount}>
-            {catalogue.length} rilis · sejak {siteConfig.since}
-          </p>
-          <ReleaseGrid items={cards} />
-          <div className={styles.catalogueFoot}>
-            <Magnetic>
-              <ButtonLink href="/music" variant="secondary">
-                Semua Rilis
-              </ButtonLink>
-            </Magnetic>
-          </div>
-        </Container>
+      <section className={styles.signature} aria-label="Monogram">
+        <AnMonogram />
       </section>
 
       <GenreTape />
@@ -392,14 +227,12 @@ export default async function HomePage() {
       {/* ---------------------------------------------------------------- archive */}
       <section className={styles.archive} id="visuals" aria-labelledby="visuals-title">
         <Container>
-          <Depth y={26} fade={0.08}>
-            <SectionHeader
-              eyebrow="Arsip"
-              title="Visual"
-              id="visuals-title"
-              action={{ href: getPlatformLink("youtube").href, label: "YouTube" }}
-            />
-          </Depth>
+          <SectionHeader
+            eyebrow="Arsip"
+            title="Visual"
+            id="visuals-title"
+            action={{ href: getPlatformLink("youtube").href, label: "YouTube" }}
+          />
         </Container>
         <VisualRail items={visualItems} />
       </section>
