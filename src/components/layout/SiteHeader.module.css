@@ -123,6 +123,93 @@
   gap: var(--space-3);
 }
 
+/* ================================================================ VU METER MINI */
+/* 4 vertical bars, async bounce animation */
+.vuMeter {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 20px;
+}
+
+.vuBar {
+  width: 3px;
+  background: var(--color-signal-blue);
+  border-radius: 0;
+  animation: vu-bounce 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 150ms);
+  transform-origin: bottom;
+}
+
+@keyframes vu-bounce {
+  0%, 100% { height: 2px; }
+  50% { height: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vuBar {
+    animation: none;
+    height: 8px;
+  }
+}
+
+/* ================================================================ BOOKING QUICK-COPY BUTTON */
+.bookingBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 80px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-weight: 500;
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.bookingBtn:hover,
+.bookingBtn:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+  border-color: var(--color-text-primary);
+  outline: none;
+}
+
+/* The drawer's copy control: full-width, right-angled, mono. */
+.drawerBooking {
+  align-self: start;
+  min-height: 40px;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.drawerBooking:hover,
+.drawerBooking:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+  outline: none;
+}
+
 /*
  * "Listen ↗" is a right-angled box, not a pill. The reference's call to action is a thin white
  * rectangle with the label inside it, and that is the only shape on this page that means "leave".
@@ -420,6 +507,31 @@
  * goes first — the mark is the logo — and MENU keeps its word, because a hamburger with no label is
  * the one control on the page a first-time visitor has to guess at.
  */
+/*
+ * The VU meter and the booking control are decoration/shortcuts, not navigation. Below 1024px the
+ * 5rem bar cannot hold the mark, Listen, MENU and both of them: at 390px the action group measured
+ * 367px and pushed the document to 403px of scroll width, and at 900px it still added 21px. Both
+ * move into the drawer (booking) or simply step back (VU meter); MENU and Listen — the two real
+ * actions — always stay.
+ */
+@media (max-width: 1023px) {
+  .vuMeter,
+  .bookingBtn {
+    display: none;
+  }
+
+  .drawerBooking {
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .drawerBooking {
+    display: none;
+  }
+}
+
 @media (max-width: 560px) {
   /*
    * Visually hidden, not removed.

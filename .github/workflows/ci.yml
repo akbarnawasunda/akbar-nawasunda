@@ -38,6 +38,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Security Audit (Dependencies)
+        run: npm audit --audit-level=high --omit=dev
+
       - name: Unit tests
         run: npm run test
 

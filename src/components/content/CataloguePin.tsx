@@ -22,6 +22,9 @@ import styles from "./CataloguePin.module.css";
  * Under 768px the pin dissolves: the wrapper loses its height, the row becomes a column, and the
  * catalogue reads vertically like the rest of the page — a thumb should swipe the page, not fight
  * a hijacked axis.
+ *
+ * Mobile (max-width: 640px): 2-level layout — cover 40×40 + title on top, tag/year/BUKA on bottom.
+ * Watermark adjusts to clamp(2rem, 8vw, 3rem).
  */
 export interface CataloguePinItem {
   slug: string;
@@ -43,10 +46,22 @@ export function CataloguePin({ items }: { items: CataloguePinItem[] }) {
   return (
     <div ref={wrapRef} className={styles.pinWrap} data-catalogue-pin>
       <div className={styles.pinContent}>
-        {items.map((item) => (
+        {items.map((item, index) => (
           <article className={styles.pinCard} key={item.slug} data-pin-card>
+            {/* Watermark index number — giant, right-aligned, behind content.
+                The number lives in data-index and is painted by ::before: it is pure decoration,
+                and a real text node at 4% opacity is correctly flagged by axe's colour-contrast
+                rule (a watermark can never meet 3:1). Generated content is not a text node. */}
+            <span
+              className={styles.ledgerIndexWatermark}
+              data-index={String(index + 1).padStart(2, "0")}
+              aria-hidden="true"
+            />
             <Link className={styles.pinLink} href={item.href} aria-label={`Buka rilis ${item.title}`}>
-              <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
+              {/* Mobile: cover wrapper for 40x40 layout */}
+              <span className={styles.coverWrapper}>
+                <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
+              </span>
             </Link>
             <p className={styles.pinTitle}>
               <Scramble text={item.title} />

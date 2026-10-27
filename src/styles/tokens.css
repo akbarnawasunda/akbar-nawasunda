@@ -55,6 +55,16 @@
   /* The monogram band is pure black: the object is the only light on it. */
   --color-field: #000000;
 
+  /* Surface for panels like the Dubplate Vault — slightly elevated from base black. */
+  --color-surface: #080808;
+
+  /* Ground: the solid page ground used by the bottom audio HUD and industrial buttons. */
+  --color-ground: var(--color-bg-base);
+
+  /* Watermark index numbers in the ledger. Solid ink: the *opacity* is what animates
+     (0.04 at rest → 0.12 on hover), per the HUD spec. */
+  --color-watermark: rgb(255 255 255);
+
   /*
    * Structure is one hairline in white. At 16% it is invisible until you look for it, which is
    * exactly the job a HUD grid does; the strong step is for a hovered or active rule.

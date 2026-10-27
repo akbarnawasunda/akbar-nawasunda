@@ -1,0 +1,14 @@
+docs/
+*.md
+!README.md
+artifacts/
+review-shots/
+AKBAR-NAWASUNDA-ASSETS/
+scripts/
+tests/
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+.next/cache/

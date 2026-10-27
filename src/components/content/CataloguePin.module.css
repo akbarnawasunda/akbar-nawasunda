@@ -35,6 +35,32 @@
 .pinCard {
   flex: none;
   width: clamp(13rem, 22vw, 19rem);
+  position: relative;
+}
+
+/* Watermark index — giant number behind each card.
+   Painted as generated content so it is decoration, not a low-contrast text node. */
+.ledgerIndexWatermark {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 800;
+  color: var(--color-watermark);
+  opacity: 0.04;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  line-height: 1;
+  font-family: var(--font-body-stack);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
+  transition: opacity 180ms var(--ease-snap), color 180ms var(--ease-snap);
+}
+
+.ledgerIndexWatermark::before {
+  content: attr(data-index);
 }
 
 .pinLink {
@@ -43,9 +69,32 @@
   transition: transform var(--duration-slow) var(--ease-out);
 }
 
+/* On desktop the wrapper is a transparent block: the sleeve keeps the reel's full width.
+   The mobile 2-level layout overrides it to a 40×40 thumbnail below. */
+.coverWrapper {
+  display: block;
+}
+
 .pinLink:hover,
 .pinLink:focus-visible {
   transform: scale(1.04);
+}
+
+/* Hover physics — desktop only */
+@media (min-width: 768px) {
+  .pinCard:hover {
+    transform: translateX(6px);
+    transition: transform 180ms var(--ease-snap);
+  }
+
+  .pinCard:hover .ledgerIndexWatermark {
+    opacity: 0.12;
+    color: var(--color-signal-blue);
+  }
+
+  .pinCard:hover .pinLink {
+    border-bottom-color: var(--color-signal-blue);
+  }
 }
 
 .pinTitle {
@@ -73,6 +122,8 @@
  * a vertical drag still belongs to the page — one axis per gesture, the way iOS and Android both
  * expect. The overhang stays clipped to the row, so the document never gains a horizontal
  * scrollbar (qa:motion asserts that at six widths).
+ *
+ * Mobile 2-level layout: cover (40x40) + title on top row, tag/year/link on bottom row.
  */
 @media (max-width: 767px) {
   .pinWrap {
@@ -103,5 +154,84 @@
     width: min(72vw, 20rem);
     flex: none;
     scroll-snap-align: center;
+    /* Two levels: row 1 = 40×40 cover + title, row 2 = tag/year/BUKA. */
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-hairline);
+  }
+
+  /* Level 1, left cell: the 40×40 cover. */
+  .pinCard > .pinLink {
+    grid-column: 1;
+    grid-row: 1;
+    display: block;
+    width: 40px;
+    height: 40px;
+  }
+
+  .coverWrapper {
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    background: var(--color-bg-surface);
+  }
+
+  .coverWrapper > span {
+    display: block;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  /* Level 1, right cell: title, clipped to one line. */
+  .pinTitle {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    min-width: 0;
+    font-size: var(--text-small);
+    line-height: var(--leading-title);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Level 2: meta on the left, BUKA ↗ on the right. */
+  .pinMeta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-hairline);
+    font-size: var(--text-label);
+    gap: var(--space-2);
+  }
+
+  .pinMeta::after {
+    content: "BUKA ↗";
+    font-family: var(--font-body-stack);
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-signal-blue);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-signal-blue);
+    padding-bottom: 1px;
+  }
+
+  /* Watermark adjusts for mobile */
+  .ledgerIndexWatermark {
+    font-size: clamp(2rem, 8vw, 3rem);
+    right: var(--space-3);
+    top: var(--space-3);
+    transform: none;
+    opacity: 0.04;
   }
 }

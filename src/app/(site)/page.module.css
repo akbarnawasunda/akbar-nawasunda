@@ -290,7 +290,72 @@
   letter-spacing: var(--tracking-tight);
 }
 
+/* ================================================================ LOGISTICS STRIP */
+/* Technical metadata strip below the hero CTA — mono, uppercase, hairline border. */
+.heroLogistics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  opacity: 0.65;
+}
 
+.logisticsDivider {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* 3D canvas ambient wrapper.
+ * The Three.js scene lives in the monogram band (AnMonogram), one section BELOW the hero — the
+ * hero `.heroStage` is the type plate and must never be dimmed. This wrapper is the only element
+ * allowed to carry the mobile ambient opacity. */
+.signatureCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Desktop: drop the 3D container slightly so its optical base sits lower in the band. */
+@media (min-width: 769px) {
+  .signatureCanvas {
+    transform: translateY(2rem);
+  }
+}
+
+/* Mobile: the GPU scene never mounts, so the canvas becomes a quiet ambient layer. */
+@media (max-width: 768px) {
+  .signatureCanvas {
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  .heroMedia {
+    pointer-events: none;
+  }
+}
+
+/*
+ * Fluid wordmark, measured against the actual display face.
+ *
+ * The brief asked for clamp(2.8rem, 11vw, 4.5rem), but that resolves to 44.8px at 390px and
+ * "NAWASUNDA." measures ~9.6× font-size in Excess V Straight — see the measurement in
+ * tokens.css. It wrapped into an orphan "A." on a third line. 9.4vw with a 3rem ceiling is the
+ * largest fluid size that keeps the full word on one line from 320px to 640px (measured in the
+ * browser at seven widths). Anything unverified is not worth a broken wordmark.
+ */
+@media (max-width: 640px) {
+  .name {
+    font-size: clamp(2rem, 9.4vw, 3rem);
+  }
+}
 
 /* -------------------------------------------------------------------------------- monogram */
 

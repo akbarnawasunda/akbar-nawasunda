@@ -26,8 +26,33 @@
 }
 
 .cell {
+  position: relative;
   margin: 0;
   transform-style: preserve-3d;
+}
+
+/* Ledger watermark — the giant index behind the sleeve, same device as the homepage reel.
+   Generated content keeps it out of the accessibility tree and the contrast text scan. */
+.ledgerIndexWatermark {
+  position: absolute;
+  right: 0.5rem;
+  top: 38%;
+  transform: translateY(-50%);
+  font-family: var(--font-body-stack);
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-watermark);
+  opacity: 0.04;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  transition: opacity var(--duration-snap) var(--ease-snap), color var(--duration-snap) var(--ease-snap);
+}
+
+.ledgerIndexWatermark::before {
+  content: attr(data-index);
 }
 
 .card {
@@ -74,6 +99,21 @@
     box-shadow:
       10px 12px 0 var(--color-border-strong),
       0 30px 70px rgb(0 0 0 / 55%);
+  }
+
+  /* Ledger hover physics: the row shifts, the watermark lights up toward the signal blue. */
+  .cell:hover .card {
+    transform: translateX(6px) rotateX(var(--wall-rx, 0deg)) rotateY(var(--wall-ry, 0deg))
+      translate3d(0, 0, var(--wall-z, 0px));
+  }
+
+  .cell:hover .ledgerIndexWatermark {
+    opacity: 0.12;
+    color: var(--color-signal-blue);
+  }
+
+  .cell:hover .under {
+    border-top-color: var(--color-signal-blue);
   }
 }
 
@@ -130,6 +170,11 @@
   .wall {
     grid-template-columns: 1fr;
   }
+
+  .ledgerIndexWatermark {
+    font-size: clamp(2rem, 8vw, 3rem);
+    top: 34%;
+  }
 }
 
 @media (min-width: 720px) {
@@ -147,6 +192,10 @@
 @media (prefers-reduced-motion: reduce) {
   .card {
     transform: none;
+    transition: none;
+  }
+
+  .ledgerIndexWatermark {
     transition: none;
   }
 }

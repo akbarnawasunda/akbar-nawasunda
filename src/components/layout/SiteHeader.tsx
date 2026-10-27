@@ -14,6 +14,8 @@ import { Equalizer } from "@/components/ui/Equalizer";
 import { Scramble } from "@/components/zine/Scramble";
 import styles from "./SiteHeader.module.css";
 
+const BOOKING_EMAIL = "booking@akbarnawasunda.my.id";
+
 /** The newest release, so the phone menu can show the catalogue rather than only link to it. */
 export interface DrawerLatest {
   title: string;
@@ -33,16 +35,35 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
   const [open, setOpen] = useState(false);
   /** Height of the bar at the moment the drawer opens — the drawer hangs directly below it. */
   const [barHeight, setBarHeight] = useState<number | null>(null);
+  /** Booking quick-copy feedback, shared by the desktop control and the mobile drawer control. */
+  const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
-  /*
-   * Round 26, owner's bug: after choosing a page from the menu, the new page could open mid-scroll
-   * (Lenis still coasting at the old position) with the bar hidden — the menu button "disappeared".
-   * A route change now lands at the top, at rest, bar visible, every time.
-   */
+  useEffect(() => () => {
+    if (copyTimer.current) clearTimeout(copyTimer.current);
+  }, []);
+
+  const copyBooking = async () => {
+    try {
+      await navigator.clipboard.writeText(BOOKING_EMAIL);
+    } catch {
+      // Clipboard can be denied (insecure origin, permissions). Fall back to a mailto link so the
+      // action still does something useful rather than silently lying about the copy.
+      window.location.href = `mailto:${BOOKING_EMAIL}`;
+      return;
+    }
+    setCopied(true);
+    if (copyTimer.current) clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopied(false), 2000);
+  };
+
+  /* Round 26, owner's bug: after choosing a page from the menu, the new page could open mid-scroll
+     (Lenis still coasting at the old position) with the bar hidden — the menu button "disappeared".
+     A route change now lands at the top, at rest, bar visible, every time. */
   const firstRoute = useRef(true);
   useEffect(() => {
     if (firstRoute.current) {
@@ -178,6 +199,14 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
         </Link>
 
         <div className={styles.actions}>
+          {/* VU Meter Mini — 4 async bars */}
+          <div className={styles.vuMeter} aria-hidden="true" role="img" aria-label="Audio level">
+            <span className={styles.vuBar} style={{ "--i": "0" } as React.CSSProperties} />
+            <span className={styles.vuBar} style={{ "--i": "1" } as React.CSSProperties} />
+            <span className={styles.vuBar} style={{ "--i": "2" } as React.CSSProperties} />
+            <span className={styles.vuBar} style={{ "--i": "3" } as React.CSSProperties} />
+          </div>
+
           <a className={styles.listen} href={listenUrl} target="_blank" rel="noopener noreferrer">
             {/* Round 31: the bar breathes beside the word — the site sounds like it is playing. */}
             <Equalizer />
@@ -188,16 +217,17 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
             </span>
           </a>
 
-          {/*
-            One control, at every width.
+          {/* Booking Quick-Copy Button (desktop; the drawer carries one on phones) */}
+          <button
+            type="button"
+            className={styles.bookingBtn}
+            onClick={copyBooking}
+            aria-label={copied ? "Email booking disalin" : "Salin email booking"}
+          >
+            {copied ? "\u2713 EMAIL DISALIN // DIRECT AGENT" : "BOOKING"}
+          </button>
 
-            The old bar carried four text links on desktop and a hamburger below 720px. The
-            reference has a mark on the left and the word MENU on the right, and it does that at
-            1440px as well as at 390px — which is not a phone compromise, it is the decision: a
-            full-screen index is a better catalogue than four 11px labels fighting a 5rem bar, and
-            it is the same interaction with a trackpad and with a thumb. `aria-expanded` still
-            drives the drawer, the focus trap and Escape, unchanged.
-          */}
+          {/* One control, at every width. */}
           <button
             ref={toggleRef}
             type="button"
@@ -288,6 +318,10 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
               >
                 Listen di Spotify <span aria-hidden="true">{"\u2197"}</span>
               </a>
+
+              <button type="button" className={styles.drawerBooking} onClick={copyBooking}>
+                {copied ? "\u2713 EMAIL DISALIN // DIRECT AGENT" : `SALIN EMAIL BOOKING — ${BOOKING_EMAIL}`}
+              </button>
 
               <p className={styles.drawerMeta}>
                 {siteConfig.origin} {"\u2022"} Sejak {siteConfig.since}
