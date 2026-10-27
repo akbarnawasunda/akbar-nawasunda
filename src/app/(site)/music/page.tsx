@@ -10,7 +10,14 @@ import { getCatalogue } from "@/content/catalogue";
 import { pageMetadata } from "@/lib/metadata";
 import styles from "./music.module.css";
 
-export const dynamic = "force-dynamic";
+/*
+ * Round 40 (audit P1-5): `force-dynamic` here made the catalogue uncacheable. Its data is
+ * `getCatalogue()` — the published Studio releases, falling back to the verified static list — and
+ * `saveReleaseAction` already calls `revalidatePath("/music")` on publish, so a cached page is
+ * correct the moment the owner publishes. `revalidate` is the safety net for a DB write that did not
+ * go through an action.
+ */
+export const revalidate = 3600;
 
 export const metadata = pageMetadata({
   title: "Music",

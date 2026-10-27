@@ -205,8 +205,10 @@ a {
 
 .ink {
   text-shadow:
-    0 0 calc(var(--ink-glow-tight) + (var(--ink-x) + var(--ink-y)) * 1.2px) rgb(255 255 255 / 0.22),
-    0 0 calc(var(--ink-glow) + (var(--ink-x) + var(--ink-y)) * 5px) rgb(0 135 255 / 0.16);
+    0 0 calc(var(--ink-glow-tight) + (var(--ink-x) + var(--ink-y)) * 1.2px)
+      rgb(255 255 255 / 0.22),
+    0 0 calc(var(--ink-glow) + (var(--ink-x) + var(--ink-y)) * 5px)
+      rgb(0 135 255 / 0.16);
 }
 
 /*
@@ -254,24 +256,42 @@ button:active,
   scale: 0.96;
 }
 
-html[data-cursor="on"],
-html[data-cursor="on"] a,
-html[data-cursor="on"] button,
-html[data-cursor="on"] [role="button"] {
-  cursor: none;
-}
+/* Round 40: `html[data-cursor="on"] { cursor: none }` lived here — the rule the custom cursor used
+   to hide the native pointer with. Round 36 unmounted the component, round 40 deleted it, and
+   nothing has set the attribute since; the rule could only ever fire from a stale cache. */
 
+/*
+ * Reduced motion — the global guard.
+ *
+ * The site is built out of 16 CSS modules that each carry their own `prefers-reduced-motion` escape,
+ * and every JS effect (the shader monogram, the ink press, the reveal, the ticker, the catalogue
+ * wall) asks `matchMedia` before it starts. That covers the effects we thought of. This block covers
+ * the ones we did not: it is the floor, not the ceiling, and it lives here rather than in each
+ * module because a module that forgets it is a bug this rule cannot repair.
+ *
+ *   - `scroll-behavior: auto` on every element, not just `html`: an anchor scrolling a nested
+ *     container smooth is still motion;
+ *   - 1ms rather than `none`, so `animationend`/`transitionend` still fire — a component that waits
+ *     for the event to un-hide itself must not be left invisible;
+ *   - iteration 1 and zero delay, so a staggered reveal lands at once instead of a second late;
+ *   - 1ms transitions rather than 0, because `transition: none` on a hover state would also remove
+ *     the colour change the reduced-motion user still benefits from.
+ *
+ * The component-specific overrides further down this file (the glitch, the image fade) stay where
+ * they are: they remove an effect entirely, which is stronger than shortening it.
+ */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
+  html,
+  body,
   *,
   *::before,
   *::after {
+    scroll-behavior: auto !important;
     animation-duration: 1ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
+    transition-delay: 0s !important;
   }
 }
 
@@ -315,19 +335,49 @@ html[data-cursor="on"] [role="button"] {
 }
 
 @keyframes glitch-top {
-  0% { clip-path: inset(0 0 62% 0); translate: -2px -1px; }
-  25% { clip-path: inset(18% 0 44% 0); translate: 3px 1px; }
-  50% { clip-path: inset(0 0 74% 0); translate: -3px 0; }
-  75% { clip-path: inset(30% 0 32% 0); translate: 2px -2px; }
-  100% { clip-path: inset(0 0 62% 0); translate: -2px -1px; }
+  0% {
+    clip-path: inset(0 0 62% 0);
+    translate: -2px -1px;
+  }
+  25% {
+    clip-path: inset(18% 0 44% 0);
+    translate: 3px 1px;
+  }
+  50% {
+    clip-path: inset(0 0 74% 0);
+    translate: -3px 0;
+  }
+  75% {
+    clip-path: inset(30% 0 32% 0);
+    translate: 2px -2px;
+  }
+  100% {
+    clip-path: inset(0 0 62% 0);
+    translate: -2px -1px;
+  }
 }
 
 @keyframes glitch-bottom {
-  0% { clip-path: inset(58% 0 0 0); translate: 2px 1px; }
-  25% { clip-path: inset(40% 0 12% 0); translate: -3px -1px; }
-  50% { clip-path: inset(70% 0 0 0); translate: 3px 0; }
-  75% { clip-path: inset(48% 0 24% 0); translate: -2px 2px; }
-  100% { clip-path: inset(58% 0 0 0); translate: 2px 1px; }
+  0% {
+    clip-path: inset(58% 0 0 0);
+    translate: 2px 1px;
+  }
+  25% {
+    clip-path: inset(40% 0 12% 0);
+    translate: -3px -1px;
+  }
+  50% {
+    clip-path: inset(70% 0 0 0);
+    translate: 3px 0;
+  }
+  75% {
+    clip-path: inset(48% 0 24% 0);
+    translate: -2px 2px;
+  }
+  100% {
+    clip-path: inset(58% 0 0 0);
+    translate: 2px 1px;
+  }
 }
 
 /*

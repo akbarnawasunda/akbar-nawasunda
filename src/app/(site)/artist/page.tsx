@@ -22,7 +22,7 @@ import { getPublicPage, getPublicPhotos } from "@/studio/public";
 import styles from "./artist.module.css";
 
 // Published Studio content is read per request so a publish shows immediately.
-export const dynamic = "force-dynamic";
+
 
 export const metadata: Metadata = pageMetadata({
   title: "Artist",
