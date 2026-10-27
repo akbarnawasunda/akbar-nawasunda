@@ -90,6 +90,14 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /*
+   * iOS Safari ignores `scrollbar-width`; the webkit pseudo-element is the only handle it offers.
+   * A native app never shows a scrollbar on a paging reel — neither does this one, on any engine.
+   */
+  .pinContent::-webkit-scrollbar {
+    display: none;
     scrollbar-color: var(--color-border) transparent;
     -webkit-overflow-scrolling: touch;
     flex-direction: row;

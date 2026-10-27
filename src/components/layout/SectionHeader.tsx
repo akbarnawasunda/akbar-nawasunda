@@ -3,7 +3,8 @@ import Link from "next/link";
 import styles from "./SectionHeader.module.css";
 
 interface SectionHeaderProps {
-  /** Mono label, e.g. "01 — Katalog". */
+  /* Mono label, one word, never a number: the "01 — Katalog" ornament was retired in round 31
+     because numbered sections are the loudest tell of a machine assembling a page. */
   eyebrow: string;
   title: string;
   id?: string;
