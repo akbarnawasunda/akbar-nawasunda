@@ -49,7 +49,14 @@ export function ReleaseLedger({ items, startAt = 2 }: ReleaseLedgerProps) {
             {String(startAt + index).padStart(2, "0")}
           </span>
 
-          <Link href={item.href} className={styles.rowLink} aria-label={`Buka rilis ${item.title}`}>
+          {/*
+            No `aria-label` here, and that is the point: the row prints its own title, format and year,
+            so those words ARE the link's accessible name. Naming the link "Buka rilis <title>" while
+            the title is also visible inside it fails WCAG 2.5.3 (label in name) — the rule round 35.1
+            learned the hard way on the card grid. The sleeve inside is decorative (`alt=""`), so the
+            name is exactly the text a sighted visitor reads.
+          */}
+          <Link href={item.href} className={styles.rowLink}>
             <span className={styles.sleeve}>
               <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} alt="" />
             </span>

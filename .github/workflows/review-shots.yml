@@ -13,6 +13,13 @@ on:
       - "src/**"
       - "scripts/review-shots.mjs"
 
+# The screenshots are committed back to the branch by the job itself. The artifact is still uploaded,
+# but the sandbox this was written in cannot download artifacts (the signed blob host is outside its
+# egress allowlist), and a picture nobody can open is not evidence. Committing them means anyone —
+# the owner, the sandbox, the preview server at /review-shots/ — can see them without a token.
+permissions:
+  contents: write
+
 jobs:
   shots:
     name: capture 390 / 1440
@@ -63,3 +70,15 @@ jobs:
           path: public/review-shots/*.png
           if-no-files-found: error
           retention-days: 30
+
+      - name: Commit the shots back to the branch
+        run: |
+          git config user.name "review shots"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/review-shots
+          if git diff --cached --quiet; then
+            echo "screenshots unchanged"
+            exit 0
+          fi
+          git commit -m "chore(review): screenshots at 390 and 1440"
+          git push

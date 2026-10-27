@@ -274,12 +274,12 @@ try {
    */
   const grid = await page.evaluate(() => {
     const cards = [...document.querySelectorAll("[data-release]")];
-    return { cards: cards.length, sleeves: document.querySelectorAll("[data-release] a[aria-label]").length };
+    return { cards: cards.length, sleeves: document.querySelectorAll("[data-release] a").length };
   });
   check(
-    "the catalogue grid renders every release without a scroll driver",
+    "the catalogue ledger renders every release without a scroll driver",
     grid.cards >= 10 && grid.sleeves === grid.cards,
-    `${grid.cards} cards, ${grid.sleeves} named sleeves`,
+    `${grid.cards} rows, ${grid.sleeves} row links`,
   );
 
   /*
@@ -288,12 +288,12 @@ try {
    * first version of this check hovered empty space and read "none → none".
    */
   await page.evaluate(() => {
-    document.querySelector("[data-release] a[aria-label]")?.scrollIntoView({ block: "center" });
+    document.querySelector("[data-release] a")?.scrollIntoView({ block: "center" });
   });
   await settleScroll(page);
   await sleep(700);
   const box = await page.evaluate(() => {
-    const link = document.querySelector("[data-release] a[aria-label]");
+    const link = document.querySelector("[data-release] a");
     if (!link) return null;
     const r = link.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) return null;
@@ -302,7 +302,7 @@ try {
   if (box) {
     const read = () =>
       page.evaluate(() => {
-        const link = document.querySelector("[data-release] a[aria-label]");
+        const link = document.querySelector("[data-release] a");
         if (!link) return "missing";
         const style = getComputedStyle(link);
         return `${style.translate} / ${style.transform}`;
@@ -313,10 +313,10 @@ try {
     await page.mouse.move(box.x, box.y + 1, { steps: 2 });
     await sleep(450);
     const after = await read();
-    check("grid sleeves answer hover", before !== after, `${before} → ${after}`);
+    check("ledger rows answer hover", before !== after, `${before} → ${after}`);
     await shot(page, "qa-grid-hover");
   } else {
-    check("grid sleeves answer hover", false, "no [data-release] sleeve link found");
+    check("ledger rows answer hover", false, "no [data-release] row link found");
   }
 
   /*
