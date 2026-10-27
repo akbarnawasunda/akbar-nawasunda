@@ -30,10 +30,14 @@
   inset: 0;
 }
 
-/* The stack: baked still below, shader quad above it once mounted. */
+/* The stack: baked still below, shader quad above it once mounted.
+   Baseline correction: both object layers sit 1.5rem lower so the mark's base
+   meets the band's bottom edge instead of floating mid-frame. The still is
+   oversized by 6% (= its drift margin), so 1.5rem never exposes an edge. */
 .liquid {
   position: absolute;
   inset: 0;
+  transform: translateY(1.5rem);
 }
 
 /*
@@ -66,6 +70,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: auto;
+  transform: translateY(1.5rem);
 }
 
 /*

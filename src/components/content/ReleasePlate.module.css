@@ -122,24 +122,77 @@
   line-height: var(--leading-body);
 }
 
-/* The honest empty state: a rule and a sentence, not a dashed box. */
-.noLinks {
+/*
+ * The vault: a release with no public stream is archived, not broken — so it gets an
+ * archive card, not a system notice. Sharp corners (site rule: no radius), near-black
+ * surface one step above the ground, and the accent only as a lit badge + hairline.
+ */
+.unreleasedVaultCard {
   display: grid;
-  gap: var(--space-1);
-  max-width: 40ch;
-  margin: var(--space-4) 0 0;
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-hairline);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  gap: var(--space-2);
+  max-width: 44ch;
+  margin-top: var(--space-6);
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-bg-surface-2);
+  border: 1px solid rgb(0 135 255 / 0.3);
+  border-radius: 0;
 }
 
-.noLinksLabel {
+.vaultBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
-  letter-spacing: var(--tracking-label);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-signal-blue);
+}
+
+.vaultDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background: var(--color-signal-blue);
+  box-shadow: 0 0 8px var(--color-signal-blue);
+}
+
+.vaultTitle {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+.vaultDescription {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.vaultCta {
+  justify-self: start;
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-signal-blue);
+  border-radius: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-signal-blue);
+  transition:
+    background var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out);
+}
+
+.vaultCta:hover,
+.vaultCta:focus-visible {
+  background: var(--color-signal-blue);
+  color: var(--color-on-brand);
+  outline: none;
 }
 
 /* --------------------------------------------------------------- the print */

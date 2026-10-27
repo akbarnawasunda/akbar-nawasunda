@@ -99,8 +99,10 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
         links={managed.links.map((link) => ({ label: link.label, href: link.href }))}
         facts={[
           { label: "Judul", value: managed.title },
-          { label: "Jenis", value: RELEASE_TYPE_LABELS[managed.type] },
-          { label: "Tanggal", value: date },
+          ...(RELEASE_TYPE_LABELS[managed.type]
+            ? [{ label: "Jenis", value: RELEASE_TYPE_LABELS[managed.type] }]
+            : []),
+          ...(date ? [{ label: "Tanggal", value: date }] : []),
         ]}
       />
     );
@@ -128,10 +130,9 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       artwork={resolveArtwork(release.slug)}
       links={release.links}
       facts={[
-        // Type and year always print: an unconfirmed one shows an em dash rather than vanishing.
-        { label: "Jenis", value: release.type ? releaseTypeLabel[release.type] : null },
-        { label: "Tahun", value: release.year ? String(release.year) : null },
-        // These two only exist when the owner supplied them, so they are absent, not empty.
+        // A fact with no verified value is absent, never an em-dash placeholder row.
+        ...(release.type ? [{ label: "Jenis", value: releaseTypeLabel[release.type] }] : []),
+        ...(release.year ? [{ label: "Tahun", value: String(release.year) }] : []),
         ...(release.source ? [{ label: "Karya asli", value: release.source }] : []),
         ...(release.era ? [{ label: "Era", value: release.era }] : []),
       ]}

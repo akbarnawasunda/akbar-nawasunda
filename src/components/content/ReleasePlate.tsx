@@ -22,7 +22,8 @@ import styles from "./ReleasePlate.module.css";
  *
  * Honesty rules are unchanged: `ordinal` is a position in the owner's own list (printed as
  * "Katalog 03 / 10", never as an invented catalogue number), every fact comes from the owner's data,
- * and anything unconfirmed prints an em dash instead of being guessed.
+ * and anything unconfirmed is simply not printed instead of being guessed. A release with no public
+ * listening link gets the vault card (archive framing), never a system "unavailable" notice.
  */
 export interface ReleaseNeighbour {
   slug: string;
@@ -60,6 +61,10 @@ export function ReleasePlate({
   prev,
   next,
 }: ReleasePlateProps) {
+  const visibleFacts = facts.filter(
+    (fact): fact is { label: string; value: string } =>
+      typeof fact.value === "string" && fact.value.trim() !== "" && fact.value.trim() !== "—",
+  );
   return (
     <article className={styles.record}>
       {/* ------------------------------------------------------------ the sleeve */}
@@ -87,10 +92,19 @@ export function ReleasePlate({
             {description ? <p className={styles.lead}>{description}</p> : null}
 
             {links.length === 0 ? (
-              <p className={styles.noLinks}>
-                <span className={styles.noLinksLabel}>Tautan</span>
-                Tautan mendengarkan untuk rilis ini belum tersedia.
-              </p>
+              <div className={styles.unreleasedVaultCard}>
+                <div className={styles.vaultBadge}>
+                  <span className={styles.vaultDot} aria-hidden="true" /> ARSIP KHUSUS
+                </div>
+                <p className={styles.vaultTitle}>Belum Dirilis ke Layanan Streaming Publik</p>
+                <p className={styles.vaultDescription}>
+                  Master audio dan metadata rilis ini tersimpan dalam arsip katalog independen
+                  Nawasunda.
+                </p>
+                <Link href="/music" className={styles.vaultCta}>
+                  Eksplorasi Diskografi Lainnya →
+                </Link>
+              </div>
             ) : null}
           </div>
 
@@ -147,21 +161,25 @@ export function ReleasePlate({
       </header>
 
       {/* --------------------------------------------------------------- colophon */}
-      <section className={styles.factsBand} aria-labelledby="facts-title">
-        <div className={styles.factsInner}>
-          <h2 className={styles.sectionLabel} id="facts-title">
-            Lembar data
-          </h2>
-          <dl className={styles.facts}>
-            {facts.map((fact) => (
-              <div key={fact.label} className={styles.fact}>
-                <dt>{fact.label}</dt>
-                <dd>{fact.value ?? "—"}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+      {/* Only verified facts print: an empty/null/dash value renders no row at all,
+          and a release with no facts renders no data sheet. */}
+      {visibleFacts.length > 0 ? (
+        <section className={styles.factsBand} aria-labelledby="facts-title">
+          <div className={styles.factsInner}>
+            <h2 className={styles.sectionLabel} id="facts-title">
+              Lembar data
+            </h2>
+            <dl className={styles.facts}>
+              {visibleFacts.map((fact) => (
+                <div key={fact.label} className={styles.fact}>
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      ) : null}
 
       {/* ------------------------------------------------------------------- more */}
       <nav className={styles.more} aria-label="Rilis lain">

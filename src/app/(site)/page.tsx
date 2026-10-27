@@ -190,6 +190,16 @@ export default async function HomePage() {
                     </Magnetic>
                   </div>
                 </div>
+
+                {/* Ledger line under the CTAs: fills the dead vertical between the actions and the
+                    facts bar. Count/year/place are derived (stats + siteConfig), never typed. */}
+                <div className={styles.heroMetaStrip}>
+                  <span>{stats.releaseCount} RILIS</span>
+                  <span className={styles.metaDot} aria-hidden="true">·</span>
+                  <span>SEJAK {siteConfig.since}</span>
+                  <span className={styles.metaDot} aria-hidden="true">·</span>
+                  <span>{siteConfig.origin.replace(", Indonesia", "").toUpperCase()}</span>
+                </div>
               </div>
             </Depth>
 

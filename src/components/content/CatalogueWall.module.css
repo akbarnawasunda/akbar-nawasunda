@@ -83,11 +83,42 @@
 }
 
 .under {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 2px var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
+}
+
+/* Giant ledger watermark behind the title — same device as the homepage reel. */
+.ledgerBigNumber {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 0;
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: rgb(255 255 255 / 0.06);
+  pointer-events: none;
+  user-select: none;
+  transition: color 260ms var(--ease-out);
+}
+
+.card:hover .ledgerBigNumber,
+.card:focus-visible .ledgerBigNumber {
+  color: rgb(0 135 255 / 0.32);
+}
+
+.under .ordinal,
+.under .title,
+.under .meta {
+  position: relative;
+  z-index: 1;
 }
 
 .ordinal {

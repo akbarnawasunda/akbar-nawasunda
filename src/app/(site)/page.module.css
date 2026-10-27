@@ -242,6 +242,29 @@
   gap: var(--space-3);
 }
 
+/* Ledger metadata strip under the CTAs — fills the dead vertical before the facts bar. */
+.heroMetaStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  opacity: 0.75;
+}
+
+.metaDot {
+  color: var(--color-signal-blue);
+  opacity: 0.9;
+}
+
 /*
  * The facts, as one ruled line: a figure, a label, a figure. They are the only numbers on the page
  * and they are set at 2rem in the display face, because a figure set in 11px mono reads as a
@@ -319,8 +342,9 @@
   inset: 0;
   z-index: 1;
   display: none;
-  place-items: center;
-  padding: 0 12%;
+  /* Bottom-aligned: the static mark lands on the same baseline as the lowered 3D object. */
+  place-items: end center;
+  padding: 0 12% var(--space-8);
 }
 
 /* Two classes deep on purpose: `.site-main img` in globals.css filters every photograph, and this

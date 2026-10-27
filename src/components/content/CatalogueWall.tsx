@@ -115,6 +115,9 @@ export function CatalogueWall({ items }: { items: readonly WallItem[] }) {
               <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             </span>
             <span className={styles.under}>
+              <span className={styles.ledgerBigNumber} aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
               <span className={styles.ordinal} aria-hidden="true">
                 {String(index + 1).padStart(2, "0")}
               </span>

@@ -33,8 +33,42 @@
 }
 
 .pinCard {
+  position: relative;
   flex: none;
   width: clamp(13rem, 22vw, 19rem);
+}
+
+/* Giant ledger watermark behind the title — label-catalogue typography, lit on hover. */
+.ledgerBigNumber {
+  position: absolute;
+  right: 0;
+  bottom: 1.4rem;
+  z-index: 0;
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: rgb(255 255 255 / 0.06);
+  pointer-events: none;
+  user-select: none;
+  transition: color 260ms var(--ease-out);
+}
+
+.pinCard:hover .ledgerBigNumber,
+.pinCard:focus-within .ledgerBigNumber {
+  color: rgb(0 135 255 / 0.32);
+}
+
+.pinTitle,
+.pinMeta {
+  position: relative;
+  z-index: 1;
+}
+
+.pinLink {
+  position: relative;
+  z-index: 1;
 }
 
 .pinLink {

@@ -43,8 +43,11 @@ export function CataloguePin({ items }: { items: CataloguePinItem[] }) {
   return (
     <div ref={wrapRef} className={styles.pinWrap} data-catalogue-pin>
       <div className={styles.pinContent}>
-        {items.map((item) => (
+        {items.map((item, index) => (
           <article className={styles.pinCard} key={item.slug} data-pin-card>
+            <span className={styles.ledgerBigNumber} aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
             <Link className={styles.pinLink} href={item.href} aria-label={`Buka rilis ${item.title}`}>
               <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             </Link>

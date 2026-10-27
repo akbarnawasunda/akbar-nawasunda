@@ -30,7 +30,7 @@ export const runtime = "nodejs";
 const WIDTH = 1200;
 const HEIGHT = 630;
 
-const BLUE = "#2E8C86";
+const BLUE = "#0087FF";
 const INK = "#0A0A0E";
 const PAPER = "#E8E6E1";
 const SECONDARY = "#A1A1B5";
