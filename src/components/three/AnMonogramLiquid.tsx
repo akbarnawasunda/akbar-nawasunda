@@ -242,9 +242,24 @@ void main() {
    * there), and the band between "just inside the stroke" and "solid stroke" is exactly the outline
    * the brief asks for.
    */
-  float solid = smoothstep(0.05, 0.55, mark.a);
-  float contour = (1.0 - solid) * smoothstep(0.004, 0.06, mark.a);
-  float rimBand = clamp(contour * 1.6 + fresnel * 0.55, 0.0, 1.0);
+  /*
+   * Round 38.3 — the rim is a *dilated* band, not a fresnel.
+   *
+   * The texture's own anti-aliased edge is about one pixel wide at 1440px, so reading it directly gave
+   * a hairline nobody could see, and the smooth new surface turns its normal too slowly at the stroke
+   * edge to give fresnel anything to work with. Four taps at a fixed UV radius give the distance to
+   * the nearest edge instead: the minimum neighbour alpha stays high deep inside a stroke and drops
+   * to zero within ~4px of the contour, so the difference is a band of constant screen width that
+   * traces the AN exactly — the blue outline the brief asks for, independent of the shading.
+   */
+  float rimR = 0.011;
+  float n1 = texture2D(uTexture, uv + vec2(rimR, 0.0)).a;
+  float n2 = texture2D(uTexture, uv - vec2(rimR, 0.0)).a;
+  float n3 = texture2D(uTexture, uv + vec2(0.0, rimR)).a;
+  float n4 = texture2D(uTexture, uv - vec2(0.0, rimR)).a;
+  float inner = smoothstep(0.10, 0.45, min(min(n1, n2), min(n3, n4)));
+  float contour = (1.0 - inner) * coverage;
+  float rimBand = clamp(contour * 1.35 + fresnel * 0.45, 0.0, 1.0);
   colour += neon * rimBand * 1.25;
   colour = mix(colour, neon, rimBand * 0.42);
 
