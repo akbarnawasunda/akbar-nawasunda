@@ -122,6 +122,28 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
     };
   }, [open]);
 
+  /*
+   * Round 39 — focus comes back to the toggle *after* the state has committed.
+   *
+   * While the dialog is open the bar's own toggle is `visibility: hidden` (the dialog owns the way
+   * out), and a hidden element cannot take focus: calling `.focus()` in the Escape handler ran before
+   * React had re-rendered the button back into view and silently did nothing, so the reader who
+   * pressed Escape was dropped at the top of the document. A pending flag plus an effect is the
+   * version that works on the first press.
+   */
+  const returnFocus = useRef(false);
+  const closeAndReturnFocus = () => {
+    returnFocus.current = true;
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    if (!open && returnFocus.current) {
+      returnFocus.current = false;
+      toggleRef.current?.focus();
+    }
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -130,8 +152,7 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setOpen(false);
-        toggleRef.current?.focus();
+        closeAndReturnFocus();
         return;
       }
       if (event.key !== "Tab" || !panel) return;
@@ -249,10 +270,7 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
               <button
                 type="button"
                 className={styles.drawerClose}
-                onClick={() => {
-                  setOpen(false);
-                  toggleRef.current?.focus();
-                }}
+                onClick={closeAndReturnFocus}
               >
                 <span className="sr-only">Tutup menu</span>
                 <span aria-hidden="true" className={styles.menuWord}>

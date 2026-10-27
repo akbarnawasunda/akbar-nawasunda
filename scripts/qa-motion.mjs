@@ -646,17 +646,26 @@ try {
       painted: Boolean(band && band.querySelector('[data-shader="on"]')),
     };
   });
+  /*
+   * Round 39 — the contract changed in one place, and this is the assertion that has to say so.
+   *
+   * The baked still is still the *fallback* — before the shader paints, a decoded image is what the
+   * band is showing, and `canvasBefore.still` keeps that half honest. Once the shader has painted,
+   * the still must be GONE from the DOM, not merely faded: two marks at different scales stacked in
+   * one band is the double silhouette the owner reported. So the second half of the check now asserts
+   * `painted && !still` rather than `painted && still`.
+   */
   check(
-    "the chrome mark is one canvas inside its band, with a decoded still under it",
+    "the chrome mark paints itself and leaves no baked still behind it",
     canvasBefore.count <= 1 &&
       canvasBefore.inBand &&
       canvasBefore.still &&
       monogram.canvases <= 1 &&
       monogram.inBand &&
-      monogram.still &&
+      !monogram.still &&
       monogram.sized &&
       monogram.painted,
-    `canvas ${canvasBefore.count} (in band ${canvasBefore.inBand}, still decoded ${canvasBefore.still}) · still ${monogram.still} · sized ${monogram.sized} · shader painted ${monogram.painted}`,
+    `canvas ${canvasBefore.count} (in band ${canvasBefore.inBand}, still decoded ${canvasBefore.still}) · still after paint ${monogram.still} · sized ${monogram.sized} · shader painted ${monogram.painted}`,
   );
   await shot(page, "qa-monogram");
 
