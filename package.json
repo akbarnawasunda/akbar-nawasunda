@@ -12,7 +12,7 @@
     "start": "next start -H 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "check": "npm run assets:check && npm run typecheck && npm run lint && npm run test && npm run test:db && npm run build",
+    "check": "npm run assets:check && npm run vercel:audit && npm run typecheck && npm run lint && npm run test && npm run test:db && npm run build",
     "assets:check": "node scripts/check-assets.mjs",
     "covers:fetch": "node scripts/fetch-release-artwork.mjs",
     "covers:sleeves": "tsx scripts/generate-placeholder-covers.mjs",
@@ -34,7 +34,8 @@
     "audit:tokens": "node scripts/token-audit.mjs",
     "review:shots": "node scripts/review/shots.mjs",
     "audit:fonts": "node scripts/font-audit.mjs",
-    "visual:check": "node scripts/visual-check.mjs"
+    "visual:check": "node scripts/visual-check.mjs",
+    "vercel:audit": "node scripts/vercel-ignore-audit.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

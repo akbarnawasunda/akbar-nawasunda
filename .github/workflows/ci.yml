@@ -49,6 +49,11 @@ jobs:
       - name: Design tokens
         run: npm run audit:tokens
 
+      # .vercelignore is applied to the tree Vercel uploads, before `npm run build`.
+      # A local green build cannot catch a build-time import that was filtered out.
+      - name: Vercel upload audit
+        run: npm run vercel:audit
+
       # PREVIEW_FRAMING keeps the CSP wide enough for the sandbox iframe, which is also what the
       # header assertions in the suite expect.
       - name: Build
