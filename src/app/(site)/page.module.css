@@ -279,7 +279,8 @@
 /* Three specs in one ruled row — a description list, not a table: there is no row below to align to. */
 .specs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Genre gets the room: it is a list of three words, the other two specs are a number and a noun. */
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.65fr) minmax(0, 0.65fr);
   gap: var(--space-4);
   width: 100%;
   margin: 0;
@@ -308,7 +309,8 @@
   font-size: var(--text-body);
   line-height: var(--leading-tight);
   color: var(--color-text-primary);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 
 /*
@@ -445,7 +447,12 @@
   }
 
   .specs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  /* Genre takes the full width so the three words read as one line, not as a broken list. */
+  .spec:first-child {
+    grid-column: 1 / -1;
   }
 }
 

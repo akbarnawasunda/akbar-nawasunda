@@ -92,17 +92,37 @@ function serviceKey(label: string): string {
   return label.toLowerCase().replace(/[^a-z]/g, "");
 }
 
+/**
+ * The laser row, in the owner's own order: Spotify, Apple Music, YouTube.
+ *
+ * For each of the three services the release's own URL wins; when the row has none for that service
+ * the artist's verified profile for it is used — the record is on that page even when the catalogue
+ * row only carries a SoundCloud link. Any *other* link the release does carry (SoundCloud, Bandcamp)
+ * is appended after them, because dropping the owner's own destination to satisfy a three-button
+ * template would be worse than a fourth button. Nothing is invented and nothing is dropped.
+ */
 function streamLinksFor(item: CatalogueItem | undefined): { label: string; href: string }[] {
-  const merged: { label: string; href: string }[] = [];
-  const seen = new Set<string>();
-  for (const link of [...(item?.links ?? []), ...listenFallbacks]) {
-    const key = serviceKey(link.label);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    merged.push({ label: link.label, href: link.href });
-    if (merged.length === 3) break;
+  const own = item?.links ?? [];
+  const rows: { label: string; href: string }[] = [];
+  const seenHref = new Set<string>();
+
+  for (const fallback of listenFallbacks) {
+    const key = serviceKey(fallback.label);
+    const match = own.find((link) => serviceKey(link.label) === key);
+    const chosen = match ?? fallback;
+    if (seenHref.has(chosen.href)) continue;
+    seenHref.add(chosen.href);
+    rows.push({ label: chosen.label, href: chosen.href });
   }
-  return merged;
+
+  for (const link of own) {
+    if (rows.length >= 4) break;
+    if (seenHref.has(link.href)) continue;
+    seenHref.add(link.href);
+    rows.push({ label: link.label, href: link.href });
+  }
+
+  return rows;
 }
 
 /* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
