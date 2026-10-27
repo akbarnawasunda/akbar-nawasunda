@@ -154,6 +154,34 @@
   color: var(--color-signal-blue);
 }
 
+/*
+ * The one action on a page you cannot listen from. Underlined, not boxed: it is a sentence with a
+ * destination, not a button — and the diskografi is where a visitor who wanted *this* track can
+ * still find something to play.
+ */
+.noLinksCta {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-border-strong);
+  transition:
+    color var(--duration-fast) var(--ease),
+    text-decoration-color var(--duration-fast) var(--ease);
+}
+
+.noLinksCta:hover,
+.noLinksCta:focus-visible {
+  color: var(--color-signal-blue);
+  text-decoration-color: var(--color-signal-blue);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noLinksCta {
+    transition: none;
+  }
+}
+
 /* --------------------------------------------------------------- the print */
 
 .artworkStage {

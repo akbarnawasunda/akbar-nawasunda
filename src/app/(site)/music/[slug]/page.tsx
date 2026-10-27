@@ -128,10 +128,10 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       artwork={resolveArtwork(release.slug)}
       links={release.links}
       facts={[
-        // Type and year always print: an unconfirmed one shows an em dash rather than vanishing.
-        { label: "Jenis", value: release.type ? releaseTypeLabel[release.type] : null },
-        { label: "Tahun", value: release.year ? String(release.year) : null },
-        // These two only exist when the owner supplied them, so they are absent, not empty.
+        // Round 40 (audit P0-2): a fact without a confirmed value is not passed at all. The plate
+        // drops anything null, and drops the whole data sheet when every fact is null.
+        ...(release.type ? [{ label: "Jenis", value: releaseTypeLabel[release.type] }] : []),
+        ...(release.year ? [{ label: "Tahun", value: String(release.year) }] : []),
         ...(release.source ? [{ label: "Karya asli", value: release.source }] : []),
         ...(release.era ? [{ label: "Era", value: release.era }] : []),
       ]}

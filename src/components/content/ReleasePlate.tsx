@@ -21,8 +21,12 @@ import styles from "./ReleasePlate.module.css";
  * move through rather than a page you land on.
  *
  * Honesty rules are unchanged: `ordinal` is a position in the owner's own list (printed as
- * "Katalog 03 / 10", never as an invented catalogue number), every fact comes from the owner's data,
- * and anything unconfirmed prints an em dash instead of being guessed.
+ * "Katalog 03 / 10", never as an invented catalogue number) and every fact comes from the owner's data.
+ *
+ * Round 40 (audit P0-2) — an unconfirmed fact is now ABSENT, not an em dash. `Jenis —` and `Tahun —`
+ * read as broken data on a page a stranger lands on from a shared link; the honest version of "we do
+ * not know" is a shorter data sheet, not a sheet full of dashes. When nothing is confirmed, the whole
+ * band and its heading are dropped.
  */
 export interface ReleaseNeighbour {
   slug: string;
@@ -60,6 +64,15 @@ export function ReleasePlate({
   prev,
   next,
 }: ReleasePlateProps) {
+  /*
+   * Only facts with a confirmed value are rendered — and if none are, the section does not exist.
+   * The filter lives here rather than at the call site so that every present and future caller gets
+   * the same rule for free: a new page cannot reintroduce a dash by passing `null`.
+   */
+  const visibleFacts = facts.filter((fact): fact is { label: string; value: string } =>
+    typeof fact.value === "string" && fact.value.trim().length > 0,
+  );
+
   return (
     <article className={styles.record}>
       {/* ------------------------------------------------------------ the sleeve */}
@@ -86,10 +99,23 @@ export function ReleasePlate({
 
             {description ? <p className={styles.lead}>{description}</p> : null}
 
+            {/*
+              Round 40 (audit P0-2) — the archive state, not a system message.
+
+              "Tautan mendengarkan untuk rilis ini belum tersedia." is what a CMS says when a field is
+              empty; a visitor reads it as a broken page. The fact it describes is a *curatorial* one:
+              the release exists in the catalogue and was never distributed to streaming. Said that
+              way it is information, and the one action that makes sense on a page you cannot listen
+              from is the way back to the catalogue — so the sentence carries the link.
+            */}
             {links.length === 0 ? (
               <p className={styles.noLinks}>
-                <span className={styles.noLinksLabel}>Tautan</span>
-                Tautan mendengarkan untuk rilis ini belum tersedia.
+                <span className={styles.noLinksLabel}>Rilis arsip</span>
+                Rilis arsip ini belum didistribusikan secara resmi ke platform streaming publik.{" "}
+                <Link className={styles.noLinksCta} href="/music">
+                  Dengarkan rilis lainnya di diskografi
+                  <span aria-hidden="true"> →</span>
+                </Link>
               </p>
             ) : null}
           </div>
@@ -147,21 +173,23 @@ export function ReleasePlate({
       </header>
 
       {/* --------------------------------------------------------------- colophon */}
-      <section className={styles.factsBand} aria-labelledby="facts-title">
-        <div className={styles.factsInner}>
-          <h2 className={styles.sectionLabel} id="facts-title">
-            Lembar data
-          </h2>
-          <dl className={styles.facts}>
-            {facts.map((fact) => (
-              <div key={fact.label} className={styles.fact}>
-                <dt>{fact.label}</dt>
-                <dd>{fact.value ?? "—"}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+      {visibleFacts.length > 0 ? (
+        <section className={styles.factsBand} aria-labelledby="facts-title">
+          <div className={styles.factsInner}>
+            <h2 className={styles.sectionLabel} id="facts-title">
+              Lembar data
+            </h2>
+            <dl className={styles.facts}>
+              {visibleFacts.map((fact) => (
+                <div key={fact.label} className={styles.fact}>
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      ) : null}
 
       {/* ------------------------------------------------------------------- more */}
       <nav className={styles.more} aria-label="Rilis lain">
