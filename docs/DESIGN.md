@@ -169,11 +169,25 @@ datang, rilis tanpa tautan dirender tanpa blok tautan (dan tanpa klaim distribus
 
 ## 4. Efek signature hero
 
-**Keputusan: Canvas 2D "metalmark foil", bukan WebGL.** Latar belakang: sesi sebelumnya memasang
-liquid shader (three.js / `@react-three/fiber`); di environment tanpa WebGL hasilnya band gelap
-kosong tanpa fallback. Kondisi repo sekarang masih membawa jalur WebGL tersebut
-(`src/components/three/AnMonogram.tsx` + `AnMonogramLiquid.tsx`, dependensi `three`, `@react-three/fiber`,
-`@react-three/drei` semuanya ada di `package.json`).
+**Keputusan: Canvas 2D "metalmark foil", bukan WebGL. — SUDAH DIIMPLEMENTASIKAN (Langkah 3h-1).**
+Latar belakang: sesi sebelumnya memasang liquid shader (three.js / `@react-three/fiber`); di
+environment tanpa WebGL hasilnya band gelap kosong tanpa fallback.
+
+Kondisi sekarang:
+
+- `src/components/effects/AnMonogramFoil.tsx` (chunk lazy, `ssr: false`) — menggambar monogram 2D:
+  plat gradien, grain hairlines, sapuan specular kecepatan konstan (`SWEEP_PERIOD 4200`), seam yang
+  berpindah tiap `900 ms`, rim biru 1 px di tepi kanan, sorotan pointer terkuantisasi 24 px.
+  `getContext("2d")` satu-satunya context di `src`.
+- `src/components/effects/AnMonogram.tsx` — orchestrator: still WebP (fallback/lantai) + gate mount.
+- `src/components/three/` **dihapus**; `three`, `@react-three/fiber`, `@react-three/drei` **dihapus**
+  dari `package.json` (Langkah 3h-1). `tests/studio/anti-ai.test.ts` sekarang menegakkan
+  **ketiadaan** stack itu, bukan karantinanya.
+- Mobile ≤768px: `data-ambient="true"` → light `.foil` `opacity: .2` + `pointer-events: none`
+  (state eksplisit di DOM, diverifikasi `qa:motion`). Karena 20 % dari plat gelap = tak terlihat,
+  varian ambient memakai ramp perak yang lebih terang — spesifikasi mengatur opasitas, materialnya
+  harus tetap terbaca.
+- `prefers-reduced-motion: reduce` → satu frame statis (`STATIC_PHASE`), tanpa loop.
 
 Aturan gaya (kalau efek dibuat):
 
@@ -318,9 +332,9 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D11 | Ledger hover `translateX(6px)` | FAIL | sekarang lift Z + rotate |
 | D12 | Ledger mobile 2-baris compact | FAIL | tidak ada |
 | D13 | Dubplate card | BLOKIR FAKTUAL | `docs/PRD.md` §2 |
-| D14 | Effect non-WebGL + fallback | FAIL | masih jalur shader WebGL |
-| D15 | Kontrak `qa:motion` 0 canvas di scroll 0 | PASS (sekarang) | `scripts/qa-motion.mjs` §395–526 |
-| D16 | Mobile signature ambient 0.2 | FAIL | sekarang render diganti still, bukan ambient |
+| D14 | Effect non-WebGL + fallback | **PASS** | Canvas 2D `AnMonogramFoil.tsx` + still lazy (3h-1) |
+| D15 | Kontrak `qa:motion` 0 canvas di scroll 0 | **PASS, sekarang di 1440 DAN 390** | probe 390×844 ditambahkan di 3h-1 |
+| D16 | Mobile signature ambient 0.2 | **PASS** | `data-ambient="true"` → `opacity: 0.2`, `pointer-events: none` (terukur) |
 | D17 | `--ease-snap` / `--ease-mechanical` | FAIL | token tidak ada |
 | D18 | VU-meter 4 bar header | PARTIAL | `Equalizer.tsx` ada; visibilitas BELUM DIUKUR |
 | D19 | Audio HUD data nyata | FAIL | komponen tidak ada |

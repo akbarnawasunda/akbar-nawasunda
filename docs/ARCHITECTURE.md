@@ -18,7 +18,7 @@
 | Data publik | Static content (`src/content/*.ts`) + Turso/libSQL opsional via `src/studio/public.ts` | `getPublicPage()`, `getPublishedReleases()` |
 | CMS | `/studio/*` (privat, di luar scope publik) | `src/app/studio/**` |
 | Host | Vercel, project `akbar-nawasunda`, domain `akbarnawasunda.my.id` | `src/config/site.ts` → `url`; `vercel.json` |
-| 3D/WebGL | `three`, `@react-three/fiber`, `@react-three/drei` **terpasang** | `package.json`; lihat `docs/DESIGN.md` §4 — target rebuild adalah **keluar** dari jalur ini |
+| Efek signature | **Canvas 2D** (`src/components/effects/AnMonogramFoil.tsx`), tanpa dependensi 3D | `package.json` (`three`/`@react-three/*` **dihapus** di Langkah 3h-1); `docs/DESIGN.md` §4 |
 
 ### Route yang ada
 
