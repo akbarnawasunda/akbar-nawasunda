@@ -199,6 +199,24 @@
   /* --- Motion ----------------------------------------------------------------------- */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.08, 1);
+  /*
+   * Langkah 3g — the two motion tokens DESIGN.md §5 asks for, added with their spec values and the
+   * duration each is paired with:
+   *
+   *   --ease-snap        180ms  micro-interaction (a control answering a hand)
+   *   --ease-mechanical  240ms  structural transition (a surface changing shape or place)
+   *
+   * DEFINED, NOT YET APPLIED. That is deliberate, not an oversight. Every one of the 64 transition
+   * parts in this codebase already names its timing function — `--ease`, `--ease-out`, or `linear`
+   * for the cursor — and DESIGN.md §5, which specifies these two curves, does not name a single
+   * element that must use them. Rewriting an existing transition to a new curve is how motion that
+   * was tuned by hand goes wrong quietly: the wordmark clamp in Langkah 3c had already been
+   * "fixed" once before and was re-broken the same way. So the assignment waits for the owner to say
+   * which surfaces should change, and until then these two are vocabulary — exactly what the
+   * token audit's allowlist is for.
+   */
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-mechanical: cubic-bezier(0.25, 0.1, 0.25, 1);
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-slow: 400ms;

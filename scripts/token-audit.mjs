@@ -34,6 +34,11 @@ const ALLOWED_UNUSED = new Set([
   "--space-32",
   "--radius-xl",
   "--duration-breath",
+  // Langkah 3g: the two DESIGN.md §5 curves. Defined to spec, deliberately unassigned — no element
+  // in DESIGN.md is named as their consumer, and repointing a hand-tuned transition is a decision
+  // for the owner, not a cleanup. Remove these two lines the moment one is applied.
+  "--ease-snap",
+  "--ease-mechanical",
   "--z-content",
   "--z-effects",
   // Retired from every surface (D-110) but kept until the owner confirms deletion; the purple is

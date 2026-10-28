@@ -335,9 +335,27 @@ Token target:
 
 **SEKARANG (`src/styles/tokens.css`):** `--ease: cubic-bezier(0.4, 0, 0.2, 1)`,
 `--ease-out: cubic-bezier(0.16, 1, 0.08, 1)`, durasi `--duration-fast: 150ms`,
-`--duration-base: 250ms`, `--duration-slow: 400ms`. **Belum ada** `--ease-snap` /
-`--ease-mechanical`. Nilai `--ease-out` juga bukan nilai target mana pun (0.08 vs 0.3 pada kontrol
-ke-3).
+`--duration-base: 250ms`, `--duration-slow: 400ms`.
+
+**Langkah 3g:** `--ease-snap: cubic-bezier(0.16, 1, 0.3, 1)` dan
+`--ease-mechanical: cubic-bezier(0.25, 0.1, 0.25, 1)` **sudah didefinisikan** dengan nilai persis
+seperti di blok target di atas. **Belum dipakai satu elemen pun**, dan itu keputusan sadar:
+
+- Dokumen ini **tidak menyebut satu elemen spesifik** yang wajib memakai salah satu dari dua kurva
+  ini — hanya label generik "micro-interaction" (180ms) dan "transisi struktural" (240ms).
+- Seluruh **64 bagian transisi** di codebase sudah menyebut timing function-nya sendiri
+  (`--ease`, `--ease-out`, atau `linear` untuk kursor). Yang tanpa timing function hanya
+  `transition: none`, yaitu pergantian instan yang memang diminta (`.btn-industrial`: *"hover =
+  invert warna instan, tanpa fade"*).
+- Mengganti kurva transisi yang sudah di-tuning tanpa izin adalah kelas kesalahan yang sudah
+  terjadi di langkah 3c (clamp wordmark pernah "diperbaiki" lalu rusak lagi). Jadi penugasan token
+  menunggu keputusan owner: sebutkan permukaan mana yang harus memakai `--ease-snap` /
+  `--ease-mechanical`, dan nilainya tinggal diganti.
+- Supaya gate tetap hijau sementara belum ada konsumen, keduanya masuk allowlist eksplisit di
+  `scripts/token-audit.mjs` (allowlist itu memang untuk vocabulary yang belum dipakai). Hapus dua
+  baris itu begitu satu elemen memakainya.
+
+Nilai `--ease-out` juga bukan nilai target mana pun (0.08 vs 0.3 pada kontrol ke-3).
 
 Aturan:
 
@@ -520,7 +538,7 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D14 | Effect non-WebGL + fallback | **PASS** | Canvas 2D `AnMonogramFoil.tsx` + still lazy (3h-1) |
 | D15 | Kontrak `qa:motion` 0 canvas di scroll 0 | **PASS, sekarang di 1440 DAN 390** | probe 390×844 ditambahkan di 3h-1 |
 | D16 | Mobile signature ambient 0.2 | **PASS** | `data-ambient="true"` → `opacity: 0.2`, `pointer-events: none` (terukur) |
-| D17 | `--ease-snap` / `--ease-mechanical` | FAIL | token tidak ada |
+| D17 | `--ease-snap` / `--ease-mechanical` | PARTIAL | token ada dengan nilai spec; **belum dipakai** karena DESIGN.md §5 tidak menyebut elemen mana pun — menunggu keputusan owner |
 | D18 | VU-meter 4 bar header | PARTIAL | `Equalizer.tsx` ada; visibilitas BELUM DIUKUR |
 | D19 | Bottom Release HUD data nyata (informasional, tanpa playback) | PASS | `ReleaseHud.tsx` + `releaseHudModel()`; `releases[0]` nyata, 1 tab stop, 0 elemen audio, hadir ≥720px setelah 50svh; `qa:motion` 38/38 |
 | D20 | Booking quick-copy + `✓ EMAIL DISALIN` | PASS | `BookingCopy.tsx`; clipboard terverifikasi berisi alamat, konfirmasi 1800 ms, fallback teks terpilih, `qa:motion` 33/33 |
