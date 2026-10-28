@@ -35,6 +35,7 @@
     "review:shots": "node scripts/review/shots.mjs",
     "audit:fonts": "node scripts/font-audit.mjs",
     "visual:check": "node scripts/visual-check.mjs",
+    "visual:setup": "bash scripts/setup-visual-tools.sh",
     "vercel:audit": "node scripts/vercel-ignore-audit.mjs"
   },
   "dependencies": {
@@ -54,6 +55,7 @@
     "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "^16.4.3",
     "@playwright/test": "^1.64.1",
+    "@sparticuz/chromium": "^153.0.0",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -63,6 +65,7 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.3",
+    "playwright-core": "^1.64.1",
     "puppeteer-core": "^25.16.0",
     "sharp": "^0.35.5",
     "tsx": "^4.23.15",
