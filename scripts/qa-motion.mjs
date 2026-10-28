@@ -26,6 +26,10 @@
  *  10. (R8) the title sequence runs once, counts, and removes itself;
  *  11. (R9) the display type is printed twice — the second plate moves with the pointer — and the
  *      back of the sheet opens as a full screen that locks the page and gives focus back on Escape.
+ *  12. (Langkah 3e) the header's booking control really writes the address to the clipboard, says so
+ *      for its duration, puts itself back, and falls back to selectable text when the write is
+ *      refused — with the clipboard permission granted, so the pass is a write that happened and
+ *      not a check that was skipped.
  *
  * Exits 1 on any failure so it can gate a release the same way `a11y` does.
  */
@@ -390,6 +394,193 @@ try {
     `${Math.round(headerTop.height)}px → ${Math.round(headerDown.height)}px`,
   );
   check("header hides on scroll down and returns on scroll up", headerDown.hidden === "true" && headerUp === "false");
+
+  /* ------------------------------------------------------ booking quick-copy (Langkah 3e) */
+  /*
+   * The clipboard is the one behaviour a screenshot cannot prove, and headless Chromium refuses the
+   * write unless the origin is granted permission — the exact "it does not work in the sandbox"
+   * failure that must be solved rather than skipped.
+   *
+   * `browser.defaultBrowserContext().overridePermissions(base, ["clipboard-read", "clipboard-write"])`
+   * is the obvious call and it is not enough: measured, it leaves `clipboard-write` **denied**
+   * (`navigator.permissions.query` → "denied", `writeText` → NotAllowedError) while granting read.
+   * The permission names the CDP endpoint actually honours are `clipboardReadWrite` and
+   * `clipboardSanitizedWrite`, and with those the write lands. The assertion after the click is on
+   * the text the browser really received, not on a stub.
+   */
+  const cdp = await browser.target().createCDPSession();
+  await cdp.send("Browser.grantPermissions", {
+    origin: base,
+    permissions: ["clipboardReadWrite", "clipboardSanitizedWrite"],
+  });
+
+  const booking = await browser.newPage();
+  await booking.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await booking.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(900);
+
+  const readBooking = () =>
+    booking.evaluate(() => {
+      const button = document.querySelector("[data-booking-copy]");
+      if (!button) return null;
+      const spans = [...button.querySelectorAll("span")].map((node) => ({
+        text: (node.textContent || "").replace(/\s+/g, " ").trim(),
+        opacity: getComputedStyle(node).opacity,
+      }));
+      const exact = (want) => spans.find((span) => span.text === want);
+      const status = document.querySelector("[data-booking-status]");
+      const email = document.querySelector("[data-booking-fallback] [class*='fallbackEmail']");
+      return {
+        tag: button.tagName,
+        state: button.dataset.copyState,
+        name: button.getAttribute("aria-label") || "",
+        radius: getComputedStyle(button).borderTopLeftRadius,
+        width: Math.round(button.getBoundingClientRect().width * 10) / 10,
+        height: Math.round(button.getBoundingClientRect().height),
+        idleLabel: exact("Booking"),
+        doneLabel: exact("\u2713 Email disalin"),
+        live: status?.getAttribute("aria-live") ?? null,
+        statusText: (status?.textContent || "").trim(),
+        fallback: (document.querySelector("[data-booking-fallback]")?.textContent || "").trim(),
+        fallbackSelect: email ? getComputedStyle(email).userSelect : null,
+        overflowX: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+
+  const liveBooking = await readBooking();
+  check(
+    "the header has a booking copy control, named, hairline, with a polite live region",
+    Boolean(liveBooking) &&
+      liveBooking.tag === "BUTTON" &&
+      /salin alamat email ke clipboard/i.test(liveBooking.name) &&
+      liveBooking.name.includes("akbarnawasunda@gmail.com") &&
+      liveBooking.radius === "0px" &&
+      liveBooking.live === "polite" &&
+      liveBooking.idleLabel?.opacity === "1",
+    liveBooking
+      ? `${liveBooking.tag} · "${liveBooking.idleLabel?.text}" · radius ${liveBooking.radius} · aria-live ${liveBooking.live} · ${liveBooking.width}px`
+      : "no [data-booking-copy]",
+  );
+
+  await booking.click("[data-booking-copy]");
+  /* 400 ms: the label crossfade is 150 ms and starts once the promise resolves, so 220 ms caught it
+     at opacity 0.968 and failed an assertion that was measuring a transition, not a state. */
+  await sleep(400);
+  const clipboardText = await booking.evaluate(() => navigator.clipboard.readText());
+  const afterClick = await readBooking();
+  check(
+    "clicking it copies the published address and shows the confirmation",
+    clipboardText === "akbarnawasunda@gmail.com" &&
+      afterClick.state === "copied" &&
+      /^Email disalin/.test(afterClick.name) &&
+      Number(afterClick.doneLabel?.opacity) > 0.99 &&
+      Number(afterClick.idleLabel?.opacity) < 0.01 &&
+      afterClick.statusText.length > 0,
+    `clipboard="${clipboardText}" · state=${afterClick.state} · label "${afterClick.doneLabel?.text}" ${afterClick.doneLabel?.opacity} · status "${afterClick.statusText}"`,
+  );
+  check(
+    "the confirmation does not reflow the bar",
+    afterClick.width === liveBooking.width,
+    `${liveBooking.width}px → ${afterClick.width}px`,
+  );
+  await shot(booking, "booking-copied");
+
+  await sleep(2100);
+  const afterReset = await readBooking();
+  check(
+    "the confirmation clears itself after the 1.8 s window",
+    afterReset.state === "idle" && afterReset.idleLabel?.opacity === "1" && afterReset.statusText === "",
+    `state=${afterReset.state} · idle opacity ${afterReset.idleLabel?.opacity}`,
+  );
+
+  /* Refusal path. The permission is granted above, so the rejection is injected: what is being
+     proved is that a rejected write is caught and the address is put on screen, not that Chrome
+     happens to agree with us. */
+  await booking.evaluate(() => {
+    Object.defineProperty(navigator.clipboard, "writeText", {
+      configurable: true,
+      value: () => Promise.reject(new DOMException("Write permission denied.", "NotAllowedError")),
+    });
+  });
+  await booking.click("[data-booking-copy]");
+  await sleep(300);
+  const denied = await readBooking();
+  check(
+    "a refused clipboard write shows the address as selectable text instead of failing silently",
+    denied.state === "failed" &&
+      denied.fallback.includes("akbarnawasunda@gmail.com") &&
+      denied.fallbackSelect === "all" &&
+      /disalin manual/i.test(denied.statusText),
+    `state=${denied.state} · panel "${denied.fallback}" · user-select ${denied.fallbackSelect}`,
+  );
+  await shot(booking, "booking-fallback");
+
+  await booking.keyboard.press("Escape");
+  await sleep(160);
+  const dismissed = await readBooking();
+  check(
+    "Escape dismisses the manual-copy panel",
+    dismissed.state === "idle" && dismissed.fallback === "",
+    `state=${dismissed.state}`,
+  );
+  await booking.close();
+
+  /* Reduced motion: the confirmation may still appear, but with no transition at all. */
+  const bookingStill = await browser.newPage();
+  await bookingStill.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
+  await bookingStill.setViewport({ width: 1440, height: 900 });
+  await bookingStill.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(700);
+  const stillDurations = await bookingStill.evaluate(() => {
+    const button = document.querySelector("[data-booking-copy]");
+    const spans = [...button.querySelectorAll("span")];
+    const done = spans.find((node) => (node.textContent || "").replace(/\s+/g, " ").trim() === "\u2713 Email disalin");
+    return done ? getComputedStyle(done).transitionDuration : null;
+  });
+  /*
+   * 1 ms, not 0 s: `globals.css` ends with `*, *::before, *::after { transition-duration: 1ms
+   * !important }` under reduce, and an `!important` in the global sheet outranks the component's own
+   * `transition: none`. What matters is that the swap is imperceptible, so the check is "no duration
+   * worth animating", and the number is printed rather than rounded away.
+   */
+  const stillSeconds = stillDurations === null ? null : Number.parseFloat(stillDurations);
+  check(
+    "the confirmation transition is effectively instant under prefers-reduced-motion",
+    stillSeconds !== null && Number.isFinite(stillSeconds) && stillSeconds <= 0.001,
+    `transition-duration ${stillDurations} (global 1 ms guard)`,
+  );
+  await bookingStill.close();
+
+  /* Phone geometry: a 40px square that fits the 63px of slack the bar actually has. */
+  const bookingPhone = await browser.newPage();
+  await bookingPhone.setViewport({ width: 390, height: 844 });
+  await bookingPhone.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(800);
+  const phoneGeometry = await bookingPhone.evaluate(() => {
+    const button = document.querySelector("[data-booking-copy]");
+    const rect = button.getBoundingClientRect();
+    const bar = document.querySelector("header > div").getBoundingClientRect();
+    const brand = document.querySelector("header a")?.getBoundingClientRect();
+    return {
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+      insideBar: rect.top >= bar.top && rect.bottom <= bar.bottom && rect.left >= bar.left && rect.right <= bar.right,
+      clearsBrand: brand ? Math.round(rect.left - brand.right) : null,
+      overflowX: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+  check(
+    "the phone renders a 40px copy square inside the bar, clear of the mark",
+    phoneGeometry.width === 40 && phoneGeometry.height === 40 && phoneGeometry.insideBar && (phoneGeometry.clearsBrand ?? 0) > 0 && phoneGeometry.overflowX <= 0,
+    JSON.stringify(phoneGeometry),
+  );
+  if (shotsDir) {
+    await bookingPhone.screenshot({ path: join(shotsDir, "booking-phone.png") });
+    await bookingPhone.click("[data-booking-copy]");
+    await sleep(220);
+    await bookingPhone.screenshot({ path: join(shotsDir, "booking-phone-copied.png") });
+  }
+  await bookingPhone.close();
 
   /*
    * Zero canvases at scroll 0, on EVERY viewport — and the band still works once the reader moves.

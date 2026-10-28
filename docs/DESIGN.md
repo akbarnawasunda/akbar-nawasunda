@@ -353,9 +353,42 @@ Aturan:
 - **Bottom Audio HUD**: menampilkan info rilis yang disorot; **WAJIB** diberi data nyata saat
   render (jangan komponen ada tapi selalu `null` karena props tidak dikirim).
   **SEKARANG: TIDAK ADA.** `grep -rn "AudioHud\|audio-hud\|HUD" src` hanya menemukan komentar.
-- **Booking quick-copy button**: klik → salin email booking ke clipboard + konfirmasi visual
-  `✓ EMAIL DISALIN`.
-  **SEKARANG: TIDAK ADA.** `grep -rn "clipboard" src` → 0 hasil.
+- **Booking quick-copy button** (Langkah 3e): klik → salin email booking ke clipboard +
+  konfirmasi visual `✓ EMAIL DISALIN`.
+  **STATUS: ADA dan terukur** — `src/components/layout/BookingCopy.tsx` +
+  `BookingCopy.module.css`, dipasang di `SiteHeader.tsx` tepat sebelum kendali Listen (berdekatan
+  dengan VU-meter). Bentuk: `.btn-industrial` — kotak siku, border hairline, radius 0, hover invert
+  **instan** (`transition: none`, terukur `transition-duration: 0s` pada hover), label 11px
+  uppercase bertracking. Di ≥720px label `BOOKING` → `✓ EMAIL DISALIN`; di <720px kotak 40×40
+  dengan glyph salin (dua lembar 8px digambar border, bukan icon font) → `✓`.
+
+  Data: `contactEmail` di `src/config/socials.ts` (`akbarnawasunda@gmail.com`). **Booking, press dan
+  licensing memakai satu alamat yang sama** — tidak ada inbox booking terpisah di repo ini, dan
+  tidak ada kontak yang dikarang. Keputusan owner (2026-10-28): pakai alamat yang ada; kalau nanti
+  dipisah, komponen sudah menerima prop `email` sehingga call site tinggal diganti.
+
+  Perilaku & aksesibilitas:
+  - konfirmasi tampil **1800 ms** lalu kembali ke label diam; hanya `opacity` + `translateY` yang
+    bergerak, dan kedua label menempati **satu sel grid** sehingga lebar tombol konstan (terukur
+    158.7px → 158.7px, bar tidak reflow);
+  - `aria-label` berubah mengikuti label yang terlihat (`Booking — salin alamat email…` /
+    `Email disalin: …` / `Booking — clipboard diblokir…`) supaya lolos WCAG 2.5.3
+    `label-content-name-mismatch` di **setiap** state, bukan hanya saat load;
+  - state diumumkan lewat `role="status" aria-live="polite"` (sr-only);
+  - **fallback**: kalau Clipboard API tidak ada atau write ditolak, tombol berganti border putus-putus
+    dan panel hairline muncul di bawah bar berisi alamat sebagai teks `user-select: all` — tidak ada
+    kegagalan diam-diam. Panel bisa ditutup dengan Escape atau klik di luar.
+  - `prefers-reduced-motion`: pergantian label instan. Catatan jujur: `globals.css:265` memasang
+    `transition-duration: 1ms !important` global, jadi nilai terukur **0.001s**, bukan 0s.
+
+  Dua jebakan yang ditemukan saat verifikasi (dicatat supaya tidak diulang):
+  1. `browser.defaultBrowserContext().overridePermissions(base, ["clipboard-read","clipboard-write"])`
+     **tidak cukup** — `clipboard-write` tetap `denied` (NotAllowedError). Yang bekerja:
+     CDP `Browser.grantPermissions` dengan `clipboardReadWrite` + `clipboardSanitizedWrite`.
+  2. Atribut `data-state` **sudah** dipakai curtain/monogram/header. Tombol booking yang membawa
+     `data-state="idle"` ikut terpilih oleh `scripts/qa-motion.mjs` saat mencari curtain, dan
+     pemeriksaan monogram jadi gagal padahal monogramnya benar. Komponen ini memakai
+     `data-copy-state`.
 - **`@media (prefers-reduced-motion: reduce)` global safeguard: ADA** —
   `src/styles/globals.css:265` (`animation-duration: 1ms !important`, `scroll-behavior: auto`).
   Ditambah guard lokal di `Equalizer.module.css` (bar berhenti di `scaleY(0.6)`).
@@ -446,7 +479,7 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D17 | `--ease-snap` / `--ease-mechanical` | FAIL | token tidak ada |
 | D18 | VU-meter 4 bar header | PARTIAL | `Equalizer.tsx` ada; visibilitas BELUM DIUKUR |
 | D19 | Audio HUD data nyata | FAIL | komponen tidak ada |
-| D20 | Booking quick-copy + `✓ EMAIL DISALIN` | FAIL | tidak ada |
+| D20 | Booking quick-copy + `✓ EMAIL DISALIN` | PASS | `BookingCopy.tsx`; clipboard terverifikasi berisi alamat, konfirmasi 1800 ms, fallback teks terpilih, `qa:motion` 33/33 |
 | D21 | Reduced-motion global | PASS | `globals.css:265` |
 | D22 | 3 varian sleeve berbeda nyata | **PASS** | 10 md5 unik; A/B/C berbeda 39–80% piksel (3h-2) |
 | D23 | Kontrak `anti-ai` (tolak `<canvas`/`getContext`) | PASS (sekarang) | `tests/fixtures/anti-ai.ts` `BANNED_HOMEPAGE_PATTERNS` |

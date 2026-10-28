@@ -10,6 +10,7 @@ import { anMark } from "@/assets/web";
 import { drawerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { listenUrl } from "@/config/socials";
+import { BookingCopy } from "@/components/layout/BookingCopy";
 import { Equalizer } from "@/components/ui/Equalizer";
 import { Scramble } from "@/components/zine/Scramble";
 import styles from "./SiteHeader.module.css";
@@ -178,6 +179,14 @@ export function SiteHeader({ latest = null }: { latest?: DrawerLatest | null }) 
         </Link>
 
         <div className={styles.actions}>
+          {/*
+            Booking quick-copy (Langkah 3e, DESIGN.md §5): copies the published contact address
+            without opening a mail client. It sits next to the VU-meter, as the secondary control
+            beside the primary Listen box — a 40px copy glyph below 720px, the word BOOKING above
+            it, because at 390px the bar has 63px of slack and a text button would not fit.
+          */}
+          <BookingCopy />
+
           <a className={styles.listen} href={listenUrl} target="_blank" rel="noopener noreferrer">
             {/* Round 31: the bar breathes beside the word — the site sounds like it is playing. */}
             <Equalizer />
