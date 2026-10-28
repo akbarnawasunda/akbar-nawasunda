@@ -61,8 +61,36 @@ Catatan yang mengikat:
   dari ukuran, tracking, warna, dan ruang — bukan dari `font-weight`.
 - Tiga file lisensi lain ada di `src/assets/fonts/` tapi **tidak boleh** dimuat;
   `npm run audit:fonts` gagal kalau ada stylesheet yang menyentuhnya.
-- Dokumen ini tidak menyebut font lain. Kalau nanti font berubah, **tabel di atas yang diubah lebih
-  dulu**, baru kode.
+- Kalau font web berubah, **tabel di atas yang diubah lebih dulu**, baru kode.
+
+### Font raster non-web: Anton (`public/fonts/anton-og.ttf`)
+
+Tabel di atas adalah **font yang dimuat ke halaman**. Selain itu ada satu face lagi di repo yang
+**tidak pernah** menjadi font web — tidak ada `@font-face`, tidak ada `<link rel=preload>`, tidak ada
+stylesheet yang menyentuhnya:
+
+| Pemakaian | Di mana | Kapan | Output |
+| --- | --- | --- | --- |
+| Kartu OG (`/og`) | `src/app/og/route.tsx` (`readAsset("fonts/anton-og.ttf")`, dirender Satori) | saat request `/og` | PNG kartu 1200×630 |
+| Sleeve generatif, varian **Typographic Heavy** | `scripts/generate-placeholder-covers.mjs` (librsvg via `FONTCONFIG_FILE`) | **build-time**, manual oleh owner | `public/assets/covers/<slug>@sleeve.webp` |
+
+**Batas yang mengikat:**
+
+- Anton **bukan** font halaman. Halaman memakai Excess V Straight + Relidux (tabel di atas) dan
+  hanya itu; `npm run audit:fonts` tetap menjadi gate untuk stylesheet, dan Anton tidak pernah
+  muncul di sana.
+- Di sleeve, Anton dipakai **hanya di varian Typographic Heavy**, untuk mencetak judul rilis sebagai
+  bagian dari artwork. Varian **Monogram Crop** dan **Minimal Frame** tetap **tanpa tipografi**.
+- Prinsip asli tetap berlaku dan tidak dilanggar: *placeholder yang mencetak judulnya sendiri dengan
+  font yang tidak dipakai situs adalah efek ransom-note yang ditolak.* Anton bukan kasus itu — ia
+  binary yang sudah ada di repo dan sudah dipakai untuk kartu OG; yang berubah hanya apakah glyph-nya
+  boleh muncul di dalam artwork sleeve, dan hanya di satu varian.
+- Judul rilis tetap **teks HTML** di halaman (Relidux). Yang di-raster hanya artwork; tidak ada
+  informasi yang hilang dari teks biasa, sehingga tetap bisa dipilih, dibaca mesin, dan diterjemahkan.
+
+Catatan koreksi: klaim di laporan klarifikasi 3h-2 bahwa "Anton tidak dipakai di `src/`" **salah** —
+pemindaian itu memakai `--include=*.ts` dan tidak mencakup `.tsx`, sehingga pemakaian di
+`src/app/og/route.tsx` terlewat. Tabel di atas adalah keadaan sebenarnya.
 
 ### Skala (fluid clamp, bukan px tetap)
 
