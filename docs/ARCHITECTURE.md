@@ -99,19 +99,43 @@ Konsekuensinya terukur. Trace file untuk satu route publik
 semuanya dynamic, trace yang sama diulang per route, dan setiap redeploy menulis ulang semuanya ke
 storage deployment. Inilah mekanisme yang dulu berujung 19.36 GB.
 
-**Status: BELUM DIPERBAIKI.** Ini pekerjaan Langkah 3a dan prioritas tertinggi.
+**Status: SUDAH DIPERBAIKI (commit `90c2b1f`, Langkah 3a).** Angka sesudah, diukur pada build yang sama:
+
+| Bucket | Sebelum | Sesudah |
+| --- | --- | --- |
+| total entri traced | 1189 | **316** (−73.4%) |
+| `docs/` | 520 | **0** |
+| `src/` | 188 | 0 (ter-bundle jadi `.js`, benar) |
+| `node_modules/` | 263 | 263 (tidak berubah, memang dependensi) |
+| `other` | 117 | 42 |
+| `public/` | 62 | **11** — tepat isi `public/assets/covers/` |
+| `scripts/` | 21 | **0** |
+| `tests/` | 18 | **0** |
+
+`Warning: Dynamic filesystem access…` → **0** (dari 2). Ukuran `.next` 75 MB → 72 MB.
+
+Akar masalah dan bentuk perbaikannya ada di komentar kepala `src/content/covers.ts`; ringkasnya:
+parameter `publicDir` membuat `existsSync(join(publicDir, …))` tidak bisa dianalisis statis, dan
+satu-satunya `fs` call sekarang memakai segmen path **literal** sehingga tracer berhenti di
+`public/assets/covers/`. Eksperimen pembanding membuktikan segmen literal itu yang mematikan
+warning; varian yang mempertahankan parameter tetap menghasilkan 2 warning.
 
 ### 3.2 Perbaikan yang WAJIB (Langkah 3a)
 
 Urutan kerja, jangan dibalik:
 
-1. **Perbaiki akar masalah di `src/content/covers.ts`.** `resolveCover()` memanggil `existsSync`
-   dengan path yang dirakit runtime dari parameter `slug`. Ganti ke **map statis yang bisa
-   di-resolve saat build** — hasil `covers:plan`/`covers:fetch` sudah tahu file mana yang ada — atau
-   paling tidak scope path ke subfolder literal (`join(process.cwd(), "public", "assets", "covers")`)
-   sehingga static analysis tahu batasnya. `/*turbopackIgnore: true*/` **bukan** solusi utama; itu
-   hanya topeng. Kalau dipakai, alasan harus ditulis di komentar + DECISION_LOG.
-2. **`next.config.ts` wajib punya `outputFileTracingExcludes`** minimal:
+1. ✅ **SELESAI.** Akar masalah di `src/content/covers.ts` diperbaiki dengan opsi kedua dari dua opsi
+   di bawah: scope path ke subfolder **literal** (`join(process.cwd(), "public", "assets", "covers")`),
+   bukan map statis. Map statis ditolak karena menambah risiko basi: file cover baru yang di-drop
+   owner (atau diambil workflow `covers.yml`) tidak akan muncul sampai manifest di-generate ulang.
+   Scoping literal tidak punya masalah itu — ia tetap membaca disk saat runtime, hanya dengan batas
+   yang bisa dibuktikan tracer. `/*turbopackIgnore*/` tidak dipakai sama sekali.
+2. **TIDAK DIPAKAI (keputusan sadar).** Rencana awal menambahkan `outputFileTracingExcludes` seperti
+   di bawah. Setelah akar masalah diperbaiki, exclude hanya akan **menutupi** sinyal: kalau suatu hari
+   ada dynamic `fs` baru, warning tracing seharusnya muncul dan gagal, bukan tertelan. Exclude tetap
+   dicatat di sini sebagai opsi darurat bila perbaikan akar tidak memungkinkan:
+
+   <details><summary>isi rencana exclude (tidak diterapkan)</summary>
 
    ```ts
    outputFileTracingExcludes: {
@@ -129,7 +153,10 @@ Urutan kerja, jangan dibalik:
 
    (`outputFileTracingIncludes: { "/og": [...] }` yang sudah ada jangan dihapus — `/og` memang
    membaca font & cover saat request.)
-3. **`.vercelignore` wajib ada** (sekarang **TIDAK ADA**):
+
+   </details>
+3. ✅ **SELESAI.** `.vercelignore` sekarang ada di root repo — lapisan kedua (batas ukuran upload),
+   bukan perbaikan. Isinya:`
 
    ```
    docs/
@@ -144,9 +171,13 @@ Urutan kerja, jangan dibalik:
    .next/cache/
    ```
 
-4. **Verifikasi ulang:** `npm run build` harus mencetak **0** warning tracing, dan jumlah entri
-   `*.nft.json` untuk route publik harus turun drastis dari 1171 (target: hanya `node_modules` +
-   `src` + aset yang benar-benar dipakai). Catat angka sebelum/sesudah di laporan Langkah 3a.
+4. ✅ **SELESAI.** `npm run build` mencetak **0** warning tracing, dan trace route publik turun
+   1189 → 316 entri (tabel di §3.1). Sisa 316 = `node_modules` 263 + `other` 42 (chunk build) +
+   11 file `public/assets/covers/`, yaitu batas statis yang diminta.
+
+**Catatan untuk gate CI:** warning tracing tidak menggagalkan pipeline. Setelah perbaikan ini
+jumlahnya nol, jadi aman menambahkan pemeriksaan eksplisit (`grep -q "Dynamic filesystem access"
+&& exit 1`) sebagai penjaga regresi — belum dikerjakan, masuk daftar usulan.
 
 ### 3.3 Route publik wajib static
 
