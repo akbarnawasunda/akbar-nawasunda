@@ -28,7 +28,11 @@
   /* A definite height, not a min-height: flex children only grow into free space the container
      actually has, and `min-height` leaves the container content-high — which is exactly how the
      facts strip ended up floating mid-screen with dead ink below it (round 28). */
-  height: min(100svh, 58rem);
+  /* Round 33 (visual self-audit): the bar takes --header-height of layout ABOVE this section, so
+     a plain 100svh pushed the last 80px of the hero — the logistics strip included — below the
+     first fold at 1440x900. Subtracting the bar makes the whole hero, strip and all, close exactly
+     on the fold. 58rem still caps it on tall monitors. */
+  height: min(calc(100svh - var(--header-height)), 58rem);
   overflow: hidden;
   /* The hero writes transforms every frame while it is in view; this keeps that work inside the
      band instead of invalidating the whole document (R11). */
@@ -253,7 +257,10 @@
   align-items: end;
   justify-content: space-between;
   gap: var(--space-6);
-  margin-top: var(--space-8);
+  /* Round 33: the strip below used to be separated from this slab by two stacked 32px gaps plus
+     its own 20px rule inset — the "empty gap under the CTA" the visual audit measured. The flex
+     gap in .heroInner is now the only rhythm; the strip reads as the slab's ruled footer. */
+  margin-top: 0;
   padding: var(--space-4) var(--space-6);
   background: var(--color-bone);
   color: var(--color-bone-ink);
@@ -297,8 +304,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  margin-top: 2rem;
-  padding-top: 1.25rem;
+  margin-top: 0;
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body-stack);
   font-size: 0.6875rem;
