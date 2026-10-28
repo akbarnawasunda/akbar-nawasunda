@@ -189,12 +189,13 @@
   --header-height-compact: 3.75rem;
   --section-padding: clamp(6rem, 8vw, 8rem);
   /*
-   * Corners. A HUD is built from right angles: nothing on this site is rounded. The pill step is
-   * kept for the Studio's one status dot.
+   * Corners. A HUD is built from right angles: nothing on this site is rounded — and that now
+   * includes the status dots. `--radius-pill` is gone (Langkah 3g): its only consumer was the 5px
+   * hero/transmission dot, which is a square now. The Studio's own status dot uses a literal 50%
+   * in `src/studio/ui/studio.module.css` and never referenced this token.
    */
   --radius-sm: 0;
   --radius-xl: 0;
-  --radius-pill: 9999px;
 
   /* --- Motion ----------------------------------------------------------------------- */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);

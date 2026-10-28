@@ -151,18 +151,28 @@ pemindaian itu memakai `--include=*.ts` dan tidak mencakup `.tsx`, sehingga pema
 - **Radius: 0px MUTLAK** di seluruh elemen — tombol, card, image frame, input, dot/indicator kecil.
   Kebutuhan visual bulat → pakai bentuk lain (potongan diagonal / kotak), bukan `border-radius`.
 
-### Status radius (Langkah 3g)
+### Status radius (Langkah 3g, diperbarui: dot diratakan)
+
+Keputusan owner: **0px di semua permukaan publik**, termasuk dot/indikator kecil. Tidak ada
+pengecualian desain, jadi tidak ada baris "dikecualikan" di tabel ini.
 
 | Lokasi | Nilai | Status |
 | --- | --- | --- |
+| `src/app/(site)/page.module.css` `.live` (dot status hero + flag transmisi, 5x5px) | `0` | sesuai — **diubah** di Langkah 3g (sebelumnya `var(--radius-pill)`) |
 | `src/styles/tokens.css` `--radius-sm`, `--radius-xl` | `0` | sesuai |
-| `src/styles/tokens.css` `--radius-pill` | `9999px` | **melanggar** (token ada = pasti dipakai) |
-| `src/app/(site)/page.module.css:155` | `var(--radius-pill)` | **melanggar** — indikator live hero |
-| `src/components/layout/GenreTape.module.css:46` | `50%` | **melanggar** |
-| `src/components/zine/MagneticCursor.module.css:21` | `50%` | **melanggar** — kursor kustom |
-| `src/components/print/BackSide.module.css:31,171,479` | `var(--radius-sm)` = 0 | aman (nilai 0) |
-| `src/components/ui/ButtonLink.module.css:20` | `var(--radius-sm)` = 0 | aman |
-| `src/studio/ui/studio.module.css:135` | `50%` | di luar halaman publik; tetap dicatat |
+| `src/styles/tokens.css` `--radius-pill` | **dihapus** | sesuai — satu-satunya konsumennya dot 5px; token tanpa konsumen adalah arkeologi |
+| `src/components/layout/GenreTape.module.css` bullet `::before` (4x4px) | `0` | sesuai — **diubah** di Langkah 3g (sebelumnya `50%`) |
+| `src/components/zine/MagneticCursor.module.css` `.dot`, `.ring` | `0` | sesuai — **diubah** di Langkah 3g (sebelumnya `50%`) |
+| `src/components/print/BackSide.module.css` | `var(--radius-sm)` = 0 | sesuai |
+| `src/components/ui/ButtonLink.module.css` | `var(--radius-sm)` = 0 | sesuai |
+| `src/studio/ui/studio.module.css` `.dot` | `50%` | di luar halaman publik (CMS privat); tetap dicatat |
+
+Cara status ini diukur, bukan diperiksa dengan mata: skrip Puppeteer membaca
+`border-radius` keempat sudut setiap elemen **dan semua pseudo-element** (`::before`/`::after`
+dengan `content` nyata) di 8 route publik (`/`, `/music`, `/music/<slug>`, `/artist`, `/visuals`,
+`/epk`, `/contact`, 404) pada 1440px. Hasil: **0 elemen dan 0 pseudo-element ber-radius**. Kursor
+kustom diukur terpisah karena hanya ter-mount setelah pointer mouse pertama:
+`.dot` 5x5 `0px`, `.ring` 36x36 `0px` (screenshot: `artifacts/visual-check/radius-final-3g/`).
 
 ### Hero `/` — logistics strip (TARGET)
 

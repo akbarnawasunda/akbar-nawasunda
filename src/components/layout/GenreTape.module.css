@@ -38,12 +38,17 @@
   flex: none;
 }
 
+/*
+ * Langkah 3g — the separator is a 4px square, not a 4px circle. DESIGN.md §3 makes the zero
+ * radius absolute and names small dots explicitly; at four pixels the circle and the square are
+ * the same handful of pixels, and the square is the site's own language.
+ */
 .item + .item::before,
 .item:first-child::before {
   content: "";
   width: 4px;
   height: 4px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-text-primary);
 }
 

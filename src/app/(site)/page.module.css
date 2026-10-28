@@ -156,10 +156,16 @@
   color: var(--color-text-secondary);
 }
 
+/*
+ * Langkah 3g — the status dot is a right angle like everything else. DESIGN.md §2 makes the
+ * zero radius absolute and names small dots explicitly: "kebutuhan visual bulat -> pakai bentuk
+ * lain (potongan diagonal / kotak)". At 5px the square and the circle are one pixel apart, so the
+ * round version bought nothing and cost the rule its authority.
+ */
 .live {
   width: 5px;
   height: 5px;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--color-signal-blue);
 }
 

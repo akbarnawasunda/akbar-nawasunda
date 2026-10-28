@@ -13,12 +13,18 @@
   pointer-events: none;
 }
 
+/*
+ * Langkah 3g — both the dot and the ring are right angles. DESIGN.md §3 allows no radius on any
+ * public element and names "dot/indicator kecil" explicitly; the replacement pointer was the last
+ * public surface still rounding itself. A square ring reads as a reticle over the HUD, which is
+ * what this cursor is.
+ */
 .dot,
 .ring {
   position: fixed;
   left: 0;
   top: 0;
-  border-radius: 50%;
+  border-radius: 0;
   will-change: transform;
 }
 

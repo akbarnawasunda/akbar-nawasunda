@@ -136,7 +136,7 @@ memindai teks publik terhadap daftar itu, bukan menyinkronkan ke sesuatu yang su
 | P3 | Route publik static (`○`/`●` di `next build`) | semua | **FAIL** — 8 route publik `ƒ` (lihat `docs/ARCHITECTURE.md` §5) |
 | P4 | axe violation di semua halaman publik | 0 | **BELUM DIUKUR** — `scripts/a11y-audit.mjs` ada, Chrome belum terpasang di sandbox ini |
 | P5 | Warning tracing saat build | 0 | **PASS** (commit `90c2b1f`) — 0 warning; trace 1189 → 316 entri, `docs/` 520 → 0 |
-| P6 | Radius non-zero di elemen publik | 0 | **FAIL** — `border-radius` 50% / `var(--radius-pill)` masih dipakai (audit di Langkah 3g) |
+| P6 | Radius non-zero di elemen publik | 0 | **PASS** — **0 elemen dan 0 pseudo-element** ber-radius di 8 route publik + kursor kustom (diukur 1440px, Langkah 3g). `--radius-pill` dihapus |
 
 ---
 
