@@ -405,8 +405,12 @@
 }
 
 @media (max-width: 767px) {
+  /* Round 33: the phone is the ambient version of the band, not a bright second logo. The 3D layer
+     above is already at 0.2 with pointer events off; the stand-in mark is now dimmed with it so
+     the band reads as one quiet surface instead of a full-strength interactive object. */
   .signatureFallback {
     display: grid;
+    opacity: 0.4;
   }
 }
 

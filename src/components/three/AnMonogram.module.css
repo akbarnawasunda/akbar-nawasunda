@@ -51,8 +51,11 @@
   transition: opacity 700ms var(--ease);
 }
 
-/* The shader is live: the still steps back under it instead of doubling the mark. */
-.canvas[data-liquid="on"] .still {
+/* Round 33: the still steps back only once a real WebGL canvas exists in the band. Gating this on
+   `data-liquid` (set the instant the chunk is requested) blacked out the whole section whenever
+   the shader chunk bailed — no WebGL, a failed lazy import, a dropped frame. `:has(canvas)` keys
+   off the thing that actually draws, so the still remains the object until then. */
+.canvas:has(canvas) .still {
   opacity: 0;
 }
 

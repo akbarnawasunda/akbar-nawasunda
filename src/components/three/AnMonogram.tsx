@@ -42,6 +42,16 @@ const WIDE = {
   height: 1242,
 };
 
+/** Cheap, synchronous capability probe — the same one the shader chunk uses, one level up. */
+function webglAvailable(): boolean {
+  try {
+    const probe = document.createElement("canvas");
+    return Boolean(probe.getContext("webgl2") ?? probe.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 export function AnMonogram() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [liquid, setLiquid] = useState(false);
@@ -50,21 +60,28 @@ export function AnMonogram() {
     const host = hostRef.current;
     if (!host) return;
     const img = host.querySelector("img");
-    if (img) {
-      const reveal = () => {
-        host.dataset.ready = "true";
-      };
-      /* A cached image is already complete before the effect runs on a second visit; listening for
-         a `load` that already fired would leave the band invisible forever. */
-      if (img.complete) reveal();
-      else img.addEventListener("load", reveal, { once: true });
+    const reveal = () => {
+      host.dataset.ready = "true";
+    };
+    /* Round 33, visual self-audit: `ready` used to be set on `load` only. A blocked, failed or
+       never-fetched still left the whole band at opacity 0 — 666px of pure black on the desktop
+       homepage. Load, error and a short safety timer all reveal the band. */
+    if (img?.complete) reveal();
+    else {
+      img?.addEventListener("load", reveal, { once: true });
+      img?.addEventListener("error", reveal, { once: true });
     }
+    const revealTimer = window.setTimeout(reveal, 1600);
 
-    /* Round 32, owner's correction: mobile is not a lesser citizen — the majority of this site's
-       visitors hold it in a hand. The liquid mounts on phones exactly as on desktop (DPR is capped
-       at 1.5 inside the chunk, and the loop parks off screen); only a reader who asked for
-       stillness keeps the baked still instead. */
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    /* Round 33: the orchestrator used to request the shader chunk on intersection alone. The chunk
+       itself returns `null` without WebGL, while `data-liquid="on"` had already faded the baked
+       still out — so every no-WebGL browser got an empty black band. Only mount when the GPU path
+       can actually draw; otherwise the still IS the object.
+       Round 32: phones mount the liquid exactly as desktop does (DPR capped at 1.5 inside the
+       chunk); only a reader who asked for stillness keeps the baked still. */
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !webglAvailable()) {
+      return () => window.clearTimeout(revealTimer);
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -79,7 +96,10 @@ export function AnMonogram() {
       { rootMargin: "0px", threshold: 0.01 },
     );
     observer.observe(host);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(revealTimer);
+    };
     /* Mount-only: the host ref is set before effects run, refs and setters are stable, and the
        observer disconnects itself once it has done its single job. */
   }, []);
