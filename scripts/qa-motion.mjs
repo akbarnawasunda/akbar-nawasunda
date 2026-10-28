@@ -30,6 +30,9 @@
  *      for its duration, puts itself back, and falls back to selectable text when the write is
  *      refused — with the clipboard permission granted, so the pass is a write that happened and
  *      not a check that was skipped.
+ *  13. (Langkah 3f) the homepage's Bottom Release HUD prints the catalogue's own first release, is
+ *      absent at scroll 0 so it cannot eat the hero's logistics strip, appears once the reader has
+ *      moved, never overlaps the INDEKS tab, and does not exist at all on a phone.
  *
  * Exits 1 on any failure so it can gate a release the same way `a11y` does.
  */
@@ -574,6 +577,123 @@ try {
     phoneGeometry.width === 40 && phoneGeometry.height === 40 && phoneGeometry.insideBar && (phoneGeometry.clearsBrand ?? 0) > 0 && phoneGeometry.overflowX <= 0,
     JSON.stringify(phoneGeometry),
   );
+
+  /* ------------------------------------------------- bottom release HUD (Langkah 3f) */
+  /*
+   * The HUD is a fixed card, so it is the one new element that could plausibly break three things at
+   * once: the fold the hero just won (3c), the INDEKS tab on the right edge, and the "no horizontal
+   * overflow" contract. All three are measured here rather than eyeballed in a screenshot.
+   */
+  const hudPage = await browser.newPage();
+  await hudPage.setViewport({ width: 1440, height: 900 });
+  await hudPage.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(1500);
+
+  const hudAtTop = await hudPage.evaluate(() => {
+    const hud = document.querySelector("[data-release-hud]");
+    const strip = document.querySelector('[data-depth="hero-facts"]');
+    return {
+      inDom: Boolean(hud),
+      stripBottom: strip ? Math.round(strip.getBoundingClientRect().bottom) : null,
+    };
+  });
+  check(
+    "the HUD is absent at scroll 0, so the hero's logistics strip keeps its fold",
+    !hudAtTop.inDom,
+    `in DOM: ${hudAtTop.inDom} · hero strip bottom ${hudAtTop.stripBottom}px`,
+  );
+
+  await hudPage.evaluate(() => window.scrollTo(0, Math.round(window.innerHeight * 0.9)));
+  await settleScroll(hudPage);
+  await sleep(500);
+
+  const hudShown = await hudPage.evaluate(() => {
+    const hud = document.querySelector("[data-release-hud]");
+    if (!hud) return { present: false };
+    const box = (node) => {
+      const rect = node.getBoundingClientRect();
+      return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+    };
+    const overlap = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    const hudBox = box(hud);
+    /* `[data-sheet-toggle]`, not a text or aria match: the INDEKS tab has no aria-label of its own
+       (its name is the word inside it) and the only "Indeks" aria-label in the document belongs to
+       the sheet dialog behind it — matching that measured an off-screen 834×2154 panel instead of
+       the 29×83 tab on the right edge. Data hooks are what the rest of this file selects on. */
+    const tab = document.querySelector("[data-sheet-toggle]");
+    const header = document.querySelector("header");
+    const action = hud.querySelector("a");
+    const title = hud.querySelector("p:last-of-type");
+    return {
+      present: true,
+      title: (title?.textContent || "").trim(),
+      eyebrow: (hud.querySelector("p")?.textContent || "").replace(/\s+/g, " ").trim(),
+      actionText: (action?.textContent || "").replace(/\s+/g, " ").trim(),
+      actionHref: action?.getAttribute("href") || "",
+      actionTarget: action?.getAttribute("target"),
+      radius: getComputedStyle(hud).borderTopLeftRadius,
+      zIndex: Number(getComputedStyle(hud).zIndex),
+      tabZ: tab ? Number(getComputedStyle(tab).zIndex) : null,
+      overlapsTab: tab ? overlap(hudBox, box(tab)) : null,
+      overlapsHeader: header ? overlap(hudBox, box(header)) : null,
+      inViewport: hudBox.left >= 0 && hudBox.right <= window.innerWidth && hudBox.bottom <= window.innerHeight,
+      tabStops: [...document.querySelectorAll("a[href], button")].filter((node) => node.closest("[data-release-hud]")).length,
+      landmark: hud.tagName,
+      landmarkName: hud.getAttribute("aria-label"),
+      audio: hud.querySelectorAll("audio, video").length,
+    };
+  });
+  check(
+    "the HUD prints the catalogue's own first release, as a named complementary landmark",
+    hudShown.present &&
+      hudShown.landmark === "ASIDE" &&
+      Boolean(hudShown.landmarkName) &&
+      hudShown.title.includes("Masih Mencintainya") &&
+      /SoundCloud/i.test(hudShown.actionHref) &&
+      hudShown.actionTarget === "_blank" &&
+      hudShown.radius === "0px" &&
+      hudShown.tabStops === 1,
+    `${hudShown.landmark} "${hudShown.landmarkName}" · "${hudShown.title}" · ${hudShown.eyebrow} · ${hudShown.actionText} → ${hudShown.actionHref} · ${hudShown.tabStops} tab stop`,
+  );
+  check(
+    "the HUD never overlaps the INDEKS tab or the header and stays inside the viewport",
+    hudShown.present &&
+      hudShown.overlapsTab === false &&
+      hudShown.overlapsHeader === false &&
+      hudShown.inViewport &&
+      hudShown.tabZ !== null &&
+      hudShown.zIndex < hudShown.tabZ,
+    `hud z ${hudShown.zIndex} < tab z ${hudShown.tabZ} · overlapsTab ${hudShown.overlapsTab} · overlapsHeader ${hudShown.overlapsHeader} · inViewport ${hudShown.inViewport}`,
+  );
+  check(
+    "the HUD is a card, not a player: no audio or video element inside it",
+    hudShown.present && hudShown.audio === 0,
+    `${hudShown.audio ?? "n/a"} media elements`,
+  );
+  await shot(hudPage, "hud-desktop");
+  await hudPage.close();
+
+  /* On a phone it must not exist: not in the DOM, not in the layout, not in the tab order — and the
+     slot marker that reserves footer room must reserve nothing there. */
+  const hudPhone = await browser.newPage();
+  await hudPhone.setViewport({ width: 390, height: 844 });
+  await hudPhone.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(900);
+  await hudPhone.evaluate(() => window.scrollTo(0, window.innerHeight * 1.5));
+  await settleScroll(hudPhone);
+  await sleep(400);
+  const hudOnPhone = await hudPhone.evaluate(() => ({
+    inDom: document.querySelectorAll("[data-release-hud]").length,
+    hudTabStops: [...document.querySelectorAll("a[href], button")].filter((node) => node.closest("[data-release-hud]")).length,
+    footerPadding: getComputedStyle(document.querySelector("footer")).paddingBottom,
+    overflowX: document.documentElement.scrollWidth - window.innerWidth,
+  }));
+  check(
+    "the HUD does not exist at 390px, even after scrolling",
+    hudOnPhone.inDom === 0 && hudOnPhone.hudTabStops === 0 && hudOnPhone.footerPadding === "0px" && hudOnPhone.overflowX <= 0,
+    JSON.stringify(hudOnPhone),
+  );
+  await hudPhone.close();
   if (shotsDir) {
     await bookingPhone.screenshot({ path: join(shotsDir, "booking-phone.png") });
     await bookingPhone.click("[data-booking-copy]");

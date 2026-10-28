@@ -360,7 +360,43 @@ Aturan:
   `docs/00-PROJECT-FOUNDATION/PROJECT_SCOPE.md` baris 12 *"Automated audio player streaming (link
   out to platforms)"* yang ada di Out of Scope v1. Membaca dokumen ini lalu menambahkan pemutar
   audio adalah melanggar dua dokumen lain sekaligus.
-  **SEKARANG: TIDAK ADA.** `grep -rn "AudioHud\|audio-hud\|HUD" src` hanya menemukan komentar.
+  **STATUS: ADA dan terukur (Langkah 3f)** — `src/components/content/ReleaseHud.tsx` +
+  `ReleaseHud.module.css` + `src/content/release-hud.ts`, dipasang **hanya** di
+  `src/app/(site)/page.tsx`.
+
+  - **Isi ditentukan server, bukan state klien.** `page.tsx` mengambil `releases[0]` (opsi A
+    keputusan owner: rilis pertama dalam urutan daftar owner, sama dengan yang sudah di-feature di
+    seksi transmission) lalu `releaseHudModel()` menghasilkan judul (`releaseDisplayTitle`),
+    eyebrow (`releaseEyebrow`), dan tujuan. Komponen menerima string jadi dan tidak bisa mengarang
+    isi. Terukur: `Masih Mencintainya — Papinka` · `Remix · 2025` · tombol `SoundCloud ↗`.
+  - **Tanpa tautan → halaman rilis**, label netral `Halaman rilis`, tanpa klaim distribusi apa pun
+    (aturan yang sama dengan blocker 3b). Dikunci unit test lewat regex klaim terlarang.
+  - **Tidak pernah memutar audio.** 0 elemen `<audio>`/`<video>`, tanpa ikon play, progress bar,
+    atau volume. Ikut diperiksa `qa:motion`.
+  - **≥720px saja.** Di bawah 720px komponen `return null` → tidak ada di DOM, layout, pohon
+    aksesibilitas, maupun urutan tab. Server tidak tahu viewport (Next.js tidak mengeksposnya ke
+    RSC tanpa header petunjuk yang tidak dikirim browser), jadi gerbang mount memakai
+    `useSyncExternalStore` + `matchMedia` dengan `getServerSnapshot` = `false`: HTML server tidak
+    pernah memuat HUD di lebar mana pun, sehingga tidak ada flash di 390px dan tidak ada hydration
+    mismatch. Konsekuensi jujur: tanpa JavaScript, HUD tidak muncul di desktop. HUD adalah pelengkap,
+    bukan konten yang halaman ini butuhkan.
+  - **Muncul setelah setengah layar scroll**, bukan di scroll 0. Terukur di 1440×900: kartu
+    setinggi 70px di `bottom: 16px` menempati y=814–884, persis menimpa strip logistik hero yang
+    bottom-nya 873.24px (deliverable 3c). Jadi gerbang kedua = `scrollY > 50svh`.
+  - **Tabrakan:** `z-index: calc(--z-chrome - 10)` = 40, **di bawah** tab INDEKS (45) dan header
+    (50). Di 1440: HUD x=43–616, tab INDEKS x=1411–1440 → jarak horizontal **795px**, irisan
+    **false**. `max-width: min(40rem, 100vw - 2·gutter - 44px)` menjaga 44px kanan agar tab tidak
+    pernah tersentuh di lebar mana pun.
+  - **Ruang bawah halaman:** HUD fixed tidak memakan ruang alur, jadi `page.tsx` merender penanda
+    `<span data-hud-slot hidden />` dan `ReleaseHud.module.css` memakai
+    `main.site-main:has([data-hud-slot]) ~ footer { padding-bottom: … }`. Tanpa penanda, tanpa
+    padding — jadi tidak ada perubahan pada route lain, dan `SiteFooter` (site-wide) tidak disentuh.
+    Terukur di dasar halaman: jarak baris kolofon → HUD = **26px**, tanpa tumpang tindih. Di 390px
+    `padding-bottom` footer tetap **0px**.
+  - **Landmark:** `<aside>` (implicit `complementary`) dengan `aria-label="Rilis sorotan"`;
+    menambah tepat **1 tab stop** dan dirender paling akhir di DOM halaman itu sendiri.
+  - Motion: masuk sekali dengan `hudIn` 280ms (`opacity` + `translateY`), tanpa loop; di
+    `prefers-reduced-motion: reduce` → `animation: none` (terukur `animation-name: none`).
 - **Booking quick-copy button** (Langkah 3e): klik → salin email booking ke clipboard +
   konfirmasi visual `✓ EMAIL DISALIN`.
   **STATUS: ADA dan terukur** — `src/components/layout/BookingCopy.tsx` +
@@ -486,7 +522,7 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D16 | Mobile signature ambient 0.2 | **PASS** | `data-ambient="true"` → `opacity: 0.2`, `pointer-events: none` (terukur) |
 | D17 | `--ease-snap` / `--ease-mechanical` | FAIL | token tidak ada |
 | D18 | VU-meter 4 bar header | PARTIAL | `Equalizer.tsx` ada; visibilitas BELUM DIUKUR |
-| D19 | Bottom Release HUD data nyata (informasional, tanpa playback) | FAIL | komponen tidak ada |
+| D19 | Bottom Release HUD data nyata (informasional, tanpa playback) | PASS | `ReleaseHud.tsx` + `releaseHudModel()`; `releases[0]` nyata, 1 tab stop, 0 elemen audio, hadir ≥720px setelah 50svh; `qa:motion` 38/38 |
 | D20 | Booking quick-copy + `✓ EMAIL DISALIN` | PASS | `BookingCopy.tsx`; clipboard terverifikasi berisi alamat, konfirmasi 1800 ms, fallback teks terpilih, `qa:motion` 33/33 |
 | D21 | Reduced-motion global | PASS | `globals.css:265` |
 | D22 | 3 varian sleeve berbeda nyata | **PASS** | 10 md5 unik; A/B/C berbeda 39–80% piksel (3h-2) |

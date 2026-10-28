@@ -6,6 +6,7 @@ import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } fr
 import { PaperAbout } from "@/components/content/PaperAbout";
 import { CataloguePin } from "@/components/content/CataloguePin";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
+import { ReleaseHud } from "@/components/content/ReleaseHud";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
@@ -20,6 +21,7 @@ import { Magnetic } from "@/components/zine/Magnetic";
 import { Plate3D } from "@/components/zine/Plate3D";
 import { Reveal } from "@/components/zine/Reveal";
 import { coverArtwork } from "@/content/covers";
+import { releaseHudModel } from "@/content/release-hud";
 import { fromStaticRelease } from "@/content/release-view";
 import { releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
@@ -86,6 +88,19 @@ const catalogue = releases.map((release) => ({
 }));
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
+
+/*
+ * Langkah 3f — the Bottom Release HUD (DESIGN.md §5).
+ *
+ * Owner's decision, option A: the HUD always shows `releases[0]` — the first release in the owner's
+ * own list order, the same one the homepage already features in the transmission section. Not
+ * "newest" (the data has no sortable release date and the list order is explicitly not
+ * chronological), not "whatever is hovered" (that would need client state to decide the content),
+ * and not `catalogue[0]`, which has already been reshaped for the rail — `releases[0]` is the source
+ * of truth and `releaseHudModel()` turns it into the three strings plus one destination.
+ */
+const hud = releaseHudModel(releases[0]!);
+const hudCover = coverArtwork(hud.slug);
 
 /*
  * LOC for the hero logistics strip, derived from the two fields the site already owns:
@@ -434,6 +449,26 @@ export default async function HomePage() {
           </Container>
         </section>
       ) : null}
+
+      {/*
+        Langkah 3f — the Bottom Release HUD, mounted here and nowhere else (owner's decision: the
+        homepage only, never `src/app/(site)/layout.tsx`, so /music and the rest are untouched).
+
+        Every string below comes out of `releases[0]` through `releaseHudModel()`; the component
+        receives finished values and cannot invent a title, an eyebrow or a destination. The sleeve
+        is resolved from the same slug by `coverArtwork()`, which is the waterfall the rest of the
+        page uses — one of the ten sleeves already on disk, never a newly generated image.
+      */}
+      <ReleaseHud
+        title={hud.title}
+        eyebrow={hud.eyebrow}
+        actionHref={hud.action.href}
+        actionLabel={hud.action.label}
+        actionExternal={hud.action.external}
+        coverSrc={hudCover.kind === "generated" ? null : hudCover.src}
+      />
+      {/* Reserves room under the fixed card; hidden, empty, and read by ReleaseHud.module.css. */}
+      <span data-hud-slot hidden />
     </>
   );
 }
