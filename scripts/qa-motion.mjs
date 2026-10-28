@@ -19,7 +19,9 @@
  *   5. the header shrinks and hides on scroll-down, returns on scroll-up;
  *   6. the mobile drawer opens, traps focus, closes on Escape and returns focus;
  *   7. no canvas exists anywhere (round 20 baked the monogram), and its still loads lazily;
- *   8. no horizontal overflow at six widths, and no console errors anywhere;
+ *   8. no horizontal overflow at six widths on every route — plus the 480–976px squeeze band
+ *      the footer's unbreakable contact address used to break (Langkah 3g) — and no console
+ *      errors anywhere;
  *   9. (R8, revised R10) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move
  *      writes a rotation, the hero's type block sits at a real negative Z behind the glass, and that
  *      block is one rigid surface rather than a stack of layers pretending to be depth;
@@ -867,20 +869,41 @@ try {
   await mobile.close();
 
   // ---------------------------------------------------------------- overflow sweep
+  //
+  // The six core widths run against every route. The squeeze band (480–976) runs against "/"
+  // only, and that is not a shortcut: it exists because of exactly one element — the published
+  // contact address in the footer, a single unbreakable 235px token — and the footer is global
+  // chrome, byte-identical on every route. Without these widths the sweep would have kept passing
+  // while the page scrolled sideways at 900–950px, which is what Langkah 3g was opened for.
   const widths = [320, 390, 768, 1024, 1280, 1920];
+  const squeezeWidths = [480, 900, 920, 940, 950, 960, 976];
   const routes = ["/", "/music", "/visuals", "/artist", "/epk", "/contact", "/music/lali-dalane"];
+  const swp = async (width, route) => {
+    await sweeper.setViewport({ width, height: width < 700 ? 844 : 900 });
+    await sweeper.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
+    await sleep(220);
+    return sweeper.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  };
   const sweeper = await browser.newPage();
   const overflows = [];
   for (const width of widths) {
-    await sweeper.setViewport({ width, height: width < 700 ? 844 : 900 });
     for (const route of routes) {
-      await sweeper.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
-      await sleep(220);
-      const delta = await sweeper.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      const delta = await swp(width, route);
       if (delta > 0) overflows.push(`${route} @${width} +${delta}px`);
     }
   }
   check("no horizontal overflow at 320–1920", overflows.length === 0, overflows.join(", "));
+
+  const squeezeOverflows = [];
+  for (const width of squeezeWidths) {
+    const delta = await swp(width, "/");
+    if (delta > 0) squeezeOverflows.push(`/ @${width} +${delta}px`);
+  }
+  check(
+    "no horizontal overflow in the footer's squeeze band (480–976)",
+    squeezeOverflows.length === 0,
+    squeezeOverflows.join(", "),
+  );
   await sweeper.close();
 
   // Read last, after the band has been reached: the lazy still has had every chance to decode.
