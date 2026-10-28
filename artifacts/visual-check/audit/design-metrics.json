@@ -1,0 +1,335 @@
+{
+  "hero1440": {
+    "heroHeight": 900,
+    "viewportH": 900,
+    "nameFontSize": "57.6px",
+    "nameLines": 1,
+    "nameWidth": 1313.21826171875,
+    "ctaBottom": 795.0194702148438,
+    "factsTop": 858.1373901367188,
+    "gapCtaToFacts": 63.1,
+    "factsBottom": 936.5223999023438,
+    "factsInsideFold900": false,
+    "factsText": "Rilis10Tahun aktif6Tautan resmi14",
+    "factsBg": "rgb(232, 230, 225)",
+    "logisticsStripPresent": false,
+    "liveDotRadius": "9999px"
+  },
+  "hero390": {
+    "nameFontSize": "40px",
+    "nameRects": 1,
+    "nameWidth": 339.55224609375,
+    "nameScrollWidth": 350,
+    "factsBottom": 588.0830078125,
+    "factsInsideFold844": true,
+    "horizontalOverflow": false
+  },
+  "music1440": {
+    "listTag": "OL",
+    "gridColumns": "306.016px 306.016px 306.016px 306.016px",
+    "perspective": "1700px",
+    "cardCount": 9,
+    "ordinalCount": 9,
+    "ordinalFontSize": "9px",
+    "ordinalColor": "rgb(184, 184, 184)",
+    "ordinalTexts": [
+      "01",
+      "02",
+      "03"
+    ],
+    "bigWatermarkCount": 0,
+    "metaTexts": [
+      "Rilis",
+      "Rilis",
+      "Rilis",
+      "Single · 2025",
+      "Era DJ Akbar Remix",
+      "Single · 2024",
+      "2024",
+      "Single · 2025",
+      "Remix · 2025"
+    ],
+    "metaContainsRilisPlaceholder": true,
+    "transformOnHoverRule": null,
+    "hoverTransform": "matrix(1, 0, 0, 1, 0, 0)",
+    "hoverWatermarkOpacity": "1"
+  },
+  "music390": {
+    "gridColumns": "350px",
+    "columnCount": 1,
+    "firstCardDisplay": "grid",
+    "firstCardGridRows": "350px 46.6094px",
+    "horizontalOverflow": false
+  },
+  "release_masih-mencintainya-papinka": {
+    "facts": [
+      {
+        "label": "Jenis",
+        "value": "Remix",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      },
+      {
+        "label": "Tahun",
+        "value": "2025",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      },
+      {
+        "label": "Karya asli",
+        "value": "Papinka",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      },
+      {
+        "label": "Tinta",
+        "value": "Cyan cetak #2E8C86",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "",
+        "value": "Merah poster #C93A22",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "",
+        "value": "Tinta hitam #050507",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Kertas",
+        "value": "#E8E6E1",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Huruf",
+        "value": "Excess-V-Straight · Relidux",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Tautan",
+        "value": "7 tautan resmi, semuanya menuju kanal pemilik",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Cetakan",
+        "value": "R15 · neon grid · ca74742",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      }
+    ],
+    "emDashValues": [],
+    "noLinksText": null,
+    "dubplateCardPresent": false,
+    "linkCount": 1,
+    "pageText": "Lompat ke konten\nAKBAR NAWASUNDA\nLISTEN\nDI SPOTIFY (MEMBUKA TAB BARU)\n↗\nBUKA MENU\nMENU\n\nKATALOG 01 / 10\nREMIX · 2025\n\nMASIH MENCINTAINYA — PAPINKA\n01\nSOUNDCLOUD\n↗\nLEMBAR DATA\nJENIS\nRemix\nTAHUN\n2025\nKARYA ASLI\nPapinka\nSEMUA RILIS\nBERIKUTNYA →\nCINTA TERBUANG\n\nNAVIGASI\n\nMusic\nVisuals\nArtist\nPress kit\nKontak\n\nSOSIAL\n\nInstagram\n(membuka tab baru)\nTikTok\n(membuka tab baru)\nX\n(membuka tab baru)\nFacebook\n"
+  },
+  "release_cinta-terbuang": {
+    "facts": [
+      {
+        "label": "Jenis",
+        "value": "—",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      },
+      {
+        "label": "Tahun",
+        "value": "—",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      },
+      {
+        "label": "Tinta",
+        "value": "Cyan cetak #2E8C86",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "",
+        "value": "Merah poster #C93A22",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "",
+        "value": "Tinta hitam #050507",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Kertas",
+        "value": "#E8E6E1",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Huruf",
+        "value": "Excess-V-Straight · Relidux",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Tautan",
+        "value": "7 tautan resmi, semuanya menuju kanal pemilik",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      },
+      {
+        "label": "Cetakan",
+        "value": "R15 · neon grid · ca74742",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": true
+      }
+    ],
+    "emDashValues": [
+      {
+        "label": "Jenis",
+        "value": "—",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      },
+      {
+        "label": "Tahun",
+        "value": "—",
+        "visible": true,
+        "inViewport": true,
+        "insideSheet": false
+      }
+    ],
+    "noLinksText": "TautanTautan mendengarkan untuk rilis ini belum tersedia.",
+    "dubplateCardPresent": false,
+    "linkCount": 0,
+    "pageText": "Lompat ke konten\nAKBAR NAWASUNDA\nLISTEN\nDI SPOTIFY (MEMBUKA TAB BARU)\n↗\nBUKA MENU\nMENU\n\nKATALOG 02 / 10\n\nCINTA TERBUANG\n\nTAUTAN\nTautan mendengarkan untuk rilis ini belum tersedia.\n\nLEMBAR DATA\nJENIS\n—\nTAHUN\n—\n← SEBELUMNYA\nMASIH MENCINTAINYA\nSEMUA RILIS\nBERIKUTNYA →\nMASIH DIHATIKU\n\nNAVIGASI\n\nMusic\nVisuals\nArtist\nPress kit\nKontak\n\nSOSIAL\n\nInstagram\n(membuka tab baru)\nTikTok\n(membuka tab baru)\nX\n(mem"
+  },
+  "chrome_1440": {
+    "equalizer": {
+      "w": 14,
+      "h": 12,
+      "bars": 4,
+      "barRects": [
+        {
+          "w": 2,
+          "h": 3.48
+        },
+        {
+          "w": 2,
+          "h": 4.41
+        },
+        {
+          "w": 2,
+          "h": 9.78
+        },
+        {
+          "w": 2,
+          "h": 3.04
+        }
+      ],
+      "opacity": "1",
+      "visibility": "visible",
+      "display": "flex"
+    },
+    "nonZeroRadii": [],
+    "nonZeroRadiusCount": 0,
+    "emailCopyButtons": [],
+    "clipboardApi": true,
+    "audioHud": true,
+    "headerText": "AKBAR NAWASUNDA LISTEN DI SPOTIFY (MEMBUKA TAB BARU) ↗ BUKA MENU MENU"
+  },
+  "chrome_390": {
+    "equalizer": {
+      "w": 14,
+      "h": 12,
+      "bars": 4,
+      "barRects": [
+        {
+          "w": 2,
+          "h": 3.66
+        },
+        {
+          "w": 2,
+          "h": 4.1
+        },
+        {
+          "w": 2,
+          "h": 9.52
+        },
+        {
+          "w": 2,
+          "h": 3.01
+        }
+      ],
+      "opacity": "1",
+      "visibility": "visible",
+      "display": "flex"
+    },
+    "nonZeroRadii": [],
+    "nonZeroRadiusCount": 0,
+    "emailCopyButtons": [],
+    "clipboardApi": true,
+    "audioHud": true,
+    "headerText": "AKBAR NAWASUNDA LISTEN DI SPOTIFY (MEMBUKA TAB BARU) ↗ BUKA MENU MENU"
+  },
+  "canvas_1440": {
+    "atScroll0": {
+      "count": 0,
+      "scrollY": 0
+    },
+    "afterBandInView": {
+      "count": 1,
+      "allInsideBand": true,
+      "webglContext": [
+        true
+      ],
+      "fallbackVisible": "none",
+      "bandOpacity": "0.92",
+      "signaturePointerEvents": "auto"
+    }
+  },
+  "canvas_390": {
+    "atScroll0": {
+      "count": 1,
+      "scrollY": 0
+    },
+    "afterBandInView": {
+      "count": 1,
+      "allInsideBand": true,
+      "webglContext": [
+        true
+      ],
+      "fallbackVisible": "grid",
+      "bandOpacity": "0.85",
+      "signaturePointerEvents": "auto"
+    }
+  },
+  "reducedMotion": {
+    "equalizerAnimation": "none",
+    "nameAnimation": "oRS4AW_name-rise",
+    "curtainPresent": false
+  }
+}
