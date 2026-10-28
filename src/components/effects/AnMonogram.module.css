@@ -1,0 +1,115 @@
+/*
+ * The band's scenery: it sits behind the type, never above it, never eats a pointer event except
+ * in the one layer that is meant to be touched.
+ *
+ * Langkah 3h-1: the water is a Canvas 2D foil now (see AnMonogramFoil). The baked still underneath
+ * is the fallback and the floor: it carries the band before the foil mounts, and once the foil has
+ * painted the still simply fades out from under it — same reveal contract as the shader had.
+ */
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 900ms var(--ease);
+}
+
+.canvas[data-ready="true"] {
+  opacity: 0.92;
+}
+
+@media (max-width: 1023px) {
+  .canvas[data-ready="true"] {
+    opacity: 0.85;
+  }
+}
+
+.drift {
+  position: absolute;
+  inset: 0;
+}
+
+/* The stack: baked still below, foil above it once mounted. */
+.stillLayer {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * Oversized on purpose: the scroll engine translates the layer a few percent as the band passes,
+ * and an image exactly the size of its box would show a gap at the extremes.
+ */
+.still {
+  position: absolute;
+  inset: -6% 0;
+  width: 100%;
+  height: 112%;
+  object-fit: cover;
+  object-position: 50% 46%;
+  display: block;
+  transition: opacity 700ms var(--ease);
+}
+
+/* The foil is live: the still steps back under it instead of doubling the mark. */
+.canvas[data-foil="on"] .still {
+  opacity: 0;
+}
+
+/*
+ * The foil layer: above the still, flush with the band, and the one surface in the band that takes
+ * pointer events — the quantised highlight needs the hand. Everything above and below the band
+ * keeps its own clicks; the layer is exactly the band's box.
+ */
+.foilLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.foil {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.foilCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * ≤768px is the ambient variant, per DESIGN.md §4: the surface is present but recedes — it is
+ * scenery behind the page, not an object to touch.
+ *
+ * Keyed off `data-ambient`, which the component writes from `matchMedia` on mount and on change.
+ * An attribute rather than a bare media query because the state has to be *verifiable*: a test can
+ * read `data-ambient` and the computed opacity, and cannot accidentally pass by matching a rule in
+ * a stylesheet the component never applied. The media query here only guarantees that a reader who
+ * resizes across the boundary without a re-render still gets the resting look.
+ */
+.foil[data-ambient="true"],
+.foilLayer:has(> .foil[data-ambient="true"]) {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .foilLayer {
+    pointer-events: none;
+  }
+
+  .foil {
+    opacity: 0.2;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas,
+  .still {
+    transition: none;
+  }
+}

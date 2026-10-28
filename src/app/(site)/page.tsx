@@ -13,7 +13,7 @@ import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
-import { AnMonogram } from "@/components/three/AnMonogram";
+import { AnMonogram } from "@/components/effects/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Depth } from "@/components/zine/Depth";
 import { Magnetic } from "@/components/zine/Magnetic";
@@ -222,15 +222,14 @@ export default async function HomePage() {
         the light source, and a second bright thing on the same screen would halve it.
       */}
       <section className={styles.signature} aria-label="Monogram">
-        <AnMonogram />
         {/*
-          Below 768px the renderer never mounts (R14: bloom on a phone GPU is not worth the frames),
-          so the band used to be 74svh of empty black on every phone. This is the mark itself — the
-          same file the header and the footer use — set at the size the object would have occupied.
+          Langkah 3h-1: the band has ONE surface now. `AnMonogram` carries the baked still and, once
+          the reader has moved, the Canvas 2D foil. The old `signatureFallback` span is gone: it
+          existed because the WebGL renderer never mounted below 768px, and the 2D foil mounts on
+          every breakpoint (ambient, `opacity: .2`), so a second mark at full size would have been a
+          duplicate print on top of the first.
         */}
-        <span className={styles.signatureFallback} aria-hidden="true">
-          <Image src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
-        </span>
+        <AnMonogram />
       </section>
 
       {/* ----------------------------------------------------------- running head */}

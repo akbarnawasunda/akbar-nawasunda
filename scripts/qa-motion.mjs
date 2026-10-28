@@ -392,17 +392,19 @@ try {
   check("header hides on scroll down and returns on scroll up", headerDown.hidden === "true" && headerUp === "false");
 
   /*
-   * Zero canvases, everywhere, forever (round 20, owner's instruction: "jangan 3D berat jir").
+   * Zero canvases at scroll 0, on EVERY viewport — and the band still works once the reader moves.
    *
-   * The contract used to be "at most one canvas, and nothing allocated before its band is on
-   * screen" (D-102) — a lazy WebGL monogram. Round 20 baked that monogram into WebP stills and
-   * deleted the renderer, so the contract is now absolute: no `<canvas>` element exists at scroll 0
-   * on any viewport. Round 29 replaced the baked still with a lazy shader quad: the canvas the
-   * band may own is imported dynamically only when the band approaches, only above 768px, only
-   * with motion allowed and only where WebGL exists — so at scroll 0 the count is still zero, and
-   * after the band it is at most one, and only inside the band. The probe also asserts the
-   * fallback floor never moved: a lazy image with real decoded pixels underneath, because "we
-   * added the heavy thing" is only half the change; the band must survive without it.
+   * History, because this check has been wrong before: round 20 baked the monogram into WebP stills
+   * and the contract was absolute; round 29 added a lazy GPU quad and it held at 1440×900, which is
+   * the only size this script used to probe. It did not hold on a phone, and the reason was not a
+   * race — `page.module.css` collapses `.hero` to `height: auto` below 900px, so at 390×844 the
+   * monogram band starts at y≈627 and 34.7 % of it is inside the first screen. Intersection fired
+   * on load, correctly, and the canvas mounted before the reader had moved a pixel.
+   *
+   * Langkah 3h-1 replaced the shader with a Canvas 2D foil and closed the hole at its source: the
+   * orchestrator now requires BOTH intersection and `scrollY > 1`. The probes below assert that at
+   * 1440×900 and at 390×844, and then assert the opposite failure — that a gate which never opens
+   * is not a fix — by scrolling to the band and requiring exactly one canvas, inside it.
    */
   const canvasProbe = await browser.newPage();
   await canvasProbe.setViewport({ width: 1440, height: 900 });
@@ -417,6 +419,71 @@ try {
     };
   });
   await canvasProbe.close();
+
+  /*
+   * The phone probe. `isMobile` matters: the ≤899px layout rule is what the violation depended on,
+   * and a bare 390px-wide desktop window would not reproduce a real handset's viewport handling.
+   */
+  const phoneProbe = await browser.newPage();
+  await phoneProbe.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await phoneProbe.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(1600);
+  const phoneBefore = await phoneProbe.evaluate(() => {
+    const band = document.querySelector('[class*="signature"]');
+    const box = band?.getBoundingClientRect();
+    return {
+      count: document.querySelectorAll("canvas").length,
+      onScreen: Boolean(box && box.top < window.innerHeight && box.bottom > 0),
+      bandTop: box ? Math.round(box.top) : null,
+      scrollY: Math.round(window.scrollY),
+    };
+  });
+  check(
+    "no canvas in the first fold on a phone either",
+    phoneBefore.count === 0,
+    `390×844 at scroll ${phoneBefore.scrollY}: ${phoneBefore.count} canvas · band top ${phoneBefore.bandTop}px (inside the first screen: ${phoneBefore.onScreen})`,
+  );
+
+  /*
+   * …and the gate opens. A band that never mounts its surface is not a fixed band, it is a deleted
+   * one. This also pins the ≥768px ambient contract as a *state* rather than as a stylesheet rule:
+   * `data-ambient`, the computed opacity and the pointer-events are all read back from the DOM.
+   */
+  if (phoneBefore.count === 0) {
+    await phoneProbe.evaluate(() => {
+      document.querySelector('[class*="signature"]')?.scrollIntoView({ block: "center" });
+    });
+    await sleep(1800);
+    const phoneAfter = await phoneProbe.evaluate(() => {
+      const band = document.querySelector('[class*="signature"]');
+      const host = document.querySelector("[data-foil-host]");
+      const layer = host?.parentElement;
+      const canvases = [...document.querySelectorAll("canvas")];
+      const state = band?.querySelector("[data-foil-state]")?.getAttribute("data-foil-state");
+      const css = layer ? getComputedStyle(layer) : null;
+      return {
+        canvases: canvases.length,
+        inBand: canvases.every((node) => Boolean(band && band.contains(node))),
+        state,
+        ambient: host?.getAttribute("data-ambient"),
+        opacity: css?.opacity ?? null,
+        pointerEvents: css?.pointerEvents ?? null,
+      };
+    });
+    check(
+      "the phone mounts exactly one canvas once the band is reached, as the ambient variant",
+      phoneAfter.canvases === 1 &&
+        phoneAfter.inBand &&
+        phoneAfter.state === "active" &&
+        phoneAfter.ambient === "true" &&
+        phoneAfter.opacity === "0.2" &&
+        phoneAfter.pointerEvents === "none",
+      `canvases: ${phoneAfter.canvases} (in band: ${phoneAfter.inBand}) · state: ${phoneAfter.state} · ambient: ${phoneAfter.ambient} · opacity: ${phoneAfter.opacity} · pointer-events: ${phoneAfter.pointerEvents}`,
+    );
+  } else {
+    check("the phone mounts exactly one canvas once the band is reached, as the ambient variant", false, "no canvas probe ran: the scroll-0 gate already failed");
+  }
+  await phoneProbe.close();
 
   // Reduced motion: nothing registers, so no inline transform is written at all.
   const reduced = await browser.newPage();
@@ -696,10 +763,9 @@ try {
   }
   await pressProof.close();
 
-  // three.js reports an unavailable context itself when the machine has no GPU; that is the
-  // environment, not the page. Everything else is a real error.
-  const realErrors = consoleErrors.filter((text) => !/WebGL context|Error creating WebGL context/i.test(text));
-  check("no console errors", realErrors.length === 0, realErrors.slice(0, 3).join(" | "));
+  /* No tolerance list any more: Langkah 3h-1 removed the GPU stack, so there is no "the machine has
+     no WebGL" class of expected message left to excuse. Any console error is a real error. */
+  check("no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
 
   await page.close();
 } finally {

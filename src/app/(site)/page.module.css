@@ -314,29 +314,11 @@
 
 
 /* The static stand-in for the renderer, phone-width only. */
-.signatureFallback {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: none;
-  place-items: center;
-  padding: 0 12%;
-}
-
-/* Two classes deep on purpose: `.site-main img` in globals.css filters every photograph, and this
-   file must not be grayscaled — the mark's blue tips are the only colour in the band. */
-.signature .signatureFallback img {
-  width: 100%;
-  height: auto;
-  filter: none;
-  opacity: 0.9;
-}
-
-@media (max-width: 767px) {
-  .signatureFallback {
-    display: grid;
-  }
-}
+/*
+ * `.signatureFallback` was removed in Langkah 3h-1 together with the span it styled: the band's
+ * single mark is the Canvas 2D foil, which mounts on phones too (as the ambient variant), so a
+ * centred second copy of the logo would have printed over it.
+ */
 
 
 /* ----------------------------------------------------------------------------- transmission */
