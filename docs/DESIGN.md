@@ -299,9 +299,43 @@ nyata**, bukan versi yang sama dengan nomor berbeda:
 | B | Typographic Heavy | bootleg / remix |
 | C | Minimal Frame | arsip / rilis resmi |
 
-**SEKARANG:** ada 10 file `public/assets/covers/<slug>@sleeve.webp` (dibuat
-`scripts/generate-placeholder-covers.mjs`) + fallback komponen `ReleaseCover.tsx`. Apakah ketiga
-varian itu berbeda nyata belum diaudit — **BUTUH REVIEW VISUAL OWNER**.
+**STATUS SETELAH LANGKAH 3h-2 — ketiga varian SUDAH ada dan terukur berbeda.**
+
+Penyebab versi lama: `render()` di `scripts/generate-placeholder-covers.mjs` **tidak menerima
+argumen apa pun**. Loop memanggilnya 10x, tetapi setiap panggilan menghasilkan SVG yang sama
+persis — jadi 10 file 5604 B dengan md5 `338c6da857…` yang identik. Generatornya jalan; ia cuma
+tidak tahu sedang menggambar rilis yang mana.
+
+| Varian | Ciri konkret | Cincin |
+| --- | --- | --- |
+| **Monogram Crop** | satu sudut 45° dipotong (alpha nyata), spine tinta di tepi kiri, monogram vektor diskalakan 1720–2170 px lalu digeser keluar bingkai sehingga hanya sebagian lockup yang terbaca; rule biru 1 garis di tepi bawah | 4 rilis |
+| **Typographic Heavy** | bidang tinta penuh, judul rilis sebagai artwork (Anton, 3 baris maksimum, ukuran dihitung agar pas), rule biru horizontal di atas meta, cap monogram kecil di sudut | 3 rilis |
+| **Minimal Frame** | stock bone, satu hairline frame (atau dua, 10 px terpisah), mark kecil–besar menurut komposisi, satu bar biru di salah satu sudut | 3 rilis |
+
+Penentuan varian (`scripts/lib/sleeve-variants.mjs`, `assignVariants`) — deterministik, tanpa acak,
+tanpa tabel per-slug:
+
+1. `type === "remix"` atau punya `source` → Typographic Heavy (bootleg);
+2. punya `type` lain (`single`/`ep`/`album`) → Minimal Frame (rilis katalog);
+3. `type` belum dikonfirmasi owner → varian yang paling sedikit terpakai, ditelusuri dalam urutan
+   hash slug (FnV-1a). Hash menentukan **rilis mana dapat apa**; aturan "paling sedikit" menjaga
+   jumlahnya tetap merata.
+
+Komposisi di dalam satu varian memakai **rank** (posisi rilis di antara rilis bervarian sama), bukan
+hash mentah — karena dua slug yang hash-nya bertabrakan pernah menghasilkan dua file byte-identik.
+
+Larangan tipografi rilis-19 **dibatalkan hanya untuk varian B**, sesuai instruksi owner di Langkah
+3h-2. Alasan larangan itu (tipe raster tidak bisa reflow/dipilih/diterjemahkan) masih berlaku dan
+karena itu tetap dipertahankan di varian A dan C.
+
+Catatan teknis: mark digambar dari jalur vektor `src/assets/an-shape.ts` (hasil trace dari
+`public/brand/an-mark.webp` 174×112), bukan dari raster yang diperbesar — upscale 174 px ke 1700 px
+terlihat kabur dan di sleeve terbaca sebagai scan yang buruk. Font Anton dibaca librsvg lewat
+`FONTCONFIG_FILE` yang diarahkan ke `public/fonts` saat script jalan, jadi **tidak ada dependency
+baru**.
+
+**BUTUH REVIEW VISUAL OWNER** untuk penempatan rilis→varian, karena rilis tanpa `type` yang
+dikonfirmasi bisa berubah posisinya bila owner menambah/menghapus entri.
 
 ---
 
@@ -340,5 +374,5 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D19 | Audio HUD data nyata | FAIL | komponen tidak ada |
 | D20 | Booking quick-copy + `✓ EMAIL DISALIN` | FAIL | tidak ada |
 | D21 | Reduced-motion global | PASS | `globals.css:265` |
-| D22 | 3 varian sleeve berbeda nyata | BELUM DIAUDIT | 10 file `@sleeve.webp` ada |
+| D22 | 3 varian sleeve berbeda nyata | **PASS** | 10 md5 unik; A/B/C berbeda 39–80% piksel (3h-2) |
 | D23 | Kontrak `anti-ai` (tolak `<canvas`/`getContext`) | PASS (sekarang) | `tests/fixtures/anti-ai.ts` `BANNED_HOMEPAGE_PATTERNS` |
