@@ -1,0 +1,212 @@
+/**
+ * Bottom Audio HUD — full-width bar, 48px tall, sits above footer.
+ * Background: var(--color-ground), border-top: 1px solid var(--color-hairline)
+ * Fixed position at bottom, z-index above content but below header/drawer.
+ */
+
+.hud {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-overlay);
+  height: var(--hud-height);
+  background: var(--color-ground, var(--color-bg-base));
+  border-top: 1px solid var(--color-hairline);
+  /* Round 33: it used to start translated 100% off screen and only slide in for
+     `data-playing="true"` — a state nothing ever set. The deck is present, so it is visible.
+     globals.css reserves --hud-height on the root and lifts the phone index tab. */
+}
+
+.hudInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.playPauseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
+}
+
+.playPauseBtn:hover,
+.playPauseBtn:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+  border-color: var(--color-text-primary);
+  outline: none;
+  text-decoration: none;
+}
+
+.playIcon,
+.pauseIcon {
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.divider {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.nowPlaying {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nowPlayingLabel {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.trackTitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40ch;
+  color: inherit;
+  text-decoration: none;
+}
+
+.trackTitle:hover,
+.trackTitle:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.bpm {
+  color: var(--color-signal-blue);
+  font-variant-numeric: tabular-nums;
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.volumeLabel {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.volumeSlider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--color-signal-blue);
+  border-radius: 0;
+  cursor: pointer;
+  transition: transform 100ms var(--ease-out);
+}
+
+.volumeSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--color-signal-blue);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-muted);
+  border-radius: 0;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition:
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
+}
+
+.closeBtn:hover,
+.closeBtn:focus-visible {
+  color: var(--color-signal-blue);
+  border-color: var(--color-signal-blue);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud {
+    transition: none;
+  }
+
+  .playPauseBtn,
+  .volumeSlider::-webkit-slider-thumb {
+    transition: none;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .hudInner {
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+    font-size: 0.5625rem;
+  }
+
+  .volume {
+    width: 100px;
+  }
+
+  .nowPlayingLabel {
+    display: none;
+  }
+
+  .trackTitle {
+    max-width: 20ch;
+  }
+}

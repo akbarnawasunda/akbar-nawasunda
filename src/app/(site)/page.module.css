@@ -28,7 +28,13 @@
   /* A definite height, not a min-height: flex children only grow into free space the container
      actually has, and `min-height` leaves the container content-high — which is exactly how the
      facts strip ended up floating mid-screen with dead ink below it (round 28). */
-  height: min(100svh, 58rem);
+  /* Round 33 (visual self-audit): the bar takes --header-height of layout ABOVE this section, so
+     a plain 100svh pushed the last 80px of the hero — the logistics strip included — below the
+     first fold at 1440x900. Subtracting the bar closes the hero exactly on the fold; the 48px
+     fixed audio deck is reserved INSIDE .heroInner (below) so the monogram band still starts one
+     pixel below the fold — its IntersectionObserver must not pull the three.js chunk onto the
+     first paint. 58rem caps it on tall monitors. */
+  height: min(calc(100svh - var(--header-height)), 58rem);
   overflow: hidden;
   /* The hero writes transforms every frame while it is in view; this keeps that work inside the
      band instead of invalidating the whole document (R11). */
@@ -126,6 +132,20 @@
   margin-inline: auto;
   padding: var(--space-6) var(--gutter) var(--space-8);
   transform: translateZ(-40px);
+}
+
+/* The 48px deck is fixed chrome, so the hero's last line may never sit under it. Reserving the
+   space in the inner padding (rather than shortening .hero) keeps the next band below the fold —
+   the monogram's lazy WebGL chunk is fetched on approach, never on first paint. */
+@media (min-width: 900px) {
+  .heroInner {
+    /* Round 34: the deck is reserved as .heroInner padding-bottom at >=900px. The strip below is the
+     last child, so it sits at the bottom of the content area — the gap between the strip and the
+     monogram band below is exactly this padding. Round 33 reduced it from 80px to 60px to bring the
+     mark closer to the strip (owner's item 2: baseline alignment). The 48px HUD is still reserved,
+     so the strip never slides under it. */
+  padding-bottom: calc(var(--space-3) + var(--hud-height));
+  }
 }
 
 .masthead {
@@ -253,7 +273,10 @@
   align-items: end;
   justify-content: space-between;
   gap: var(--space-6);
-  margin-top: var(--space-8);
+  /* Round 33: the strip below used to be separated from this slab by two stacked 32px gaps plus
+     its own 20px rule inset — the "empty gap under the CTA" the visual audit measured. The flex
+     gap in .heroInner is now the only rhythm; the strip reads as the slab's ruled footer. */
+  margin-top: 0;
   padding: var(--space-4) var(--space-6);
   background: var(--color-bone);
   color: var(--color-bone-ink);
@@ -290,7 +313,72 @@
   letter-spacing: var(--tracking-tight);
 }
 
+/* ================================================================ LOGISTICS STRIP */
+/* Technical metadata strip below the hero CTA — mono, uppercase, hairline border. */
+.heroLogistics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  opacity: 0.65;
+}
 
+.logisticsDivider {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* 3D canvas ambient wrapper.
+ * The Three.js scene lives in the monogram band (AnMonogram), one section BELOW the hero — the
+ * hero `.heroStage` is the type plate and must never be dimmed. This wrapper is the only element
+ * allowed to carry the mobile ambient opacity. */
+.signatureCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Desktop: drop the 3D container slightly so its optical base sits lower in the band. */
+@media (min-width: 769px) {
+  .signatureCanvas {
+    transform: translateY(2rem);
+  }
+}
+
+/* Mobile: the GPU scene never mounts, so the canvas becomes a quiet ambient layer. */
+@media (max-width: 768px) {
+  .signatureCanvas {
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  .heroMedia {
+    pointer-events: none;
+  }
+}
+
+/*
+ * Fluid wordmark, measured against the actual display face.
+ *
+ * The brief asked for clamp(2.8rem, 11vw, 4.5rem), but that resolves to 44.8px at 390px and
+ * "NAWASUNDA." measures ~9.6× font-size in Excess V Straight — see the measurement in
+ * tokens.css. It wrapped into an orphan "A." on a third line. 9.4vw with a 3rem ceiling is the
+ * largest fluid size that keeps the full word on one line from 320px to 640px (measured in the
+ * browser at seven widths). Anything unverified is not worth a broken wordmark.
+ */
+@media (max-width: 640px) {
+  .name {
+    font-size: clamp(2rem, 9.4vw, 3rem);
+  }
+}
 
 /* -------------------------------------------------------------------------------- monogram */
 
@@ -333,8 +421,12 @@
 }
 
 @media (max-width: 767px) {
+  /* Round 33: the phone is the ambient version of the band, not a bright second logo. The 3D layer
+     above is already at 0.2 with pointer events off; the stand-in mark is now dimmed with it so
+     the band reads as one quiet surface instead of a full-strength interactive object. */
   .signatureFallback {
     display: grid;
+    opacity: 0.4;
   }
 }
 

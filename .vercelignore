@@ -1,0 +1,23 @@
+# Trim the upload, never the build inputs.
+#
+# AKBAR-NAWASUNDA-ASSETS/ and scripts/ deliberately stay IN the upload:
+#   - src/assets/manifest.ts statically imports the original artwork from
+#     AKBAR-NAWASUNDA-ASSETS/ at build time. Removing it produces
+#     "Module not found" on Vercel while local builds stay green.
+#   - scripts/ holds the build/QA helpers the Vercel project commands may call.
+# `outputFileTracingExcludes` in next.config.ts is what keeps these out of the
+# deployed function bundle; .vercelignore only controls what gets uploaded.
+# Run `npm run vercel:audit` (also a CI step) before editing this file.
+
+docs/
+*.md
+!README.md
+artifacts/
+review-shots/
+tests/
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+.next/cache/

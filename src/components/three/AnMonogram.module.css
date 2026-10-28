@@ -1,11 +1,12 @@
 /*
  * The band's scenery: it sits behind the type, never above it, never eats a pointer event.
  *
- * Round 29: the water is a shader quad (see AnMonogramLiquid). The baked still underneath is the
- * fallback and the floor: no WebGL, reduced motion and phones never mount the GPU path, and once
- * the shader is live the still simply fades out under it — same reveal contract as always:
- * invisible until `data-ready`, then a long fade into the band's black.
+ * Round 34: the shader quad is gone. The baked still underneath is now the floor AND the fallback
+ * (reduced motion, no-JS, no canvas 2D), and the canvas-2D foil draws the mark on top of it. The
+ * still steps back only once the foil has actually drawn its first frame (`data-foil="on"`), so a
+ * foil that never mounts — no chunk, no context, a dropped frame — can never black out the band.
  */
+
 .canvas {
   position: absolute;
   inset: 0;
@@ -30,7 +31,7 @@
   inset: 0;
 }
 
-/* The stack: baked still below, shader quad above it once mounted. */
+/* The stack: baked still below, foil canvas above it once mounted. */
 .liquid {
   position: absolute;
   inset: 0;
@@ -51,15 +52,16 @@
   transition: opacity 700ms var(--ease);
 }
 
-/* The shader is live: the still steps back under it instead of doubling the mark. */
-.canvas[data-liquid="on"] .still {
+/* Round 34: the still steps back only once the foil has drawn. Gating on `data-foil` (set by the
+   foil on its first frame) rather than on the chunk's existence means a foil that bails — no
+   context, a failed import — leaves the still in place instead of blacking out the band. */
+.canvas:has([data-foil="on"]) .still {
   opacity: 0;
 }
 
 /*
- * The 3D layer: above the still, flush with the band, and the one surface in the band that takes
- * pointer events — the raycaster inside the chunk needs the hand. Everything above and below the
- * band keeps its own clicks; the layer is exactly the band's box.
+ * The 3D layer is gone. The foil canvas owns its own positioning (AnMonogramFoil.module.css) and
+ * its own pointer events. This rule is kept for the lazy-import wrapper's layout if ever needed.
  */
 .liquidLayer {
   position: absolute;

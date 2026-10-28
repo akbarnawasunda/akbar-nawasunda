@@ -26,8 +26,39 @@
 }
 
 .cell {
+  position: relative;
   margin: 0;
   transform-style: preserve-3d;
+}
+
+/* Ledger watermark — the giant index behind the sleeve, same device as the homepage reel.
+   Generated content keeps it out of the accessibility tree and the contrast text scan. */
+.ledgerIndexWatermark {
+  position: absolute;
+  /* inset from the edge so both digits land on the bone stock instead of half over the ink gutter,
+     where a 14% blue is invisible and the number reads as a clipped glyph. */
+  right: 1.5rem;
+  top: 34%;
+  transform: translateY(-50%);
+  font-family: var(--font-body-stack);
+  /* Round 33: the old 72px/4%-white number sat at z-index 0 BEHIND an opaque 306px sleeve, so a
+     hit test at its own centre returned the cover image — the watermark was literally not visible
+     anywhere on /music. It now sits above the sleeve (pointer-events still off) at a size that
+     reads as a ledger ghost: faint blue on the bone stock, a low dark note on the ink ground. */
+  font-size: clamp(5rem, 8vw, 7.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-signal-blue);
+  opacity: 0.14;
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+  transition: opacity var(--duration-snap) var(--ease-snap), color var(--duration-snap) var(--ease-snap);
+}
+
+.ledgerIndexWatermark::before {
+  content: attr(data-index);
 }
 
 .card {
@@ -75,6 +106,21 @@
       10px 12px 0 var(--color-border-strong),
       0 30px 70px rgb(0 0 0 / 55%);
   }
+
+  /* Ledger hover physics: the row shifts, the watermark lights up toward the signal blue. */
+  .cell:hover .card {
+    transform: translateX(6px) rotateX(var(--wall-rx, 0deg)) rotateY(var(--wall-ry, 0deg))
+      translate3d(0, 0, var(--wall-z, 0px));
+  }
+
+  .cell:hover .ledgerIndexWatermark {
+    opacity: 0.24;
+    color: var(--color-signal-blue);
+  }
+
+  .cell:hover .under {
+    border-top-color: var(--color-signal-blue);
+  }
 }
 
 .card:focus-visible {
@@ -121,14 +167,54 @@
 }
 
 /*
- * One column on phones. Two columns of Relidux caps leave a ~130px title column at 390px, and
- * "MENCINTAINYA" needs ~180px at the smallest legible size — the only ways out are type too small
- * to read or words broken mid-syllable, and both look broken. A record bin is one sleeve per row
- * anyway; the wall reads calmer for it.
+ * Round 33, owner's audit: at <=640px the wall was a desktop grid forced narrow — one 350px sleeve
+ * stacked per row, 4000px of scrolling for nine records. This is the compact ledger it should be:
+ * one ruled row per release, an 84px thumbnail at the left and exactly two lines of type (title,
+ * then format/year) at the right, with the giant index still ghosted behind the row.
+ * Not two columns of cards: a 170px column breaks "MENCINTAINYA" mid-syllable.
  */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .wall {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .cell {
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .card {
+    grid-template-columns: 84px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .sleeve {
+    width: 84px;
+    height: 84px;
+    box-shadow: none;
+  }
+
+  .under {
+    align-content: center;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .title {
+    font-size: clamp(0.95rem, 4.2vw, 1.15rem);
+  }
+
+  .ordinal {
+    padding-top: 0.35em;
+  }
+
+  .ledgerIndexWatermark {
+    font-size: clamp(3rem, 13vw, 4.5rem);
+    top: 50%;
+    right: 0.5rem;
+    opacity: 0.16;
   }
 }
 
@@ -147,6 +233,10 @@
 @media (prefers-reduced-motion: reduce) {
   .card {
     transform: none;
+    transition: none;
+  }
+
+  .ledgerIndexWatermark {
     transition: none;
   }
 }

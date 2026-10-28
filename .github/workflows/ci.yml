@@ -38,6 +38,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Security Audit (Dependencies)
+        run: npm audit --audit-level=high --omit=dev
+
       - name: Unit tests
         run: npm run test
 
@@ -45,6 +48,11 @@ jobs:
       # every token defined but unused. Cheap enough to run before the build.
       - name: Design tokens
         run: npm run audit:tokens
+
+      # .vercelignore is applied to the tree Vercel uploads, before `npm run build`.
+      # A local green build cannot catch a build-time import that was filtered out.
+      - name: Vercel upload audit
+        run: npm run vercel:audit
 
       # PREVIEW_FRAMING keeps the CSP wide enough for the sandbox iframe, which is also what the
       # header assertions in the suite expect.

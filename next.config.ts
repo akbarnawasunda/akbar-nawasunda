@@ -19,6 +19,19 @@ const nextConfig: NextConfig = {
     "/og": ["./public/fonts/**", "./public/assets/covers/**"],
   },
   /**
+   * Exclude documentation, artifacts, and scripts from Vercel's file tracing to prevent
+   * bloating the serverless function bundle (storage anti-jebol).
+   */
+  outputFileTracingExcludes: {
+    "*": [
+      "./docs/**",
+      "./artifacts/**",
+      "./AKBAR-NAWASUNDA-ASSETS/**",
+      "./scripts/**",
+      "./*.md",
+    ],
+  },
+  /**
    * D-024: /artist is canonical. /about was the Phase 2 holding route; a permanent (308) redirect
    * keeps any existing link or search result working instead of serving the old page forever.
    */

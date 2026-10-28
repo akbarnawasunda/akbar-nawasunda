@@ -11,43 +11,39 @@ import { RouteCurtain } from "@/components/zine/RouteCurtain";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader, type DrawerLatest } from "@/components/layout/SiteHeader";
+import { AudioHUD } from "@/components/ui/AudioHUD";
 import { resolveCover, resolveSleeve } from "@/content/covers";
 import { releaseEyebrow, releases } from "@/content/releases";
 import { buildLabel } from "@/config/build";
-import { contactEmail, listenLinks, socialLinks } from "@/config/socials";
-import { designAttributes } from "@/studio/design";
-import { getPublicDesign } from "@/studio/public";
+import { contactEmail, listenLinks, listenUrl, socialLinks } from "@/config/socials";
+import { designAttributes, DEFAULT_DESIGN } from "@/studio/design";
 
-// Design settings come from the published Studio state, so this layout is read per request.
-export const dynamic = "force-dynamic";
+// Static layout — no database calls. Design attributes use defaults; Studio preview
+// overrides are handled via the preview route, not the public layout.
+export const dynamic = "force-static";
 
 /**
- * Shared chrome for the artist website: header, main landmark and footer. The wrapper carries only
- * approved design attributes (see src/studio/design.ts); CSS for each value lives in globals.css.
+ * Shared chrome for the artist website: header, main landmark and footer.
+ * The wrapper carries approved design attributes (see src/studio/design.ts);
+ * CSS for each value lives in globals.css.
  */
-export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const design = await getPublicDesign();
+export default function SiteLayout({ children }: { children: ReactNode }) {
+  const design = DEFAULT_DESIGN;
 
-  /*
-   * The phone drawer shows the newest release rather than only linking to the catalogue. It is the
-   * owner's own first entry, not a computed "latest" by date: the list order is theirs, and half the
-   * catalogue has no confirmed date to sort by.
-   */
+  /* The phone drawer shows the newest release rather than only linking to the catalogue.
+     It is the owner's own first entry, not a computed "latest" by date. */
   const newest = releases[0];
   const latest: DrawerLatest | null = newest
     ? {
         title: newest.title,
         href: `/music/${newest.slug}`,
         meta: releaseEyebrow(newest),
-        // Real artwork first, then the generated sleeve — the same waterfall the catalogue uses.
         cover: newest.cover ?? resolveCover(newest.slug) ?? resolveSleeve(newest.slug),
       }
     : null;
-  /*
-   * The verso is built here, once, from the same data the pages print: the catalogue with its real
-   * links, the platforms, and what is still missing. Nothing on the back side is written by hand —
-   * a back cover that drifts out of sync with the front is worse than no back cover.
-   */
+
+  /* The verso is built from the same data the pages print: the catalogue with its real
+     links, the platforms, and what is still missing. */
   const sheet: SheetData = {
     run: buildLabel,
     releases: releases.map((release, index) => ({
@@ -81,6 +77,13 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <main id="main" className="site-main">
         {children}
       </main>
+      {/* Round 33: the deck is driven by the same verified first release as the header drawer.
+          Mounting it with no props made it return null on every route — the HUD never existed. */}
+      <AudioHUD
+        trackTitle={newest?.title ?? "Arsip Nawasunda"}
+        trackHref={newest ? `/music/${newest.slug}` : "/music"}
+        listenHref={listenUrl}
+      />
       <SiteFooter />
       <GrainOverlay />
       <InkPress />

@@ -7,6 +7,8 @@ import { visualItems } from "@/content/visuals";
 import { pageMetadata } from "@/lib/metadata";
 import styles from "./visuals.module.css";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = pageMetadata({
   title: "Visuals",
   description:

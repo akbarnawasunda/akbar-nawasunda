@@ -22,6 +22,8 @@ npm-debug.log*
 # local playwright / screenshot artifacts (kept out of git)
 /artifacts/
 /.playwright-cli/
+# regenerated browser binary + shared libs (run `npm run visual:setup` to restore)
+/.visual-tools/
 
 # local database for NAWA STUDIO development (never commit)
 /data/

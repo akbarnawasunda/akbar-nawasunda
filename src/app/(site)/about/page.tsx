@@ -10,9 +10,9 @@ import { pageMetadata } from "@/lib/metadata";
 import { getPublicPage } from "@/studio/public";
 import styles from "./about.module.css";
 
-// Published content is read on each request so a publish shows immediately and a read failure
-// never caches the static fallback.
-export const dynamic = "force-dynamic";
+// /about 308-redirects to /artist in next.config.ts, so this page is never served. Kept static so
+// the redirect-only route does not add a serverless function to the deployment.
+export const dynamic = "force-static";
 
 const defaultDescription = `About ${siteConfig.name}, ${siteConfig.role.toLowerCase()}.`;
 

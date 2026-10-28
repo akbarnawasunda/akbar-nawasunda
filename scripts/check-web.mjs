@@ -93,11 +93,14 @@ if (kb(jsBytes) > BUDGET.jsKb) failures.push(`initial JS ${kb(jsBytes)} KB excee
 if (kb(cssBytes) > BUDGET.cssKb) failures.push(`CSS ${kb(cssBytes)} KB exceeds ${BUDGET.cssKb} KB`);
 
 /**
- * The lazy 3D chunk must NOT be part of the initial list.
+ * Regression guard: no initial chunk may contain the three.js WebGL symbol.
  *
- * Matching on "WebGLRenderer" is wrong: the *component* is in the initial bundle and legitimately
- * contains `new THREE.WebGLRenderer(...)`. `WebGLProgram` is a shader-internal symbol only the three
- * library itself defines, so it is a clean marker for "the 78 KB library shipped eagerly".
+ * Round 34 removed the 3D stack entirely — the liquid monogram is now a canvas-2D foil
+ * (`src/components/three/AnMonogramFoil.tsx`), no WebGL, no shader, no three. This check is kept
+ * so a future "just for the signal" three import cannot sneak back into the initial payload.
+ *
+ * `WebGLProgram` is a shader-internal symbol only the three library itself defines, so it is a
+ * clean marker: if any initial chunk contains it, three has leaked into the eager payload.
  */
 const threeChunk = scripts.find((url) => {
   const path = diskPath(url.split("?")[0]);

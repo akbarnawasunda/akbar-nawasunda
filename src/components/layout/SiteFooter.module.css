@@ -41,6 +41,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  /* A long email in the Kontak column must wrap instead of widening the 4-column grid at ~900px. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-family: var(--font-body-stack);
   font-size: var(--text-small);
   line-height: var(--leading-title);

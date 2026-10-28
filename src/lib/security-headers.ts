@@ -32,9 +32,16 @@ export function frameAncestors(allowPreviewFraming = process.env.PREVIEW_FRAMING
 }
 
 export function contentSecurityPolicy(allowPreviewFraming?: boolean): string {
+  /**
+   * React's development build calls `eval()` to reconstruct component stack traces. Without
+   * `unsafe-eval` in dev, every `next dev` page prints a red console error even though nothing
+   * is broken — which makes console-error verification unusable locally. It is added ONLY when
+   * NODE_ENV is not production; the deployed CSP keeps the strict `script-src` unchanged.
+   */
+  const devEval = process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : "";
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline'${devEval}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",

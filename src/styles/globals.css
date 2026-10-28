@@ -262,6 +262,35 @@ html[data-cursor="on"] [role="button"] {
   cursor: none;
 }
 
+/* ================================================================ GLOBAL MOTION ENGINE */
+/* Motion tokens and industrial button base class */
+:root {
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-snap: 180ms;
+  --ease-mechanical: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration-mechanical: 240ms;
+}
+
+/* Industrial button — transparent, hairline border, 0px radius */
+.btn-industrial {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0px;
+  transition:
+    background var(--duration-snap) var(--ease-snap),
+    color var(--duration-snap) var(--ease-snap),
+    border-color var(--duration-snap) var(--ease-snap);
+}
+
+.btn-industrial:hover,
+.btn-industrial:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ground, var(--color-bg-base));
+  border-color: var(--color-text-primary);
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -270,9 +299,10 @@ html[data-cursor="on"] [role="button"] {
   *,
   *::before,
   *::after {
-    animation-duration: 1ms !important;
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -306,4 +336,22 @@ html[data-cursor="on"] [role="button"] {
 
 .site-root[data-title-case="as-written"] .page-title {
   text-transform: none;
+}
+
+/*
+ * Round 33 — the fixed audio deck must not collide with anything.
+ *
+ * It is 48px of fixed chrome at the bottom of every public page. Without these two rules it sat on
+ * top of the last 48px of the footer and, on phones, on top of the "Indeks" tab (z 45 vs the
+ * deck's --z-overlay). `:has` keys off the deck's own hook, so the spacing disappears again the
+ * moment a visitor dismisses the deck with ×.
+ */
+.site-root:has([data-audio-hud="on"]) {
+  padding-bottom: var(--hud-height);
+}
+
+@media (max-width: 719px) {
+  .site-root:has([data-audio-hud="on"]) [data-sheet-toggle] {
+    bottom: calc(var(--hud-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
 }

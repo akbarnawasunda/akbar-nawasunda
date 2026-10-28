@@ -22,7 +22,7 @@ import styles from "./ReleasePlate.module.css";
  *
  * Honesty rules are unchanged: `ordinal` is a position in the owner's own list (printed as
  * "Katalog 03 / 10", never as an invented catalogue number), every fact comes from the owner's data,
- * and anything unconfirmed prints an em dash instead of being guessed.
+ * and anything unconfirmed is simply not printed.
  */
 export interface ReleaseNeighbour {
   slug: string;
@@ -60,6 +60,9 @@ export function ReleasePlate({
   prev,
   next,
 }: ReleasePlateProps) {
+  // Filter out null/undefined/empty string values from facts
+  const validFacts = facts.filter((fact) => fact.value != null && fact.value !== "");
+
   return (
     <article className={styles.record}>
       {/* ------------------------------------------------------------ the sleeve */}
@@ -87,18 +90,27 @@ export function ReleasePlate({
             {description ? <p className={styles.lead}>{description}</p> : null}
 
             {links.length === 0 ? (
-              <p className={styles.noLinks}>
-                <span className={styles.noLinksLabel}>Tautan</span>
-                Tautan mendengarkan untuk rilis ini belum tersedia.
-              </p>
+              <div className={styles.dubplateVault}>
+                <div className={styles.vaultHeader}>
+                  <span className={styles.vaultBadge}>[ STATUS: DUBPLATE / CLUB TOOL ]</span>
+                  <span className={styles.vaultLiveSignal}>
+                    <span className={styles.vaultPulseDot} aria-hidden="true" />
+                    LIVE ONLY
+                  </span>
+                </div>
+                <p className={styles.vaultNotice}>
+                  Master rekaman ini tidak didistribusikan ke platform streaming digital (DSP). Rilis ini tersimpan dalam arsip independen dan hanya dimainkan secara langsung pada club set.
+                </p>
+                <div className={styles.vaultActions}>
+                  <Link href="/music" className={styles.vaultBackBtn}>← KEMBALI KE INDEKS KATALOG</Link>
+                </div>
+              </div>
             ) : null}
           </div>
 
-          {/*
-            The artwork, held out from the blue field. A flat sheet of ink sits 20 px down and right
-            of it at its own depth, so a pointer tilt separates print from shadow — which is the
-            whole reason the sleeve is on a plate instead of in a `<figure>` with a border.
-          */}
+          {/* The artwork, held out from the blue field. A flat sheet of ink sits 20 px down and right
+              of it at its own depth, so a pointer tilt separates print from shadow — which is the
+              whole reason the sleeve is on a plate instead of in a `<figure>` with a border. */}
           <Plate3D
             className={styles.artworkStage}
             data-plate="release-sleeve"
@@ -115,11 +127,9 @@ export function ReleasePlate({
             </div>
           </Plate3D>
 
-          {/*
-            Listening lives *in* the band. On a field of the identity colour the rows are printed in
-            ink over hairlines and invert to dark on hover; below the band they left a third of the
-            blue field empty and made the page look like two different designs stacked.
-          */}
+          {/* Listening lives *in* the band. On a field of the identity colour the rows are printed in
+              ink over hairlines and invert to dark under the pointer; below the band they left a third of the
+              blue field empty and made the page look like two different designs stacked. */}
           {links.length > 0 ? (
             <ul className={styles.links} aria-label="Dengarkan di">
               {links.map((link, index) => (
@@ -135,9 +145,7 @@ export function ReleasePlate({
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <span className={styles.linkLabel}>{link.label}</span>
-                    <span className={styles.linkArrow} aria-hidden="true">
-                      ↗
-                    </span>
+                    <span className={styles.linkArrow} aria-hidden="true">↗</span>
                   </a>
                 </li>
               ))}
@@ -147,21 +155,23 @@ export function ReleasePlate({
       </header>
 
       {/* --------------------------------------------------------------- colophon */}
-      <section className={styles.factsBand} aria-labelledby="facts-title">
-        <div className={styles.factsInner}>
-          <h2 className={styles.sectionLabel} id="facts-title">
-            Lembar data
-          </h2>
-          <dl className={styles.facts}>
-            {facts.map((fact) => (
-              <div key={fact.label} className={styles.fact}>
-                <dt>{fact.label}</dt>
-                <dd>{fact.value ?? "—"}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+      {validFacts.length > 0 ? (
+        <section className={styles.factsBand} aria-labelledby="facts-title">
+          <div className={styles.factsInner}>
+            <h2 className={styles.sectionLabel} id="facts-title">
+              Lembar data
+            </h2>
+            <dl className={styles.facts}>
+              {validFacts.map((fact) => (
+                <div key={fact.label} className={styles.fact}>
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      ) : null}
 
       {/* ------------------------------------------------------------------- more */}
       <nav className={styles.more} aria-label="Rilis lain">
@@ -183,11 +193,7 @@ export function ReleasePlate({
           </Link>
 
           {next ? (
-            <Link
-              className={`${styles.neighbour} ${styles.neighbourNext}`}
-              href={`/music/${next.slug}`}
-              rel="next"
-            >
+            <Link className={`${styles.neighbour} ${styles.neighbourNext}`} href={`/music/${next.slug}`} rel="next">
               <span className={styles.neighbourLabel}>Berikutnya →</span>
               <span className={styles.neighbourSleeve}>
                 <ReleaseCover artwork={next.artwork} title={next.title} showTitle={false} />

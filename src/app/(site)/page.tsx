@@ -33,6 +33,8 @@ import { getPublicPage, getPublicPhotos } from "@/studio/public";
 
 import styles from "./page.module.css";
 
+export const dynamic = "force-static";
+
 /**
  * Homepage — "HUD" (round 16).
  *
@@ -98,10 +100,6 @@ const tickerItems = catalogue.map((item) => ({
 
 /** Only the milestones that are documented; a gap is silent, not a stamped hole. */
 const timeline = artistTimeline.filter((entry) => !entry.pending);
-
-/* Round 26: photo slots and studio publishes land in the database after the build; ISR lets a
- * filled slot appear within a minute (and immediately after the studio's revalidatePath). */
-export const revalidate = 60;
 
 export default async function HomePage() {
   if (!featured) return null;
@@ -209,6 +207,17 @@ export default async function HomePage() {
                 </div>
               </dl>
             </div>
+
+            {/* Logistics Strip — technical metadata below the CTA, inside the Plate3D transform context.
+                The count is derived (src/content/stats.ts), like every other figure on this site:
+                a literal "14 ITEM" would contradict the 10 rilis printed one row above it. */}
+            <div className={styles.heroLogistics} data-depth="hero-logistics">
+              <span className={styles.logisticsItem}>KATALOG: {stats.releaseCount} ITEM</span>
+              <span className={styles.logisticsDivider}>{"//"}</span>
+              <span className={styles.logisticsItem}>STATUS: AKTIF</span>
+              <span className={styles.logisticsDivider}>{"//"}</span>
+              <span className={styles.logisticsItem}>LOC: BANDUNG BARAT, ID</span>
+            </div>
           </div>
         </Plate3D>
       </section>
@@ -222,7 +231,9 @@ export default async function HomePage() {
         the light source, and a second bright thing on the same screen would halve it.
       */}
       <section className={styles.signature} aria-label="Monogram">
-        <AnMonogram />
+        <div className={styles.signatureCanvas}>
+          <AnMonogram />
+        </div>
         {/*
           Below 768px the renderer never mounts (R14: bloom on a phone GPU is not worth the frames),
           so the band used to be 74svh of empty black on every phone. This is the mark itself — the

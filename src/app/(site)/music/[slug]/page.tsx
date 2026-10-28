@@ -10,30 +10,22 @@ import {
   releases,
 } from "@/content/releases";
 import { pageMetadata } from "@/lib/metadata";
-import { getReleaseArtwork } from "@/studio/artwork";
-import { publicReleaseDate, RELEASE_TYPE_LABELS } from "@/studio/releases";
-import { getPublishedRelease } from "@/studio/public";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 interface ReleasePageProps {
   params: Promise<{ slug: string }>;
 }
 
-/** Published Studio release first; otherwise the verified static entry; otherwise 404. Drafts never show. */
+/** Generate static params for all static catalogue releases. */
+export async function generateStaticParams() {
+  return releases.map((release) => ({ slug: release.slug }));
+}
+
+/** Static metadata for static catalogue releases. */
 export async function generateMetadata({ params }: ReleasePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const managed = await getPublishedRelease(slug);
-  if (managed) {
-    return pageMetadata({
-      ogSlug: slug,
-      title: managed.seoTitle || managed.title,
-      description: managed.seoDescription || managed.description || undefined,
-      path: `/music/${slug}`,
-    });
-  }
   const release = getReleaseBySlug(slug);
-  // No such release: the page calls notFound(), so keep the title neutral and out of the index.
   if (!release) return { title: "Rilis tidak ditemukan", robots: { index: false, follow: true } };
   return pageMetadata({
     ogSlug: release.slug,
@@ -45,13 +37,7 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
   });
 }
 
-/**
- * The catalogue in the owner's own order, for the counter and for the two neighbours.
- *
- * The ordinal printed on the page is a *position*, not a label catalogue number: this catalogue has
- * no such number, and inventing one would be exactly the kind of fiction the content rules forbid.
- * "Katalog 03 / 10" is a statement about the list, and it is true.
- */
+/** The catalogue in the owner's own order, for the counter and for the two neighbours. */
 function neighbours(slug: string): { prev: ReleaseNeighbour | null; next: ReleaseNeighbour | null } {
   const index = releases.findIndex((release) => release.slug === slug);
   if (index < 0) return { prev: null, next: null };
@@ -77,36 +63,6 @@ function resolveArtwork(slug: string): CoverArtwork {
 export default async function ReleasePage({ params }: ReleasePageProps) {
   const { slug } = await params;
 
-  /* ------------------------------------------------------------------ Studio */
-  const managed = await getPublishedRelease(slug);
-  if (managed) {
-    const cover = resolveCover(slug);
-    const asset = getReleaseArtwork(managed.artworkId);
-    const artwork: CoverArtwork = cover
-      ? { kind: "image", src: cover }
-      : asset
-        ? { kind: "image", src: asset.image.src }
-        : coverArtwork(slug);
-    const date = publicReleaseDate(managed);
-
-    return (
-      <ReleasePlate
-        title={managed.title}
-        ordinal={null}
-        meta={[RELEASE_TYPE_LABELS[managed.type], date].filter((part): part is string => Boolean(part))}
-        description={managed.description || null}
-        artwork={artwork}
-        links={managed.links.map((link) => ({ label: link.label, href: link.href }))}
-        facts={[
-          { label: "Judul", value: managed.title },
-          { label: "Jenis", value: RELEASE_TYPE_LABELS[managed.type] },
-          { label: "Tanggal", value: date },
-        ]}
-      />
-    );
-  }
-
-  /* ---------------------------------------------------------------- catalogue */
   const release = getReleaseBySlug(slug);
   if (!release) notFound();
 

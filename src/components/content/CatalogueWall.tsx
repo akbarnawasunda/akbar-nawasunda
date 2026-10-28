@@ -43,7 +43,12 @@ export interface WallItem extends ReleaseView {
   artwork: CoverArtwork;
 }
 
-export function CatalogueWall({ items }: { items: readonly WallItem[] }) {
+/**
+ * `/music` prints the first release as the takeover above the wall and passes the rest here, so
+ * `startIndex` keeps both numbers on the wall — the small ordinal and the giant watermark — at
+ * their real position in the owner's catalogue rather than restarting at 01.
+ */
+export function CatalogueWall({ items, startIndex = 0 }: { items: readonly WallItem[]; startIndex?: number }) {
   const listRef = useRef<HTMLOListElement | null>(null);
   const frame = useRef(0);
   const last = useRef<{ x: number; y: number } | null>(null);
@@ -110,13 +115,20 @@ export function CatalogueWall({ items }: { items: readonly WallItem[] }) {
     <ol className={styles.wall} ref={listRef}>
       {items.map((item, index) => (
         <li key={item.slug} className={styles.cell}>
+          {/* Ledger watermark: the same giant index the homepage reel carries, behind the sleeve.
+              data-index + ::before keeps it out of axe's colour-contrast text scan. */}
+          <span
+            className={styles.ledgerIndexWatermark}
+            data-index={String(startIndex + index + 1).padStart(2, "0")}
+            aria-hidden="true"
+          />
           <Link href={item.href} className={styles.card} data-wall-card={item.slug}>
             <span className={styles.sleeve}>
               <ReleaseCover artwork={item.artwork} title={item.title} showTitle={false} />
             </span>
             <span className={styles.under}>
               <span className={styles.ordinal} aria-hidden="true">
-                {String(index + 1).padStart(2, "0")}
+                {String(startIndex + index + 1).padStart(2, "0")}
               </span>
               <span className={styles.title}>{item.title}</span>
               <span className={styles.meta}>{item.meta}</span>

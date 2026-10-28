@@ -55,72 +55,79 @@ describe("no generated visual effects ship", () => {
    * jir") and the monogram became a baked WebP still; round 29 is an absolute spec for a *liquid
    * shader* monogram — a 2D quad, no 3D objects, lazily mounted, `frameloop` off when the band
    * scrolls away. So the rule is again "exactly one canvas, in exactly one file": the lazy
-   * `AnMonogramLiquid` chunk. Anywhere else a `<canvas>` appears is how the particle field
+   * `AnMonogramFoil` chunk. Anywhere else a `<canvas>` appears is how the particle field
    * returned last time, and stays banned.
    */
-  const LIQUID_CHUNK = "src/components/three/AnMonogramLiquid.tsx";
+  const FOIL_CHUNK = "src/components/three/AnMonogramFoil.tsx";
 
-  it("ships exactly one canvas surface: the lazy liquid-monogram chunk", () => {
+  it("ships exactly one canvas surface: the lazy foil chunk", () => {
     const offenders = globSync("src/{app,components}/**/*.tsx", { cwd: root }).filter(
-      (file) => file !== LIQUID_CHUNK && !isExample(file) && /<canvas/i.test(readFileSync(join(root, file), "utf8")),
+      (file) => file !== FOIL_CHUNK && !isExample(file) && /<canvas/i.test(readFileSync(join(root, file), "utf8")),
     );
     assert.deepEqual(offenders, [], `these files render a <canvas>: ${offenders.join(", ")}`);
     assert.ok(
-      /<Canvas/.test(readFileSync(join(root, LIQUID_CHUNK), "utf8")),
-      "the liquid chunk no longer renders its Canvas",
+      /<canvas/i.test(readFileSync(join(root, FOIL_CHUNK), "utf8")),
+      "the foil chunk no longer renders its canvas",
     );
   });
 
   /**
-   * Round 29 sanctions three/@react-three/fiber for the liquid monogram and nothing else: the
-   * chunk that imports them must be the lazy one, the orchestrator must mount it through
-   * `React.lazy` (so `check:web`'s budget never sees it), the baked still must stay in the DOM as
-   * the fallback, the owner's "no rigid 3D" rules out extruded/box geometry, and drei/babylon/gsap
-   * stay banned outright — a dependency that arrives "just for the signal" is how this started.
+   * Round 34 removed the 3D stack entirely. The owner reported the WebGL liquid "gagal, jelek, ada
+   * bug"; the diagnosis (artifacts/visual-check/mercury-core/DIAGNOSIS.md) found it never rendered
+   * without WebGL, cost 21,312 noise evaluations per frame, and shipped a 973 KB three chunk. The
+   * replacement is canvas 2D: the same six AN strokes, monochrome bone fill, one signal-blue edge,
+   * one mechanical sweep. No WebGL, no shader, no three, no GPU.
+   *
+   * These assertions are the contract that keeps it that way: no 3D dependency in the tree, the
+   * foil is canvas 2D (not WebGL), the loop is parked off screen, the still fallback survives.
    */
-  it("keeps the 3D stack quarantined in the lazy liquid chunk, solid and reflective per spec", () => {
+  it("has no 3D stack in the tree — the foil is canvas 2D, not WebGL", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
     const all = { ...pkg.dependencies, ...pkg.devDependencies };
-    /* Round 31 sanctions drei (Environment/Lightformer) alongside three and fiber — the owner's
-       spec names it. babylon and gsap stay banned outright. */
-    for (const name of ["babylonjs", "gsap"]) {
+    /* The whole 3D stack is banned, not just babylon and gsap. */
+    for (const name of ["three", "@react-three/fiber", "@react-three/drei", "babylonjs", "gsap"]) {
       assert.equal(all[name], undefined, `${name} is installed again`);
     }
 
     const importers = globSync("src/**/*.{ts,tsx}", { cwd: root }).filter((file) =>
-      /from\s+"(three|@react-three\/fiber)|import\(\s*"(three|@react-three\/fiber)/.test(
+      /from\s+"(three|@react-three\/fiber|@react-three\/drei)|import\(\s*"(three|@react-three\/fiber|@react-three\/drei)/.test(
         readFileSync(join(root, file), "utf8"),
       ),
     );
-    assert.deepEqual(importers, [LIQUID_CHUNK], `these files import the 3D stack: ${importers.join(", ")}`);
+    assert.deepEqual(importers, [], `these files import the 3D stack: ${importers.join(", ")}`);
 
     const orchestrator = readFileSync(join(root, "src/components/three/AnMonogram.tsx"), "utf8");
     assert.match(
       orchestrator,
-      /dynamic\(\(\) => import\("\.\/AnMonogramLiquid"\), \{\s*ssr: false,/,
-      "the chunk is not lazily imported with ssr disabled",
+      /dynamic\(\(\) => import\("\.\/AnMonogramFoil"\), \{\s*ssr: false,/,
+      "the foil is not lazily imported with ssr disabled",
     );
     assert.match(orchestrator, /loading="lazy"/, "the baked still fallback is gone");
 
-    /* Round 31 reversed round 29's flat-quad rule: the mark must be SOLID — extruded strokes in a
-       mercury physical material, melted in the vertex stage, lit by an in-scene environment that
-       fetches nothing. These are the assertions that the object stays an object. */
-    const chunk = readFileSync(join(root, LIQUID_CHUNK), "utf8");
-    assert.match(chunk, /ExtrudeGeometry/, "the monogram is no longer solid geometry");
-    assert.match(chunk, /MeshPhysicalMaterial/, "the mercury material is gone");
-    assert.match(chunk, /metalness: 1/, "metalness is not 1");
-    assert.match(chunk, /roughness: 0.05/, "roughness is not 0.05");
-    assert.match(chunk, /onBeforeCompile/, "the melt no longer runs in the vertex stage");
-    assert.match(chunk, /<Environment/, "the drei environment is gone");
-    assert.match(chunk, /onPointerMove/, "the raycaster ripple is gone");
-    assert.match(chunk, /dpr=\{\[1, 1.5\]\}/, "DPR is not capped at 1.5");
-    assert.match(chunk, /frameloop=\{inView \? "always" : "demand"\}/, "the loop is not parked off screen");
-    for (const banned of [/BoxGeometry/, /TextGeometry/, /TubeGeometry/]) {
-      assert.ok(!banned.test(chunk), `${banned.source}: the spec is extruded strokes, not primitives`);
-    }
+    /* The foil must be canvas 2D — the one marker that separates it from every WebGL renderer. */
+    const chunk = readFileSync(join(root, FOIL_CHUNK), "utf8");
+    assert.match(chunk, /getContext\("2d"\)/, "the foil is not canvas 2D");
+    assert.doesNotMatch(chunk, /getContext\("webgl/, "the foil still uses WebGL");
+    assert.doesNotMatch(chunk, /WebGLRenderer/, "the foil still uses a WebGL renderer");
+    assert.doesNotMatch(chunk, /simplex|snoise/i, "the foil still uses noise");
+
+    /* The loop must be parked off screen by an IntersectionObserver. */
+    assert.match(chunk, /IntersectionObserver/, "the foil is not parked off screen");
+    assert.match(chunk, /requestAnimationFrame/, "the foil has no rAF loop");
+    assert.match(chunk, /cancelAnimationFrame/, "the foil does not cancel its loop");
+
+    /* The still fallback: the foil signals its first frame so the still can step back. */
+    assert.match(chunk, /dataset\.foil/, "the foil does not signal its first frame");
+
+    /* Monochrome bone fill + exactly one signal-blue accent edge. */
+    assert.match(chunk, /rgba\(255,\s*255,\s*255/, "the foil is not monochrome bone");
+    assert.match(chunk, /rgba\(0,\s*135,\s*255/, "the foil has no signal-blue accent");
+
+    /* Mechanical easing, not organic noise. */
+    assert.match(chunk, /Math\.pow\(1 - t,\s*3\)/, "the foil does not use mechanical easing");
   });
 
   it("keeps the homepage free of the banned patterns", () => {

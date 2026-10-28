@@ -1,0 +1,27 @@
+/**
+ * The canvas-2D foil surface.
+ *
+ * Positioned absolutely over the band, above the baked still. The still fades out once the foil
+ * has drawn its first frame (`data-foil="on"` on the canvas, gated by `:has()` in
+ * AnMonogram.module.css). The foil itself is transparent — it only draws the mark.
+ *
+ * `pointer-events: auto` here; the band-level `.signatureCanvas` rule already turns pointer events
+ * off below 768px, so the foil only reads the hand on desktop.
+ */
+
+.foil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: block;
+  pointer-events: auto;
+}
+
+/* Mobile: ambient and non-interactive — the requirement from round 33 and the owner's spec. */
+@media (max-width: 768px) {
+  .foil {
+    pointer-events: none;
+  }
+}

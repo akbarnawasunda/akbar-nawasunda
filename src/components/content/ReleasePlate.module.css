@@ -142,6 +142,98 @@
   color: var(--color-signal-blue);
 }
 
+/* =============================================================== DUBPLATE VAULT */
+/* Shown when a release has no streaming links — a club tool, not a DSP product. */
+.dubplateVault {
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: var(--space-6);
+  font-family: var(--font-body-stack);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.vaultHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.vaultBadge {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-signal-blue);
+}
+
+/* The label stays at full opacity in the icy tint (10.9:1 on --color-surface). Only the
+   decorative square pulses — a dimmed text node would fail axe's colour-contrast rule at the
+   bottom of the animation. */
+.vaultLiveSignal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-signal-icy);
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vaultPulseDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background: var(--color-signal-icy);
+  animation: vaultPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes vaultPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vaultPulseDot {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.vaultNotice {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-secondary);
+  max-width: 50ch;
+}
+
+.vaultActions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.vaultBackBtn {
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-hairline);
+  padding-bottom: 2px;
+  transition: color var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
+}
+
+.vaultBackBtn:hover,
+.vaultBackBtn:focus-visible {
+  color: var(--color-signal-blue);
+  border-color: var(--color-signal-blue);
+  outline: none;
+}
+
 /* --------------------------------------------------------------- the print */
 
 .artworkStage {
