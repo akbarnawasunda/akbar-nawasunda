@@ -7,10 +7,14 @@ import { after, describe, it } from "node:test";
 
 import {
   coverArtwork,
+  coverArtworkWith,
   coverCandidates,
   resolveCover,
+  resolveCoverWith,
   resolveSleeve,
+  resolveSleeveWith,
   sleeveCandidate,
+  type CoverProbe,
 } from "../../src/content/covers";
 import { releases } from "../../src/content/releases";
 import { homepageSourceFiles, BANNED_HOMEPAGE_PATTERNS } from "../fixtures/anti-ai";
@@ -137,6 +141,14 @@ describe("cover artwork waterfall", () => {
   const publicDir = mkdtempSync(join(tmpdir(), "covers-"));
   after(() => rmSync(publicDir, { recursive: true, force: true }));
 
+  /**
+   * The waterfall takes a probe, not a directory (see the header of src/content/covers.ts): the only
+   * `fs` call left in that module is the production one, with a literal path, so Next.js traces one
+   * folder instead of the whole repository. Tests keep their own real directory here — the same
+   * temp-dir fixture the suite always used — and hand the resolver this closure instead.
+   */
+  const onDisk = (dir: string): CoverProbe => (publicPath) => existsSync(join(dir, publicPath));
+
   it("offers webp first, then the other accepted extensions", () => {
     assert.deepEqual(coverCandidates("cinta-terbuang"), [
       "/assets/covers/cinta-terbuang.webp",
@@ -148,17 +160,17 @@ describe("cover artwork waterfall", () => {
   });
 
   it("returns null when nothing has been uploaded", () => {
-    assert.equal(resolveCover("belum-ada", publicDir), null);
+    assert.equal(resolveCoverWith("belum-ada", onDisk(publicDir)), null);
   });
 
   it("falls back to the designed sleeve when nothing has been uploaded", () => {
-    assert.deepEqual(coverArtwork("belum-ada", publicDir), { kind: "generated" });
+    assert.deepEqual(coverArtworkWith("belum-ada", onDisk(publicDir)), { kind: "generated" });
   });
 
   it("prefers an uploaded level-1 webp", () => {
     mkdirSync(join(publicDir, "assets/covers"), { recursive: true });
     writeFileSync(join(publicDir, "assets/covers/masih-mencintainya-papinka.webp"), "fake");
-    assert.deepEqual(coverArtwork("masih-mencintainya-papinka", publicDir), {
+    assert.deepEqual(coverArtworkWith("masih-mencintainya-papinka", onDisk(publicDir)), {
       kind: "image",
       src: "/assets/covers/masih-mencintainya-papinka.webp",
     });
@@ -167,7 +179,7 @@ describe("cover artwork waterfall", () => {
   it("accepts a manual override in another format (level 4)", () => {
     mkdirSync(join(publicDir, "assets/covers"), { recursive: true });
     writeFileSync(join(publicDir, "assets/covers/cinta-terbuang.avif"), "fake");
-    assert.deepEqual(coverArtwork("cinta-terbuang", publicDir), {
+    assert.deepEqual(coverArtworkWith("cinta-terbuang", onDisk(publicDir)), {
       kind: "image",
       src: "/assets/covers/cinta-terbuang.avif",
     });
@@ -177,8 +189,11 @@ describe("cover artwork waterfall", () => {
     mkdirSync(join(publicDir, "assets/covers"), { recursive: true });
     writeFileSync(join(publicDir, "assets/covers/masih-dihatiku@sleeve.webp"), "fake");
     assert.equal(sleeveCandidate("masih-dihatiku"), "/assets/covers/masih-dihatiku@sleeve.webp");
-    assert.equal(resolveSleeve("masih-dihatiku", publicDir), "/assets/covers/masih-dihatiku@sleeve.webp");
-    assert.deepEqual(coverArtwork("masih-dihatiku", publicDir), {
+    assert.equal(
+      resolveSleeveWith("masih-dihatiku", onDisk(publicDir)),
+      "/assets/covers/masih-dihatiku@sleeve.webp",
+    );
+    assert.deepEqual(coverArtworkWith("masih-dihatiku", onDisk(publicDir)), {
       kind: "sleeve",
       src: "/assets/covers/masih-dihatiku@sleeve.webp",
     });
@@ -188,7 +203,7 @@ describe("cover artwork waterfall", () => {
     mkdirSync(join(publicDir, "assets/covers"), { recursive: true });
     writeFileSync(join(publicDir, "assets/covers/bayang-tanpa-kata@sleeve.webp"), "fake");
     writeFileSync(join(publicDir, "assets/covers/bayang-tanpa-kata.webp"), "real");
-    assert.deepEqual(coverArtwork("bayang-tanpa-kata", publicDir), {
+    assert.deepEqual(coverArtworkWith("bayang-tanpa-kata", onDisk(publicDir)), {
       kind: "image",
       src: "/assets/covers/bayang-tanpa-kata.webp",
     });
@@ -199,6 +214,33 @@ describe("cover artwork waterfall", () => {
       if (resolveCover(release.slug)) continue;
       assert.ok(resolveSleeve(release.slug), `no artwork and no sleeve for ${release.slug}`);
     }
+  });
+
+  /*
+   * The production probe is the one with a literal `fs` path, and it is the reason the build no
+   * longer traces the repository. Pin it against the real directory: if it ever stops answering,
+   * every cover on the site silently falls back to a component-drawn sleeve.
+   */
+  it("resolves real covers from the repo's own public directory", () => {
+    const probe = onDisk(join(root, "public"));
+    for (const release of releases) {
+      assert.equal(
+        resolveCoverWith(release.slug, probe),
+        resolveCover(release.slug),
+        `probe and production disagree for ${release.slug}`,
+      );
+    }
+    assert.equal(resolveCover("masih-mencintainya-papinka"), null);
+    assert.equal(
+      resolveSleeve("masih-mencintainya-papinka"),
+      "/assets/covers/masih-mencintainya-papinka@sleeve.webp",
+    );
+    /* The two production wrappers above feed this one; assert the composed answer too. */
+    assert.deepEqual(coverArtwork("masih-mencintainya-papinka"), {
+      kind: "sleeve",
+      src: "/assets/covers/masih-mencintainya-papinka@sleeve.webp",
+    });
+    assert.deepEqual(coverArtworkWith("masih-mencintainya-papinka", probe), coverArtwork("masih-mencintainya-papinka"));
   });
 
   it("has the directory the owner drops files into", () => {
