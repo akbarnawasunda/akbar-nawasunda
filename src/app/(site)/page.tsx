@@ -86,7 +86,16 @@ const catalogue = releases.map((release) => ({
 }));
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
-const officialLinkCount = releases.length + socialLinks.length;
+
+/*
+ * LOC for the hero logistics strip, derived from the two fields the site already owns:
+ * the place from `origin` ("Bandung Barat, Indonesia") and the country code from
+ * `locale` ("id_ID" -> "ID"). Nothing here is typed by hand, so moving the studio is a
+ * one-field edit and the strip follows.
+ */
+const localeRegion = siteConfig.locale.split("_")[1] ?? "";
+const originPlace = siteConfig.origin.split(",")[0]?.trim() ?? siteConfig.origin;
+const stripLocation = localeRegion ? `${originPlace}, ${localeRegion}` : siteConfig.origin;
 
 /** One sleeve path per release, for the index preview. `release.cover` first, then the waterfall. */
 
@@ -193,21 +202,38 @@ export default async function HomePage() {
               </div>
             </Depth>
 
-            <div className={styles.factsBar} data-depth="hero-facts">
-              <dl className={styles.facts}>
-                <div className={styles.fact}>
-                  <dt>Rilis</dt>
-                  <dd>{stats.releaseCount}</dd>
-                </div>
-                <div className={styles.fact}>
-                  <dt>Tahun aktif</dt>
-                  <dd>{stats.yearsActive}</dd>
-                </div>
-                <div className={styles.fact}>
-                  <dt>Tautan resmi</dt>
-                  <dd>{officialLinkCount}</dd>
-                </div>
-              </dl>
+            {/*
+              Langkah 3c — the logistics strip, exactly as DESIGN.md §3 specifies:
+
+                KATALOG: [N] ITEM // STATUS: [status] // LOC: [place, region]
+
+              - N is the verified release count from `heroStats()` (releases.length), never a
+                number typed into this file.
+              - STATUS is the manual `siteConfig.status` field; see the comment there — it is
+                deliberately not auto-detected.
+              - LOC comes from `siteConfig.origin` + the region of `siteConfig.locale`.
+
+              The old block here was a cream stat card (three display figures, bone ground,
+              padded like a pitch deck). Numbers as an *argument* is marketing; a label prints
+              a readout. The `data-depth="hero-facts"` hook is kept because
+              scripts/qa-motion.mjs asserts on it.
+            */}
+            <div className={styles.strip} data-depth="hero-facts">
+              <p className={styles.stripLine}>
+                {"KATALOG: "}
+                <span className={styles.stripValue}>{stats.releaseCount}</span>
+                {" ITEM "}
+                <span className={styles.stripSlash} aria-hidden="true">
+                  {"//"}
+                </span>
+                {" STATUS: "}
+                <span className={styles.stripValue}>{siteConfig.status.toUpperCase()}</span>{" "}
+                <span className={styles.stripSlash} aria-hidden="true">
+                  {"//"}
+                </span>
+                {" LOC: "}
+                <span className={styles.stripValue}>{stripLocation.toUpperCase()}</span>
+              </p>
             </div>
           </div>
         </Plate3D>

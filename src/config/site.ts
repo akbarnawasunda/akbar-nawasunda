@@ -11,6 +11,19 @@ export const siteConfig = {
   role: "Produser, remixer, dan DJ asal Bandung Barat",
   origin: "Bandung Barat, Indonesia",
   since: 2020,
+  /**
+   * Operational status, printed on the hero logistics strip as `STATUS: AKTIF`.
+   *
+   * MANUAL AND STATIC BY DESIGN. This is a value the owner edits by hand when the
+   * fact changes — it is NOT derived from release activity, streaming data, an API
+   * call, a schedule, or anything else that could quietly report something untrue.
+   * Nothing in the codebase computes it back; if you are reading this because you
+   * want to "keep it in sync automatically", don't: an auto-detected status that
+   * guesses wrong is worse than one line the owner actually maintains.
+   *
+   * Stored lowercase; the strip uppercases it at render time.
+   */
+  status: "aktif",
   description:
     "Situs resmi Akbar Nawasunda — produser, remixer, dan DJ asal Bandung Barat. Breakbeat dan Indo Bass sejak 2020.",
   /** Canonical URL. Override with NEXT_PUBLIC_SITE_URL for preview deployments. */

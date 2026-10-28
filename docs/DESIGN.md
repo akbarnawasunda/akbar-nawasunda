@@ -96,25 +96,51 @@ pemindaian itu memakai `--include=*.ts` dan tidak mencakup `.tsx`, sehingga pema
 
 | Peran | Token | Nilai sekarang | Dipakai di |
 | --- | --- | --- | --- |
-| Hero wordmark | `--text-hero` | desktop `clamp(2rem, 4vw, 4rem)`; ≤719px `clamp(2.5rem, 9.6vw, 3.6rem)` | `h1` hero |
+| Hero wordmark | `--text-hero` + override lokal `.name` | <720px: `clamp(2.5rem, 9.6vw, 3.6rem)` (token, **tidak diubah**); ≥720px: `clamp(2.8rem, 11vw, 4.5rem)` (override lokal di `page.module.css`) | `h1` hero |
 | Takeover | `--text-takeover` | `clamp(1.5rem, 2.5vw, 2.5rem)` | rilis unggulan |
 | Display | `--text-display` | `clamp(1.5rem, 2.5vw, 2.5rem)` | judul section |
 | Title | `--text-title` | `clamp(1.2rem, 1.8vw, 1.6rem)` | judul kartu |
 | Body | `--text-body` | `clamp(0.9rem, 1vw, 1rem)` | paragraf |
 | Label | `--text-label` | `0.75rem` (tetap) | meta mono |
 
-### Wordmark hero — TARGET dan status ukur
+### Wordmark hero — spec, pengecualian mobile, dan hasil ukur
 
-- Target spec: `font-size: clamp(2.8rem, 11vw, 4.5rem)`.
-- Sekarang: `clamp(2rem, 4vw, 4rem)` (desktop) / `clamp(2.5rem, 9.6vw, 3.6rem)` (≤719px).
-  Bukan target.
-- **WAJIB diuji di 1440px dan 390px** setelah diubah. Nama di hero dirender **dua baris**
-  (`Akbar` / `Nawasunda.`), jadi 11vw berlaku per baris; kata terpanjang adalah `Nawasunda`.
-  Catatan historis di `tokens.css` menyebut bahwa `Nawasunda` mengukur ≈8.43 × font-size pada face
-  display, artinya 11vw akan **overflow** di dalam kontainer `viewport − 2×gutter`. Floor dan
-  ceiling final harus ditentukan dari pengukuran lebar kata nyata di 1440 dan 390, lalu nilai
-  aktual + alasannya ditulis di sini. Jangan diam-diam mengubah tanpa catatan.
-- Status pengukuran: **BELUM DIUKUR** (belum ada Chrome; lihat `docs/VISUAL-VERIFICATION.md`).
+- **Spec berlaku ≥720px:** `font-size: clamp(2.8rem, 11vw, 4.5rem)`.
+- **Pengecualian <720px:** token `--text-hero` tetap `clamp(2.5rem, 9.6vw, 3.6rem)`
+  (`tokens.css:239`, override mobile). Mobile **tidak** memakai 11vw dan **tidak boleh** diubah ke
+  nilai itu. Alasan di bawah.
+- **Kenapa mobile dikecualikan (diukur, bukan diperkirakan):** kata terpanjang `Nawasunda.`
+  mengukur **8.175 × font-size** pada face display. Di 390px lebar kontainer adalah 339.6px, jadi:
+  - 41px → lebar kata ≈335px → **1 baris**, aman;
+  - 41.5px → lebar kata ≈339px → **wrap jadi 3 baris** (line-height 46.7px → 91px);
+  - 44.8px (11vw di 390px, floor spec) → pasti pecah. Bukti gambar:
+    `artifacts/visual-check/after-3c/sim-390-44.8px-SPEC.png` vs `sim-1440-72px-SPEC.png`.
+  Mobile 40px (2 baris, tanpa wrap) adalah hasil proses perbaikan regresi; jangan "perbaiki" lagi.
+  Audit berikutnya **tidak boleh** menandai mobile sebagai pelanggaran spec — batasnya jelas:
+  **≤41px aman, ≥41.5px pecah 3 baris** di 390px.
+- **Batasan 8.175×** juga yang menjamin ≥720px aman: pada 720px kontainer ≈656.6px dan 72px ×
+  8.175 = 588.6px → satu baris; terukur `wrapped=false` di 719/720/760/899/900/1200/1440/1920.
+- **Implementasi:** override lokal `@media (min-width: 720px) { .name { … } }` di
+  `src/app/(site)/page.module.css`, ditulis **setelah** aturan dasar `.name`. Token `--text-hero`
+  **tidak disentuh** karena dipakai bersama `PageMasthead` (`/music`, `/artist`, `/epk`,
+  `/visuals`) dan `/contact`; mengubah token akan mengubah halaman yang dilarang untuk disentuh.
+  Terverifikasi: `/music` 57.6px, `/artist` 36px, `/visuals` 57.6px di 1440px (tidak berubah).
+- **Hasil ukur (build 3c, `next start`, Chrome):**
+
+  | viewport | font-size | baris | wrap |
+  | --- | --- | --- | --- |
+  | 390×844 | 40px | 2 | tidak |
+  | 719×900 | 57.6px (token) | 2 | tidak (kata 655.7px / kontainer 655.7px) |
+  | 720×900 | 72px | 2 | tidak |
+  | 768×900 | 72px | 2 | tidak |
+  | 1024×768 | 72px | — | tidak |
+  | 1440×900 | 72px | — | tidak |
+  | 1920×1080 | 72px | — | tidak |
+
+  11vw = 84.48px (768) / 112.64px (1024) / 158.4px (1440) / 211.2px (1920) — semuanya di atas
+  ceiling 4.5rem = 72px, jadi hasilnya **72px seragam** di ≥720px.
+- Catatan cascade: blok `@media` ini pernah ditulis **sebelum** aturan dasar `.name` dan kalah
+  (specificity identik) sehingga desktop jatuh ke 32–64px. Media override **wajib** setelah base rule.
 
 ---
 
@@ -153,11 +179,31 @@ Aturan:
   sudah menurunkan angka dari `releases`.
 - Strip mengisi ruang di bawah CTA; gap CTA → strip **maksimal 40px**.
 - Strip **harus** berada di dalam viewport fold 900px di breakpoint 1440px tanpa terpotong.
+- Gaya: hairline atas `1px solid var(--color-border)`, radius **0px**, latar transparan, 11px body
+  stack, tracking `--tracking-label`, uppercase saat **render** (data disimpan lowercase). Ini
+  readout teknis, **bukan** card krem seperti `.factsBar` lama.
+- `overflow-wrap: anywhere` **dan** `max-width: none` wajib ada: `globals.css` membatasi setiap `p`
+  ke 60ch (≈540px di 11px), yang dulu memecah baris strip jadi 2 di semua desktop ≥900px padahal
+  separuh lebar masih kosong. Strip adalah readout, bukan reading copy — opt-out lokal.
 
-**SEKARANG:** tidak ada strip logistik. Yang ada adalah `.factsBar` berisi `<dl>` dengan tiga fakta
-(`Rilis`, `Tahun aktif`, `Tautan resmi`) — lihat `src/app/(site)/page.tsx` blok `heroFoot` /
-`factsBar`. Format teks, jumlah item, dan keberadaan strip sesuai spec: **0%**. Gap CTA→facts bar
-dan posisi fold: **BELUM DIUKUR**.
+**STATUS: SESUAI SPEC (Langkah 3c, diukur).** `.factsBar`/`<dl>` lama sudah dihapus dari
+`page.tsx` dan diganti `.strip` (`data-depth="hero-facts"`, dipertahankan karena
+`scripts/qa-motion.mjs:313` menegaskan hook itu) / `.stripLine` / `.stripValue` / `.stripSlash`.
+`N` = `stats.releaseCount` dari `heroStats()` (10), status dari `siteConfig.status` (manual,
+uppercase saat render), lokasi dari `siteConfig.origin` + region `siteConfig.locale`.
+
+| viewport | strip (baris) | gap CTA→strip | strip bottom | hero | fold 900 |
+| --- | --- | --- | --- | --- | --- |
+| 390×844 | 2 | 20.32px | 537.61px | 81–560.28px (auto) | — |
+| 768×900 | 1 | 19.10px | 503.40px | 81–525.56px (auto) | — |
+| 1024×768 | 1 | 32.44px | 743.21px | 81–769px | dalam viewport |
+| 1280×900 | 1 | 32.24px | 873.24px | 81–901px | ✓ |
+| 1440×900 | 1 | 32.24px | 873.24px | 81–901px | ✓ (26.76px margin) |
+| 1920×1080 | 1 | 31.19px | 979.63px | 81–1009px (cap 58rem) | ✓ |
+
+Semua gap ≤40px. Di bawah 900px `@media (max-width:899px)` membuat `.hero` setinggi konten, jadi
+target fold 900px hanya relevan ≥900px. Bukti gambar:
+`artifacts/visual-check/after-3c/final-{before,after}-{1440,390}.png`.
 
 ### Ledger `/music` (TARGET)
 
@@ -385,11 +431,11 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D2 | Zero raw hex di luar token | PASS (dijaga) | `scripts/token-audit.mjs` + CI step |
 | D3 | 1 aksen biru saja | PARTIAL | `--color-poster-yellow`, `--color-stamp`, `--color-signal-purple` masih terdefinisi |
 | D4 | Font: 1 display + 1 body | PASS | `src/lib/fonts.ts` (Excess V Straight + Relidux) |
-| D5 | Wordmark `clamp(2.8rem, 11vw, 4.5rem)` | FAIL | sekarang `clamp(2rem,4vw,4rem)` |
+| D5 | Wordmark `clamp(2.8rem, 11vw, 4.5rem)` | PASS (≥720px) / N/A (<720px) | ≥720px = 72px terukur; <720px sengaja tetap token 40px @390 (batas 41px, lihat §2) |
 | D6 | Max width 1440px | PASS | `--container-max: 1440px` |
 | D7 | Radius 0 mutlak | FAIL | 4 lokasi publik (§3) |
-| D8 | Logistics strip hero | FAIL | tidak ada; yang ada `factsBar` `<dl>` |
-| D9 | Gap CTA→strip ≤40px, strip dalam fold 900px | BELUM DIUKUR | butuh browser |
+| D8 | Logistics strip hero | PASS | `.strip` satu baris `KATALOG: 10 ITEM // STATUS: AKTIF // LOC: BANDUNG BARAT, ID` (3c) |
+| D9 | Gap CTA→strip ≤40px, strip dalam fold 900px | PASS | 20.32/19.10/32.44/32.24/31.19px; strip bottom 873.24px @1440×900 |
 | D10 | Ledger + watermark + z-index | FAIL | `/music` masih wall 2 kolom; 0 watermark |
 | D11 | Ledger hover `translateX(6px)` | FAIL | sekarang lift Z + rotate |
 | D12 | Ledger mobile 2-baris compact | FAIL | tidak ada |
