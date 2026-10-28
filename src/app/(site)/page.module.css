@@ -30,9 +30,10 @@
      facts strip ended up floating mid-screen with dead ink below it (round 28). */
   /* Round 33 (visual self-audit): the bar takes --header-height of layout ABOVE this section, so
      a plain 100svh pushed the last 80px of the hero — the logistics strip included — below the
-     first fold at 1440x900. Subtracting the bar makes the whole hero, strip and all, close exactly
-     on the fold. 58rem still caps it on tall monitors. */
-  height: min(calc(100svh - var(--header-height)), 58rem);
+     first fold at 1440x900. Subtracting the bar AND the 48px fixed audio deck makes the whole
+     hero, strip and all, close exactly where the deck starts. 58rem still caps it on tall
+     monitors. */
+  height: min(calc(100svh - var(--header-height) - var(--hud-height)), 58rem);
   overflow: hidden;
   /* The hero writes transforms every frame while it is in view; this keeps that work inside the
      band instead of invalidating the whole document (R11). */

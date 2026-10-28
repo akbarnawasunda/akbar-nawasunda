@@ -15,7 +15,7 @@ import { AudioHUD } from "@/components/ui/AudioHUD";
 import { resolveCover, resolveSleeve } from "@/content/covers";
 import { releaseEyebrow, releases } from "@/content/releases";
 import { buildLabel } from "@/config/build";
-import { contactEmail, listenLinks, socialLinks } from "@/config/socials";
+import { contactEmail, listenLinks, listenUrl, socialLinks } from "@/config/socials";
 import { designAttributes, DEFAULT_DESIGN } from "@/studio/design";
 
 // Static layout — no database calls. Design attributes use defaults; Studio preview
@@ -77,7 +77,13 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <main id="main" className="site-main">
         {children}
       </main>
-      <AudioHUD />
+      {/* Round 33: the deck is driven by the same verified first release as the header drawer.
+          Mounting it with no props made it return null on every route — the HUD never existed. */}
+      <AudioHUD
+        trackTitle={newest?.title ?? "Arsip Nawasunda"}
+        trackHref={newest ? `/music/${newest.slug}` : "/music"}
+        listenHref={listenUrl}
+      />
       <SiteFooter />
       <GrainOverlay />
       <InkPress />

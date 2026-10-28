@@ -141,15 +141,17 @@
   transform-origin: bottom;
 }
 
+/* Round 33: the deck's [VOL] slider writes --vu-peak on :root, so the meter is a real output of
+   that control rather than a decorative bar pretending to be one. */
 @keyframes vu-bounce {
   0%, 100% { height: 2px; }
-  50% { height: 16px; }
+  50% { height: var(--vu-peak); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .vuBar {
     animation: none;
-    height: 8px;
+    height: var(--vu-peak);
   }
 }
 

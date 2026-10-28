@@ -337,3 +337,21 @@ html[data-cursor="on"] [role="button"] {
 .site-root[data-title-case="as-written"] .page-title {
   text-transform: none;
 }
+
+/*
+ * Round 33 — the fixed audio deck must not collide with anything.
+ *
+ * It is 48px of fixed chrome at the bottom of every public page. Without these two rules it sat on
+ * top of the last 48px of the footer and, on phones, on top of the "Indeks" tab (z 45 vs the
+ * deck's --z-overlay). `:has` keys off the deck's own hook, so the spacing disappears again the
+ * moment a visitor dismisses the deck with ×.
+ */
+.site-root:has([data-audio-hud="on"]) {
+  padding-bottom: var(--hud-height);
+}
+
+@media (max-width: 719px) {
+  .site-root:has([data-audio-hud="on"]) [data-sheet-toggle] {
+    bottom: calc(var(--hud-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+}

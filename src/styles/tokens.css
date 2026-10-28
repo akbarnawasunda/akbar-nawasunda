@@ -235,6 +235,14 @@
   --z-chrome: 50;
   --z-overlay: 100;
   --z-cursor: 300;
+
+  /* --- Audio deck --------------------------------------------------------------- */
+  /* One number for the bar height, the root padding and the phone tab offset, so they can never
+     drift apart and leave the HUD covering the footer. */
+  --hud-height: 48px;
+  /* Written by the deck slider, read by the header's four-bar VU keyframes: the peak bar height.
+     A pre-computed length avoids depending on CSS calc() multiplication in older engines. */
+  --vu-peak: 12.5px;
 }
 
 @media (max-width: 719px) {

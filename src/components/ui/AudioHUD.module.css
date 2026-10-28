@@ -10,15 +10,12 @@
   left: 0;
   right: 0;
   z-index: var(--z-overlay);
-  height: 48px;
+  height: var(--hud-height);
   background: var(--color-ground, var(--color-bg-base));
   border-top: 1px solid var(--color-hairline);
-  transform: translateY(100%);
-  transition: transform 300ms var(--ease-out);
-}
-
-.hud[data-playing="true"] {
-  transform: translateY(0);
+  /* Round 33: it used to start translated 100% off screen and only slide in for
+     `data-playing="true"` — a state nothing ever set. The deck is present, so it is visible.
+     globals.css reserves --hud-height on the root and lifts the phone index tab. */
 }
 
 .hudInner {
@@ -60,6 +57,7 @@
   color: var(--color-ink-black);
   border-color: var(--color-text-primary);
   outline: none;
+  text-decoration: none;
 }
 
 .playIcon,
@@ -93,6 +91,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 40ch;
+  color: inherit;
+  text-decoration: none;
+}
+
+.trackTitle:hover,
+.trackTitle:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .bpm {

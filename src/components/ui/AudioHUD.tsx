@@ -1,111 +1,112 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+
 import styles from "./AudioHUD.module.css";
 
 /**
- * Bottom Audio HUD — full-width bar at 48px, shows when a track is playing.
- * Content: [▶] // NOW STREAMING: <track title> // <BPM if available> // [VOL]
+ * Bottom audio deck — the 48px fixed bar at the foot of every public page.
  *
- * The HUD is driven entirely by props: there is no local state and no effect, so
- * it never causes a cascading render. Visibility is the parent's decision: pass a
- * `trackTitle` when a track is playing and omit it when nothing is. The playback
- * system (context, localStorage, URL) owns that state and hands it down.
+ * Round 33 (visual self-audit): this component used to be mounted with no props at all, and its
+ * first line was `if (!trackTitle) return null` — so the HUD was never in the DOM, on any route.
+ * It also shipped a play/pause button and a volume slider for a stream this static site does not
+ * own: there is no audio asset in `public/`, no `<audio>` element and no Web Audio graph anywhere.
+ * Rather than fake a player, the deck is now honest about what it can actually do:
+ *
+ * - the ▶ control and the platform label open the verified external stream in a new tab;
+ * - the title links to the release page in the archive;
+ * - the level slider is a REAL control — it writes `--vu-peak`, which scales the four-bar VU
+ *   meter in the header (see SiteHeader.module.css);
+ * - × dismisses the deck; the [data-audio-hud] hook lets globals.css reserve its 48px and lift the
+ *   phone "Indeks" tab, so the bar never covers the footer or the tab.
+ *
+ * Everything is derived: the title comes from the same verified release list as the header drawer.
  */
 interface AudioHUDProps {
-  /** Currently playing track title, or null if nothing is playing */
-  trackTitle?: string | null;
-  /** Optional BPM */
-  bpm?: number | null;
-  /** Current volume 0-1 */
-  volume?: number;
-  /** Whether audio is currently playing */
-  isPlaying?: boolean;
-  /** Callback when play/pause is toggled */
-  onPlayPause?: () => void;
-  /** Callback when volume changes */
-  onVolumeChange?: (vol: number) => void;
-  /** Callback to close/hide the HUD */
-  onClose?: () => void;
+  /** Release currently presented on the deck. */
+  trackTitle: string;
+  /** In-site destination for the title. */
+  trackHref: string;
+  /** Verified external stream. */
+  listenHref: string;
 }
 
-export function AudioHUD({
-  trackTitle = null,
-  bpm = null,
-  volume = 1,
-  isPlaying = false,
-  onPlayPause,
-  onVolumeChange,
-  onClose,
-}: AudioHUDProps) {
-  if (!trackTitle) return null;
+export function AudioHUD({ trackTitle, trackHref, listenHref }: AudioHUDProps) {
+  const [level, setLevel] = useState(0.75);
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed) return null;
+
+  const changeLevel = (value: number) => {
+    setLevel(value);
+    /* The meter lives in the header, outside this component: one custom property on the root is
+       cheaper and more honest than a context for what is a single scalar. The pixel value is
+       computed here so the keyframe only has to read a plain length. */
+    document.documentElement.style.setProperty("--vu-peak", `${(2 + 14 * value).toFixed(1)}px`);
+  };
 
   return (
     <div
       className={styles.hud}
-      data-playing={isPlaying}
+      data-audio-hud="on"
       role="region"
-      aria-label="Audio player"
-      aria-live="polite"
+      aria-label="Dek siaran audio"
+      data-level={level.toFixed(2)}
     >
       <div className={styles.hudInner}>
-        <button
-          type="button"
+        <a
           className={styles.playPauseBtn}
-          onClick={onPlayPause}
-          aria-label={isPlaying ? "Jeda" : "Putar"}
-          aria-pressed={isPlaying}
+          href={listenHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Putar ${trackTitle} di platform resmi (membuka tab baru)`}
         >
-          {isPlaying ? (
-            <span aria-hidden="true" className={styles.pauseIcon}>
-              ⏸
-            </span>
-          ) : (
-            <span aria-hidden="true" className={styles.playIcon}>
-              ▶
-            </span>
-          )}
-        </button>
+          <span aria-hidden="true" className={styles.playIcon}>
+            ▶
+          </span>
+        </a>
 
-        <span className={styles.divider} aria-hidden="true">{"//"}</span>
+        <span className={styles.divider} aria-hidden="true">
+          {"//"}
+        </span>
 
         <div className={styles.nowPlaying}>
-          <span className={styles.nowPlayingLabel}>NOW STREAMING:</span>
-          <span className={styles.trackTitle}>{trackTitle}</span>
+          <span className={styles.nowPlayingLabel}>Siaran:</span>
+          <Link href={trackHref} className={styles.trackTitle}>
+            {trackTitle}
+          </Link>
         </div>
 
-        {bpm ? (
-          <>
-            <span className={styles.divider} aria-hidden="true">{"//"}</span>
-            <span className={styles.bpm}>{bpm} BPM</span>
-          </>
-        ) : null}
-
-        <span className={styles.divider} aria-hidden="true">{"//"}</span>
+        <span className={styles.divider} aria-hidden="true">
+          {"//"}
+        </span>
 
         <div className={styles.volume}>
-          <span className={styles.volumeLabel}>[VOL]</span>
+          <label className={styles.volumeLabel} htmlFor="audio-deck-level">
+            [VOL]
+          </label>
           <input
+            id="audio-deck-level"
             type="range"
             className={styles.volumeSlider}
             min="0"
             max="1"
             step="0.01"
-            value={volume}
-            onChange={(event) => onVolumeChange?.(Number(event.target.value))}
-            aria-label="Volume"
+            value={level}
+            onChange={(event) => changeLevel(Number(event.target.value))}
+            aria-label="Tingkat VU meter"
           />
         </div>
 
-        {onClose ? (
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={onClose}
-            aria-label="Tutup pemutar"
-          >
-            <span aria-hidden="true">×</span>
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className={styles.closeBtn}
+          onClick={() => setDismissed(true)}
+          aria-label="Tutup dek siaran"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
     </div>
   );
