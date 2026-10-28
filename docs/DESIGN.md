@@ -350,8 +350,16 @@ Aturan:
   `var(--space-3)` = 0.75rem = 12px, lebar bar `calc(var(--space-1)/2)` = 2px, `scaleY` animation,
   dipakai di `SiteHeader.tsx:183` dan `SiteFooter.tsx:84`. Komponen ada; visibilitas render nyata
   **BELUM DIUKUR** (butuh screenshot/DOM assertion).
-- **Bottom Audio HUD**: menampilkan info rilis yang disorot; **WAJIB** diberi data nyata saat
-  render (jangan komponen ada tapi selalu `null` karena props tidak dikirim).
+- **Bottom Release HUD (informasional, tanpa playback)**: menampilkan info rilis yang disorot;
+  **WAJIB** diberi data nyata saat render (jangan komponen ada tapi selalu `null` karena props
+  tidak dikirim).
+  **HUD ini TIDAK PERNAH memutar audio inline.** Tidak ada elemen `<audio>`, tidak ada ikon play,
+  tidak ada progress bar, tidak ada kontrol volume — tidak sekarang, tidak "nanti kalau asetnya
+  ada". Ini kartu info + tautan keluar, selaras dengan `docs/PRD.md` §5 non-goal *"BUKAN platform
+  streaming sendiri. Tidak ada player penuh, tidak ada hosting audio master."* dan
+  `docs/00-PROJECT-FOUNDATION/PROJECT_SCOPE.md` baris 12 *"Automated audio player streaming (link
+  out to platforms)"* yang ada di Out of Scope v1. Membaca dokumen ini lalu menambahkan pemutar
+  audio adalah melanggar dua dokumen lain sekaligus.
   **SEKARANG: TIDAK ADA.** `grep -rn "AudioHud\|audio-hud\|HUD" src` hanya menemukan komentar.
 - **Booking quick-copy button** (Langkah 3e): klik → salin email booking ke clipboard +
   konfirmasi visual `✓ EMAIL DISALIN`.
@@ -478,7 +486,7 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D16 | Mobile signature ambient 0.2 | **PASS** | `data-ambient="true"` → `opacity: 0.2`, `pointer-events: none` (terukur) |
 | D17 | `--ease-snap` / `--ease-mechanical` | FAIL | token tidak ada |
 | D18 | VU-meter 4 bar header | PARTIAL | `Equalizer.tsx` ada; visibilitas BELUM DIUKUR |
-| D19 | Audio HUD data nyata | FAIL | komponen tidak ada |
+| D19 | Bottom Release HUD data nyata (informasional, tanpa playback) | FAIL | komponen tidak ada |
 | D20 | Booking quick-copy + `✓ EMAIL DISALIN` | PASS | `BookingCopy.tsx`; clipboard terverifikasi berisi alamat, konfirmasi 1800 ms, fallback teks terpilih, `qa:motion` 33/33 |
 | D21 | Reduced-motion global | PASS | `globals.css:265` |
 | D22 | 3 varian sleeve berbeda nyata | **PASS** | 10 md5 unik; A/B/C berbeda 39–80% piksel (3h-2) |
