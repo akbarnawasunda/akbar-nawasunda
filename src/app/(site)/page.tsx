@@ -143,14 +143,20 @@ export default async function HomePage() {
         }}
       />
 
-      {/* The hero image is the LCP element: preloaded, fetched at high priority, never lazy. */}
-      <link
-        rel="preload"
-        as="image"
-        type="image/avif"
-        href={photos.latar ?? editorialFrame.webp}
-        fetchPriority="high"
-      />
+      {/*
+       * Langkah 3k — the hand-written preload that used to sit here is gone.
+       *
+       * It pointed at `photos.latar ?? editorialFrame.webp`, i.e. the *raw* file
+       * (`/media/editorial-1400.webp`), while the <img> below resolves through the optimiser
+       * (`/_next/image?url=…&w=…`). Two different URLs, so the browser could never reuse the
+       * response: on a throttled phone the hero photograph was downloaded twice, once unoptimised,
+       * and the second copy is what actually painted. The `type="image/avif"` hint was wrong too —
+       * the file is WebP, so the preload was eligible for the "preloaded but not used" discard.
+       *
+       * `<Image priority>` already emits the correct preload from the same srcset the <img> uses
+       * (visible in the document head as `imageSrcSet=…` with `imageSizes="100vw"`), so the only
+       * thing missing was the fetch priority on the element itself.
+       */}
 
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
@@ -161,6 +167,13 @@ export default async function HomePage() {
             alt=""
             fill
             sizes="100vw"
+            /*
+             * `priority` only makes next/image preload + skip lazy loading; it does not write
+             * `fetchpriority` onto the <img>. Measured before: the rendered element carried
+             * `decoding="async"` and no fetch priority at all, while Lighthouse's LCP element was
+             * exactly this node. So it is set explicitly.
+             */
+            fetchPriority="high"
             priority
           />
         </Depth>
