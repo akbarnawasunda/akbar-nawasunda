@@ -131,7 +131,7 @@ memindai teks publik terhadap daftar itu, bukan menyinkronkan ke sesuatu yang su
 
 | # | Kriteria | Ambang | Status 2026-10-28 |
 | --- | --- | --- | --- |
-| P1 | Data kosong tampil ke publik | 0 kemunculan | **FAIL** — `"Rilis"` muncul untuk 3 rilis |
+| P1 | Data kosong tampil ke publik | 0 kemunculan | **PASS** — Langkah 3i: `Rilis` dan `—` diganti status eksplisit (`Belum terklasifikasi`, `Tidak tercatat`); `npm run qa:copy` menolak field kosong di DOM |
 | P2 | Console error di semua halaman publik | 0 | **BELUM DIUKUR** — butuh browser (Langkah 1–2) |
 | P3 | Route publik static (`○`/`●` di `next build`) | semua | **FAIL** — 8 route publik `ƒ` (lihat `docs/ARCHITECTURE.md` §5) |
 | P4 | axe violation di semua halaman publik | 0 | **BELUM DIUKUR** — `scripts/a11y-audit.mjs` ada, Chrome belum terpasang di sandbox ini |

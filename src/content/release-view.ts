@@ -7,13 +7,14 @@
  * download → generated sleeve file → component sleeve.
  */
 import { RELEASE_TYPE_LABELS, publicReleaseDate, type ReleaseDocument } from "../studio/releases";
+import { UNCLASSIFIED } from "./copy";
 import { releaseDisplayTitle, releaseEyebrow, type Release } from "./releases";
 
 export interface ReleaseView {
   slug: string;
   /** Display title, including the original artist when known. */
   title: string;
-  /** Mono metadata line: type, verified year, era, or "Rilis". */
+  /** Mono metadata line: type, verified year, era, or an explicit "not classified yet" status. */
   meta: string;
   /** Public URL of 1:1 artwork, or null for the typographic card. */
   coverUrl: string | null;
@@ -39,7 +40,7 @@ export function fromReleaseDocument(slug: string, doc: ReleaseDocument, coverUrl
   return {
     slug,
     title: doc.title,
-    meta: meta || "Rilis",
+    meta: meta || UNCLASSIFIED,
     coverUrl,
     href: `/music/${slug}`,
     managed: true,

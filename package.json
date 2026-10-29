@@ -35,7 +35,8 @@
     "review:shots": "node scripts/review/shots.mjs",
     "audit:fonts": "node scripts/font-audit.mjs",
     "visual:setup": "bash scripts/setup-visual-tools.sh",
-    "visual:check": "node scripts/visual-check.mjs"
+    "visual:check": "node scripts/visual-check.mjs",
+    "qa:copy": "node scripts/qa-copy.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

@@ -5,6 +5,7 @@ import type { CoverArtwork } from "@/content/covers";
 import { Plate3D } from "../zine/Plate3D";
 import { ReleaseCover } from "./ReleaseCover";
 import styles from "./ReleasePlate.module.css";
+import { UNRECORDED } from "@/content/copy";
 
 /**
  * One release, printed as a sleeve on a blue table.
@@ -22,7 +23,8 @@ import styles from "./ReleasePlate.module.css";
  *
  * Honesty rules are unchanged: `ordinal` is a position in the owner's own list (printed as
  * "Katalog 03 / 10", never as an invented catalogue number), every fact comes from the owner's data,
- * and anything unconfirmed prints an em dash instead of being guessed.
+ * and anything unconfirmed prints an explicit "Tidak tercatat" instead of being guessed — or a
+ * dash, which reads as a blank field rather than an absent fact (Langkah 3i).
  */
 export interface ReleaseNeighbour {
   slug: string;
@@ -156,7 +158,7 @@ export function ReleasePlate({
             {facts.map((fact) => (
               <div key={fact.label} className={styles.fact}>
                 <dt>{fact.label}</dt>
-                <dd>{fact.value ?? "—"}</dd>
+                <dd>{fact.value ?? UNRECORDED}</dd>
               </div>
             ))}
           </dl>

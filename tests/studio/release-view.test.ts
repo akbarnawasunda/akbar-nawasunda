@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { coverCandidates } from "../../src/content/covers";
+import { UNCLASSIFIED } from "../../src/content/copy";
 import { fromReleaseDocument, fromStaticRelease } from "../../src/content/release-view";
 import { releaseEyebrow, releases } from "../../src/content/releases";
 import type { ReleaseDocument } from "../../src/studio/releases";
@@ -37,7 +38,10 @@ describe("release view mapping", () => {
     const view = fromStaticRelease(release, null);
     assert.equal(view.coverUrl, null);
     assert.equal(view.title, "Cinta Terbuang");
-    assert.equal(view.meta, "Rilis");
+    /* Langkah 3i: the eyebrow no longer falls back to the bare word "Rilis" — inside a catalogue
+       line that read as a *type*, and the PRD counted it as an empty value reaching the public. The
+       status now says what is missing. */
+    assert.equal(view.meta, UNCLASSIFIED);
     assert.equal(view.href, "/music/cinta-terbuang");
   });
 
@@ -76,7 +80,7 @@ describe("release view mapping", () => {
 
   it("shows a Studio record's verified date only when it is verified", () => {
     const unverified = fromReleaseDocument("cinta-terbuang", doc, null);
-    assert.equal(unverified.meta, "Rilis");
+    assert.equal(unverified.meta, UNCLASSIFIED);
     assert.equal(unverified.managed, true);
 
     const verified = fromReleaseDocument(
@@ -91,6 +95,6 @@ describe("release view mapping", () => {
       { ...doc, releaseDate: "2025-04-02", dateVerified: false },
       null,
     );
-    assert.equal(hiddenDate.meta, "Rilis");
+    assert.equal(hiddenDate.meta, UNCLASSIFIED);
   });
 });

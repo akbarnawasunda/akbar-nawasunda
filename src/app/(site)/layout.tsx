@@ -59,7 +59,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
     platforms: [...listenLinks, ...socialLinks].map((link) => ({ label: link.label, href: link.href })),
     email: contactEmail,
     open: [
-      "Tujuh sampul asli masih menunggu `covers:fetch` di mesin pemilik.",
+      "Tujuh sampul asli belum diserahkan pemilik; yang terpasang sampul generatif.",
       "Teks halaman kebijakan privasi belum diserahkan.",
       "Milestone 2021–2023 belum dikonfirmasi.",
     ],

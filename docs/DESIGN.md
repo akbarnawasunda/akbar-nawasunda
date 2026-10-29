@@ -526,6 +526,41 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 > akal sebagai situs label rekaman sungguhan? Kalau jawabannya 'ini kelihatan kayak AI-generated
 > startup landing page', elemen itu salah."
 
+### Copy voice (Langkah 3i)
+
+Register publik: **dingin, teknis, katalogis** — lembar data, bukan pitch. Rujukan: Factory Records,
+Warp, Discogs field-by-field, STMPD RCRDS.
+
+**Dua tingkat, dua guard:**
+
+| Tingkat | Isi | Aturan |
+| --- | --- | --- |
+| `BANNED_COPY_TERMS` | hype/marketing/Web3/AI (`jelajah`, `eksplor`, `keajaiban`, `memukau`, `selami`, `menakjubkan`, `luar biasa`, `premium`, `eksklusif`, `inovatif`, `revolusioner`, `transformasi`, `kisah`, `magis`, `sinematik`, `epik`, …) | **nol pengecualian**, di mana pun |
+| `OWNER_COPY_ONLY_TERMS` | `perjalanan`, `karya` | hanya di dalam `[data-copy-origin="owner-verbatim"]` |
+
+Kedua kata terakhir itu milik biografi pemilik, yang diserahkan apa adanya. Menulis ulang kalimat
+artis tentang dirinya bukan penyuntingan copy, melainkan menaruh kata di mulutnya. Karena itu
+pengecualiannya **sempit dan terlihat**: satu blok per halaman, ditandai atribut, dan kedua guard
+memastikan blok itu memang biografi (≥200 karakter, memuat nama artis) sehingga tidak bisa dipakai
+menyembunyikan headline.
+
+**Nilai kosong.** Field yang belum diserahkan pemilik tidak pernah dicetak sebagai `—`
+(`Jenis —` / `Tahun —` adalah field kosong yang menyamar sebagai data) maupun sebagai kata generik
+`Rilis` (yang terbaca sebagai *jenis: rilis*). Dua status eksplisit di `src/content/copy.ts`:
+`Tidak tercatat` untuk satu fakta, `Belum terklasifikasi` untuk rilis yang tipenya/tahunnya/eranya
+belum diketahui.
+
+**Guard, bukan niat baik:**
+
+| Guard | Lapisan | Kapan jalan |
+| --- | --- | --- |
+| `tests/studio/copy-voice.test.ts` | literal string + **teks JSX** di `src/` | tiap `npm test` |
+| `scripts/qa-copy.mjs` | DOM sungguhan: 10 route, teks + `alt`/`aria-label`/`title` | tiap CI (`qa:copy`) |
+
+Dua lapisan karena satu lapisan tidak cukup: guard sumber tidak melihat teks yang datang dari data
+(deskripsi rilis, isi CMS), dan guard DOM tidak melihat halaman yang belum pernah dibangun. Keduanya
+diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang menguji".
+
 ---
 
 ## 8. Ringkasan status vs spec (dipakai sebagai tabel audit Langkah 2)
@@ -538,7 +573,7 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D4 | Font: 1 display + 1 body | PASS | `src/lib/fonts.ts` (Excess V Straight + Relidux) |
 | D5 | Wordmark `clamp(2.8rem, 11vw, 4.5rem)` | PASS (≥720px) / N/A (<720px) | ≥720px = 72px terukur; <720px sengaja tetap token 40px @390 (batas 41px, lihat §2) |
 | D6 | Max width 1440px | PASS | `--container-max: 1440px` |
-| D7 | Radius 0 mutlak | FAIL | 4 lokasi publik (§3) |
+| D7 | Radius 0 mutlak | **PASS** | 0 elemen + 0 pseudo-element ber-radius di 8 route publik + kursor kustom; `--radius-pill` dihapus (§3, Langkah 3g) |
 | D8 | Logistics strip hero | PASS | `.strip` satu baris `KATALOG: 10 ITEM // STATUS: AKTIF // LOC: BANDUNG BARAT, ID` (3c) |
 | D9 | Gap CTA→strip ≤40px, strip dalam fold 900px | PASS | 20.32/19.10/32.44/32.24/31.19px; strip bottom 873.24px @1440×900 |
 | D10 | Ledger + watermark + z-index | FAIL | `/music` masih wall 2 kolom; 0 watermark |
@@ -555,3 +590,5 @@ Dipakai setiap kali ragu apakah sebuah elemen "kerasa AI":
 | D21 | Reduced-motion global | PASS | `globals.css:265` |
 | D22 | 3 varian sleeve berbeda nyata | **PASS** | 10 md5 unik; A/B/C berbeda 39–80% piksel (3h-2) |
 | D23 | Kontrak `anti-ai` (tolak `<canvas`/`getContext`) | PASS (sekarang) | `tests/fixtures/anti-ai.ts` `BANNED_HOMEPAGE_PATTERNS` |
+| D24 | Copy voice dingin/katalogis + hard gate | **PASS** | `tests/studio/copy-voice.test.ts` (6 test) + `scripts/qa-copy.mjs` di CI; 0 kata hype di DOM 10 route; bio pemilik dikecualikan sempit (§7) |
+| D25 | Tidak ada nilai kosong di UI publik | **PASS** | `Tidak tercatat` / `Belum terklasifikasi` menggantikan `—` dan `Rilis`; PRD P1 PASS; `qa:copy` menolak elemen berisi dash |

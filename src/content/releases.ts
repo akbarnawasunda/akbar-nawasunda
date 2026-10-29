@@ -18,6 +18,8 @@
  * fallback shown when no database is configured (preview, local dev).
  */
 
+import { UNCLASSIFIED } from "./copy";
+
 export type ReleaseType = "single" | "ep" | "album" | "remix" | "mix";
 
 export interface ReleaseLink {
@@ -142,7 +144,11 @@ export const releaseTypeLabel: Record<ReleaseType, string> = {
 
 /**
  * What is actually known about a release, e.g. "Remix · 2025", "Single · 2024" or "Era DJ Akbar Remix".
- * Returns "Rilis" when neither a type, year nor era is known — never an invented value.
+ *
+ * Langkah 3i: the old fallback was the bare word "Rilis", which the catalogue printed where a type
+ * belongs ("Cinta Terbuang / Rilis") and which the PRD counted as an empty value reaching the public.
+ * It is now an explicit status — "Belum terklasifikasi" — so the line says what is missing instead of
+ * looking like a type nobody has heard of.
  */
 export function releaseEyebrow(release: Release): string {
   const parts = [
@@ -150,7 +156,7 @@ export function releaseEyebrow(release: Release): string {
     release.year ? String(release.year) : null,
     release.era ? `Era ${release.era}` : null,
   ].filter((part): part is string => part !== null);
-  return parts.length > 0 ? parts.join(" · ") : "Rilis";
+  return parts.length > 0 ? parts.join(" · ") : UNCLASSIFIED;
 }
 
 /** Title as displayed, including the original artist when known: "Masih Mencintainya — Papinka". */

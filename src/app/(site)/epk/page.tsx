@@ -10,6 +10,7 @@ import { siteConfig } from "@/config/site";
 import { contactEmail, contactHref, listenLinks, listenUrl, socialLinks } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
 import styles from "./epk.module.css";
+import { UNRECORDED } from "@/content/copy";
 
 export const metadata: Metadata = pageMetadata({
   title: "EPK",
@@ -97,14 +98,17 @@ export default function EpkPage() {
             Fakta terverifikasi
           </h2>
 
-          <p className={styles.bio}>{artistLongBio}</p>
+          {/* The owner's own words, verbatim — see src/content/copy.ts and the copy-voice guard. */}
+          <p className={styles.bio} data-copy-origin="owner-verbatim">
+            {artistLongBio}
+          </p>
         </div>
 
         <dl className={styles.facts}>
           {artistFacts.map((fact) => (
             <div key={fact.label} className={styles.fact}>
               <dt>{fact.label}</dt>
-              <dd>{fact.value ?? "—"}</dd>
+              <dd>{fact.value ?? UNRECORDED}</dd>
             </div>
           ))}
           <div className={styles.fact}>

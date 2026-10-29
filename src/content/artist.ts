@@ -46,7 +46,7 @@ export const artistLongBio =
 /** One sentence, for cards and search results. */
 export const artistShortBio =
   "Produser musik, remixer, dan DJ dari Bandung Barat. Mulai 2020 sebagai DJ Akbar Remix, kini " +
-  "merilis karya sebagai Akbar Nawasunda.";
+  "merilis sebagai Akbar Nawasunda.";
 
 /**
  * The name change is the spine of the timeline, and the catalogue now supplies the years around it:
@@ -81,7 +81,7 @@ export const artistTimeline: readonly TimelineEntry[] = [
     marker: "Sekarang",
     title: "Akbar Nawasunda",
     detail:
-      "Nama panggung yang dipakai sekarang untuk katalog, kredit, dan identitas situs ini: karya orisinal plus remix.",
+      "Nama panggung yang dipakai sekarang untuk katalog, kredit, dan identitas situs ini: rilis orisinal dan remix.",
   },
 ];
 

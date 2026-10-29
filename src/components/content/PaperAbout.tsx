@@ -30,7 +30,12 @@ export function PaperAbout() {
           </h2>
 
           <div className={styles.body}>
-            <p className={styles.lead}>{artistLongBio}</p>
+            {/* `data-copy-origin` marks the artist's own text. Read by scripts/qa-copy.mjs and
+                tests/studio/copy-voice.test.ts: two ordinary words ("perjalanan", "karya") are
+                permitted inside this block and nowhere else in the site's own voice. */}
+            <p className={styles.lead} data-copy-origin="owner-verbatim">
+              {artistLongBio}
+            </p>
             <p className={styles.meta}>
               {siteConfig.origin} · aktif sejak {siteConfig.since} · nama panggung Akbar Nawasunda
             </p>

@@ -5,13 +5,19 @@
 
 /**
  * "unknown" is a real state, not a placeholder: the owner has confirmed some titles but not their
- * type yet, and the site must not assert "single" on their behalf. It renders as "Rilis".
+ * type yet, and the site must not assert "single" on their behalf.
+ *
+ * Langkah 3i: it used to render as the word "Rilis", which is also this site's word for a release in
+ * general — so the data sheet read `Jenis: Rilis`, i.e. "type: release". It now renders the explicit
+ * status below, imported from the same constant the public pages use.
  */
+import { UNCLASSIFIED } from "../content/copy";
+
 export const RELEASE_TYPES = ["unknown", "single", "ep", "album", "remix", "mix"] as const;
 export type ReleaseKind = (typeof RELEASE_TYPES)[number];
 
 export const RELEASE_TYPE_LABELS: Record<ReleaseKind, string> = {
-  unknown: "Rilis",
+  unknown: UNCLASSIFIED,
   single: "Single",
   ep: "EP",
   album: "Album",

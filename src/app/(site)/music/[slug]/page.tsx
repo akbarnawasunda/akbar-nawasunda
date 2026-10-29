@@ -128,11 +128,14 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       artwork={resolveArtwork(release.slug)}
       links={release.links}
       facts={[
-        // Type and year always print: an unconfirmed one shows an em dash rather than vanishing.
+        // Type and year always print: an unconfirmed one shows "Tidak tercatat" rather than a dash,
+        // which would read as a field that is blank rather than a fact nobody has supplied.
         { label: "Jenis", value: release.type ? releaseTypeLabel[release.type] : null },
         { label: "Tahun", value: release.year ? String(release.year) : null },
         // These two only exist when the owner supplied them, so they are absent, not empty.
-        ...(release.source ? [{ label: "Karya asli", value: release.source }] : []),
+        // "Sumber", not "Karya asli": the sheet is a catalogue record, and "karya" is a word this
+        // site reserves for the owner's own biography (Langkah 3i, `OWNER_COPY_ONLY_TERMS`).
+        ...(release.source ? [{ label: "Sumber", value: release.source }] : []),
         ...(release.era ? [{ label: "Era", value: release.era }] : []),
       ]}
       prev={prev}

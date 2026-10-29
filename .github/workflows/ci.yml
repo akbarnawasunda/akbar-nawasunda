@@ -126,6 +126,15 @@ jobs:
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
 
+      # The other half of the copy gate. `npm test` scans source literals; this walks the rendered
+      # pages, so copy that arrives from data (a release description, a CMS field) is covered too.
+      # Langkah 3i: the public voice is cold and catalogical — no hype, no marketing, no Web3 — and
+      # no field may be printed as a bare dash.
+      - name: Copy voice — rendered pages
+        run: npm run qa:copy
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
       - name: Server log on failure
         if: failure()
         run: cat /tmp/next.log || true
