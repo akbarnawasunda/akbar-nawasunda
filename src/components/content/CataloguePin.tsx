@@ -45,7 +45,7 @@ export function CataloguePin({ items }: { items: CataloguePinItem[] }) {
 
   return (
     <div ref={wrapRef} className={styles.pinWrap} data-catalogue-pin>
-      <div className={styles.pinContent}>
+      <div className={styles.pinContent} data-stagger="on">
         {items.map((item) => (
           <article className={styles.pinCard} key={item.slug} data-pin-card>
             <Link className={styles.pinLink} href={item.href} aria-label={`Buka rilis ${item.title}`}>

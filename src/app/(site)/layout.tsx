@@ -4,6 +4,7 @@ import { GrainOverlay } from "@/components/effects/GrainOverlay";
 import { BackSide, type SheetData } from "@/components/print/BackSide";
 import { InkPress } from "@/components/print/InkPress";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
+import { EntryStagger } from "@/components/zine/EntryStagger";
 import { PerfSwitches } from "@/components/zine/PerfSwitches";
 import { TouchPress } from "@/components/zine/TouchPress";
 import { RouteCurtain } from "@/components/zine/RouteCurtain";
@@ -70,6 +71,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <PerfSwitches />
       <LoadingCurtain />
       <SmoothScroll />
+      <EntryStagger />
       <RouteCurtain />
       <TouchPress />
       <a href="#main" className="skip-link">

@@ -58,6 +58,7 @@ export function ReleaseLedger({ rows }: { rows: readonly LedgerRow[] }) {
     <ol
       ref={listRef}
       className={styles.ledger}
+      data-stagger="on"
       aria-label="Katalog rilis"
       onPointerMove={trackPointer}
       onPointerLeave={clearPointer}

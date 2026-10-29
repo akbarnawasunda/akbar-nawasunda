@@ -42,7 +42,7 @@ export function PaperAbout() {
           </div>
         </div>
 
-        <DrawOnView as="ol" className={styles.timeline}>
+        <DrawOnView as="ol" className={styles.timeline} stagger>
           <svg
             className={styles.rail}
             viewBox="0 0 1000 12"

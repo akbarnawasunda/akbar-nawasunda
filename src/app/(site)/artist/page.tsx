@@ -189,7 +189,7 @@ export default async function ArtistPage() {
           <p className={styles.sectionNote}>Tonggak terverifikasi</p>
         </div>
 
-        <ol className={styles.timeline}>
+        <ol className={styles.timeline} data-stagger="on">
           {artistTimeline
             .filter((entry) => !entry.pending)
             .map((entry) => (
