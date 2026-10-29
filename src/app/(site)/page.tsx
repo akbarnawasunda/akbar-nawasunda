@@ -369,9 +369,9 @@ export default async function HomePage() {
           {/*
             Round 29: the index is the data, the rail is the object — and the object is a pinned
             reel now. A 300vh wrapper, a sticky 100vh flex row, and the page's own scroll engine
-            turning the pinned travel into one translateX; under 768px it dissolves back into a
-            vertical column, because a discography you can push sideways with a thumb is the one
-            catalogue gesture a major label site never drops.
+            turning the pinned travel into one translateX. Under 768px the pin dissolves and the
+            row becomes a native horizontal scroller with snap — because a discography you can push
+            sideways with a thumb is the one catalogue gesture a major label site never drops.
           */}
           <CataloguePin
             items={catalogue.map((item) => ({

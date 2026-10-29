@@ -196,7 +196,7 @@ try {
    * Both are read from the element that owns the property, not assumed.
    */
   /*
-   * Round 29 — the rail is a pinned reel: the engine writes --pin across the wrapper's 200vh of
+   * Round 29 — the rail is a pinned reel: the engine writes --pin across the wrapper's 300vh of
    * travel and the stylesheet turns it into one translateX. Asserted from both ends: the number
    * moves, and the row visibly moves with it. Then the sleeve still answers the hand.
    */
