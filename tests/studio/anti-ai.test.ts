@@ -256,17 +256,33 @@ describe("cover artwork waterfall", () => {
         `probe and production disagree for ${release.slug}`,
       );
     }
-    assert.equal(resolveCover("masih-mencintainya-papinka"), null);
+    /*
+     * Both halves of the waterfall, pinned against real files. The 7 releases that carry a
+     * published link have their artwork fetched into `public/assets/covers/<slug>.webp`; the 3
+     * that carry no link keep the generated sleeve. A slug with a real cover must resolve to it
+     * (level 1), and a slug without one must fall through to the sleeve (level 3) rather than
+     * returning null — that fall-through is what keeps a coverless release from rendering blank.
+     */
     assert.equal(
-      resolveSleeve("masih-mencintainya-papinka"),
-      "/assets/covers/masih-mencintainya-papinka@sleeve.webp",
+      resolveCover("masih-mencintainya-papinka"),
+      "/assets/covers/masih-mencintainya-papinka.webp",
     );
+    assert.equal(resolveCover("cinta-terbuang"), null);
+    assert.equal(resolveSleeve("cinta-terbuang"), "/assets/covers/cinta-terbuang@sleeve.webp");
     /* The two production wrappers above feed this one; assert the composed answer too. */
     assert.deepEqual(coverArtwork("masih-mencintainya-papinka"), {
-      kind: "sleeve",
-      src: "/assets/covers/masih-mencintainya-papinka@sleeve.webp",
+      kind: "image",
+      src: "/assets/covers/masih-mencintainya-papinka.webp",
     });
-    assert.deepEqual(coverArtworkWith("masih-mencintainya-papinka", probe), coverArtwork("masih-mencintainya-papinka"));
+    assert.deepEqual(coverArtwork("cinta-terbuang"), {
+      kind: "sleeve",
+      src: "/assets/covers/cinta-terbuang@sleeve.webp",
+    });
+    assert.deepEqual(coverArtworkWith("cinta-terbuang", probe), coverArtwork("cinta-terbuang"));
+    assert.deepEqual(
+      coverArtworkWith("masih-mencintainya-papinka", probe),
+      coverArtwork("masih-mencintainya-papinka"),
+    );
   });
 
   it("has the directory the owner drops files into", () => {
