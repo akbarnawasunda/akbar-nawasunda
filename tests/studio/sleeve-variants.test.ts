@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 
 import { releases } from "../../src/content/releases";
 import { assignVariants } from "../../scripts/lib/sleeve-variants.mjs";
+import { coverArtwork } from "../../src/content/covers";
 
 /**
  * Langkah 3h-2: the sleeves on disk must be three real designs, not one design saved ten times.
@@ -38,11 +39,48 @@ const LABEL: Record<string, string> = {
 };
 
 describe("generated sleeves", () => {
-  it("ships ten sleeves, no two of them the same file", () => {
-    const withoutArtwork = releases.filter((release) => !existsSync(join(covers, `${release.slug}.webp`)));
-    const hashes = withoutArtwork.map((release) => hashOf(release.slug));
-    assert.equal(hashes.length, 10, `expected 10 generated sleeves, found ${hashes.length}`);
+  /*
+   * Langkah 2a — this assertion used to be wrong in a way that only showed up once real artwork
+   * arrived. It filtered out every release that already had `<slug>.webp`, then demanded the
+   * remainder still number 10: a test that passes only while nothing real exists. The moment the
+   * first real cover shipped it failed with "expected 10 generated sleeves, found 3" — the artwork
+   * was correct and the test was the thing that was broken.
+   *
+   * The rule the site actually has (owner decision, Langkah 2a): the generated sleeve is a permanent
+   * FALLBACK layer, not a placeholder to be deleted. All ten stay on disk; the waterfall in
+   * `covers.ts` decides what a reader sees. So this test now checks the layer, not the outcome.
+   */
+  it("keeps ten generated sleeves on disk as the fallback layer, no two of them the same file", () => {
+    const missing = releases.filter((release) => !existsSync(join(covers, `${release.slug}@sleeve.webp`)));
+    assert.deepEqual(
+      missing.map((release) => release.slug),
+      [],
+      "a generated sleeve is missing — real artwork is a replacement for the reader, not for the fallback",
+    );
+
+    const hashes = releases.map((release) => hashOf(release.slug));
+    assert.equal(hashes.length, 10);
     assert.equal(new Set(hashes).size, hashes.length, "two sleeves are byte-identical again");
+  });
+
+  /*
+   * The other half of the rule, measured through the real waterfall rather than assumed: a release
+   * with `<slug>.webp` renders real artwork, a release without one renders its sleeve. This is what
+   * makes the fallback meaningful — before it, "the sleeve is still there" could be true while the
+   * page silently showed nothing.
+   */
+  it("renders real artwork when a cover exists, and the generated sleeve when it does not", () => {
+    for (const release of releases) {
+      const artwork = coverArtwork(release.slug);
+      const hasRealCover = existsSync(join(covers, `${release.slug}.webp`));
+      if (hasRealCover) {
+        assert.equal(artwork.kind, "image", `${release.slug}: a cover file exists but the card is not showing artwork`);
+        assert.equal(artwork.src, `/assets/covers/${release.slug}.webp`, `${release.slug}: wrong cover path`);
+      } else {
+        assert.equal(artwork.kind, "sleeve", `${release.slug}: no cover file, so the card must fall back to its sleeve`);
+        assert.equal(artwork.src, `/assets/covers/${release.slug}@sleeve.webp`, `${release.slug}: wrong sleeve path`);
+      }
+    }
   });
 
   it("uses all three variants, and never more than half the catalogue on one", () => {

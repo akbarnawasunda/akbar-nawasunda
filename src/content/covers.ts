@@ -2,8 +2,10 @@
  * Cover artwork lookup — the four-level waterfall, in the order a file is actually found.
  *
  * 1. MANUAL    public/assets/covers/<slug>.webp — the owner drops a file in, nothing else to do.
- * 2. AUTO      Spotify oEmbed thumbnail, downloaded by scripts/fetch-spotify-artwork.ts. That script
- *              writes level 1's file, so the site never calls a third party while rendering.
+ * 2. AUTO      Real cover art, downloaded by scripts/fetch-release-artwork.mjs from the streaming
+ *              link the owner already published (Apple iTunes lookup, or SoundCloud/Spotify/YouTube
+ *              oEmbed). That script writes level 1's file, so the site never calls a third party
+ *              while rendering.
  * 3. GENERATED public/assets/covers/<slug>@sleeve.webp, rendered by
  *              scripts/generate-placeholder-covers.mjs from the title, the original artist, the AN
  *              mark and the palette. It is a designed sleeve, never an empty card and never

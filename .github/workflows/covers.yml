@@ -48,7 +48,7 @@ jobs:
         run: npm run covers:plan
 
       - name: Fetch
-        run: node scripts/fetch-release-artwork.mjs ${{ inputs.force && '--force' || '' }}
+        run: npm run covers:fetch -- ${{ inputs.force && '--force' || '' }}
 
       - name: Open a PR if anything changed
         env:
