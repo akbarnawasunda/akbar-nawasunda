@@ -1,11 +1,13 @@
 /*
   /music — "sleeve" (R8).
 
-  The page is two things: the blue sleeve at the top (PageMasthead) and the wall of releases below
-  it (CatalogueWall). Nothing else. The previous version was a head, a three-column card grid and a
-  footnote, which is the layout of a blog index — ten releases deserve a shop wall, not a list.
+  The page is two things: the blue sleeve at the top (PageMasthead) and the ledger of releases below
+  it (ReleaseLedger). Nothing else.
 
-  This file now only owns the space between the two and the honest footnote under the wall.
+  Langkah 3n changed the second half: the wall of sleeves became a table, because a catalogue page
+  owes the reader its contents rather than its mood (`docs/DESIGN.md` §3, "Ledger /music"). This
+  file owns the takeover poster above the ledger, the space between them and the footnote under it —
+  the ledger's own rules, grid and hover live in `ReleaseLedger.module.css`.
 */
 
 /*

@@ -215,25 +215,53 @@ Semua gap ≤40px. Di bawah 900px `@media (max-width:899px)` membuat `.hero` set
 target fold 900px hanya relevan ≥900px. Bukti gambar:
 `artifacts/visual-check/after-3c/final-{before,after}-{1440,390}.png`.
 
-### Ledger `/music` (TARGET)
+### Ledger `/music` (**SUDAH DIIMPLEMENTASIKAN — Langkah 3n**)
 
-Setiap baris rilis:
+Keputusan owner: `/music` adalah **ledger**, bukan wall. Satu baris per rilis, enam kolom, hairline
+antar baris, radius 0, tanpa shadow. Bentuknya mengikuti Discogs/Warp/Factory dan mengikuti bahasa
+fact-table yang sudah dipakai `ReleasePlate` di halaman detail rilis — satu situs, satu cara mencetak
+data.
 
-- Watermark nomor urut raksasa di belakang teks: `font-size: clamp(2.5rem, 5vw, 4.5rem)`,
-  `color: var(--color-watermark)`.
-- z-index: **di atas background, di bawah teks, DAN di bawah cover art/thumbnail**. Artinya
-  watermark tidak boleh tertutup elemen opaque (jangan taruh di balik panel dengan `background`
-  solid) dan tidak boleh menutupi teks.
-- Hover baris: `translateX(6px)` + watermark menyala ke `rgba(255,255,255,0.12)` + border row ke
-  `var(--color-signal-blue)`.
-- Mobile ≤640px: layout **2 baris compact** — thumbnail kecil di kiri + 2 baris teks (judul, lalu
-  format/tahun). Bukan versi sempit dari desktop.
+Kolom per baris (1440): `nomor · sleeve · judul · jenis · tahun · status streaming`
 
-**SEKARANG:** `/music` adalah *wall* dua kolom dengan perspektif 3D (`CatalogueWall.module.css`:
-`grid-template-columns: repeat(2, …)`, `perspective: 1700px`), bukan ledger baris. Watermark: **tidak
-ada sama sekali** (`grep -rn "watermark" src` → 0 hasil). Hover: lift Z + rotasi, bukan
-`translateX(6px)`. Mobile: wall tetap 2 kolom, **tidak ada** layout 2-baris compact.
-Status: **0% sesuai**. Ini pekerjaan Langkah 3d, bukan penyempurnaan kecil.
+| Kolom | Lebar terukur @1440 | Isi |
+| --- | --- | --- |
+| nomor | 44 px, right-aligned, tabular | `01`–`10`, urutan `releases.ts` |
+| sleeve | 56 px persegi | `ReleaseCover`, 1:1 |
+| judul | sisa (655 px @1440) | `releaseDisplayTitle()`, uppercase |
+| jenis | 164 px | label tipe, atau `Belum terklasifikasi` |
+| tahun | 104 px | 4 digit, atau `Tidak tercatat` |
+| status | 244 px, right | `releaseStreamingStatus()` (Langkah 3m) |
+
+Yang berubah dari target lama, dan kenapa:
+
+- **Watermark nomor raksasa dibatalkan.** Target lama meminta angka raksasa di belakang teks dengan
+  `--color-watermark`. Token itu **tidak ada** di `tokens.css`, dan menambahkannya berarti token ke-108
+  hanya untuk satu hiasan — sementara `audit:tokens` dijaga tetap 107. Keputusan saya: nomor urut
+  dicetak sebagai **kolom** biasa (44 px, `--color-text-muted`), bukan watermark. Alasan desainnya
+  lebih kuat daripada alasan token: kolom angka yang lurus ke bawah terbaca sebagai tabel, sedangkan
+  angka raksasa di belakang teks terbaca sebagai poster — dan 3n justru memindahkan halaman ini dari
+  poster ke tabel. **Ini keputusan tanpa izin eksplisit owner dan harus disetujui atau dibalik.**
+- **Hover: `translateX(6px)` DIPERTAHANKAN**, dan border baris menyala ke `--color-signal-blue`.
+  Yang dihapus: lift Z + rotasi (itu bahasa wall). Pointer di-track satu handler untuk seluruh daftar
+  supaya hanya satu baris yang "hot" pada satu waktu — `:hover` per elemen membuat sepuluh transisi
+  berjalan di sepuluh waktu berbeda saat pointer menyapu cepat.
+- **Mobile: 3 baris, bukan 2.** ≤719 px: `nomor + sleeve + judul` / `jenis + tahun` / `status`. Target
+  lama minta 2 baris; 3 baris dipakai karena status streaming harus tetap terbaca di 320 px dan
+  memaksa dua fakta itu turun ke baris ketiga. Yang tidak boleh terjadi adalah menghilangkan field di
+  layar terkecil.
+
+Ambang layout (terukur, bukan tebakan): tabel satu baris mulai **1280 px**, dua baris 720–1279 px,
+tiga baris ≤719 px. Di 1024 judul butuh 387 px untuk "Hitungan Cinta Breakbeat Super Exc" dan kolom
+tersedia 403 px — aman; di bawah 1280 kolom tetap itu tidak lagi aman, jadi judul boleh membungkus.
+Lebar kolom diambil dari pengukuran string asli pada style aslinya: `Belum terklasifikasi` 162 px
+(tracking 0.14em, bukan 0.2em), `Tidak tercatat` 103 px, `TAUTAN STREAMING: BELUM TERCATAT` 242 px.
+
+**SEKARANG:** terimplementasi. `CatalogueWall.tsx` + `.module.css` dihapus. Baris diturunkan oleh
+`src/content/release-ledger.ts` (`ledgerRowFromRelease`/`ledgerRowFromDocument`, satu bentuk untuk
+data statis dan record Studio), dirender `ReleaseLedger.tsx`. Invariant "10 baris, nomor 01..10, tidak
+ada baris kosong" ditegakkan `assertLedgerComplete()` di halaman dan di
+`tests/studio/release-ledger.test.ts`.
 
 ### Release page tanpa tautan streaming
 
@@ -585,9 +613,9 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D7 | Radius 0 mutlak | **PASS** | 0 elemen + 0 pseudo-element ber-radius di 8 route publik + kursor kustom; `--radius-pill` dihapus (§3, Langkah 3g) |
 | D8 | Logistics strip hero | PASS | `.strip` satu baris `KATALOG: 10 ITEM // STATUS: AKTIF // LOC: BANDUNG BARAT, ID` (3c) |
 | D9 | Gap CTA→strip ≤40px, strip dalam fold 900px | PASS | 20.32/19.10/32.44/32.24/31.19px; strip bottom 873.24px @1440×900 |
-| D10 | Ledger + watermark + z-index | FAIL | `/music` masih wall 2 kolom; 0 watermark |
-| D11 | Ledger hover `translateX(6px)` | FAIL | sekarang lift Z + rotate |
-| D12 | Ledger mobile 2-baris compact | FAIL | tidak ada |
+| D10 | Ledger + watermark + z-index | **PASS (tanpa watermark)** | Langkah 3n: ledger 6 kolom menggantikan wall. Watermark DIBATALKAN dengan alasan tercatat di §3 — nomor jadi kolom 44 px, bukan angka raksasa, dan token tidak bertambah (107). Butuh persetujuan owner |
+| D11 | Ledger hover `translateX(6px)` | **PASS** | terukur: `matrix(1,0,0,1,6,0)` + border `rgb(0,135,255)`; satu baris hot pada satu waktu; `prefers-reduced-motion` → `transform: none` |
+| D12 | Ledger mobile compact | **PASS (3 baris, bukan 2)** | ≤719 px: nomor+sleeve+judul / jenis+tahun / status; 0 overflow di 320–1920 |
 | D13 | Dubplate card | **RESOLVED — kebijakan netral permanen** (Langkah 3m) | Kartu klaim DIBATALKAN; `TAUTAN STREAMING: BELUM TERCATAT` via `releaseStreamingStatus()`, dipakai 4 permukaan, dikunci `BANNED_COPY_TERMS` (`dubplate`, `unreleased`, `belum rilis`, `tidak didistribusikan`) |
 | D14 | Effect non-WebGL + fallback | **PASS** | Canvas 2D `AnMonogramFoil.tsx` + still lazy (3h-1) |
 | D15 | Kontrak `qa:motion` 0 canvas di scroll 0 | **PASS, sekarang di 1440 DAN 390** | probe 390×844 ditambahkan di 3h-1 |

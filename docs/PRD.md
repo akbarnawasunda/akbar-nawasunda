@@ -201,7 +201,7 @@ memindai teks publik terhadap daftar itu, bukan menyinkronkan ke sesuatu yang su
 | --- | --- | --- |
 | `mbid` MusicBrainz opsional | Tidak ada di `Release` interface | Tambah field opsional, render hanya bila terisi |
 | `distribution` | Tidak ada; **tidak lagi** disimpulkan dari `links.length` | RESOLVED Langkah 3m: status netral permanen `TAUTAN STREAMING: BELUM TERCATAT` (§2). Field eksplisit hanya perlu kalau owner kelak mengonfirmasi per rilis |
-| `meta` opsional | `meta: string` selalu terisi (fallback `"Rilis"`) | Ubah ke `string \| null`, render kondisional |
+| `meta` opsional | `meta: string` selalu terisi (fallback `"Rilis"`) | RESOLVED 3i (`Belum terklasifikasi`); ledger 3n mencetak `type` dan `year` sebagai kolom terpisah sehingga `meta` tidak lagi menjadi satu-satunya tempat fakta |
 | Format/jenis tampil | `releaseTypeLabel` sudah ada | Pertahankan, tapi jangan render bila kosong |
 
 ---

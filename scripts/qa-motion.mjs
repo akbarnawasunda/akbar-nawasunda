@@ -936,34 +936,56 @@ try {
    * forward. The loader is a third tab, because it is skipped when `an-curtain` is already in
    * sessionStorage — which is exactly what `settle()` does to the main page.
    */
-  const wall = await browser.newPage();
-  await wall.setViewport({ width: 1440, height: 900 });
-  await wall.goto(`${base}/music`, { waitUntil: "load", timeout: 60000 });
+  /*
+   * Langkah 3n — the catalogue stopped being a wall.
+   *
+   * This probe used to measure the 3D tunnel: `--wall-z` had to reach >20 px on the card under the
+   * pointer and never exceed 44 px on any card. That contract belonged to `CatalogueWall`, which is
+   * deleted. The replacement contract is a ledger row that shifts 6 px and takes the signal-blue
+   * rule — and, critically, only ONE row at a time, which is the part `:hover` alone cannot
+   * guarantee and the reason the component tracks the pointer itself.
+   */
+  const ledger = await browser.newPage();
+  await ledger.setViewport({ width: 1440, height: 900 });
+  await ledger.goto(`${base}/music`, { waitUntil: "load", timeout: 60000 });
   await sleep(600);
-  await wall.evaluate(() => {
-    document.querySelector("[data-wall-card]")?.scrollIntoView({ block: "center" });
+  await ledger.evaluate(() => {
+    document.querySelector("[data-ledger-row]")?.scrollIntoView({ block: "center" });
   });
   await sleep(400);
-  const card = await wall.$("[data-wall-card]");
-  if (card) {
-    const box = await card.boundingBox();
-    await wall.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 });
+  const row = await ledger.$("[data-ledger-row]");
+  if (row) {
+    const box = await row.boundingBox();
+    await ledger.mouse.move(box.x + 200, box.y + box.height / 2, { steps: 6 });
     await sleep(450);
-    const state = await wall.evaluate(() => {
-      const first = document.querySelector("[data-wall-card]");
-      const all = [...document.querySelectorAll("[data-wall-card]")];
-      const z = (node) => Math.abs(parseFloat(node.style.getPropertyValue("--wall-z") || "0"));
-      return { pointed: z(first), furthest: Math.max(...all.map(z)) };
+    const state = await ledger.evaluate(() => {
+      const all = [...document.querySelectorAll("[data-ledger-row]")];
+      const hot = all.filter((node) => node.dataset.hot === "true");
+      const first = all[0];
+      const link = first.querySelector("[data-ledger-link]");
+      const style = link ? getComputedStyle(link) : null;
+      return {
+        rows: all.length,
+        hot: hot.length,
+        index: hot.length > 0 ? all.indexOf(hot[0]) : -1,
+        shift: style ? new DOMMatrixReadOnly(style.transform).m41 : 0,
+        rule: first ? getComputedStyle(first).borderTopColor : "",
+      };
     });
     check(
-      "the catalogue wall lifts the sleeve under the pointer",
-      state.pointed > 20 && state.furthest <= 44.5,
-      `${state.pointed}px lift, max ${state.furthest}px`,
+      "the catalogue ledger shifts exactly the row under the pointer",
+      state.rows === 10 && state.hot === 1 && state.index === 0 && Math.abs(state.shift - 6) < 0.5,
+      `${state.rows} rows, ${state.hot} hot (index ${state.index}), shift ${state.shift}px`,
+    );
+    check(
+      "the hot row's rule takes the signal blue",
+      state.rule === "rgb(0, 135, 255)",
+      state.rule,
     );
   } else {
-    check("the catalogue wall lifts the sleeve under the pointer", false, "no [data-wall-card]");
+    check("the catalogue ledger shifts exactly the row under the pointer", false, "no [data-ledger-row]");
   }
-  await wall.close();
+  await ledger.close();
 
   const fresh = await browser.newPage();
   await fresh.setViewport({ width: 1440, height: 900 });
