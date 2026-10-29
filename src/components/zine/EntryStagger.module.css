@@ -1,0 +1,63 @@
+/*
+  FASE 4b — Proposal 1, "Tangga".
+
+  Apa yang dilakukan: satu grup daftar (kartu katalog, baris ledger, stop timeline, panel arsip)
+  masuk berurutan, bukan serempak. Anak pertama naik 24 px, anak berikutnya menyusul 90 ms, berhenti
+  menambah langkah setelah langkah ke-4 (anak ke-5 dan seterusnya berbagi 360 ms) — sepuluh kartu
+  dengan 10 x 90 ms berarti kartu terakhir baru tiba setelah 0,9 detik, dan itu terbaca sebagai
+  lambat, bukan mewah.
+
+  **Kenapa tanpa fade.** Prototipe FASE 4b memakai `opacity: 0 → 1`, dan gerbang a11y menolaknya
+  dengan benar: selama transisi, teks yang sedang setengah transparan tercampur latar dan rasionya
+  jatuh di bawah ambang (`color-contrast`, 3 pelanggaran di /artist dan paper). Jadi yang bergerak
+  hanya `transform`; teks tidak pernah kehilangan kontras, tidak ada kedipan pada paint pertama, dan
+  tidak ada layer tambahan. Easing tetap `--ease-out`, tanpa token baru, tanpa radius, tanpa warna.
+  Tidak ada `will-change`: D36 mengukur promosi layer di halaman ini justru menurunkan fps
+  (51,1–53,9 vs 55,7 baseline).
+
+  Kontrak kegagalan — sama seperti `Reveal` dan `DrawOnView`: **keadaan diam adalah keadaan jadi**.
+  CSS di bawah tidak menyembunyikan apa pun sampai `EntryStagger` menulis
+  `data-stagger-state="armed"`, dan itu hanya terjadi pada grup yang memang masih di bawah layar.
+  Tanpa JS, grup yang sudah terlihat tidak pernah berkedip; grup yang belum terlihat tampil apa
+  adanya (tidak ada animasi) alih-alih kosong.
+*/
+
+/* Delay dideklarasikan di keadaan dasar, bukan di keadaan "armed": transisi menuju "in" harus
+   membawa langkah yang sama, kalau tidak seluruh grup tiba serempak. */
+:global([data-stagger]) > * {
+  transition: transform 700ms var(--ease-out);
+  transition-delay: 0ms;
+}
+
+:global([data-stagger]) > *:nth-child(2) {
+  transition-delay: 90ms;
+}
+
+:global([data-stagger]) > *:nth-child(3) {
+  transition-delay: 180ms;
+}
+
+:global([data-stagger]) > *:nth-child(4) {
+  transition-delay: 270ms;
+}
+
+:global([data-stagger]) > *:nth-child(n + 5) {
+  transition-delay: 360ms;
+}
+
+:global([data-stagger-state="armed"]) > * {
+  transform: translate3d(0, 24px, 0);
+}
+
+/*
+  `prefers-reduced-motion: reduce` mematikan tangga sepenuhnya, bukan mempercepatnya: tidak ada
+  pergeseran, tidak ada delay, tidak ada transisi. Isi langsung berada di tempat akhirnya.
+*/
+@media (prefers-reduced-motion: reduce) {
+  :global([data-stagger]) > *,
+  :global([data-stagger-state="armed"]) > * {
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
+  }
+}

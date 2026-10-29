@@ -21,10 +21,13 @@ export function DrawOnView({
   className,
   children,
   as: Tag = "div",
+  stagger = false,
 }: {
   className?: string;
   children: React.ReactNode;
   as?: "div" | "ol" | "ul";
+  /** Tandai wadah ini sebagai grup tangga (FASE 4b); lihat `EntryStagger`. */
+  stagger?: boolean;
 }) {
   const ref = useRef<HTMLElement | null>(null);
 
@@ -50,7 +53,7 @@ export function DrawOnView({
   }, []);
 
   return (
-    <Tag className={className} ref={ref as React.Ref<never>}>
+    <Tag className={className} ref={ref as React.Ref<never>} data-stagger={stagger ? "on" : undefined}>
       {children}
     </Tag>
   );

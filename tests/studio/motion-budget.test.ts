@@ -146,3 +146,55 @@ test("the header blur only ever comes back behind the switch", () => {
     .find((chunk) => chunk.includes("backdrop-filter")) ?? "";
   assert.match(rule, /html\[data-perf~="blur"\]/, "the blur is not scoped to ?perf=blur");
 });
+
+/**
+ * FASE 4b, Proposal 1 — the entry stagger is allowed to exist, but only under three conditions that
+ * have already been violated once each somewhere in this codebase: it must be off under reduced
+ * motion, it must never hide something the reader can already see, and it must stay inside
+ * `transform`/`opacity` (no filter, no `will-change`, no new duration token).
+ */
+test("the entry stagger is transform only and fully off under reduced motion", () => {
+  const css = declarations(read("src/components/zine/EntryStagger.module.css"));
+  assert.doesNotMatch(css, /opacity/, "the stagger fades text, which drops its contrast mid-transition (a11y gate)");
+  assert.match(css, /\[data-stagger-state="armed"\]\)?\s*>\s*\*\s*\{[^}]*translate3d\(0,\s*24px,\s*0\)/, "the armed state does not rise");
+  assert.doesNotMatch(css, /filter:|backdrop-filter|box-shadow|will-change/, "the stagger animates something other than transform/opacity");
+  assert.doesNotMatch(css, /border-radius|radius-/, "the stagger introduces a radius");
+
+  const reduced = css.split("@media (prefers-reduced-motion: reduce)")[1] ?? "";
+  assert.match(reduced, /transform:\s*none/, "reduced motion does not remove the offset");
+  assert.match(reduced, /transition:\s*none/, "reduced motion still transitions");
+  assert.match(reduced, /transition-delay:\s*0ms/, "reduced motion keeps a stagger delay");
+
+  const component = read("src/components/zine/EntryStagger.tsx");
+  assert.match(
+    component,
+    /if \(window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches\) return;/,
+    "the stagger arms even when the reader asked for reduced motion",
+  );
+  assert.match(
+    component,
+    /const onScreen = rect\.top < window\.innerHeight \* 0\.92 && rect\.bottom > 0;/,
+    "a group that is already on screen is no longer skipped, so the first paint can flash",
+  );
+});
+
+test("the entry stagger is wired to the five reviewed groups and nowhere else", () => {
+  const expected: [string, RegExp][] = [
+    ["src/components/content/CataloguePin.tsx", /data-stagger="on"/],
+    ["src/components/media/VisualRail.tsx", /data-stagger="on"/],
+    ["src/components/content/ReleaseLedger.tsx", /data-stagger="on"/],
+    ["src/components/content/PaperAbout.tsx", /<DrawOnView as="ol"[^>]*stagger>/],
+    ["src/app/(site)/artist/page.tsx", /data-stagger="on"/],
+  ];
+  for (const [file, pattern] of expected) {
+    assert.match(read(file), pattern, `${file} lost its stagger group`);
+  }
+
+  /* One more than the five above means a sixth section was added without a decision. */
+  const offenders = [...new Set(
+    (read("src/components/content/CataloguePin.tsx") + read("src/components/media/VisualRail.tsx") +
+      read("src/components/content/ReleaseLedger.tsx") + read("src/components/content/PaperAbout.tsx") +
+      read("src/app/(site)/artist/page.tsx")).match(/data-stagger="on"|stagger>/g) ?? [],
+  )];
+  assert.equal(offenders.length, 2, "the five groups should spell exactly five anchors");
+});

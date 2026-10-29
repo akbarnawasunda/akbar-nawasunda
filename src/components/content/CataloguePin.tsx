@@ -19,9 +19,12 @@ import styles from "./CataloguePin.module.css";
  * single custom property per frame it already runs, and CSS does the maths
  * (`translateX(calc(var(--pin) * (100vw - 100%)))`).
  *
- * Under 768px the pin dissolves: the wrapper loses its height, the row becomes a column, and the
- * catalogue reads vertically like the rest of the page — a thumb should swipe the page, not fight
- * a hijacked axis.
+ * Under 768px the pin dissolves, but the row does not become a column: round 31 kept it
+ * horizontal and handed the axis to the thumb instead. The wrapper loses its height, the sticky
+ * row becomes a native scroller (`overflow-x: auto` + `scroll-snap-type: x mandatory`), so a
+ * swipe glides sleeve to sleeve while a vertical drag still belongs to the page — one axis per
+ * gesture, the way iOS and Android both expect. The overhang stays clipped to the row, so the
+ * document never gains a horizontal scrollbar.
  */
 export interface CataloguePinItem {
   slug: string;
@@ -42,7 +45,7 @@ export function CataloguePin({ items }: { items: CataloguePinItem[] }) {
 
   return (
     <div ref={wrapRef} className={styles.pinWrap} data-catalogue-pin>
-      <div className={styles.pinContent}>
+      <div className={styles.pinContent} data-stagger="on">
         {items.map((item) => (
           <article className={styles.pinCard} key={item.slug} data-pin-card>
             <Link className={styles.pinLink} href={item.href} aria-label={`Buka rilis ${item.title}`}>

@@ -23,7 +23,7 @@ import styles from "./VisualRail.module.css";
 export function VisualRail({ items }: { items: readonly VisualItem[] }) {
   return (
     <div className={styles.wall}>
-      <ul className={styles.grid} aria-label="Arsip visual">
+      <ul className={styles.grid} aria-label="Arsip visual" data-stagger="on">
         {items.map((item, index) => (
           <li key={item.id} className={styles.panel}>
             <figure className={styles.figure}>

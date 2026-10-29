@@ -92,8 +92,25 @@
  */
 .foil[data-ambient="true"],
 .foilLayer:has(> .foil[data-ambient="true"]) {
-  opacity: 0.2;
   pointer-events: none;
+}
+
+/*
+ * The dimming is applied on exactly ONE element, and it took a measurement to keep it that way.
+ *
+ * Both selectors above carried `opacity: 0.2`, so the foil was composited at 0.2 twice — the
+ * property multiplies down the tree, it does not take the minimum. With the host's own 0.85 on
+ * `.canvas` the effective alpha was **0.034**, and the band went black: measured on an iPhone 12
+ * profile at 390×844, every pixel of the band sat in luminance 0–12 of 255 (owner: "cuma hitam"),
+ * while the canvas underneath was drawing 48 209 pixels peaking at 169. Neutralising one of the two
+ * layers in the live page moved the band's p95 from 6.9 to 20.9 — 3× — which is the '#28' the
+ * ambient ramp was designed for.
+ *
+ * So: opacity here, `pointer-events` on both (the layer takes events on its own box and would
+ * swallow taps for the whole band even with a `pointer-events: none` child).
+ */
+.foil[data-ambient="true"] {
+  opacity: 0.2;
 }
 
 @media (max-width: 768px) {

@@ -584,7 +584,8 @@
 /*
  * Round 29 — the discography rail moved: it is a pinned horizontal reel now (see
  * CataloguePin.module.css — 300vh wrapper, sticky 100vh flex row, the engine's --pin becomes one
- * translateX, and under 768px it dissolves back to a vertical column). What stays here is the
+ * translateX, and under 768px the pin dissolves into a native horizontal scroller with snap —
+ * round 31, not a column; see the phone block in CataloguePin.module.css). What stays here is the
  * count above it: a section title's understudy, not a hero.
  */
 .railCount {

@@ -9,7 +9,7 @@
  *   --font-display  Excess V Straight  H1 / the giant hero name ONLY — plus the two other places
  *                                      where that same name IS the graphic: the footer wordmark
  *                                      and the loading curtain.
- *   --font-body     Relidux            everything else: H2/H3, release and track titles,
+ *   --font-body     Gohan              everything else: H2/H3, release and track titles,
  *                                      paragraphs, buttons, navigation, meta labels.
  *
  * Psychlone Straight, Impact Label SWL and Marseloup are purchased and stay in src/assets/fonts,
@@ -30,10 +30,21 @@ const fontsTs = readFileSync(join(root, "src", "lib", "fonts.ts"), "utf8");
 
 const LIVE = [
   { variable: "--font-display", file: "Excess V Straight.woff2", role: "H1 / hero name, footer wordmark, loading curtain" },
-  { variable: "--font-body", file: "Relidux.woff2", role: "everything else" },
+  { variable: "--font-body", file: "Gohan.woff2", role: "everything else" },
 ];
 
-const RETIRED_FAMILIES = ["Psychlone", "Impact Label", "Marseloup", "Marse-loup", "Marse Loup"];
+const RETIRED_FAMILIES = ["Psychlone", "Impact Label", "Marseloup", "Marse-loup", "Marse Loup", "Relidux"];
+
+/*
+ * Comments are stripped before the retired-family scan. The rule this script enforces is "nothing
+ * *loads* a retired face", and several stylesheets carry measurements that mention one by name —
+ * `page.module.css` records that Relidux's labels ran ~19% wider than the fallback, which is why
+ * the hero buttons wrapped. Deleting that sentence to keep a string-match happy would throw away
+ * the measurement. A `/* … *\/` or `//` block cannot load a font, so it is not a violation; a
+ * `font-family:` declaration or a `localFont({ src })` can, and those survive the strip.
+ */
+const stripComments = (text) =>
+  text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 const RETIRED_TOKENS = ["--font-heading", "--font-label", "--font-accent"];
 
 const problems = [];
@@ -59,7 +70,7 @@ const walk = (dir) =>
   });
 const sources = walk(join(root, "src")).filter((p) => /\.(css|tsx?|ts)$/.test(p) && !p.includes("fonts.ts"));
 for (const p of sources) {
-  const text = readFileSync(p, "utf8");
+  const text = stripComments(readFileSync(p, "utf8"));
   for (const fam of RETIRED_FAMILIES) {
     if (text.includes(fam)) problems.push(`${relative(root, p)}: references retired family "${fam}"`);
   }

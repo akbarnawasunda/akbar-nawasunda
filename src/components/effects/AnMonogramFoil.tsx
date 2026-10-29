@@ -3,6 +3,18 @@
 import { useEffect, useRef } from "react";
 
 import styles from "./AnMonogram.module.css";
+import {
+  buildPlates,
+  layoutFor,
+  markPath,
+  type Palette,
+  MARK_H,
+  MARK_W,
+  type Layout,
+  type Plates,
+  type SurfaceFactory,
+} from "./foil-geometry";
+import type { PlateResponse } from "./foil-plate.worker";
 
 /**
  * The AN monogram, printed in metal foil — Canvas 2D, no GPU context.
@@ -55,29 +67,26 @@ import styles from "./AnMonogram.module.css";
 
 /* ------------------------------------------------------------------ geometry (shared with the mark) */
 
-type Quad = readonly [number, number, number, number, number, number, number, number];
-
-/**
- * The monogram as stroke quads in a 0..1 box per letter, N offset by 1.28 — the same six
- * parallelograms the 3D mesh was extruded from, so the silhouette is unchanged by the migration.
- * Two legs and a crossbar for the A; two uprights and a diagonal for the N.
- */
-const STROKES: readonly Quad[] = [
-  [0.0, 0.0, 0.17, 0.0, 0.57, 1.0, 0.4, 1.0],
-  [0.83, 0.0, 1.0, 0.0, 0.6, 1.0, 0.43, 1.0],
-  [0.24, 0.34, 0.76, 0.34, 0.7, 0.5, 0.3, 0.5],
-  [1.28, 0.0, 1.45, 0.0, 1.45, 1.0, 1.28, 1.0],
-  [1.28, 1.0, 1.46, 1.0, 2.28, 0.0, 2.1, 0.0],
-  [2.11, 0.0, 2.28, 0.0, 2.28, 1.0, 2.11, 1.0],
-];
-
-const MARK_W = 2.28;
-const MARK_H = 1;
-
 /* ------------------------------------------------------------------ tuning */
 
 /** Frame budget: the foil is a material, not a game. 1.5 is the same cap the shader used. */
 const DPR_CAP = 1.5;
+/**
+ * …but the ambient surface is drawn at 1:1 CSS pixels, and that is a measured decision.
+ *
+ * The loop blits the baked plate and the rim layer across the *whole* canvas every frame — two
+ * full-surface passes at 30 Hz. At 390×844 with the 1.5 cap that is 585×938 = 548 720 px per blit,
+ * 1.1 M px per frame. On a mid-range phone (390×844@3 with the CPU throttled 4×, FASE 4a) the band
+ * could not hold the frame budget: 47.4 / 48.8 / 49.8 fps over three runs, against a 58.2 fps
+ * ceiling measured with the loop switched off. Dropping the ambient backing store to 1.0 — 244 000
+ * px, 2.25× less surface — restores it to 57.3 / 58.2 fps, which is the ceiling.
+ *
+ * It costs nothing visible, and the reason is in the design: this variant is composited at
+ * `opacity: 0.2` over a black band and is deliberately a receding surface, so its edges are already
+ * a soft gradient tens of pixels wide. Density beyond 1:1 buys nothing at 20 % alpha; it only buys
+ * blits. The wide variant keeps `DPR_CAP`: there the mark is the subject, at full opacity.
+ */
+const AMBIENT_DPR_CAP = 1;
 /** One pass of the specular sweep, in ms. Constant velocity — this is a clock, not a breath. */
 const SWEEP_PERIOD = 4200;
 /** The seam line snaps once per beat of this clock. */
@@ -107,197 +116,7 @@ function readToken(style: CSSStyleDeclaration, name: string, fallback: string): 
   return value.length > 0 ? value : fallback;
 }
 
-/*
- * Two plate ramps, because the same drawing is composited twice at very different alphas.
- *
- * On a desktop the foil sits at full strength: dark gunmetal with a raking sweep, the material the
- * shader was trying to render. On a phone the layer is `opacity: .2` by the owner's spec, and a
- * gunmetal plate at 20 % over `#050506` is *nothing* — the band became a black hole with one faint
- * travelling line. So the ambient variant uses a bright silver ramp: at 20 % it lands around #28,
- * which is a receding mark rather than a vanished one. The spec governs the opacity; the material
- * has to survive it.
- */
-const RAMP_DESKTOP = ["#25282e", "#101216", "#1c1f25", "#08090b"] as const;
-const RAMP_AMBIENT = ["#9aa1ab", "#3d434c", "#828a95", "#23272c"] as const;
-
-/* ------------------------------------------------------------------ geometry helpers */
-
-interface Layout {
-  /** Left edge of the mark's box, in CSS px. */
-  x: number;
-  /** Top edge. */
-  y: number;
-  /** Size of one unit of stroke space, in CSS px. */
-  unit: number;
-}
-
-function layoutFor(width: number, height: number): Layout {
-  /* The band is wide and short and the mark is 2.28:1. Fit the smaller ratio and centre — the same
-     "scale to the smaller axis" rule the camera fit used, so the mark never overflows on a narrow
-     screen. */
-  const padding = Math.max(16, Math.min(width, height) * 0.06);
-  const unit = Math.min((width - padding * 2) / MARK_W, (height - padding * 2) / MARK_H);
-  return {
-    x: (width - MARK_W * unit) / 2,
-    y: (height - MARK_H * unit) / 2,
-    unit,
-  };
-}
-
-function markPath(layout: Layout): Path2D {
-  const path = new Path2D();
-  for (const quad of STROKES) {
-    const [x1, y1, x2, y2, x3, y3, x4, y4] = quad;
-    /* Stroke space is y-up (it came from a 3D scene); canvas is y-down. */
-    path.moveTo(layout.x + x1 * layout.unit, layout.y + (1 - y1) * layout.unit);
-    path.lineTo(layout.x + x2 * layout.unit, layout.y + (1 - y2) * layout.unit);
-    path.lineTo(layout.x + x3 * layout.unit, layout.y + (1 - y3) * layout.unit);
-    path.lineTo(layout.x + x4 * layout.unit, layout.y + (1 - y4) * layout.unit);
-    path.closePath();
-  }
-  return path;
-}
-
-/** Device-pixel offsets used to dilate the mask by exactly one pixel. */
-const RING_OFFSETS: readonly (readonly [number, number])[] = [
-  [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1],
-];
-/** Right-facing only: the rim light has a direction, so the accent does too. */
-const RIGHT_OFFSETS: readonly (readonly [number, number])[] = [[1, 0], [1, -1], [1, 1]];
-
-/**
- * Build a one-pixel ring around the union of the strokes.
- *
- * The union matters: filling six quads into one path (nonzero winding) gives a solid silhouette,
- * and the ring is that silhouette dilated by one pixel minus itself. Stroking each quad instead —
- * which is what this file did first — prints every internal seam and reads as a wireframe, not as
- * a solid object with an edge.
- */
-function buildRing(
-  width: number,
-  height: number,
-  dpr: number,
-  path: Path2D,
-  offsets: readonly (readonly [number, number])[],
-  colour: string,
-  alpha: number,
-): HTMLCanvasElement | null {
-  const px = Math.max(1, Math.round(dpr));
-  const w = Math.max(1, Math.round(width * px));
-  const h = Math.max(1, Math.round(height * px));
-
-  const mask = document.createElement("canvas");
-  mask.width = w;
-  mask.height = h;
-  const maskCtx = mask.getContext("2d");
-  if (!maskCtx) return null;
-  maskCtx.setTransform(px, 0, 0, px, 0, 0);
-  maskCtx.fillStyle = "#fff";
-  maskCtx.fill(path);
-
-  const ring = document.createElement("canvas");
-  ring.width = w;
-  ring.height = h;
-  const ringCtx = ring.getContext("2d");
-  if (!ringCtx) return null;
-  for (const [dx, dy] of offsets) ringCtx.drawImage(mask, dx * px, dy * px);
-  ringCtx.setTransform(1, 0, 0, 1, 0, 0);
-  ringCtx.globalCompositeOperation = "destination-out";
-  ringCtx.drawImage(mask, 0, 0);
-  ringCtx.globalCompositeOperation = "source-in";
-  ringCtx.globalAlpha = alpha;
-  ringCtx.fillStyle = colour;
-  ringCtx.fillRect(0, 0, w, h);
-  return ring;
-}
-
-/*
- * The plate, drawn once: the vertical ramp plus the brushed grain, both clipped to the mark.
- *
- * Nothing here depends on the clock, the pointer or the scroll position, so none of it belongs in
- * the frame loop. The grain is the expensive part — one `stroke()` per 3 px of mark height, ~195
- * draw calls at 1440x666 — and it was being re-issued 60 times a second to produce identical pixels.
- */
-function buildPlate(
-  width: number,
-  height: number,
-  dpr: number,
-  layout: Layout,
-  path: Path2D,
-  palette: Palette,
-  ambient: boolean,
-): HTMLCanvasElement | null {
-  const px = Math.max(1, Math.round(dpr));
-  const plate = document.createElement("canvas");
-  plate.width = Math.max(1, Math.round(width * px));
-  plate.height = Math.max(1, Math.round(height * px));
-  const plateCtx = plate.getContext("2d");
-  if (!plateCtx) return null;
-  plateCtx.setTransform(px, 0, 0, px, 0, 0);
-
-  const top = layout.y;
-  const bottom = layout.y + MARK_H * layout.unit;
-  const left = layout.x;
-  const right = layout.x + MARK_W * layout.unit;
-
-  plateCtx.save();
-  plateCtx.clip(path);
-
-  const ramp = ambient ? RAMP_AMBIENT : RAMP_DESKTOP;
-  const base = plateCtx.createLinearGradient(0, top, 0, bottom);
-  base.addColorStop(0, ramp[0]);
-  base.addColorStop(0.28, ramp[1]);
-  base.addColorStop(0.62, ramp[2]);
-  base.addColorStop(1, ramp[3]);
-  plateCtx.fillStyle = base;
-  plateCtx.fillRect(0, 0, width, height);
-
-  plateCtx.strokeStyle = palette.primary;
-  plateCtx.lineWidth = 1;
-  for (let y = top; y <= bottom; y += 3) {
-    const row = Math.round((y - top) / 3);
-    plateCtx.globalAlpha = row % 2 === 0 ? 0.028 : ambient ? 0.09 : 0.055;
-    plateCtx.beginPath();
-    plateCtx.moveTo(left, y + 0.5);
-    plateCtx.lineTo(right, y + 0.5);
-    plateCtx.stroke();
-  }
-  plateCtx.globalAlpha = 1;
-  plateCtx.restore();
-  return plate;
-}
-
-/** Outline and rim light composited once, in the order the frame used to draw them. */
-function buildRimLayer(
-  width: number,
-  height: number,
-  dpr: number,
-  path: Path2D,
-  palette: Palette,
-): HTMLCanvasElement | null {
-  const outline = buildRing(width, height, dpr, path, RING_OFFSETS, palette.hairline, 1);
-  const blueRim = buildRing(width, height, dpr, path, RIGHT_OFFSETS, palette.blue, 0.55);
-  if (!outline && !blueRim) return null;
-
-  const px = Math.max(1, Math.round(dpr));
-  const layer = document.createElement("canvas");
-  layer.width = Math.max(1, Math.round(width * px));
-  layer.height = Math.max(1, Math.round(height * px));
-  const layerCtx = layer.getContext("2d");
-  if (!layerCtx) return null;
-  /* Same order as the per-frame blits it replaces: right rim first, outline over it. */
-  if (blueRim) layerCtx.drawImage(blueRim, 0, 0);
-  if (outline) layerCtx.drawImage(outline, 0, 0);
-  return layer;
-}
-
 /* ------------------------------------------------------------------ the frame */
-
-interface Palette {
-  blue: string;
-  primary: string;
-  hairline: string;
-}
 
 /*
  * The static half of every frame, baked once per size instead of once per frame.
@@ -309,13 +128,6 @@ interface Palette {
  * context but keeping the plate and the layer restored 60 fps, so the cost was never the composited
  * layer — it was re-deriving pixels that do not change.
  */
-interface Plates {
-  /** Ramp + brushed grain, clipped to the mark. */
-  base: HTMLCanvasElement | null;
-  /** Outline + right rim pre-composited into one layer: one blit, not two. */
-  rims: HTMLCanvasElement | null;
-}
-
 interface Frame {
   ctx: CanvasRenderingContext2D;
   width: number;
@@ -353,6 +165,12 @@ function drawFoil(frame: Frame) {
   /* ---- the plate, one blit ----------------------------------------------------
      `copy` replaces the destination *including its alpha*, which is why the old
      `clearRect` is gone: one pass writes the whole static half of the frame. */
+  if (!plates.base) {
+    /* Nothing to composite yet (the worker is still rasterising). An empty canvas is honest: the
+       baked still underneath stays visible instead of a plate-shaped hole. */
+    ctx.clearRect(0, 0, width, height);
+    return;
+  }
   if (plates.base) {
     ctx.globalCompositeOperation = "copy";
     ctx.drawImage(plates.base, 0, 0, width, height);
@@ -423,9 +241,10 @@ interface Host {
   plates: Plates;
   pointerX: number | null;
   ambient: boolean;
+  dpr: number;
 }
 
-export default function AnMonogramFoil() {
+export default function AnMonogramFoil({ onPainted }: { onPainted?: (painted: boolean) => void } = {}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const host = useRef<Host | null>(null);
@@ -450,42 +269,111 @@ export default function AnMonogramFoil() {
     const ambientQuery = window.matchMedia(`(max-width: ${AMBIENT_MAX_WIDTH}px)`);
     const reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+    /*
+     * ------------------------------------------------------------------ building the plates
+     *
+     * `buildPlates` rasterises 195 clipped strokes. Chromium records those commands and rasterises
+     * them lazily, so the builder returns in ~3 ms and the real bill — measured at 50–62 ms for one
+     * 1440×666 plate — arrives at the first draw that reads the canvas back. That bill used to land
+     * here, on the main thread, at the exact moment the reader first scrolled.
+     *
+     * So the work goes to `foil-plate.worker.ts`, which owns an `OffscreenCanvas` and sends back an
+     * already-rasterised `ImageBitmap`. The main thread only blits. If a worker cannot be built (old
+     * engine, blocked, no `OffscreenCanvas`) the same builder runs inline: the band is never left
+     * without its material, it is just slower to arrive.
+     */
+    const domSurface: SurfaceFactory = (w, h) => {
+      const surface = document.createElement("canvas");
+      surface.width = w;
+      surface.height = h;
+      return surface;
+    };
+
+    let worker: Worker | null = null;
+    let requestId = 0;
+    let paintedOnce = false;
+    /*
+     * `painted` is a level, not an edge: it drops back to false the moment a resize throws the plates
+     * away, so the still underneath returns instead of leaving the band empty for the ~100 ms the
+     * worker needs to rasterise the new size.
+     */
+    const reportPainted = (painted: boolean) => {
+      if (painted === paintedOnce) return;
+      paintedOnce = painted;
+      onPainted?.(painted);
+    };
+
+    const requestPlates = (width: number, height: number, dpr: number): Plates => {
+      const ambient = ambientQuery.matches;
+      reportPainted(false);
+      if (typeof Worker !== "undefined" && typeof OffscreenCanvas !== "undefined") {
+        try {
+          worker ??= new Worker(new URL("./foil-plate.worker.ts", import.meta.url));
+          worker.onmessage = (event: MessageEvent<PlateResponse>) => {
+            const current = host.current;
+            if (!current || event.data.id !== requestId) return;
+            current.plates = { base: event.data.base, rims: event.data.rims };
+            render(reduceQuery.matches ? STATIC_PHASE : performance.now());
+          };
+          const id = ++requestId;
+          worker.postMessage({ id, width, height, dpr, ambient, palette });
+          /* Nothing to draw until the bitmaps land; the baked still is still on screen underneath. */
+          return { base: null, rims: null };
+        } catch {
+          worker = null;
+        }
+      }
+      return buildPlates(domSurface, width, height, dpr, ambient, palette).plates;
+    };
+
     const measure = () => {
       const rect = wrapper.getBoundingClientRect();
       const width = Math.max(1, Math.round(rect.width));
       const height = Math.max(1, Math.round(rect.height));
-      const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+      const dpr = Math.min(window.devicePixelRatio || 1, ambientQuery.matches ? AMBIENT_DPR_CAP : DPR_CAP);
+      /*
+       * `ResizeObserver` fires once the moment it starts watching an element, so without this guard
+       * the mount built the whole plate twice, back to back, for byte-identical surfaces — measured
+       * at +41 ms of pure waste. Same size, same dpr, same ramp means the plates on the host are
+       * still the right ones.
+       */
+      if (
+        host.current &&
+        host.current.width === width &&
+        host.current.height === height &&
+        host.current.dpr === dpr &&
+        host.current.ambient === ambientQuery.matches
+      ) {
+        return host.current;
+      }
+
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const layout = layoutFor(width, height);
-      const path = markPath(layout);
-      /* Plate and rims are geometry and material, not animation: build them once per size, never
-         per frame. `ambient` is baked into the plate because it selects a different ramp. */
-      const plates: Plates = {
-        base: buildPlate(width, height, dpr, layout, path, palette, ambientQuery.matches),
-        rims: buildRimLayer(width, height, dpr, path, palette),
-      };
+      const previous = host.current;
       host.current = {
         ctx,
         width,
         height,
-        layout,
-        path,
+        dpr,
+        layout: layoutFor(width, height),
+        path: markPath(layoutFor(width, height)),
         palette,
-        plates,
-        pointerX: host.current?.pointerX ?? null,
+        plates: { base: null, rims: null },
+        pointerX: previous?.pointerX ?? null,
         ambient: ambientQuery.matches,
       };
+      host.current.plates = requestPlates(width, height, dpr);
       return host.current;
     };
 
     const render = (time: number) => {
       const current = host.current ?? measure();
       drawFoil({ ...current, time });
+      reportPainted(current.plates.base !== null);
     };
 
     measure();
@@ -584,6 +472,8 @@ export default function AnMonogramFoil() {
 
     return () => {
       stop();
+      worker?.terminate();
+      worker = null;
       resizeObserver.disconnect();
       visibility.disconnect();
       ambientQuery.removeEventListener("change", applyAmbient);
@@ -591,7 +481,12 @@ export default function AnMonogramFoil() {
       wrapper.removeEventListener("pointerleave", onPointerLeave);
       host.current = null;
     };
-  }, []);
+    /*
+     * `onPainted` is in the list because the effect has to stay honest about what it closes over — a
+     * caller must memoise it (`AnMonogram` does, with `useCallback`), otherwise every parent render
+     * would tear the foil down and rebuild the plates.
+     */
+  }, [onPainted]);
 
   return (
     <div ref={hostRef} className={styles.foil} data-foil-host="true">

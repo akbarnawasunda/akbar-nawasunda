@@ -74,6 +74,45 @@
  * expect. The overhang stays clipped to the row, so the document never gains a horizontal
  * scrollbar (qa:motion asserts that at six widths).
  */
+/*
+ * Reduced motion — the pin has to dissolve here too, and this is not cosmetic.
+ *
+ * `registerPin` refuses to register when the reader asks for reduced motion (`scroll-engine.ts`:
+ * "nothing registers under reduced motion, and the resting state — no property, no offset — is the
+ * readable one"). That is true for `travel` mode, where resting means "no offset". It is false for
+ * this reel: resting means `--pin: 0` → `translateX(0)`, so the row starts flush left, the wrapper
+ * keeps its 300vh, and `overflow-x: clip` makes the overhang unreachable. Measured at 1280×800 with
+ * reduce on: cards 5–10 sat at x 1299…3109 (viewport 1280), `scrollWidth === clientWidth` so there
+ * was nothing to drag, and six covers stayed at `naturalWidth: 0` because `loading="lazy"` never saw
+ * them. 2400 px of dead travel and six of ten releases missing.
+ *
+ * The repair reuses the phone treatment that is already specified — a native scroller, one axis per
+ * gesture, snap so each sleeve lands square. Nothing animates: the transform is dropped and a drag
+ * is the reader's own finger. The scrollbar stays visible on pointer devices, because here it is the
+ * only affordance that says "there is more to the right".
+ */
+@media (prefers-reduced-motion: reduce) {
+  .pinWrap {
+    height: auto;
+    overflow-x: visible;
+  }
+
+  .pinContent {
+    position: static;
+    height: auto;
+    width: auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    transform: none;
+  }
+
+  .pinCard {
+    scroll-snap-align: start;
+  }
+}
+
 @media (max-width: 767px) {
   .pinWrap {
     height: auto;
