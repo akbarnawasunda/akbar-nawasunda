@@ -5,7 +5,6 @@ import { BackSide, type SheetData } from "@/components/print/BackSide";
 import { InkPress } from "@/components/print/InkPress";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { PerfSwitches } from "@/components/zine/PerfSwitches";
-import { MagneticCursor } from "@/components/zine/MagneticCursor";
 import { TouchPress } from "@/components/zine/TouchPress";
 import { RouteCurtain } from "@/components/zine/RouteCurtain";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
@@ -59,7 +58,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
     platforms: [...listenLinks, ...socialLinks].map((link) => ({ label: link.label, href: link.href })),
     email: contactEmail,
     open: [
-      "Tujuh sampul asli masih menunggu `covers:fetch` di mesin pemilik.",
+      "Tujuh sampul resmi dari platform streaming; tiga rilis tanpa tautan tetap memakai sampul generatif.",
       "Teks halaman kebijakan privasi belum diserahkan.",
       "Milestone 2021–2023 belum dikonfirmasi.",
     ],
@@ -72,7 +71,6 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <LoadingCurtain />
       <SmoothScroll />
       <RouteCurtain />
-      <MagneticCursor />
       <TouchPress />
       <a href="#main" className="skip-link">
         Lompat ke konten

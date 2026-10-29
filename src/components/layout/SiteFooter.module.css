@@ -102,6 +102,43 @@
   opacity: 0.7;
 }
 
+/* ------------------------------------------------------- the unbreakable line */
+
+/*
+ * Langkah 3g — horizontal overflow, fixed at its source (the published contact address).
+ *
+ * The footer columns are `minmax(0, 1fr)`, so a track can be narrower than its content. The
+ * address in the KONTAK column is one 235px token that cannot break
+ * ("akbarnawasunda@gmail.com" at 12px), so wherever a track is under 235px wide it spills out of
+ * its own column — and below a certain track width it also pushes the document past the viewport,
+ * which is what makes the whole page scroll sideways. Measured on the build before this fix, in
+ * two separate windows where the page did scroll:
+ *
+ *   480–493px   two-column grid   +7px @480 falling to +1px @493
+ *   900–975px   four-column grid  +21px @900 falling to +1px @975
+ *
+ * The rule covers the whole 480–977 span, not just those two windows, because in between
+ * (494–977) the address still crosses the column boundary and runs into the gutter — the same
+ * defect, only short of the page edge. Only here may the address wrap onto a second line, and it
+ * is the lesser evil: it used to be pushed over the gutter and, at 480–493, clipped by the edge of
+ * the screen.
+ *
+ * 978 and up is deliberately untouched, because 1024 has to render exactly as it did before and
+ * the address still spills into the page padding there. The two bound values are the measured
+ * limits, not guesses: 390 and 768 are unchanged (350px and 349px tracks still hold the address
+ * on one line), and 1024/1440/1920 are pixel-identical before and after.
+ */
+@media (min-width: 480px) and (max-width: 977px) {
+  .column ul {
+    min-width: 0;
+  }
+
+  .column a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* ------------------------------------------------------------------ phones */
 
 @media (max-width: 899px) {

@@ -1,0 +1,164 @@
+/*
+ * Bottom Release HUD (DESIGN.md §5) — informational, never a player.
+ *
+ * Shape: a right-angled card, hairline border, radius 0, solid black ground so the photograph behind
+ * it never shows through the type. It sits at the bottom-left rather than spanning the viewport:
+ * a full-bleed bar would run under the INDEKS tab on the right edge, and a card that stops short of
+ * it is the cheaper way to guarantee the two never touch at any height.
+ *
+ * z-index: `--z-chrome - 10` = 40, deliberately **below** the INDEKS tab (45) and below the header
+ * (50). If the two ever meet at some viewport nobody measured, the control the reader can always
+ * reach is the one that should stay on top.
+ *
+ * The only blue in this file is the inherited `:focus-visible` outline from globals.css. The action
+ * box itself inverts to white on hover — the site's one `.btn-industrial` gesture — so the accent is
+ * spent on interaction, never on decoration.
+ */
+
+.hud {
+  position: fixed;
+  left: var(--gutter);
+  bottom: var(--space-4);
+  z-index: calc(var(--z-chrome) - 10);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: max-content;
+  /* Leave 44px on the right for the INDEKS tab before the width clamp even starts. */
+  max-width: min(40rem, calc(100vw - var(--gutter) * 2 - 44px));
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  /* Entrance only: transform + opacity, once, no loop. */
+  animation: hudIn 280ms var(--ease-out) both;
+}
+
+@keyframes hudIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.sleeve,
+.sleeveEmpty {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-bg-surface);
+}
+
+.sleeve {
+  display: block;
+  object-fit: cover;
+}
+
+.body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin: 0;
+  max-width: none;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* The word carries the meaning here: the card says it is a highlight, not a play state. */
+.kicker {
+  color: var(--color-text-secondary);
+}
+
+.dot {
+  color: var(--color-border-strong);
+}
+
+.title {
+  margin: 0;
+  max-width: none;
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  /* A long title truncates rather than growing the card past the safe width. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Outlined box, same family as the header's Listen control. Instant invert, no fade. */
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: none;
+}
+
+.action:hover,
+.action:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+}
+
+.arrow {
+  font-size: 0.85em;
+}
+
+/*
+ * Room for the card at the end of the document.
+ *
+ * The HUD is fixed, so it takes no space in the flow — at the very bottom of the page it would sit
+ * on top of the footer's colophon line. Rather than editing SiteFooter (site-wide) or adding padding
+ * to the shared layout, this reserves the space from the homepage's own marker: `page.tsx` renders
+ * `<span data-hud-slot hidden />`, and when that marker exists the footer gets extra bottom padding.
+ * `:has()` keeps it honest — no marker, no padding — and because the marker is server-rendered the
+ * padding is there on first paint, so nothing shifts after hydration.
+ *
+ * 720px and up only: below that the component is not mounted at all, so there is nothing to clear.
+ */
+@media (min-width: 720px) {
+  :global(main.site-main:has([data-hud-slot])) ~ :global(footer) {
+    padding-bottom: calc(var(--space-6) + 5.5rem);
+  }
+}
+
+/*
+ * The confirmation-free reveal still respects the reader who asked for stillness: no entrance
+ * animation, the card is simply there. `globals.css` already forces 1 ms on animations; this is the
+ * explicit statement at the component.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hud {
+    animation: none;
+  }
+}

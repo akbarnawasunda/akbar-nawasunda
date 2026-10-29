@@ -18,6 +18,8 @@
  * fallback shown when no database is configured (preview, local dev).
  */
 
+import { UNCLASSIFIED, UNRECORDED } from "./copy";
+
 export type ReleaseType = "single" | "ep" | "album" | "remix" | "mix";
 
 export interface ReleaseLink {
@@ -142,7 +144,11 @@ export const releaseTypeLabel: Record<ReleaseType, string> = {
 
 /**
  * What is actually known about a release, e.g. "Remix · 2025", "Single · 2024" or "Era DJ Akbar Remix".
- * Returns "Rilis" when neither a type, year nor era is known — never an invented value.
+ *
+ * Langkah 3i: the old fallback was the bare word "Rilis", which the catalogue printed where a type
+ * belongs ("Cinta Terbuang / Rilis") and which the PRD counted as an empty value reaching the public.
+ * It is now an explicit status — "Belum terklasifikasi" — so the line says what is missing instead of
+ * looking like a type nobody has heard of.
  */
 export function releaseEyebrow(release: Release): string {
   const parts = [
@@ -150,10 +156,151 @@ export function releaseEyebrow(release: Release): string {
     release.year ? String(release.year) : null,
     release.era ? `Era ${release.era}` : null,
   ].filter((part): part is string => part !== null);
-  return parts.length > 0 ? parts.join(" · ") : "Rilis";
+  return parts.length > 0 ? parts.join(" · ") : UNCLASSIFIED;
 }
 
 /** Title as displayed, including the original artist when known: "Masih Mencintainya — Papinka". */
 export function releaseDisplayTitle(release: Release): string {
   return release.source ? `${release.title} — ${release.source}` : release.title;
+}
+
+/* ------------------------------------------------------------------ streaming */
+
+/**
+ * Langkah 3m — the one place that decides what a release's streaming status says.
+ *
+ * Before this there were three answers to the same question, written by three files:
+ *
+ *   Bottom Release HUD   "Halaman rilis"
+ *   release page         "Tautan mendengarkan untuk rilis ini belum tersedia."
+ *   SEO description       the platform clause simply vanished
+ *
+ * Three different sentences for one fact is how a data sheet starts guessing. The owner's decision
+ * (Langkah 3m, closing the 3b blocker) is that the state is permanent and neutral: a release with no
+ * recorded link prints `TAUTAN STREAMING: BELUM TERCATAT` and points at its own page, everywhere,
+ * and nothing anywhere claims the record is undistributed.
+ *
+ * That distinction is the whole point. `links: []` proves only that nobody recorded a link. It does
+ * not prove the release is not on DSPs — the two are different facts and only the owner can tell
+ * them apart (`docs/PRD.md` §2). "Belum tercatat" is true in both cases, so it is the only sentence
+ * that cannot become a lie. `BANNED_COPY_TERMS` carries `dubplate`, `unreleased`, `belum rilis` and
+ * `tidak didistribusikan` so no future edit can smuggle the claim back in.
+ *
+ * The href is the release's own page rather than nothing at all: a row in a ledger with an inert
+ * status is a dead end, and the page it points at is the one place that explains what IS known.
+ */
+export const RELEASE_STREAMING_UNRECORDED = "TAUTAN STREAMING: BELUM TERCATAT";
+
+export interface ReleaseStreamingStatus {
+  /** What to print where a platform name goes. */
+  label: string;
+  /** External platform URL, or the release's own page when nothing is recorded. */
+  href: string;
+  /** `true` → another site (new tab). `false` → a route on this site. */
+  external: boolean;
+  /** `true` when at least one platform is recorded. Never inferred from anything else. */
+  recorded: boolean;
+}
+
+/* --------------------------------------------------------------- specification */
+
+/**
+ * Langkah 3o — the four facts the transmission section prints beside the sleeve.
+ *
+ * The section was 780 px tall and used 127 px of its left column: a type line and one button, with
+ * 653 px of bone-coloured void next to a full-height sleeve. The owner picked Option A from the 3l
+ * proposal: fill the column with a four-row fact table rather than with more prose. A release page
+ * has always answered "what is this" in a table (`ReleasePlate`); the homepage now does the same.
+ *
+ * Three rules this function exists to enforce:
+ *
+ *   1. **No invented fields.** Only `type`, `year`, `era` and the streaming status — the four things
+ *      the owner's files actually contain. No duration, no BPM, no key, no "genre" guess: those
+ *      numbers do not exist in `releases.ts` and a spec sheet that fabricates one number is worse
+ *      than a spec sheet with three.
+ *   2. **No blank cells.** A missing fact prints its neutral status (`Belum terklasifikasi`,
+ *      `Tidak tercatat`) exactly like the ledger and the release page do. An empty `<dd>` reads as a
+ *      layout bug, not as "unknown".
+ *   3. **Platform is not re-derived here.** It comes from `releaseStreamingStatus()` (Langkah 3m),
+ *      so the homepage, the ledger and the release page cannot drift into three different answers
+ *      about whether a release has a recorded link.
+ *
+ * The rows are returned as an ordered list rather than an object so the DOM order is data, not a
+ * property-name accident — `Object.entries()` would have reordered silently under a refactor.
+ */
+export interface ReleaseSpecRow {
+  readonly label: string;
+  readonly value: string;
+}
+
+export function releaseSpecification(release: Release): readonly ReleaseSpecRow[] {
+  return [
+    { label: "Tipe", value: release.type ? releaseTypeLabel[release.type] : UNCLASSIFIED },
+    { label: "Tahun", value: release.year ? String(release.year) : UNRECORDED },
+    { label: "Era", value: release.era ?? UNRECORDED },
+    { label: "Platform", value: releaseStreamingStatus(release).label },
+  ];
+}
+
+/**
+ * Takes the two fields it needs, not a whole `Release`, so a published Studio record — which never
+ * becomes a `Release` object — runs through the same function instead of a copy of it.
+ */
+export function releaseStreamingStatus(
+  release: Pick<Release, "slug" | "links">,
+): ReleaseStreamingStatus {
+  /* The owner wrote the links; the first one is their order, not a ranking this file invented. */
+  const first = release.links[0];
+  if (first) {
+    return { label: first.label, href: first.href, external: true, recorded: true };
+  }
+  return {
+    label: RELEASE_STREAMING_UNRECORDED,
+    href: `/music/${release.slug}`,
+    external: false,
+    recorded: false,
+  };
+}
+
+/**
+ * Meta description for a release page, assembled only from fields that actually exist.
+ *
+ * Langkah 3k. What it replaces was one template for all ten releases —
+ * `"${title} — rilis terverifikasi Akbar Nawasunda."` — which is 50–53 characters of identical text
+ * with the title swapped in. A search result showing ten near-identical snippets tells a reader
+ * nothing about which one to open, and the phrase "rilis terverifikasi" is the site vouching for
+ * itself rather than describing the record.
+ *
+ * So the sentence is built from the record: type and year when known, the platforms the release is
+ * genuinely on. Where a field is missing, its clause is dropped — never filled with a placeholder.
+ * Three releases have no link at all (`cinta-terbuang`, `bayang-tanpa-kata`,
+ * `hitungan-cinta-breakbeat-super-exc`), so they never claim availability anywhere; the first two
+ * also carry no type and no year, and fall back to a plain statement about what the page is.
+ *
+ * Every branch starts with the display title, so the ten strings cannot collide.
+ */
+export function releaseDescription(release: Release): string {
+  const title = releaseDisplayTitle(release);
+
+  // One clause per fact, dropped when the fact is absent. "2024 dari katalog …" reads like a
+  // fragment, so a year without a type gets the verb: "Rilis 2024 dari katalog …".
+  const facts = release.type
+    ? `${releaseTypeLabel[release.type]}${release.year ? ` ${release.year}` : ""} dari katalog Akbar Nawasunda.`
+    : release.year
+      ? `Rilis ${release.year} dari katalog Akbar Nawasunda.`
+      : release.era
+        ? `Rilis era ${release.era} di katalog Akbar Nawasunda.`
+        : "Halaman rilis resmi di akbarnawasunda.my.id.";
+
+  /*
+   * The availability clause asks the same helper as the page body, so "does this release have a
+   * platform" has one answer in the codebase. A description is a sentence, not a status strip, so
+   * when nothing is recorded the clause is dropped rather than printing "BELUM TERCATAT" into a
+   * search result — but the *decision* still comes from `releaseStreamingStatus()`.
+   */
+  const status = releaseStreamingStatus(release);
+  const platforms = [...new Set(release.links.map((link) => link.label))];
+  const availability = status.recorded && platforms.length > 0 ? ` Tersedia di ${platforms.join(", ")}.` : "";
+
+  return `${title}. ${facts}${availability}`;
 }

@@ -20,6 +20,7 @@ import { listenUrl } from "@/config/socials";
 import { pageMetadata } from "@/lib/metadata";
 import { getPublicPage, getPublicPhotos } from "@/studio/public";
 import styles from "./artist.module.css";
+import { UNRECORDED } from "@/content/copy";
 
 // Published Studio content is read per request so a publish shows immediately.
 export const dynamic = "force-dynamic";
@@ -83,7 +84,7 @@ export default async function ArtistPage() {
             {artistFacts.map((fact) => (
               <div key={fact.label} className={styles.fact}>
                 <dt>{fact.label}</dt>
-                <dd>{fact.value ?? "—"}</dd>
+                <dd>{fact.value ?? UNRECORDED}</dd>
               </div>
             ))}
           </dl>
@@ -165,7 +166,10 @@ export default async function ArtistPage() {
           <SectionsView sections={published.sections} />
         ) : (
           <>
-            <p className={styles.paragraph}>{artistLongBio}</p>
+            {/* The owner's own words, verbatim — see src/content/copy.ts and the copy-voice guard. */}
+            <p className={styles.paragraph} data-copy-origin="owner-verbatim">
+              {artistLongBio}
+            </p>
             <p className={styles.paragraph}>
               Format kerja: {formatServices()}.
             </p>

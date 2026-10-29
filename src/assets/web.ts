@@ -18,8 +18,22 @@
 /** Trimmed AN monogram (174x112): transparent field, opaque dark artwork, 1px white stroke. */
 export const anMark = { src: "/brand/an-mark.webp", width: 174, height: 112 } as const;
 
+/**
+ * Langkah 3k — the same monogram at 960x618 for the visual archive.
+ *
+ * The 174 px nav file was also the archive tile's source, where the tile is 439 CSS px (878 device
+ * px at 2x): a 3.6x stretch, which is the softness the archive was showing. This one is cut from the
+ * 1792x1232 original by scripts/build-archive-hires.mjs. Both exist because they are different jobs:
+ * a 34 px nav mark should not pay for an 80 KB file, and a 439 px tile should not stretch a 174 px
+ * one.
+ */
+export const anMarkLarge = { src: "/brand/an-mark-960.webp", width: 960, height: 618 } as const;
+
 /** Full "AKBAR / NAWASUNDA / RMX" lockup (400x303). Footer, EPK and history sections only. */
 export const lockup = { src: "/brand/lockup.webp", width: 400, height: 303 } as const;
+
+/** Lockup at 960x728 for the archive / lightbox; same original as `lockup`, more pixels. */
+export const lockupLarge = { src: "/brand/lockup-960.webp", width: 960, height: 728 } as const;
 
 export const portraitAlt =
   "Akbar Nawasunda in a dark AN jacket, lit by a purple rim light in a dim studio";
@@ -83,4 +97,12 @@ export const stageFrame = {
   webp: "/media/stage-700.webp",
   /** Smaller copy for the archive tile; the lightbox uses the 700px pair above. */
   thumb: { width: 480, height: 480, webp: "/media/stage-480.webp", avif: "/media/stage-480.avif" },
+  /**
+   * Langkah 3k — 1000x1000 from the 1440 original, for the archive tile.
+   *
+   * The tile is 549 CSS px tall with `object-fit: cover`, i.e. 1098 device px at 2x; a 480 px file
+   * meant a 2.3x stretch. The 700 px "large" pair stays for the lightbox, where the image is shown
+   * whole rather than cropped.
+   */
+  hires: { width: 1000, height: 1000, webp: "/media/stage-1000.webp" },
 } as const;

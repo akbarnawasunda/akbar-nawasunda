@@ -5,7 +5,9 @@ import { ReleasePlate, type ReleaseNeighbour } from "@/components/content/Releas
 import { coverArtwork, resolveCover, type CoverArtwork } from "@/content/covers";
 import {
   getReleaseBySlug,
+  releaseDescription,
   releaseDisplayTitle,
+  releaseStreamingStatus,
   releaseTypeLabel,
   releases,
 } from "@/content/releases";
@@ -38,9 +40,9 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
   return pageMetadata({
     ogSlug: release.slug,
     title: releaseDisplayTitle(release),
-    description:
-      release.description ??
-      `${releaseDisplayTitle(release)} — rilis terverifikasi Akbar Nawasunda.`,
+    // Langkah 3k: no more one-template-for-ten. See releaseDescription() for what is assembled and
+    // why nothing is invented for the three releases with no link at all.
+    description: release.description ?? releaseDescription(release),
     path: `/music/${release.slug}`,
   });
 }
@@ -97,6 +99,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
         description={managed.description || null}
         artwork={artwork}
         links={managed.links.map((link) => ({ label: link.label, href: link.href }))}
+        streaming={releaseStreamingStatus({ slug, links: managed.links })}
         facts={[
           { label: "Judul", value: managed.title },
           { label: "Jenis", value: RELEASE_TYPE_LABELS[managed.type] },
@@ -127,12 +130,16 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       description={release.description ?? null}
       artwork={resolveArtwork(release.slug)}
       links={release.links}
+      streaming={releaseStreamingStatus(release)}
       facts={[
-        // Type and year always print: an unconfirmed one shows an em dash rather than vanishing.
+        // Type and year always print: an unconfirmed one shows "Tidak tercatat" rather than a dash,
+        // which would read as a field that is blank rather than a fact nobody has supplied.
         { label: "Jenis", value: release.type ? releaseTypeLabel[release.type] : null },
         { label: "Tahun", value: release.year ? String(release.year) : null },
         // These two only exist when the owner supplied them, so they are absent, not empty.
-        ...(release.source ? [{ label: "Karya asli", value: release.source }] : []),
+        // "Sumber", not "Karya asli": the sheet is a catalogue record, and "karya" is a word this
+        // site reserves for the owner's own biography (Langkah 3i, `OWNER_COPY_ONLY_TERMS`).
+        ...(release.source ? [{ label: "Sumber", value: release.source }] : []),
         ...(release.era ? [{ label: "Era", value: release.era }] : []),
       ]}
       prev={prev}

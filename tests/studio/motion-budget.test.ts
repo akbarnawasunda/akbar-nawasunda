@@ -131,7 +131,7 @@ test("the retired nocanvas switch stays retired", () => {
    * lost its subject. The danger this guards is the switch quietly coming back: a flag that reads
    * as "the heavy thing is off" while the heavy thing ships is worse than no flag at all.
    */
-  const canvas = read("src/components/three/AnMonogram.tsx");
+  const canvas = read("src/components/effects/AnMonogram.tsx");
   assert.doesNotMatch(canvas, /perfFlag\(/, "AnMonogram reads a perf flag again");
   assert.doesNotMatch(canvas, /<canvas/i, "AnMonogram renders a canvas again");
   assert.ok(!(PERF_FLAGS as readonly string[]).includes("nocanvas"), "nocanvas is back in PERF_FLAGS");

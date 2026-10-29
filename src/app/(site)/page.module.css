@@ -27,8 +27,13 @@
   flex-direction: column;
   /* A definite height, not a min-height: flex children only grow into free space the container
      actually has, and `min-height` leaves the container content-high — which is exactly how the
-     facts strip ended up floating mid-screen with dead ink below it (round 28). */
-  height: min(100svh, 58rem);
+     facts strip ended up floating mid-screen with dead ink below it (round 28).
+     Langkah 3c: the box is measured from BELOW the sticky bar, not from the viewport. The hero
+     starts at y=81 (the header is `position: sticky`, 5rem + its 1px hairline), so `100svh`
+     made the hero end at y=981 and pushed the logistics strip 36.52px past a 900px fold. The
+     strip sits on the bottom edge of the sheet, so the sheet has to end inside the fold for the
+     strip to do the same — no amount of padding could have fixed that from the inside. */
+  height: min(calc(100svh - var(--header-height)), 58rem);
   overflow: hidden;
   /* The hero writes transforms every frame while it is in view; this keeps that work inside the
      band instead of invalidating the whole document (R11). */
@@ -124,7 +129,9 @@
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding: var(--space-6) var(--gutter) var(--space-8);
+  /* Langkah 3c: 16px, not 32. The strip is anchored to the bottom edge, so this padding is
+     literally half of the CTA-to-strip distance; see `.strip`. */
+  padding: var(--space-6) var(--gutter) var(--space-4);
   transform: translateZ(-40px);
 }
 
@@ -149,10 +156,16 @@
   color: var(--color-text-secondary);
 }
 
+/*
+ * Langkah 3g — the status dot is a right angle like everything else. DESIGN.md §2 makes the
+ * zero radius absolute and names small dots explicitly: "kebutuhan visual bulat -> pakai bentuk
+ * lain (potongan diagonal / kotak)". At 5px the square and the circle are one pixel apart, so the
+ * round version bought nothing and cost the rule its authority.
+ */
 .live {
   width: 5px;
   height: 5px;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--color-signal-blue);
 }
 
@@ -174,6 +187,20 @@
  * guard: at 320px the second line is 273px of glyphs inside a 280px column, and one extra pixel of
  * tracking would otherwise push the full stop off-screen.
  */
+/*
+ * Langkah 3c — the wordmark spec from DESIGN.md §2: clamp(2.8rem, 11vw, 4.5rem).
+ *
+ * Applied here, on the hero's own `h1`, and only from 720px up — deliberately NOT by editing
+ * `--text-hero`, because that token is shared with PageMasthead (`/music`, `/artist`, `/epk`,
+ * `/visuals`) and `/contact`. Rewriting the token would resize the catalogue masthead too, and
+ * this step is scoped to the hero.
+ *
+ * Why the phone is excluded: `Nawasunda.` measures 8.175 × font-size in Excess V Straight, and
+ * the hero's measure on a 390px screen is only 339.6px. That caps the name at ~41.5px; measured,
+ * 41px still sets on one line and 41.5px already wraps to three ("AKBAR / NAWASUNDO / A / .").
+ * The spec's floor of 2.8rem (44.8px) is therefore past the point of no return on a phone, and
+ * the mobile clamp below is the one that survived that regression once already. See DESIGN.md §2.
+ */
 .name {
   font-size: var(--text-hero);
   line-height: var(--leading-hero);
@@ -181,6 +208,12 @@
   text-transform: uppercase;
   overflow-wrap: anywhere;
   color: var(--color-text-primary);
+}
+
+@media (min-width: 720px) {
+  .name {
+    font-size: clamp(2.8rem, 11vw, 4.5rem);
+  }
 }
 
 /*
@@ -243,54 +276,56 @@
 }
 
 /*
- * The facts, as one ruled line: a figure, a label, a figure. They are the only numbers on the page
- * and they are set at 2rem in the display face, because a figure set in 11px mono reads as a
- * footnote and these are the argument.
+ * Langkah 3c — the logistics strip (DESIGN.md §3).
+ *
+ * What this replaces: a bone-coloured card holding three display-size figures with small caps
+ * labels underneath, padded like a stat block. Three big numbers introduced as "the argument" is
+ * marketing register — it answers a question the visitor did not ask and it made the fold read
+ * like a pitch deck. A label does not argue; it prints a readout.
+ *
+ * So: one line of small caps, wide tracking, no ground of its own, a hairline above it, and the
+ * numbers demoted to the same weight as their labels — the only difference is ink (`--color-text-
+ * primary` for values, muted for the rest). Nothing here is blue: the accent is spent on the live
+ * dot in the masthead and must not be spent twice on the same screen.
+ *
+ * Distance to the CTA is 32px of `gap` on `.heroInner` and nothing else — this rule deliberately
+ * sets no `margin-top`. The earlier block carried `margin-top: var(--space-8)`, which stacked on
+ * top of the flex gap and produced the measured 63.12px.
  */
-.factsBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-6);
-  margin-top: var(--space-8);
-  padding: var(--space-4) var(--space-6);
-  background: var(--color-bone);
-  color: var(--color-bone-ink);
-}
-
-.facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(1.5rem, 5vw, 4.5rem);
-  margin: 0;
-}
-
-.fact {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-1);
-}
-
-.fact dt {
+.strip {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
   font-family: var(--font-body-stack);
-  font-size: 0.5625rem;
-  letter-spacing: 0.22em;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-bone-muted);
+  color: var(--color-text-muted);
 }
 
-.fact dd {
+.stripLine {
   margin: 0;
-  font-family: var(--font-body-stack);
-  font-weight: 400;
-  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
-  line-height: 1;
-  color: var(--color-bone-ink);
-  letter-spacing: var(--tracking-tight);
+  /*
+   * globals.css caps every `p` at 60ch of reading copy. This is not reading copy — it is a
+   * one-line readout — and at 11px the 60ch cap lands at ~540px, which split
+   * "LOC: BANDUNG BARAT, ID" onto a second row on every desktop from 900px up while half the
+   * strip was still empty. Opt out locally, as globals.css instructs.
+   */
+  max-width: none;
+  /* Long location strings on a narrow phone wrap between pairs, never inside a value. */
+  overflow-wrap: anywhere;
 }
 
+.stripValue {
+  color: var(--color-text-primary);
+  /* A hair of space so the value does not collide with the tracking of the label beside it. */
+  padding-inline: 0.15em;
+}
 
+.stripSlash {
+  color: var(--color-border-strong);
+  padding-inline: 0.4em;
+}
 
 /* -------------------------------------------------------------------------------- monogram */
 
@@ -314,29 +349,11 @@
 
 
 /* The static stand-in for the renderer, phone-width only. */
-.signatureFallback {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: none;
-  place-items: center;
-  padding: 0 12%;
-}
-
-/* Two classes deep on purpose: `.site-main img` in globals.css filters every photograph, and this
-   file must not be grayscaled — the mark's blue tips are the only colour in the band. */
-.signature .signatureFallback img {
-  width: 100%;
-  height: auto;
-  filter: none;
-  opacity: 0.9;
-}
-
-@media (max-width: 767px) {
-  .signatureFallback {
-    display: grid;
-  }
-}
+/*
+ * `.signatureFallback` was removed in Langkah 3h-1 together with the span it styled: the band's
+ * single mark is the Canvas 2D foil, which mounts on phones too (as the ambient variant), so a
+ * centred second copy of the logo would have printed over it.
+ */
 
 
 /* ----------------------------------------------------------------------------- transmission */
@@ -437,15 +454,57 @@
   padding-bottom: var(--space-3);
 }
 
-.transmissionMeta {
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
+/*
+ * Langkah 3o removed `.transmissionMeta` from this section: the rule went with it, because a class
+ * whose element no longer exists is a rule that will be re-used by accident. The type/year pair it
+ * printed is now two labelled rows in `.transmissionSpec` — printed once, not twice.
+ */
+
+/*
+ * Langkah 3o — the specification table.
+ *
+ * Measured before: the section's body was 780 px tall and the left column's own content 127 px, so
+ * 653 px of bone sat empty beside a 767 px sleeve. Option A fills it with data, not prose.
+ *
+ *   row      34 px  (hairline included, `box-sizing: border-box` + `min-height`)
+ *   label   120px   fixed, so the four values align in one optical column
+ *   block    4 rows + the closing rule = 137 px, plus 24 px of air above = 161 px
+ *
+ * The label column is fixed rather than `auto` on purpose: with `auto`, `PLATFORM` (the longest
+ * term) would set the width and the three shorter labels would sit at different distances from
+ * their values on a different font load.
+ */
+.transmissionSpec {
+  margin-top: 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.transmissionSpecRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-4);
+  /* `min-height`, not `height`: at 320 px "TAUTAN STREAMING: BELUM TERCATAT" needs two lines, and a
+     fixed height would clip it. On every width where it fits, the row is exactly 34 px. */
+  min-height: 34px;
   border-top: 1px solid var(--color-hairline);
+}
+
+.transmissionSpecLabel {
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
+}
+
+.transmissionSpecValue {
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
 }
 
 .transmissionActions {
@@ -785,8 +844,34 @@
     gap: var(--space-2);
   }
 
+  /*
+   * Langkah 3k — the hero's two actions go full width, stacked, below 560px.
+   *
+   * Not a styling preference: this is the CLS fix. `display: flex; flex-wrap: wrap` let the row be
+   * one line or two depending on how wide the *font* made each label. With the fallback face the
+   * pair measured 190.1 + 144.7 px and sat on one row; when Relidux swapped in the labels grew ~19%
+   * ("Dengar Sekarang" 98 → 117 px at 11px) and the pair needed ~381 px against a 360.9 px column,
+   * so the row broke to two lines and the hero grew 58.2 px (46.6 → 104.8), pushing 60 px of layout
+   * below it — the whole 0.189 CLS, and the reason `adjustFontFallback` alone could not close it:
+   * that fallback face is `src: local(Arial)` and is inert wherever Arial is not installed.
+   *
+   * A fixed single-column track removes the question. One row of two, or two rows of one, no longer
+   * depends on glyph advance widths, so the swap moves nothing at any width. It also stops the
+   * primary action from being a partial-width box on a phone, which is what the reference sites do.
+   */
   .heroActions {
+    display: grid;
     width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroActions > * {
+    display: flex;
+  }
+
+  .heroActions > * > * {
+    flex: 1;
+    justify-content: center;
   }
 
   .nightQuote {

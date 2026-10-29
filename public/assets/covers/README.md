@@ -1,7 +1,9 @@
 # Release artwork
 
-One file slot per release slug. Six verified releases exist today; none of them has owner-supplied
-artwork yet, so each one has a generated sleeve.
+One file slot per release slug. Ten verified releases exist today, and the split is now real: the
+seven releases that publish a streaming link have their artwork fetched into `<slug>.webp`, and the
+three that publish no link keep a generated sleeve in `<slug>@sleeve.webp`. The sleeves stay in the
+repository on purpose — they are the fallback for any slug without artwork, not dead files.
 
 ## The waterfall (src/content/covers.ts)
 

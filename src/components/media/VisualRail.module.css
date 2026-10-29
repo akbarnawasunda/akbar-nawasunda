@@ -42,6 +42,41 @@
   background: var(--color-field);
 }
 
+/*
+ * Langkah 3k — the two marks keep their own aspect ratio.
+ *
+ * `aspect-ratio: 4 / 5` is a photograph ratio: a portrait is 4:5 natively, and cropping the stage
+ * and editorial frames into it is a deliberate treatment. Applying it to a 1.55:1 monogram and a
+ * 1.32:1 lockup declared a box neither artwork has ever had, so the tile reserved 549 px of height
+ * for a 283 px drawing and `object-fit: contain` padded the difference with empty surface.
+ *
+ * The ratio comes from the file itself (`width`/`height` on the item, set inline below) so it cannot
+ * drift when an asset is regenerated at a different size.
+ */
+/*
+ * The ratio itself is set inline from the item's real pixel size — it is a per-asset value, not a
+ * design token, and the css-tokens test rightly rejects an undefined `var()` in a stylesheet.
+ */
+.frame[data-shape="landscape"] {
+  aspect-ratio: 3 / 2;
+}
+
+/* The 4rem inset was tuned for a 549 px photo tile. In a 282 px landscape frame the same padding
+   leaves the monogram at 54% of the tile width, so the marks get a smaller inset of their own. */
+.frame[data-shape="landscape"] .onSurface {
+  padding: clamp(0.75rem, 3vw, 2rem);
+}
+
+/*
+ * A landscape mark is ~282 px tall beside a 549 px portrait, so in a shared grid row it would leave a
+ * column of dead space under itself. Centering the pair in the row keeps the wall's top and bottom
+ * edges straight — the shorter plate reads as a plate, not as a missing image.
+ */
+.panel:has(.frame[data-shape="landscape"]) {
+  display: grid;
+  align-content: center;
+}
+
 .media {
   display: block;
   width: 100%;

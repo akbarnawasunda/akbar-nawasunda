@@ -1,0 +1,262 @@
+/*
+ * Booking quick-copy (DESIGN.md §5).
+ *
+ * Shape rule: a right-angled outlined box, the same family as the Listen control beside it — hairline
+ * border, radius 0, uppercase label at 11px, mono tracking. On hover it inverts instantly with no
+ * fade, which is the one rule DESIGN.md states for `.btn-industrial`; the only thing that transitions
+ * here is the label crossfade, and that is `opacity` + `translateY` and nothing else.
+ *
+ * Width stability is structural, not a fixed `width:` guess: both labels occupy the same grid cell,
+ * so the cell is as wide as the longer one and swapping state cannot reflow the bar.
+ */
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* Phone: a 40×40 square holding the copy glyph. At 390px the bar has 63px of slack between the
+     mark and the Listen control, so this fits without hiding anything that already exists. */
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  cursor: pointer;
+  /* Instant invert. Not a fade — DESIGN.md §5, `.btn-industrial`. */
+  transition: none;
+}
+
+.control:hover,
+.control:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-ink-black);
+}
+
+/* The confirmation is ink, not a second accent: the blue in this design is the live marker in the
+   masthead, and a state cue does not need to spend it again. A solid white edge reads as "done". */
+.control[data-copy-state="copied"] {
+  border-color: var(--color-text-primary);
+}
+
+/* Failed: the border is the only warning the bar gives; the address itself appends below it. */
+.control[data-copy-state="failed"] {
+  border-color: var(--color-border-strong);
+  border-bottom-style: dashed;
+}
+
+/* ------------------------------------------------------------------ glyph (phone) */
+
+.glyph,
+.labels {
+  display: grid;
+  place-items: center;
+}
+
+.glyph {
+  /* Two 7px sheets, one behind the other, drawn with borders — radius 0, no icon font. */
+  position: relative;
+  width: 13px;
+  height: 13px;
+}
+
+.glyphIdle,
+.glyphDone {
+  grid-area: 1 / 1;
+  width: 13px;
+  height: 13px;
+  transition:
+    opacity var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.glyphIdle {
+  position: relative;
+}
+
+.glyphIdle::before,
+.glyphIdle::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+}
+
+/* Back sheet, up and to the right. */
+.glyphIdle::before {
+  top: 0;
+  right: 0;
+}
+
+/* Front sheet. Its fill is the button's own ground, so the back sheet's corner is cut cleanly
+   rather than crossed — and the fill follows the hover invert below. */
+.glyphIdle::after {
+  bottom: 0;
+  left: 0;
+  background: var(--color-bg);
+}
+
+.control:hover .glyphIdle::after,
+.control:focus-visible .glyphIdle::after {
+  background: var(--color-text-primary);
+}
+
+.glyphDone {
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.control[data-copy-state="copied"] .glyphIdle {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+.control[data-copy-state="copied"] .glyphDone {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------ labels (desktop) */
+
+.labels {
+  display: none;
+}
+
+.labelIdle,
+.labelDone {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  transition:
+    opacity var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.labelDone {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.control[data-copy-state="copied"] .labelIdle {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+.control[data-copy-state="copied"] .labelDone {
+  opacity: 1;
+  transform: none;
+}
+
+@media (min-width: 720px) {
+  .control {
+    width: auto;
+    padding: 10px 16px;
+  }
+
+  .glyph {
+    display: none;
+  }
+
+  .labels {
+    display: grid;
+  }
+}
+
+/* ------------------------------------------------------- manual-copy fallback */
+
+/*
+ * Hangs under the bar, right-aligned to the control. Absolute, so an error cannot push the header
+ * taller; the bar's own height stays one value at every state, which is what the drawer's
+ * `--drawer-top` and the hero's `calc(100svh - header)` both assume.
+ */
+.fallback {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1;
+  min-width: 232px;
+  max-width: min(78vw, 340px);
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+}
+
+.fallbackLine {
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.fallbackLabel {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+}
+
+/* The address, not a picture of it: selectable, and one click selects all of it. */
+.fallbackEmail {
+  display: inline-block;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-text-primary);
+  user-select: all;
+}
+
+/* --------------------------------------------------------------- reduced motion */
+
+/*
+ * The confirmation still happens, it just happens at once.
+ *
+ * Honest note on which rule wins: `globals.css:265` already forces
+ * `transition-duration: 1ms !important` on every element under reduce, and an `!important` in the
+ * global sheet beats this block's `transition: none` — measured, the computed value here is
+ * `0.001s`, not `0s`. The rule is kept anyway: it states the intent at the component, and it is
+ * what would carry the behaviour if that global were ever narrowed. 1 ms is not perceptible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .glyphIdle,
+  .glyphDone,
+  .labelIdle,
+  .labelDone {
+    transition: none;
+  }
+
+  .glyphDone,
+  .labelDone {
+    opacity: 0;
+    transform: none;
+  }
+
+  .control[data-copy-state="copied"] .glyphIdle,
+  .control[data-copy-state="copied"] .labelIdle {
+    transform: none;
+  }
+
+  .control[data-copy-state="copied"] .glyphDone,
+  .control[data-copy-state="copied"] .labelDone {
+    opacity: 1;
+    transform: none;
+  }
+}

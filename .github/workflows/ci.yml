@@ -48,10 +48,48 @@ jobs:
 
       # PREVIEW_FRAMING keeps the CSP wide enough for the sandbox iframe, which is also what the
       # header assertions in the suite expect.
+      #
+      # The output is captured because the next step reads it: a warning is not a failure in
+      # Turbopack, and one specific warning is the symptom of the defect that cost this project
+      # 19.36 GB of Vercel storage. `pipefail` is not the default in a GitHub Actions `run` block,
+      # so it is set explicitly — without it `npm run build | tee` would hide a build failure behind
+      # tee's exit status.
       - name: Build
-        run: npm run build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee /tmp/build.log
         env:
           PREVIEW_FRAMING: "1"
+
+      # Root cause guard (Langkah 3a, commit 90c2b1f).
+      #
+      # `existsSync(join(publicDir, candidate))` — where `publicDir` was a parameter — made Next.js's
+      # file tracer give up and trail the whole repository into every server bundle: 1189 entries for
+      # one route, 520 of them under docs/ (38 MB), repeated per dynamic route and re-uploaded on
+      # every deploy. Scoping the path to literal segments brought that to 316 entries and the
+      # warning count from 2 to 0.
+      #
+      # A warning nobody reads is how that happened the first time, so it is a hard gate here: any
+      # future dynamic filesystem access fails the build instead of quietly inflating the deployment.
+      # The build currently emits zero warnings of any kind, so this asserts an empty set, not a
+      # tolerated one.
+      - name: Tracing guard — no dynamic filesystem access
+        run: |
+          if [ ! -f /tmp/build.log ]; then
+            echo "::error::/tmp/build.log is missing — the Build step did not produce output to check."
+            exit 1
+          fi
+
+          if grep -q "Dynamic filesystem access" /tmp/build.log; then
+            echo "::error::Next.js traced the whole project because of a dynamic filesystem access. Scope the path to literal segments (see src/content/covers.ts) — do not add an exclude."
+            echo "── matching warning in the build output ──────────────────────────"
+            grep -n -A12 "Dynamic filesystem access" /tmp/build.log
+            echo "────────────────────────────────────────────────────────────────"
+            exit 1
+          fi
+
+          echo "✓ no dynamic filesystem access in the build output"
+          echo "  Build warnings total: $(grep -c -i 'warning' /tmp/build.log || true)"
 
       # Real Chrome for axe-core; scripts/a11y-audit.mjs reads CHROME_PATH.
       - name: Install Chrome
@@ -85,6 +123,15 @@ jobs:
       # overflows horizontally at 320–1920. Needs a Chrome with no extra system libraries.
       - name: Motion and interaction
         run: npm run qa:motion
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
+      # The other half of the copy gate. `npm test` scans source literals; this walks the rendered
+      # pages, so copy that arrives from data (a release description, a CMS field) is covered too.
+      # Langkah 3i: the public voice is cold and catalogical — no hype, no marketing, no Web3 — and
+      # no field may be printed as a bare dash.
+      - name: Copy voice — rendered pages
+        run: npm run qa:copy
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
 

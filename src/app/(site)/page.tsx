@@ -6,6 +6,7 @@ import { anMark, editorialFrame, portraitAlt, portraitSize, portraitSources } fr
 import { PaperAbout } from "@/components/content/PaperAbout";
 import { CataloguePin } from "@/components/content/CataloguePin";
 import { ReleaseCover } from "@/components/content/ReleaseCover";
+import { ReleaseHud } from "@/components/content/ReleaseHud";
 import { ReleaseTicker } from "@/components/content/ReleaseTicker";
 import { SectionsView } from "@/components/content/SectionsView";
 import { Container } from "@/components/layout/Container";
@@ -13,15 +14,16 @@ import { GenreTape } from "@/components/layout/GenreTape";
 import { PlatformRow } from "@/components/layout/PlatformRow";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { VisualRail } from "@/components/media/VisualRail";
-import { AnMonogram } from "@/components/three/AnMonogram";
+import { AnMonogram } from "@/components/effects/AnMonogram";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Depth } from "@/components/zine/Depth";
 import { Magnetic } from "@/components/zine/Magnetic";
 import { Plate3D } from "@/components/zine/Plate3D";
 import { Reveal } from "@/components/zine/Reveal";
 import { coverArtwork } from "@/content/covers";
+import { releaseHudModel } from "@/content/release-hud";
 import { fromStaticRelease } from "@/content/release-view";
-import { releases } from "@/content/releases";
+import { releaseSpecification, releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
 import { visualItems } from "@/content/visuals";
 import { artistTimeline } from "@/content/artist";
@@ -86,7 +88,32 @@ const catalogue = releases.map((release) => ({
 }));
 const featured = catalogue[0];
 const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
-const officialLinkCount = releases.length + socialLinks.length;
+
+/*
+ * Langkah 3f — the Bottom Release HUD (DESIGN.md §5).
+ *
+ * Owner's decision, option A: the HUD always shows `releases[0]` — the first release in the owner's
+ * own list order, the same one the homepage already features in the transmission section. Not
+ * "newest" (the data has no sortable release date and the list order is explicitly not
+ * chronological), not "whatever is hovered" (that would need client state to decide the content),
+ * and not `catalogue[0]`, which has already been reshaped for the rail — `releases[0]` is the source
+ * of truth and `releaseHudModel()` turns it into the three strings plus one destination.
+ */
+const hud = releaseHudModel(releases[0]!);
+
+/* Langkah 3o: the featured release's four facts, derived once on the server. */
+const specification = releaseSpecification(releases[0]!);
+const hudCover = coverArtwork(hud.slug);
+
+/*
+ * LOC for the hero logistics strip, derived from the two fields the site already owns:
+ * the place from `origin` ("Bandung Barat, Indonesia") and the country code from
+ * `locale` ("id_ID" -> "ID"). Nothing here is typed by hand, so moving the studio is a
+ * one-field edit and the strip follows.
+ */
+const localeRegion = siteConfig.locale.split("_")[1] ?? "";
+const originPlace = siteConfig.origin.split(",")[0]?.trim() ?? siteConfig.origin;
+const stripLocation = localeRegion ? `${originPlace}, ${localeRegion}` : siteConfig.origin;
 
 /** One sleeve path per release, for the index preview. `release.cover` first, then the waterfall. */
 
@@ -119,14 +146,20 @@ export default async function HomePage() {
         }}
       />
 
-      {/* The hero image is the LCP element: preloaded, fetched at high priority, never lazy. */}
-      <link
-        rel="preload"
-        as="image"
-        type="image/avif"
-        href={photos.latar ?? editorialFrame.webp}
-        fetchPriority="high"
-      />
+      {/*
+       * Langkah 3k — the hand-written preload that used to sit here is gone.
+       *
+       * It pointed at `photos.latar ?? editorialFrame.webp`, i.e. the *raw* file
+       * (`/media/editorial-1400.webp`), while the <img> below resolves through the optimiser
+       * (`/_next/image?url=…&w=…`). Two different URLs, so the browser could never reuse the
+       * response: on a throttled phone the hero photograph was downloaded twice, once unoptimised,
+       * and the second copy is what actually painted. The `type="image/avif"` hint was wrong too —
+       * the file is WebP, so the preload was eligible for the "preloaded but not used" discard.
+       *
+       * `<Image priority>` already emits the correct preload from the same srcset the <img> uses
+       * (visible in the document head as `imageSrcSet=…` with `imageSizes="100vw"`), so the only
+       * thing missing was the fetch priority on the element itself.
+       */}
 
       {/* ------------------------------------------------------------------ hero */}
       <section className={styles.hero} aria-labelledby="hero-title">
@@ -137,6 +170,13 @@ export default async function HomePage() {
             alt=""
             fill
             sizes="100vw"
+            /*
+             * `priority` only makes next/image preload + skip lazy loading; it does not write
+             * `fetchpriority` onto the <img>. Measured before: the rendered element carried
+             * `decoding="async"` and no fetch priority at all, while Lighthouse's LCP element was
+             * exactly this node. So it is set explicitly.
+             */
+            fetchPriority="high"
             priority
           />
         </Depth>
@@ -193,21 +233,38 @@ export default async function HomePage() {
               </div>
             </Depth>
 
-            <div className={styles.factsBar} data-depth="hero-facts">
-              <dl className={styles.facts}>
-                <div className={styles.fact}>
-                  <dt>Rilis</dt>
-                  <dd>{stats.releaseCount}</dd>
-                </div>
-                <div className={styles.fact}>
-                  <dt>Tahun aktif</dt>
-                  <dd>{stats.yearsActive}</dd>
-                </div>
-                <div className={styles.fact}>
-                  <dt>Tautan resmi</dt>
-                  <dd>{officialLinkCount}</dd>
-                </div>
-              </dl>
+            {/*
+              Langkah 3c — the logistics strip, exactly as DESIGN.md §3 specifies:
+
+                KATALOG: [N] ITEM // STATUS: [status] // LOC: [place, region]
+
+              - N is the verified release count from `heroStats()` (releases.length), never a
+                number typed into this file.
+              - STATUS is the manual `siteConfig.status` field; see the comment there — it is
+                deliberately not auto-detected.
+              - LOC comes from `siteConfig.origin` + the region of `siteConfig.locale`.
+
+              The old block here was a cream stat card (three display figures, bone ground,
+              padded like a pitch deck). Numbers as an *argument* is marketing; a label prints
+              a readout. The `data-depth="hero-facts"` hook is kept because
+              scripts/qa-motion.mjs asserts on it.
+            */}
+            <div className={styles.strip} data-depth="hero-facts">
+              <p className={styles.stripLine}>
+                {"KATALOG: "}
+                <span className={styles.stripValue}>{stats.releaseCount}</span>
+                {" ITEM "}
+                <span className={styles.stripSlash} aria-hidden="true">
+                  {"//"}
+                </span>
+                {" STATUS: "}
+                <span className={styles.stripValue}>{siteConfig.status.toUpperCase()}</span>{" "}
+                <span className={styles.stripSlash} aria-hidden="true">
+                  {"//"}
+                </span>
+                {" LOC: "}
+                <span className={styles.stripValue}>{stripLocation.toUpperCase()}</span>
+              </p>
             </div>
           </div>
         </Plate3D>
@@ -222,15 +279,14 @@ export default async function HomePage() {
         the light source, and a second bright thing on the same screen would halve it.
       */}
       <section className={styles.signature} aria-label="Monogram">
-        <AnMonogram />
         {/*
-          Below 768px the renderer never mounts (R14: bloom on a phone GPU is not worth the frames),
-          so the band used to be 74svh of empty black on every phone. This is the mark itself — the
-          same file the header and the footer use — set at the size the object would have occupied.
+          Langkah 3h-1: the band has ONE surface now. `AnMonogram` carries the baked still and, once
+          the reader has moved, the Canvas 2D foil. The old `signatureFallback` span is gone: it
+          existed because the WebGL renderer never mounted below 768px, and the 2D foil mounts on
+          every breakpoint (ambient, `opacity: .2`), so a second mark at full size would have been a
+          duplicate print on top of the first.
         */}
-        <span className={styles.signatureFallback} aria-hidden="true">
-          <Image src={anMark.src} alt="" width={anMark.width} height={anMark.height} loading="lazy" />
-        </span>
+        <AnMonogram />
       </section>
 
       {/* ----------------------------------------------------------- running head */}
@@ -262,7 +318,22 @@ export default async function HomePage() {
 
             <div className={styles.transmissionBody}>
               <div className={styles.transmissionCopy}>
-                <p className={styles.transmissionMeta}>{featured.meta}</p>
+                {/* Langkah 3o: the eyebrow line (`releaseEyebrow()` → "Remix · 2025") used to sit
+                    here. It is the join of the table's first two rows, so once the table exists the
+                    line prints the same two facts a second time inside 60 px. Removed — the table
+                    carries them, labelled. `featured.meta` is untouched: the ticker and the pinned
+                    rail still use it. */}
+              {/* Langkah 3o: four facts, not four sentences — the column's void is filled with the
+                  same data the release page prints, in the same order, from the same helper. */}
+              <dl className={styles.transmissionSpec}>
+                {specification.map((row) => (
+                  <div key={row.label} className={styles.transmissionSpecRow}>
+                    <dt className={styles.transmissionSpecLabel}>{row.label}</dt>
+                    <dd className={styles.transmissionSpecValue}>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
               <div className={styles.transmissionActions}>
                 <Magnetic>
                   <ButtonLink href={featured.href} variant="primary">
@@ -409,6 +480,26 @@ export default async function HomePage() {
           </Container>
         </section>
       ) : null}
+
+      {/*
+        Langkah 3f — the Bottom Release HUD, mounted here and nowhere else (owner's decision: the
+        homepage only, never `src/app/(site)/layout.tsx`, so /music and the rest are untouched).
+
+        Every string below comes out of `releases[0]` through `releaseHudModel()`; the component
+        receives finished values and cannot invent a title, an eyebrow or a destination. The sleeve
+        is resolved from the same slug by `coverArtwork()`, which is the waterfall the rest of the
+        page uses — one of the ten sleeves already on disk, never a newly generated image.
+      */}
+      <ReleaseHud
+        title={hud.title}
+        eyebrow={hud.eyebrow}
+        actionHref={hud.action.href}
+        actionLabel={hud.action.label}
+        actionExternal={hud.action.external}
+        coverSrc={hudCover.kind === "generated" ? null : hudCover.src}
+      />
+      {/* Reserves room under the fixed card; hidden, empty, and read by ReleaseHud.module.css. */}
+      <span data-hud-slot hidden />
     </>
   );
 }

@@ -1,0 +1,36 @@
+# What Vercel should not upload.
+#
+# This is the SECOND layer, not the fix. The fix for the 19.36 GB storage incident is in
+# src/content/covers.ts: its only `fs` call is now statically scoped to public/assets/covers, so
+# Next.js's file tracer stops at that directory instead of trailing the whole repository into every
+# server bundle (measured: 1189 → 316 traced entries for one route, docs/ 520 → 0).
+#
+# These patterns bound the upload size of the repository itself. They are deliberately limited to
+# things `next build` provably never reads — see the comment on each group.
+
+# Internal documentation, design history and review screenshots: 38 MB, read by humans, never by code.
+docs/
+
+# Local screenshot output from scripts/visual-check.mjs. Gitignored too.
+artifacts/
+
+# Test suites. `npm run build` runs `next build`, which does not import tests.
+tests/
+
+# Coverage and local browser caches.
+coverage/
+.playwright-cli/
+.review/
+
+# Markdown at the root is project paperwork. Keep the one file Vercel's UI can usefully show.
+*.md
+!README.md
+
+# Build cache belongs to the build machine, not the upload.
+.next/cache/
+
+# NOT excluded, on purpose:
+#   src/      the application itself
+#   public/   served at the site's root
+#   scripts/  small (204 KB) and referenced by npm scripts a future build step may call
+#   drizzle/  migrations, read by the studio at runtime

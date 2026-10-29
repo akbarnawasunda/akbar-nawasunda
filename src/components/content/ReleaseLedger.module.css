@@ -1,0 +1,287 @@
+/*
+  The ledger (/music) — Langkah 3n, the owner's decision closing 3d.
+
+  What this replaces: a four-column wall of sleeves with a 3D tunnel under the pointer. That page
+  answered "what does this catalogue look like"; a catalogue page has to answer "what is in it".
+  Ten releases are ten records, and a record is read as a line of facts — number, sleeve, title,
+  type, year, where it can be heard — not as a poster.
+
+  So the discipline is the one this site already uses on paper: hairlines instead of borders, no
+  radius anywhere (`--radius-sm` is 0 since 3g), no shadow, no fill except the sleeve itself. The
+  only movement is the row shifting 6 px under the pointer and its rule taking the signal blue,
+  which is the reference-site gesture for "this row is the one you are about to open".
+
+  Numbers: the grid is six columns at 1440 — ordinal 44, sleeve 56, title flexible, type 104,
+  year 64, status 268 — inside the 1354 px container, so the title column gets ~752 px and the two
+  longest titles in the catalogue still fit on one line at 1440. Below 1024 the title spans the type
+  column and type/year drop to a second line; below 720 the row stacks into three lines and nothing
+  is hidden.
+*/
+
+.ledger {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* The last row owns the closing rule, so the table does not end on a hanging line. */
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.row {
+  border-top: 1px solid var(--color-hairline);
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+/*
+ * Hover is an attribute set by one pointer handler in the component, not a `:hover` selector.
+ *
+ * Reason: `:hover` fires per element, so a reader moving across ten rows at speed gets ten separate
+ * transitions at ten slightly different moments. One handler writing `data-hot` means exactly one
+ * row is hot at any instant, which is what makes the movement read as selection rather than as a
+ * hover effect. `:hover`/`:focus-within` are kept as the no-JS and keyboard paths.
+ */
+.row[data-hot],
+.row:hover,
+.row:focus-within {
+  border-color: var(--color-signal-blue);
+}
+
+.rowLink {
+  display: grid;
+  /*
+   * Column widths are measured, not guessed.
+   *
+   * Rendering the real strings at their real computed styles, at 1440:
+   *   "Belum terklasifikasi"               174 px  → type column would have clipped it at 96
+   *   "Tidak tercatat"                     103 px
+   *   "TAUTAN STREAMING: BELUM TERCATAT"   242 px  → it wrapped at 228
+   *   "Hitungan Cinta Breakbeat Super Exc" 438 px  (18 px title)
+   *
+   * The 96/56/228 first attempt therefore printed an overlap: the type cell was narrower than the
+   * word it had to hold, and the word ran under the year. Type tracking drops from 0.2em to 0.14em
+   * (still label tracking, 162 px instead of 174) and the columns are the measured widths. That
+   * leaves the title 655 px at 1440 — 217 px of slack, which is why the single-line table starts at
+   * 1280 rather than at 1024: below that the title column would fall under the 438 it needs.
+   */
+  grid-template-columns: 44px 56px minmax(0, 1fr) 164px 104px 244px;
+  grid-template-areas: "ord thumb title type year stream";
+  align-items: center;
+  column-gap: var(--space-4);
+  padding-block: 12px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: transform var(--duration-fast) var(--ease);
+}
+
+.row[data-hot] .rowLink,
+.row:hover .rowLink,
+.row:focus-within .rowLink {
+  transform: translateX(6px);
+}
+
+/*
+ * `--color-focus` (`--color-signal-icy`), not the signal blue: this is the one token the site
+ * reserves for keyboard focus, and it was previously consumed by the deleted CatalogueWall — leaving
+ * it defined and unused is a token-audit failure, but the real point is that focus rings on this
+ * page should look like focus rings everywhere else on this page, not like a hovered row.
+ */
+.rowLink:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ columns */
+
+.ordinal {
+  grid-area: ord;
+  font-family: var(--font-body-stack);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.thumb {
+  grid-area: thumb;
+  display: block;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-field);
+}
+
+/* ReleaseCover draws its own box; inside the ledger it is a plate, so it fills the frame. */
+.thumb > span {
+  width: 100%;
+  height: 100%;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.title {
+  grid-area: title;
+  min-width: 0;
+  font-family: var(--font-body-stack);
+  font-size: clamp(1rem, 1.25vw, 1.1875rem);
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  /* One line in the table. A title that wraps would change the row height and break the rhythm that
+     makes a ledger scannable; the full title is on the release page and in the link's own text. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * `display: contents` at table widths: the two spans become grid items in their own columns, so the
+ * type and the year line up down the page — which is the entire point of printing them in columns
+ * instead of inside one metadata sentence. Below 720 the wrapper becomes a real box again and they
+ * sit on one line together.
+ */
+.detail {
+  display: contents;
+}
+
+.type {
+  grid-area: type;
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  /*
+   * Nowrap is a property of the *single-line table* only, and it is safe there because the column is
+   * the measured width of the longest value. Narrower layouts let the label wrap instead of clipping
+   * it: "Belum terklasifikasi" is 162 px, and at 390 the cell is 148 — an ellipsis there would print
+   * "Belum terklasifi…", which is a fact stated incompletely.
+   */
+  white-space: normal;
+}
+
+@media (min-width: 1280px) {
+  .type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.year {
+  grid-area: year;
+  font-family: var(--font-body-stack);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.stream {
+  grid-area: stream;
+  font-family: var(--font-body-stack);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--color-text-secondary);
+  /* 242 px of status string: it fits the 244 px column of the wide table and wraps below 1280,
+     which is why the narrow layouts give it its own grid row rather than a squeezed cell. */
+  white-space: normal;
+}
+
+/* The one state that is a status rather than a platform name: quieter, and never a link of its own. */
+.stream[data-streaming="unrecorded"] {
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------- responsive */
+
+@media (max-width: 1279px) {
+  /*
+   * Two lines per row instead of one. The first attempt kept type and year in their own grid columns
+   * and let the flexible title column sit between them, which put "Belum terklasifikasi" on the left
+   * and its year 400 px away — a row that reads as two unrelated fragments. They are one fact pair,
+   * so they become one flex cell under the title and keep their own gap.
+   */
+  .rowLink {
+    grid-template-columns: 36px 52px minmax(0, 1fr) 244px;
+    grid-template-areas:
+      "ord thumb title  stream"
+      "ord thumb detail stream";
+    row-gap: 4px;
+  }
+
+  .title {
+    white-space: normal;
+  }
+
+  .detail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3);
+    grid-area: detail;
+  }
+
+  .year {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (max-width: 719px) {
+  .rowLink {
+    grid-template-columns: 28px 48px minmax(0, 1fr);
+    grid-template-areas:
+      "ord thumb title"
+      ".   .     detail"
+      ".   .     stream";
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    padding-block: var(--space-3);
+  }
+
+  .thumb {
+    width: 48px;
+    height: 48px;
+  }
+
+  .detail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    grid-area: detail;
+  }
+
+  .stream {
+    text-align: left;
+  }
+
+  /* A 6 px shift on a phone is a row that looks misaligned rather than selected; the rule colour
+     already carries the state, and there is no pointer to hover with. */
+  .row[data-hot] .rowLink,
+  .row:hover .rowLink {
+    transform: none;
+  }
+}
+
+/*
+ * Reduced motion: the shift is the only transition here, so it is the only thing to remove. The
+ * colour change stays — it is information (this row is selected), not decoration.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .rowLink {
+    transition: none;
+  }
+
+  .row[data-hot] .rowLink,
+  .row:hover .rowLink,
+  .row:focus-within .rowLink {
+    transform: none;
+  }
+}

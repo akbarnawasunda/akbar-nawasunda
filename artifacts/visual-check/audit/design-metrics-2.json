@@ -1,0 +1,98 @@
+{
+  "hover": {
+    "before": {
+      "transform": "matrix(1, 0, 0, 1, 0, 0)",
+      "cardRadius": "0px",
+      "sleeveShadow": "rgba(0, 0, 0, 0.45) 0px 18px 44px 0px",
+      "ordinalColor": "rgb(184, 184, 184)",
+      "ordinalSize": "9px",
+      "borderTop": "rgb(31, 31, 31)"
+    },
+    "after": {
+      "transform": "matrix(1, 0, 0, 1, 0, 0)",
+      "inlineRx": "",
+      "inlineRy": "",
+      "inlineZ": "",
+      "sleeveShadow": "rgba(0, 0, 0, 0.45) 0px 18px 44px 0px",
+      "ordinalColor": "rgb(184, 184, 184)",
+      "borderTop": "rgb(31, 31, 31)",
+      "translateXPx": 0
+    }
+  },
+  "radius": {
+    "/": [
+      {
+        "tag": "SPAN",
+        "cls": "oRS4AW_live",
+        "value": "9999px",
+        "w": 5,
+        "h": 5
+      },
+      {
+        "tag": "SPAN",
+        "cls": "oRS4AW_live",
+        "value": "9999px",
+        "w": 5,
+        "h": 5
+      }
+    ],
+    "/music": [],
+    "/music/masih-mencintainya-papinka": [],
+    "/artist": [],
+    "/visuals": [],
+    "/contact": [],
+    "/epk": []
+  },
+  "canvasMobileReal": {
+    "atScroll0": {
+      "canvases": 1,
+      "scrollY": 0
+    },
+    "band": {
+      "canvases": 1,
+      "insideBand": true,
+      "fallbackDisplay": "grid",
+      "fallbackZ": "1",
+      "fallbackOpacity": "1",
+      "canvasOpacity": null,
+      "canvasPointerEvents": null,
+      "liquidLayerPointerEvents": "auto"
+    }
+  },
+  "hud": {
+    "fixedBottomElements": [
+      {
+        "tag": "DIV",
+        "cls": "S50iVG_grain",
+        "text": "",
+        "pos": "fixed",
+        "bottom": 900
+      },
+      {
+        "tag": "DIV",
+        "cls": "k-iVda_sheet",
+        "text": "",
+        "pos": "fixed",
+        "bottom": 1527
+      }
+    ],
+    "allButtons": [
+      "BUKA MENU\nMENU",
+      "INDEKS"
+    ],
+    "mailtoLinks": [
+      "mailto:akbarnawasunda@gmail.com",
+      "mailto:akbarnawasunda@gmail.com"
+    ],
+    "copyUiPresent": false
+  },
+  "sleeves": {
+    "count": 9,
+    "firstFour": [
+      "/_next/image?url=%2Fassets%2Fcovers%2Fcinta-terbuang%40sleeve.webp&w=3840&q=75",
+      "/_next/image?url=%2Fassets%2Fcovers%2Fmasih-dihatiku%40sleeve.webp&w=3840&q=75",
+      "/_next/image?url=%2Fassets%2Fcovers%2Fbayang-tanpa-kata%40sleeve.webp&w=3840&q=75",
+      "/_next/image?url=%2Fassets%2Fcovers%2Fpada-imut-aisyah-tak-belagu%40sleeve.webp&w=3840&q=75"
+    ]
+  }
+}

@@ -19,13 +19,22 @@
  *   5. the header shrinks and hides on scroll-down, returns on scroll-up;
  *   6. the mobile drawer opens, traps focus, closes on Escape and returns focus;
  *   7. no canvas exists anywhere (round 20 baked the monogram), and its still loads lazily;
- *   8. no horizontal overflow at six widths, and no console errors anywhere;
+ *   8. no horizontal overflow at six widths on every route — plus the 480–976px squeeze band
+ *      the footer's unbreakable contact address used to break (Langkah 3g) — and no console
+ *      errors anywhere;
  *   9. (R8, revised R10) the hero, the catalogue wall and the index sleeve are *3D*: a pointer move
  *      writes a rotation, the hero's type block sits at a real negative Z behind the glass, and that
  *      block is one rigid surface rather than a stack of layers pretending to be depth;
  *  10. (R8) the title sequence runs once, counts, and removes itself;
  *  11. (R9) the display type is printed twice — the second plate moves with the pointer — and the
  *      back of the sheet opens as a full screen that locks the page and gives focus back on Escape.
+ *  12. (Langkah 3e) the header's booking control really writes the address to the clipboard, says so
+ *      for its duration, puts itself back, and falls back to selectable text when the write is
+ *      refused — with the clipboard permission granted, so the pass is a write that happened and
+ *      not a check that was skipped.
+ *  13. (Langkah 3f) the homepage's Bottom Release HUD prints the catalogue's own first release, is
+ *      absent at scroll 0 so it cannot eat the hero's logistics strip, appears once the reader has
+ *      moved, never overlaps the INDEKS tab, and does not exist at all on a phone.
  *
  * Exits 1 on any failure so it can gate a release the same way `a11y` does.
  */
@@ -391,18 +400,324 @@ try {
   );
   check("header hides on scroll down and returns on scroll up", headerDown.hidden === "true" && headerUp === "false");
 
+  /* ------------------------------------------------------ booking quick-copy (Langkah 3e) */
   /*
-   * Zero canvases, everywhere, forever (round 20, owner's instruction: "jangan 3D berat jir").
+   * The clipboard is the one behaviour a screenshot cannot prove, and headless Chromium refuses the
+   * write unless the origin is granted permission — the exact "it does not work in the sandbox"
+   * failure that must be solved rather than skipped.
    *
-   * The contract used to be "at most one canvas, and nothing allocated before its band is on
-   * screen" (D-102) — a lazy WebGL monogram. Round 20 baked that monogram into WebP stills and
-   * deleted the renderer, so the contract is now absolute: no `<canvas>` element exists at scroll 0
-   * on any viewport. Round 29 replaced the baked still with a lazy shader quad: the canvas the
-   * band may own is imported dynamically only when the band approaches, only above 768px, only
-   * with motion allowed and only where WebGL exists — so at scroll 0 the count is still zero, and
-   * after the band it is at most one, and only inside the band. The probe also asserts the
-   * fallback floor never moved: a lazy image with real decoded pixels underneath, because "we
-   * added the heavy thing" is only half the change; the band must survive without it.
+   * `browser.defaultBrowserContext().overridePermissions(base, ["clipboard-read", "clipboard-write"])`
+   * is the obvious call and it is not enough: measured, it leaves `clipboard-write` **denied**
+   * (`navigator.permissions.query` → "denied", `writeText` → NotAllowedError) while granting read.
+   * The permission names the CDP endpoint actually honours are `clipboardReadWrite` and
+   * `clipboardSanitizedWrite`, and with those the write lands. The assertion after the click is on
+   * the text the browser really received, not on a stub.
+   */
+  const cdp = await browser.target().createCDPSession();
+  await cdp.send("Browser.grantPermissions", {
+    origin: base,
+    permissions: ["clipboardReadWrite", "clipboardSanitizedWrite"],
+  });
+
+  const booking = await browser.newPage();
+  await booking.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await booking.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(900);
+
+  const readBooking = () =>
+    booking.evaluate(() => {
+      const button = document.querySelector("[data-booking-copy]");
+      if (!button) return null;
+      const spans = [...button.querySelectorAll("span")].map((node) => ({
+        text: (node.textContent || "").replace(/\s+/g, " ").trim(),
+        opacity: getComputedStyle(node).opacity,
+      }));
+      const exact = (want) => spans.find((span) => span.text === want);
+      const status = document.querySelector("[data-booking-status]");
+      const email = document.querySelector("[data-booking-fallback] [class*='fallbackEmail']");
+      return {
+        tag: button.tagName,
+        state: button.dataset.copyState,
+        name: button.getAttribute("aria-label") || "",
+        radius: getComputedStyle(button).borderTopLeftRadius,
+        width: Math.round(button.getBoundingClientRect().width * 10) / 10,
+        height: Math.round(button.getBoundingClientRect().height),
+        idleLabel: exact("Booking"),
+        doneLabel: exact("\u2713 Email disalin"),
+        live: status?.getAttribute("aria-live") ?? null,
+        statusText: (status?.textContent || "").trim(),
+        fallback: (document.querySelector("[data-booking-fallback]")?.textContent || "").trim(),
+        fallbackSelect: email ? getComputedStyle(email).userSelect : null,
+        overflowX: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+
+  const liveBooking = await readBooking();
+  check(
+    "the header has a booking copy control, named, hairline, with a polite live region",
+    Boolean(liveBooking) &&
+      liveBooking.tag === "BUTTON" &&
+      /salin alamat email ke clipboard/i.test(liveBooking.name) &&
+      liveBooking.name.includes("akbarnawasunda@gmail.com") &&
+      liveBooking.radius === "0px" &&
+      liveBooking.live === "polite" &&
+      liveBooking.idleLabel?.opacity === "1",
+    liveBooking
+      ? `${liveBooking.tag} · "${liveBooking.idleLabel?.text}" · radius ${liveBooking.radius} · aria-live ${liveBooking.live} · ${liveBooking.width}px`
+      : "no [data-booking-copy]",
+  );
+
+  await booking.click("[data-booking-copy]");
+  /* 400 ms: the label crossfade is 150 ms and starts once the promise resolves, so 220 ms caught it
+     at opacity 0.968 and failed an assertion that was measuring a transition, not a state. */
+  await sleep(400);
+  const clipboardText = await booking.evaluate(() => navigator.clipboard.readText());
+  const afterClick = await readBooking();
+  check(
+    "clicking it copies the published address and shows the confirmation",
+    clipboardText === "akbarnawasunda@gmail.com" &&
+      afterClick.state === "copied" &&
+      /^Email disalin/.test(afterClick.name) &&
+      Number(afterClick.doneLabel?.opacity) > 0.99 &&
+      Number(afterClick.idleLabel?.opacity) < 0.01 &&
+      afterClick.statusText.length > 0,
+    `clipboard="${clipboardText}" · state=${afterClick.state} · label "${afterClick.doneLabel?.text}" ${afterClick.doneLabel?.opacity} · status "${afterClick.statusText}"`,
+  );
+  check(
+    "the confirmation does not reflow the bar",
+    afterClick.width === liveBooking.width,
+    `${liveBooking.width}px → ${afterClick.width}px`,
+  );
+  await shot(booking, "booking-copied");
+
+  await sleep(2100);
+  const afterReset = await readBooking();
+  check(
+    "the confirmation clears itself after the 1.8 s window",
+    afterReset.state === "idle" && afterReset.idleLabel?.opacity === "1" && afterReset.statusText === "",
+    `state=${afterReset.state} · idle opacity ${afterReset.idleLabel?.opacity}`,
+  );
+
+  /* Refusal path. The permission is granted above, so the rejection is injected: what is being
+     proved is that a rejected write is caught and the address is put on screen, not that Chrome
+     happens to agree with us. */
+  await booking.evaluate(() => {
+    Object.defineProperty(navigator.clipboard, "writeText", {
+      configurable: true,
+      value: () => Promise.reject(new DOMException("Write permission denied.", "NotAllowedError")),
+    });
+  });
+  await booking.click("[data-booking-copy]");
+  await sleep(300);
+  const denied = await readBooking();
+  check(
+    "a refused clipboard write shows the address as selectable text instead of failing silently",
+    denied.state === "failed" &&
+      denied.fallback.includes("akbarnawasunda@gmail.com") &&
+      denied.fallbackSelect === "all" &&
+      /disalin manual/i.test(denied.statusText),
+    `state=${denied.state} · panel "${denied.fallback}" · user-select ${denied.fallbackSelect}`,
+  );
+  await shot(booking, "booking-fallback");
+
+  await booking.keyboard.press("Escape");
+  await sleep(160);
+  const dismissed = await readBooking();
+  check(
+    "Escape dismisses the manual-copy panel",
+    dismissed.state === "idle" && dismissed.fallback === "",
+    `state=${dismissed.state}`,
+  );
+  await booking.close();
+
+  /* Reduced motion: the confirmation may still appear, but with no transition at all. */
+  const bookingStill = await browser.newPage();
+  await bookingStill.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
+  await bookingStill.setViewport({ width: 1440, height: 900 });
+  await bookingStill.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(700);
+  const stillDurations = await bookingStill.evaluate(() => {
+    const button = document.querySelector("[data-booking-copy]");
+    const spans = [...button.querySelectorAll("span")];
+    const done = spans.find((node) => (node.textContent || "").replace(/\s+/g, " ").trim() === "\u2713 Email disalin");
+    return done ? getComputedStyle(done).transitionDuration : null;
+  });
+  /*
+   * 1 ms, not 0 s: `globals.css` ends with `*, *::before, *::after { transition-duration: 1ms
+   * !important }` under reduce, and an `!important` in the global sheet outranks the component's own
+   * `transition: none`. What matters is that the swap is imperceptible, so the check is "no duration
+   * worth animating", and the number is printed rather than rounded away.
+   */
+  const stillSeconds = stillDurations === null ? null : Number.parseFloat(stillDurations);
+  check(
+    "the confirmation transition is effectively instant under prefers-reduced-motion",
+    stillSeconds !== null && Number.isFinite(stillSeconds) && stillSeconds <= 0.001,
+    `transition-duration ${stillDurations} (global 1 ms guard)`,
+  );
+  await bookingStill.close();
+
+  /* Phone geometry: a 40px square that fits the 63px of slack the bar actually has. */
+  const bookingPhone = await browser.newPage();
+  await bookingPhone.setViewport({ width: 390, height: 844 });
+  await bookingPhone.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(800);
+  const phoneGeometry = await bookingPhone.evaluate(() => {
+    const button = document.querySelector("[data-booking-copy]");
+    const rect = button.getBoundingClientRect();
+    const bar = document.querySelector("header > div").getBoundingClientRect();
+    const brand = document.querySelector("header a")?.getBoundingClientRect();
+    return {
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+      insideBar: rect.top >= bar.top && rect.bottom <= bar.bottom && rect.left >= bar.left && rect.right <= bar.right,
+      clearsBrand: brand ? Math.round(rect.left - brand.right) : null,
+      overflowX: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+  check(
+    "the phone renders a 40px copy square inside the bar, clear of the mark",
+    phoneGeometry.width === 40 && phoneGeometry.height === 40 && phoneGeometry.insideBar && (phoneGeometry.clearsBrand ?? 0) > 0 && phoneGeometry.overflowX <= 0,
+    JSON.stringify(phoneGeometry),
+  );
+
+  /* ------------------------------------------------- bottom release HUD (Langkah 3f) */
+  /*
+   * The HUD is a fixed card, so it is the one new element that could plausibly break three things at
+   * once: the fold the hero just won (3c), the INDEKS tab on the right edge, and the "no horizontal
+   * overflow" contract. All three are measured here rather than eyeballed in a screenshot.
+   */
+  const hudPage = await browser.newPage();
+  await hudPage.setViewport({ width: 1440, height: 900 });
+  await hudPage.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(1500);
+
+  const hudAtTop = await hudPage.evaluate(() => {
+    const hud = document.querySelector("[data-release-hud]");
+    const strip = document.querySelector('[data-depth="hero-facts"]');
+    return {
+      inDom: Boolean(hud),
+      stripBottom: strip ? Math.round(strip.getBoundingClientRect().bottom) : null,
+    };
+  });
+  check(
+    "the HUD is absent at scroll 0, so the hero's logistics strip keeps its fold",
+    !hudAtTop.inDom,
+    `in DOM: ${hudAtTop.inDom} · hero strip bottom ${hudAtTop.stripBottom}px`,
+  );
+
+  await hudPage.evaluate(() => window.scrollTo(0, Math.round(window.innerHeight * 0.9)));
+  await settleScroll(hudPage);
+  await sleep(500);
+
+  const hudShown = await hudPage.evaluate(() => {
+    const hud = document.querySelector("[data-release-hud]");
+    if (!hud) return { present: false };
+    const box = (node) => {
+      const rect = node.getBoundingClientRect();
+      return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+    };
+    const overlap = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    const hudBox = box(hud);
+    /* `[data-sheet-toggle]`, not a text or aria match: the INDEKS tab has no aria-label of its own
+       (its name is the word inside it) and the only "Indeks" aria-label in the document belongs to
+       the sheet dialog behind it — matching that measured an off-screen 834×2154 panel instead of
+       the 29×83 tab on the right edge. Data hooks are what the rest of this file selects on. */
+    const tab = document.querySelector("[data-sheet-toggle]");
+    const header = document.querySelector("header");
+    const action = hud.querySelector("a");
+    const title = hud.querySelector("p:last-of-type");
+    return {
+      present: true,
+      title: (title?.textContent || "").trim(),
+      eyebrow: (hud.querySelector("p")?.textContent || "").replace(/\s+/g, " ").trim(),
+      actionText: (action?.textContent || "").replace(/\s+/g, " ").trim(),
+      actionHref: action?.getAttribute("href") || "",
+      actionTarget: action?.getAttribute("target"),
+      radius: getComputedStyle(hud).borderTopLeftRadius,
+      zIndex: Number(getComputedStyle(hud).zIndex),
+      tabZ: tab ? Number(getComputedStyle(tab).zIndex) : null,
+      overlapsTab: tab ? overlap(hudBox, box(tab)) : null,
+      overlapsHeader: header ? overlap(hudBox, box(header)) : null,
+      inViewport: hudBox.left >= 0 && hudBox.right <= window.innerWidth && hudBox.bottom <= window.innerHeight,
+      tabStops: [...document.querySelectorAll("a[href], button")].filter((node) => node.closest("[data-release-hud]")).length,
+      landmark: hud.tagName,
+      landmarkName: hud.getAttribute("aria-label"),
+      audio: hud.querySelectorAll("audio, video").length,
+    };
+  });
+  check(
+    "the HUD prints the catalogue's own first release, as a named complementary landmark",
+    hudShown.present &&
+      hudShown.landmark === "ASIDE" &&
+      Boolean(hudShown.landmarkName) &&
+      hudShown.title.includes("Masih Mencintainya") &&
+      /SoundCloud/i.test(hudShown.actionHref) &&
+      hudShown.actionTarget === "_blank" &&
+      hudShown.radius === "0px" &&
+      hudShown.tabStops === 1,
+    `${hudShown.landmark} "${hudShown.landmarkName}" · "${hudShown.title}" · ${hudShown.eyebrow} · ${hudShown.actionText} → ${hudShown.actionHref} · ${hudShown.tabStops} tab stop`,
+  );
+  check(
+    "the HUD never overlaps the INDEKS tab or the header and stays inside the viewport",
+    hudShown.present &&
+      hudShown.overlapsTab === false &&
+      hudShown.overlapsHeader === false &&
+      hudShown.inViewport &&
+      hudShown.tabZ !== null &&
+      hudShown.zIndex < hudShown.tabZ,
+    `hud z ${hudShown.zIndex} < tab z ${hudShown.tabZ} · overlapsTab ${hudShown.overlapsTab} · overlapsHeader ${hudShown.overlapsHeader} · inViewport ${hudShown.inViewport}`,
+  );
+  check(
+    "the HUD is a card, not a player: no audio or video element inside it",
+    hudShown.present && hudShown.audio === 0,
+    `${hudShown.audio ?? "n/a"} media elements`,
+  );
+  await shot(hudPage, "hud-desktop");
+  await hudPage.close();
+
+  /* On a phone it must not exist: not in the DOM, not in the layout, not in the tab order — and the
+     slot marker that reserves footer room must reserve nothing there. */
+  const hudPhone = await browser.newPage();
+  await hudPhone.setViewport({ width: 390, height: 844 });
+  await hudPhone.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(900);
+  await hudPhone.evaluate(() => window.scrollTo(0, window.innerHeight * 1.5));
+  await settleScroll(hudPhone);
+  await sleep(400);
+  const hudOnPhone = await hudPhone.evaluate(() => ({
+    inDom: document.querySelectorAll("[data-release-hud]").length,
+    hudTabStops: [...document.querySelectorAll("a[href], button")].filter((node) => node.closest("[data-release-hud]")).length,
+    footerPadding: getComputedStyle(document.querySelector("footer")).paddingBottom,
+    overflowX: document.documentElement.scrollWidth - window.innerWidth,
+  }));
+  check(
+    "the HUD does not exist at 390px, even after scrolling",
+    hudOnPhone.inDom === 0 && hudOnPhone.hudTabStops === 0 && hudOnPhone.footerPadding === "0px" && hudOnPhone.overflowX <= 0,
+    JSON.stringify(hudOnPhone),
+  );
+  await hudPhone.close();
+  if (shotsDir) {
+    await bookingPhone.screenshot({ path: join(shotsDir, "booking-phone.png") });
+    await bookingPhone.click("[data-booking-copy]");
+    await sleep(220);
+    await bookingPhone.screenshot({ path: join(shotsDir, "booking-phone-copied.png") });
+  }
+  await bookingPhone.close();
+
+  /*
+   * Zero canvases at scroll 0, on EVERY viewport — and the band still works once the reader moves.
+   *
+   * History, because this check has been wrong before: round 20 baked the monogram into WebP stills
+   * and the contract was absolute; round 29 added a lazy GPU quad and it held at 1440×900, which is
+   * the only size this script used to probe. It did not hold on a phone, and the reason was not a
+   * race — `page.module.css` collapses `.hero` to `height: auto` below 900px, so at 390×844 the
+   * monogram band starts at y≈627 and 34.7 % of it is inside the first screen. Intersection fired
+   * on load, correctly, and the canvas mounted before the reader had moved a pixel.
+   *
+   * Langkah 3h-1 replaced the shader with a Canvas 2D foil and closed the hole at its source: the
+   * orchestrator now requires BOTH intersection and `scrollY > 1`. The probes below assert that at
+   * 1440×900 and at 390×844, and then assert the opposite failure — that a gate which never opens
+   * is not a fix — by scrolling to the band and requiring exactly one canvas, inside it.
    */
   const canvasProbe = await browser.newPage();
   await canvasProbe.setViewport({ width: 1440, height: 900 });
@@ -417,6 +732,71 @@ try {
     };
   });
   await canvasProbe.close();
+
+  /*
+   * The phone probe. `isMobile` matters: the ≤899px layout rule is what the violation depended on,
+   * and a bare 390px-wide desktop window would not reproduce a real handset's viewport handling.
+   */
+  const phoneProbe = await browser.newPage();
+  await phoneProbe.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await phoneProbe.goto(`${base}/`, { waitUntil: "load" });
+  await sleep(1600);
+  const phoneBefore = await phoneProbe.evaluate(() => {
+    const band = document.querySelector('[class*="signature"]');
+    const box = band?.getBoundingClientRect();
+    return {
+      count: document.querySelectorAll("canvas").length,
+      onScreen: Boolean(box && box.top < window.innerHeight && box.bottom > 0),
+      bandTop: box ? Math.round(box.top) : null,
+      scrollY: Math.round(window.scrollY),
+    };
+  });
+  check(
+    "no canvas in the first fold on a phone either",
+    phoneBefore.count === 0,
+    `390×844 at scroll ${phoneBefore.scrollY}: ${phoneBefore.count} canvas · band top ${phoneBefore.bandTop}px (inside the first screen: ${phoneBefore.onScreen})`,
+  );
+
+  /*
+   * …and the gate opens. A band that never mounts its surface is not a fixed band, it is a deleted
+   * one. This also pins the ≥768px ambient contract as a *state* rather than as a stylesheet rule:
+   * `data-ambient`, the computed opacity and the pointer-events are all read back from the DOM.
+   */
+  if (phoneBefore.count === 0) {
+    await phoneProbe.evaluate(() => {
+      document.querySelector('[class*="signature"]')?.scrollIntoView({ block: "center" });
+    });
+    await sleep(1800);
+    const phoneAfter = await phoneProbe.evaluate(() => {
+      const band = document.querySelector('[class*="signature"]');
+      const host = document.querySelector("[data-foil-host]");
+      const layer = host?.parentElement;
+      const canvases = [...document.querySelectorAll("canvas")];
+      const state = band?.querySelector("[data-foil-state]")?.getAttribute("data-foil-state");
+      const css = layer ? getComputedStyle(layer) : null;
+      return {
+        canvases: canvases.length,
+        inBand: canvases.every((node) => Boolean(band && band.contains(node))),
+        state,
+        ambient: host?.getAttribute("data-ambient"),
+        opacity: css?.opacity ?? null,
+        pointerEvents: css?.pointerEvents ?? null,
+      };
+    });
+    check(
+      "the phone mounts exactly one canvas once the band is reached, as the ambient variant",
+      phoneAfter.canvases === 1 &&
+        phoneAfter.inBand &&
+        phoneAfter.state === "active" &&
+        phoneAfter.ambient === "true" &&
+        phoneAfter.opacity === "0.2" &&
+        phoneAfter.pointerEvents === "none",
+      `canvases: ${phoneAfter.canvases} (in band: ${phoneAfter.inBand}) · state: ${phoneAfter.state} · ambient: ${phoneAfter.ambient} · opacity: ${phoneAfter.opacity} · pointer-events: ${phoneAfter.pointerEvents}`,
+    );
+  } else {
+    check("the phone mounts exactly one canvas once the band is reached, as the ambient variant", false, "no canvas probe ran: the scroll-0 gate already failed");
+  }
+  await phoneProbe.close();
 
   // Reduced motion: nothing registers, so no inline transform is written at all.
   const reduced = await browser.newPage();
@@ -489,20 +869,41 @@ try {
   await mobile.close();
 
   // ---------------------------------------------------------------- overflow sweep
+  //
+  // The six core widths run against every route. The squeeze band (480–976) runs against "/"
+  // only, and that is not a shortcut: it exists because of exactly one element — the published
+  // contact address in the footer, a single unbreakable 235px token — and the footer is global
+  // chrome, byte-identical on every route. Without these widths the sweep would have kept passing
+  // while the page scrolled sideways at 900–950px, which is what Langkah 3g was opened for.
   const widths = [320, 390, 768, 1024, 1280, 1920];
+  const squeezeWidths = [480, 900, 920, 940, 950, 960, 976];
   const routes = ["/", "/music", "/visuals", "/artist", "/epk", "/contact", "/music/lali-dalane"];
+  const swp = async (width, route) => {
+    await sweeper.setViewport({ width, height: width < 700 ? 844 : 900 });
+    await sweeper.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
+    await sleep(220);
+    return sweeper.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  };
   const sweeper = await browser.newPage();
   const overflows = [];
   for (const width of widths) {
-    await sweeper.setViewport({ width, height: width < 700 ? 844 : 900 });
     for (const route of routes) {
-      await sweeper.goto(`${base}${route}`, { waitUntil: "load", timeout: 60000 });
-      await sleep(220);
-      const delta = await sweeper.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      const delta = await swp(width, route);
       if (delta > 0) overflows.push(`${route} @${width} +${delta}px`);
     }
   }
   check("no horizontal overflow at 320–1920", overflows.length === 0, overflows.join(", "));
+
+  const squeezeOverflows = [];
+  for (const width of squeezeWidths) {
+    const delta = await swp(width, "/");
+    if (delta > 0) squeezeOverflows.push(`/ @${width} +${delta}px`);
+  }
+  check(
+    "no horizontal overflow in the footer's squeeze band (480–976)",
+    squeezeOverflows.length === 0,
+    squeezeOverflows.join(", "),
+  );
   await sweeper.close();
 
   // Read last, after the band has been reached: the lazy still has had every chance to decode.
@@ -535,34 +936,56 @@ try {
    * forward. The loader is a third tab, because it is skipped when `an-curtain` is already in
    * sessionStorage — which is exactly what `settle()` does to the main page.
    */
-  const wall = await browser.newPage();
-  await wall.setViewport({ width: 1440, height: 900 });
-  await wall.goto(`${base}/music`, { waitUntil: "load", timeout: 60000 });
+  /*
+   * Langkah 3n — the catalogue stopped being a wall.
+   *
+   * This probe used to measure the 3D tunnel: `--wall-z` had to reach >20 px on the card under the
+   * pointer and never exceed 44 px on any card. That contract belonged to `CatalogueWall`, which is
+   * deleted. The replacement contract is a ledger row that shifts 6 px and takes the signal-blue
+   * rule — and, critically, only ONE row at a time, which is the part `:hover` alone cannot
+   * guarantee and the reason the component tracks the pointer itself.
+   */
+  const ledger = await browser.newPage();
+  await ledger.setViewport({ width: 1440, height: 900 });
+  await ledger.goto(`${base}/music`, { waitUntil: "load", timeout: 60000 });
   await sleep(600);
-  await wall.evaluate(() => {
-    document.querySelector("[data-wall-card]")?.scrollIntoView({ block: "center" });
+  await ledger.evaluate(() => {
+    document.querySelector("[data-ledger-row]")?.scrollIntoView({ block: "center" });
   });
   await sleep(400);
-  const card = await wall.$("[data-wall-card]");
-  if (card) {
-    const box = await card.boundingBox();
-    await wall.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 });
+  const row = await ledger.$("[data-ledger-row]");
+  if (row) {
+    const box = await row.boundingBox();
+    await ledger.mouse.move(box.x + 200, box.y + box.height / 2, { steps: 6 });
     await sleep(450);
-    const state = await wall.evaluate(() => {
-      const first = document.querySelector("[data-wall-card]");
-      const all = [...document.querySelectorAll("[data-wall-card]")];
-      const z = (node) => Math.abs(parseFloat(node.style.getPropertyValue("--wall-z") || "0"));
-      return { pointed: z(first), furthest: Math.max(...all.map(z)) };
+    const state = await ledger.evaluate(() => {
+      const all = [...document.querySelectorAll("[data-ledger-row]")];
+      const hot = all.filter((node) => node.dataset.hot === "true");
+      const first = all[0];
+      const link = first.querySelector("[data-ledger-link]");
+      const style = link ? getComputedStyle(link) : null;
+      return {
+        rows: all.length,
+        hot: hot.length,
+        index: hot.length > 0 ? all.indexOf(hot[0]) : -1,
+        shift: style ? new DOMMatrixReadOnly(style.transform).m41 : 0,
+        rule: first ? getComputedStyle(first).borderTopColor : "",
+      };
     });
     check(
-      "the catalogue wall lifts the sleeve under the pointer",
-      state.pointed > 20 && state.furthest <= 44.5,
-      `${state.pointed}px lift, max ${state.furthest}px`,
+      "the catalogue ledger shifts exactly the row under the pointer",
+      state.rows === 10 && state.hot === 1 && state.index === 0 && Math.abs(state.shift - 6) < 0.5,
+      `${state.rows} rows, ${state.hot} hot (index ${state.index}), shift ${state.shift}px`,
+    );
+    check(
+      "the hot row's rule takes the signal blue",
+      state.rule === "rgb(0, 135, 255)",
+      state.rule,
     );
   } else {
-    check("the catalogue wall lifts the sleeve under the pointer", false, "no [data-wall-card]");
+    check("the catalogue ledger shifts exactly the row under the pointer", false, "no [data-ledger-row]");
   }
-  await wall.close();
+  await ledger.close();
 
   const fresh = await browser.newPage();
   await fresh.setViewport({ width: 1440, height: 900 });
@@ -696,10 +1119,9 @@ try {
   }
   await pressProof.close();
 
-  // three.js reports an unavailable context itself when the machine has no GPU; that is the
-  // environment, not the page. Everything else is a real error.
-  const realErrors = consoleErrors.filter((text) => !/WebGL context|Error creating WebGL context/i.test(text));
-  check("no console errors", realErrors.length === 0, realErrors.slice(0, 3).join(" | "));
+  /* No tolerance list any more: Langkah 3h-1 removed the GPU stack, so there is no "the machine has
+     no WebGL" class of expected message left to excuse. Any console error is a real error. */
+  check("no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
 
   await page.close();
 } finally {
