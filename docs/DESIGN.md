@@ -124,7 +124,7 @@ pemindaian itu memakai `--include=*.ts` dan tidak mencakup `.tsx`, sehingga pema
 
 - **Spec berlaku ≥720px:** `font-size: clamp(2.8rem, 11vw, 4.5rem)`.
 - **Pengecualian <720px:** token `--text-hero` tetap `clamp(2.5rem, 9.6vw, 3.6rem)`
-  (`tokens.css:239`, override mobile). Mobile **tidak** memakai 11vw dan **tidak boleh** diubah ke
+  (`tokens.css:258`, override mobile; nomor ini bergeser dari 239 setelah token cursor dan `--z-*` masuk di Langkah 3g–3h). Mobile **tidak** memakai 11vw dan **tidak boleh** diubah ke
   nilai itu. Alasan di bawah.
 - **Kenapa mobile dikecualikan (diukur, bukan diperkirakan):** kata terpanjang `Nawasunda.`
   mengukur **8.175 × font-size** pada face display. Di 390px lebar kontainer adalah 339.6px, jadi:
@@ -215,7 +215,7 @@ Aturan:
 
 **STATUS: SESUAI SPEC (Langkah 3c, diukur).** `.factsBar`/`<dl>` lama sudah dihapus dari
 `page.tsx` dan diganti `.strip` (`data-depth="hero-facts"`, dipertahankan karena
-`scripts/qa-motion.mjs:313` menegaskan hook itu) / `.stripLine` / `.stripValue` / `.stripSlash`.
+`scripts/qa-motion.mjs:322` menegaskan hook itu) / `.stripLine` / `.stripValue` / `.stripSlash`.
 `N` = `stats.releaseCount` dari `heroStats()` (10), status dari `siteConfig.status` (manual,
 uppercase saat render), lokasi dari `siteConfig.origin` + region `siteConfig.locale`.
 
@@ -470,7 +470,7 @@ Aturan:
   visible**, bukan collapse 0px.
   **SEKARANG:** `src/components/ui/Equalizer.tsx` — 4 `<i>`, `aria-hidden`, tinggi
   `var(--space-3)` = 0.75rem = 12px, lebar bar `calc(var(--space-1)/2)` = 2px, `scaleY` animation,
-  dipakai di `SiteHeader.tsx:183` dan `SiteFooter.tsx:84`. Komponen ada; visibilitas render nyata
+  dipakai di `SiteHeader.tsx:192` dan `SiteFooter.tsx:84` (nomor bergeser dari 183 setelah blok BookingCopy di Langkah 3e). Komponen ada; visibilitas render nyata
   **BELUM DIUKUR** (butuh screenshot/DOM assertion).
 - **Bottom Release HUD (informasional, tanpa playback)**: menampilkan info rilis yang disorot;
   **WAJIB** diberi data nyata saat render (jangan komponen ada tapi selalu `null` karena props
@@ -661,6 +661,11 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 ## 8. Ringkasan status vs spec (dipakai sebagai tabel audit Langkah 2)
 
 | # | Item | Status | Bukti |
+
+> **Cara membaca angka suite di tabel ini (Langkah 4).** Angka `qa:motion` yang tercantum adalah
+> ukuran suite **pada saat baris itu ditutup**, bukan ukuran hari ini. Suite bertambah setiap kali
+> sebuah langkah menambah perilaku yang layak diuji: 33 cek (3f) → 38 (3g) → **40** (3n, setelah probe
+> wall diganti probe ledger). Yang mengikat selalu keluaran `npm run qa:motion` terakhir: **40/40**.
 | --- | --- | --- | --- |
 | D1 | Palet 7 token target | FAIL | nilai berbeda di `tokens.css` (§1) |
 | D2 | Zero raw hex di luar token | PASS (dijaga) | `scripts/token-audit.mjs` + CI step |
@@ -680,11 +685,12 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D16 | Mobile signature ambient 0.2 | **PASS** | `data-ambient="true"` → `opacity: 0.2`, `pointer-events: none` (terukur) |
 | D17 | `--ease-snap` / `--ease-mechanical` | PARTIAL | token ada dengan nilai spec; **belum dipakai** karena DESIGN.md §5 tidak menyebut elemen mana pun — menunggu keputusan owner |
 | D18 | VU-meter 4 bar header | PARTIAL | `Equalizer.tsx` ada; visibilitas BELUM DIUKUR |
-| D19 | Bottom Release HUD data nyata (informasional, tanpa playback) | PASS | `ReleaseHud.tsx` + `releaseHudModel()`; `releases[0]` nyata, 1 tab stop, 0 elemen audio, hadir ≥720px setelah 50svh; `qa:motion` 38/38 |
-| D20 | Booking quick-copy + `✓ EMAIL DISALIN` | PASS | `BookingCopy.tsx`; clipboard terverifikasi berisi alamat, konfirmasi 1800 ms, fallback teks terpilih, `qa:motion` 33/33 |
+| D19 | Bottom Release HUD data nyata (informasional, tanpa playback) | PASS | `ReleaseHud.tsx` + `releaseHudModel()`; `releases[0]` nyata, 1 tab stop, 0 elemen audio, hadir ≥720px setelah 50svh; `qa:motion` **40/40 saat ini** (38 cek waktu baris ini ditulis) |
+| D20 | Booking quick-copy + `✓ EMAIL DISALIN` | PASS | `BookingCopy.tsx`; clipboard terverifikasi berisi alamat, konfirmasi 1800 ms, fallback teks terpilih, `qa:motion` **40/40 saat ini** (33 cek waktu baris ini ditulis) |
 | D21 | Reduced-motion global | PASS | `globals.css:265` |
 | D22 | 3 varian sleeve berbeda nyata | **PASS** | 10 md5 unik; A/B/C berbeda 39–80% piksel (3h-2) |
 | D23 | Kontrak `anti-ai` (tolak `<canvas`/`getContext`) | PASS (sekarang) | `tests/fixtures/anti-ai.ts` `BANNED_HOMEPAGE_PATTERNS` |
 | D24 | Copy voice dingin/katalogis + hard gate | **PASS** | `tests/studio/copy-voice.test.ts` (6 test) + `scripts/qa-copy.mjs` di CI; 0 kata hype di DOM 10 route; bio pemilik dikecualikan sempit (§7) |
 | D25 | Tidak ada nilai kosong di UI publik | **PASS** | `Tidak tercatat` / `Belum terklasifikasi` menggantikan `—` dan `Rilis`; PRD P1 PASS; `qa:copy` menolak elemen berisi dash |
 | D26 | Monogram fallback kartu OG ≥3.0:1 tanpa jadi headline | **PASS** | Langkah 3p: `#666666` = 3.44:1 terukur pada piksel PNG (`rgb(102,102,102)` vs `rgb(10,10,14)`), di antara dua nilai yang ditolak (2.23:1 dan 6.11:1). Ambang dikunci `tests/studio/og-mark.test.ts` |
+| D27 | Blok spesifikasi transmission (4 baris, tanpa field karangan) | **PASS** | Langkah 3o: `releaseSpecification()` → `TIPE / TAHUN / ERA / PLATFORM`, label 120 px, baris 34 px (blok 137 px), 0 overflow & 0 sel terpotong di 12 lebar 320–1920; baris eyebrow `REMIX · 2025` dihapus karena menduplikasi baris 1–2 (keputusan tanpa izin, tercatat di §3); durasi/BPM/key dilarang karena tidak ada di data |

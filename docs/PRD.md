@@ -179,14 +179,26 @@ memindai teks publik terhadap daftar itu, bukan menyinkronkan ke sesuatu yang su
 
 ## 4. Acceptance criteria tingkat produk
 
-| # | Kriteria | Ambang | Status 2026-10-28 |
+| # | Kriteria | Ambang | Status 2026-10-29 (`b9fc3de`) |
 | --- | --- | --- | --- |
-| P1 | Data kosong tampil ke publik | 0 kemunculan | **PASS** — Langkah 3i: `Rilis` dan `—` diganti status eksplisit (`Belum terklasifikasi`, `Tidak tercatat`); `npm run qa:copy` menolak field kosong di DOM |
-| P2 | Console error di semua halaman publik | 0 | **BELUM DIUKUR** — butuh browser (Langkah 1–2) |
-| P3 | Route publik static (`○`/`●` di `next build`) | semua | **FAIL** — 8 route publik `ƒ` (lihat `docs/ARCHITECTURE.md` §5) |
-| P4 | axe violation di semua halaman publik | 0 | **BELUM DIUKUR** — `scripts/a11y-audit.mjs` ada, Chrome belum terpasang di sandbox ini |
-| P5 | Warning tracing saat build | 0 | **PASS** (commit `90c2b1f`) — 0 warning; trace 1189 → 316 entri, `docs/` 520 → 0 |
-| P6 | Radius non-zero di elemen publik | 0 | **PASS** — **0 elemen dan 0 pseudo-element** ber-radius di 8 route publik + kursor kustom (diukur 1440px, Langkah 3g). `--radius-pill` dihapus |
+| P1 | Data kosong tampil ke publik | 0 kemunculan | **PASS** — Langkah 3i: `Rilis` dan `—` diganti status eksplisit (`Belum terklasifikasi`, `Tidak tercatat`); Langkah 3m menambah satu jawaban tunggal untuk status tautan lewat **`releaseStreamingStatus()`** (`src/content/releases.ts`), dipakai 4 permukaan. `npm run qa:copy` menolak field kosong di DOM. Catatan: helper yang disebut brosur audit sebagai `releaseStreamingStatusLabel()` **tidak ada** — nama yang benar dan yang diekspor adalah `releaseStreamingStatus()`, dan ia mengembalikan objek `{label, href, external, recorded}`, bukan string |
+| P2 | Console error di semua halaman publik | 0 | **PASS (diukur 2026-10-29, Langkah 4)** — 0 `console.error` dan 0 `pageerror` pada **14 page load**: 7 route (`/`, `/music`, `/music/masih-mencintainya-papinka`, `/visuals`, `/artist`, `/epk`, `/contact`) × 2 lebar (1440/390), tiap halaman di-scroll penuh sampai bawah. `qa:motion` juga menegaskan 0 console error di `/` |
+| P3 | Route publik static (`○`/`●` di `next build`) | semua | **FAIL — masih, dan ini satu-satunya kriteria produk yang terbuka.** Build `b9fc3de` mencetak **8 route publik `ƒ`**: `/`, `/about`, `/artist`, `/contact`, `/epk`, `/music`, `/music/[slug]`, `/visuals`. Ini **kriteria mode render**, bukan kriteria ledger: ledger `/music` dinilai terpisah di **P7**. Perbaikan menuntut perubahan perilaku produk (publik membaca `src/content/*` saat build, publish lewat `revalidatePath`) → butuh keputusan owner (`docs/ARCHITECTURE.md` §3.3) |
+| P4 | axe violation di semua halaman publik | 0 | **PASS (diukur 2026-10-29, Langkah 4)** — `npm run a11y`: **0 violation di 16 page load** (7 route × 390/1280, termasuk 2 state tambahan: menu ponsel terbuka, sheet EPK terbuka), plus `/nope` untuk 404 |
+| P5 | Warning tracing saat build | 0 | **PASS** (commit `90c2b1f`, dikonfirmasi ulang tiap build) — 0 warning; trace 1189 → 316 entri, `docs/` 520 → 0 |
+| P6 | Radius non-zero di elemen publik | 0 | **PASS (diukur ulang 2026-10-29)** — 0 elemen dan 0 pseudo-element ber-radius di seluruh DOM beranda pada 1440px (`nonZeroCount: 0`). Tiga kasus yang diminta diperiksa satu per satu: **dot status** `.live` → `border-radius: 0px` (Langkah 3g, keputusan owner Opsi B), **bullet GenreTape** `.item::before` → `0px`, **MagneticCursor** ring `36×36` → `0px`. `--radius-sm` = `--radius-xl` = **0**, `--radius-pill` dihapus |
+| **P7** | **Ledger `/music`** (kriteria baru, Langkah 3n) | 10 baris, 0 baris kosong, 0 overflow 320–1920 | **PASS** — `ReleaseLedger` + `release-ledger.ts`; 10 baris = `releases.length`, ordinal `01`–`10`, 0 baris kosong; `overflowX 0` di 320/360/390/480/719/720/768/1024/1279/1280/1440/1920; 0 sel terpotong; `assertLedgerComplete()` gagal keras kalau baris hilang. Wall 3D `CatalogueWall` dihapus |
+| **P8** | **Dubplate Vault** (kriteria baru; di brosur audit disebut "P4") | tidak ada klaim distribusi | **RESOLVED** — kebijakan netral permanen `TAUTAN STREAMING: BELUM TERCATAT` (Langkah 3m), 4 permukaan, `BANNED_COPY_TERMS` memuat `dubplate`, `unreleased`, `belum rilis`, `tidak didistribusikan`. Detail di §2 |
+| **P9** | **Blok spesifikasi transmission** (kriteria baru, Langkah 3o) | 4 baris, tanpa field karangan | **PASS** — `TIPE/TAHUN/ERA/PLATFORM` dari `releaseSpecification()`; 4 baris × 34 px, 0 overflow, 0 sel terpotong di 12 lebar; durasi/BPM/key **tidak** ditambahkan karena tidak ada di data |
+| **P10** | **Performance & Accessibility** (kriteria baru) | CLS < 0,1; a11y 100 | **PASS dengan rentang, bukan satu angka** — Lighthouse 12, build `b9fc3de`, 2026-10-29: mobile `/` **80 / 90 / 91** (3 run; LCP 3,6/3,5/3,4 s; CLS 0,022/0,025/0; TBT 390/90/50 ms), mobile `/music` **94** (LCP 2,9 s; CLS 0,011), desktop `/` **99** (LCP 0,8 s; CLS 0,002). **a11y 100 di semua run.** Run pertama 80 karena TBT 390 ms pada mesin sandbox yang sedang sibuk — dilaporkan apa adanya, bukan dibuang |
+
+**Catatan penomoran (Langkah 4).** Brosur audit menyebut "P1 s/d P10" dengan P3 = ledger `/music`,
+P4 = Dubplate Vault, P6 = radius, dan P8 = performa. Tabel ini **sebelumnya hanya punya P1–P6**, dan
+arti P3/P4 di sini berbeda: P3 = mode render route, P4 = axe. Nomor lama **tidak digeser** — menggeser
+nomor akan menulis ulang arti persetujuan yang sudah diberikan pada langkah-langkah sebelumnya.
+Kriteria yang diminta ditambahkan sebagai **P7–P10** dengan arti yang diminta, dan setiap baris baru
+menyebut langkah yang mengukurnya. Satu-satunya baris yang belum PASS adalah **P3**, dan ia tidak bisa
+di-PASS-kan tanpa keputusan owner.
 
 ---
 

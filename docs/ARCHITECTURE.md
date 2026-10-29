@@ -59,6 +59,19 @@ artifacts/     output screenshot lokal, .gitignored
 **force-add file spesifik** (`git add -f artifacts/visual-check/...`), jangan mengubah ignore rule
 menjadi membuka seluruh folder.
 
+### 2.1 Modul yang mengikat perilaku publik (status akhir Langkah 3)
+
+| Modul | Peran | Batas yang mengikat |
+| --- | --- | --- |
+| `src/content/releases.ts` → `releaseStreamingStatus()` | **satu-satunya** jawaban atas "apakah rilis ini punya tautan streaming tercatat", dan apa yang dicetak kalau tidak | Mengembalikan `{label, href, external, recorded}`. Dipakai 4 permukaan: Bottom HUD, `ReleasePlate` di `/music/[slug]`, deskripsi SEO (`releaseDescription`), dan ledger `/music`. Dilarang membuat logika kedua di komponen — `tests/studio/release-hud.test.ts` dan `release-ledger.test.ts` membandingkan keluaran komponen dengan helper ini |
+| `src/content/release-ledger.ts` + `components/content/ReleaseLedger.tsx` | Baris katalog `/music` (Langkah 3n) | `ledgerRowFromRelease()` / `ledgerRowFromDocument()` satu bentuk untuk data statis dan record Studio; `assertLedgerComplete()` dijalankan di halaman **dan** di unit test — 10 baris, ordinal `01`–`10`, 0 baris kosong |
+| `src/content/releases.ts` → `releaseSpecification()` | Empat baris spesifikasi di seksi transmission beranda (Langkah 3o) | Hanya `type`, `year`, `era`, status streaming. Durasi/BPM/key **tidak** diterima karena tidak ada di data |
+| `components/content/ReleaseHud.tsx` + `src/content/release-hud.ts` | Bottom Release HUD, **hanya** di `src/app/(site)/page.tsx` | Server-determined (`releaseHudModel()`), 1 tab stop, 0 elemen audio/video, mount hanya ≥720px lewat `useSyncExternalStore` + `matchMedia` (SSR selalu `false`), muncul setelah `scrollY > 50svh`, `z-index` di bawah tab INDEKS dan header |
+| `components/content/ReleasePlate.tsx` | Fact table di halaman rilis | Menerima `streaming` dari helper; tanpa tautan → blok status tanpa anchor |
+
+Alur data rilis, satu arah: `src/content/releases.ts` (atau record Studio) → helper di `src/content/*`
+→ komponen presentasional. Tidak ada komponen yang membaca `links` mentah untuk memutuskan bahasa.
+
 ---
 
 ## 3. ATURAN DEPLOYMENT (MENGIKAT — mencegah insiden storage terulang)
@@ -229,9 +242,13 @@ Gate berurutan:
 | 6 | Install Chrome | `browser-actions/setup-chrome@v1` | browser untuk axe |
 | 7 | Start site | `npx next start -H 127.0.0.1 -p 3000` | tunggu sampai `curl` sukses (maks 40×1s) |
 | 8 | Budget + link | `npm run check:web` | budget JS/CSS, link internal, anchor |
-| 9 | A11y | `npm run a11y` (`CHROME_PATH` dari step 6) | axe-core, 14 page load (7 route × 2 lebar: 390/1280) |
+| 9 | A11y | `npm run a11y` (`CHROME_PATH` dari step 6) | axe-core, **16 page load** (7 route × 390/1280 + 2 state: menu ponsel terbuka, sheet EPK terbuka; `/nope` untuk 404). Ambang: 0 violation |
 | 10 | Smoke | `npm run smoke` | — |
-| 11 | Motion | `npm run qa:motion` (`CHROME_PATH`) | perilaku scroll, reveal, drawer focus-trap, reduced-motion, **kontrak 0 canvas di scroll 0** |
+| 11 | Motion | `npm run qa:motion` (`CHROME_PATH`) | perilaku scroll, reveal, drawer focus-trap, reduced-motion, kontrak 0 canvas di scroll 0, dan probe ledger `/music` (10 baris, tepat 1 baris hot, geser 6 px, rule `rgb(0,135,255)`). **40 cek, wajib 40/40** |
+| 12 | Copy voice | `npm run qa:copy` (`CHROME_PATH`) | DOM 10 route: field kosong, dash, dan frasa terlarang (`dubplate`, `unreleased`, `belum rilis`, `tidak didistribusikan`). **4 cek, wajib 4/4**. Daftar frasa tinggal di `scripts/lib/copy-terms.mjs` dan **dibaca juga oleh `npm test`** — dua lapisan, satu sumber |
+
+Step tambahan yang jalan sebelum daftar di atas: **Tracing guard** (`grep` "Dynamic filesystem
+access" pada output build → `exit 1`), ditambahkan setelah Langkah 3a.
 
 Job kedua `external-links` hanya `workflow_dispatch` (14 tautan platform, host eksternal).
 
@@ -242,10 +259,16 @@ otomatis bila ada perubahan. Bukan gate kualitas.
 
 ### Catatan gap CI
 
-- `npm run audit:tokens` dijalankan, tapi **belum ada** gate yang memeriksa `border-radius: 0`.
-  Assertion radius perlu ditambahkan ke `scripts/token-audit.mjs` atau test baru (Langkah 3g).
-- Gate build tidak menggagalkan pipeline saat ada warning tracing. Setelah Langkah 3a, tambahkan
-  pemeriksaan eksplisit (mis. `grep -q "Dynamic filesystem access" && exit 1`).
+- ~~Gate build tidak menggagalkan pipeline saat ada warning tracing.~~ **SELESAI (Langkah 3a):**
+  step *Tracing guard* menggagalkan job kalau `Dynamic filesystem access` muncul di output build.
+- `npm run audit:tokens` **belum** memeriksa `border-radius: 0` — ia memeriksa hex di luar
+  `tokens.css`, token tak terdefinisi, dan token yatim. **Ini masih gap.** Status P6 (radius) saat ini
+  dijaga oleh pengukuran desain (Langkah 3g + pengukuran ulang Langkah 4: 0 elemen/pseudo ber-radius
+  di beranda 1440, `.live` 0px, bullet GenreTape 0px, cursor ring 0px) dan oleh nilai token
+  `--radius-sm: 0` / `--radius-xl: 0`, **bukan** oleh gate otomatis. Menutup gap ini = menambah
+  assertion radius ke `scripts/token-audit.mjs`.
+- `npm run qa:copy` dan `npm run qa:motion` **sudah** berada di pipeline (step 11–12) dan gagal keras;
+  keduanya bukan lagi pemeriksaan manual.
 
 ---
 
