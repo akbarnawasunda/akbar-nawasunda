@@ -245,9 +245,17 @@ Master rekaman ini tidak didistribusikan ke platform streaming digital (DSP).
 Rilis ini tersimpan dalam arsip independen dan hanya dimainkan secara langsung pada club set.
 ```
 
-**BLOKIR FAKTUAL:** teks di atas hanya boleh tampil kalau owner sudah mengonfirmasi bahwa rilis itu
-memang tidak masuk DSP. Lihat `docs/PRD.md` §2 "Dubplate Vault — SYARAT FAKTUAL". Sampai konfirmasi
-datang, rilis tanpa tautan dirender tanpa blok tautan (dan tanpa klaim distribusi).
+**RESOLVED (Langkah 3m) — kebijakan netral permanen.** Blok kartu di atas **dibatalkan permanen**;
+kalimatnya kini masuk `BANNED_COPY_TERMS` dan menggagalkan gate kalau seseorang menuliskannya lagi.
+
+Keputusan owner: `links: []` tidak akan diverifikasi per rilis, jadi situs memakai satu kalimat yang
+benar di kedua kemungkinan — `TAUTAN STREAMING: BELUM TERCATAT` + href `/music/<slug>`. Satu helper
+(`releaseStreamingStatus()` di `src/content/releases.ts`) melayani keempat permukaan: kartu/ledger
+katalog, halaman detail, Bottom Release HUD, dan deskripsi SEO. Di halaman detail status dicetak
+tanpa anchor (href-nya halaman itu sendiri); di ledger dan HUD ia menjadi tautan ke halaman rilis.
+
+Alasan desainnya: baris kosong menyembunyikan fakta, dan klaim distribusi mengarang fakta. Status
+eksplisit adalah satu-satunya bentuk yang tetap terbaca sebagai data tanpa mengklaim apa pun.
 
 ---
 
@@ -397,8 +405,9 @@ Aturan:
     seksi transmission) lalu `releaseHudModel()` menghasilkan judul (`releaseDisplayTitle`),
     eyebrow (`releaseEyebrow`), dan tujuan. Komponen menerima string jadi dan tidak bisa mengarang
     isi. Terukur: `Masih Mencintainya — Papinka` · `Remix · 2025` · tombol `SoundCloud ↗`.
-  - **Tanpa tautan → halaman rilis**, label netral `Halaman rilis`, tanpa klaim distribusi apa pun
-    (aturan yang sama dengan blocker 3b). Dikunci unit test lewat regex klaim terlarang.
+  - **Tanpa tautan → halaman rilis**, label `TAUTAN STREAMING: BELUM TERCATAT` dari
+    `releaseStreamingStatus()` (Langkah 3m; satu helper untuk HUD, halaman detail, deskripsi SEO dan
+    ledger `/music`), tanpa klaim distribusi apa pun. Dikunci unit test lewat regex klaim terlarang.
   - **Tidak pernah memutar audio.** 0 elemen `<audio>`/`<video>`, tanpa ikon play, progress bar,
     atau volume. Ikut diperiksa `qa:motion`.
   - **≥720px saja.** Di bawah 720px komponen `return null` → tidak ada di DOM, layout, pohon
@@ -579,7 +588,7 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D10 | Ledger + watermark + z-index | FAIL | `/music` masih wall 2 kolom; 0 watermark |
 | D11 | Ledger hover `translateX(6px)` | FAIL | sekarang lift Z + rotate |
 | D12 | Ledger mobile 2-baris compact | FAIL | tidak ada |
-| D13 | Dubplate card | BLOKIR FAKTUAL | `docs/PRD.md` §2 |
+| D13 | Dubplate card | **RESOLVED — kebijakan netral permanen** (Langkah 3m) | Kartu klaim DIBATALKAN; `TAUTAN STREAMING: BELUM TERCATAT` via `releaseStreamingStatus()`, dipakai 4 permukaan, dikunci `BANNED_COPY_TERMS` (`dubplate`, `unreleased`, `belum rilis`, `tidak didistribusikan`) |
 | D14 | Effect non-WebGL + fallback | **PASS** | Canvas 2D `AnMonogramFoil.tsx` + still lazy (3h-1) |
 | D15 | Kontrak `qa:motion` 0 canvas di scroll 0 | **PASS, sekarang di 1440 DAN 390** | probe 390×844 ditambahkan di 3h-1 |
 | D16 | Mobile signature ambient 0.2 | **PASS** | `data-ambient="true"` → `opacity: 0.2`, `pointer-events: none` (terukur) |

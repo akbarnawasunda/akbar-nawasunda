@@ -164,6 +164,64 @@ export function releaseDisplayTitle(release: Release): string {
   return release.source ? `${release.title} — ${release.source}` : release.title;
 }
 
+/* ------------------------------------------------------------------ streaming */
+
+/**
+ * Langkah 3m — the one place that decides what a release's streaming status says.
+ *
+ * Before this there were three answers to the same question, written by three files:
+ *
+ *   Bottom Release HUD   "Halaman rilis"
+ *   release page         "Tautan mendengarkan untuk rilis ini belum tersedia."
+ *   SEO description       the platform clause simply vanished
+ *
+ * Three different sentences for one fact is how a data sheet starts guessing. The owner's decision
+ * (Langkah 3m, closing the 3b blocker) is that the state is permanent and neutral: a release with no
+ * recorded link prints `TAUTAN STREAMING: BELUM TERCATAT` and points at its own page, everywhere,
+ * and nothing anywhere claims the record is undistributed.
+ *
+ * That distinction is the whole point. `links: []` proves only that nobody recorded a link. It does
+ * not prove the release is not on DSPs — the two are different facts and only the owner can tell
+ * them apart (`docs/PRD.md` §2). "Belum tercatat" is true in both cases, so it is the only sentence
+ * that cannot become a lie. `BANNED_COPY_TERMS` carries `dubplate`, `unreleased`, `belum rilis` and
+ * `tidak didistribusikan` so no future edit can smuggle the claim back in.
+ *
+ * The href is the release's own page rather than nothing at all: a row in a ledger with an inert
+ * status is a dead end, and the page it points at is the one place that explains what IS known.
+ */
+export const RELEASE_STREAMING_UNRECORDED = "TAUTAN STREAMING: BELUM TERCATAT";
+
+export interface ReleaseStreamingStatus {
+  /** What to print where a platform name goes. */
+  label: string;
+  /** External platform URL, or the release's own page when nothing is recorded. */
+  href: string;
+  /** `true` → another site (new tab). `false` → a route on this site. */
+  external: boolean;
+  /** `true` when at least one platform is recorded. Never inferred from anything else. */
+  recorded: boolean;
+}
+
+/**
+ * Takes the two fields it needs, not a whole `Release`, so a published Studio record — which never
+ * becomes a `Release` object — runs through the same function instead of a copy of it.
+ */
+export function releaseStreamingStatus(
+  release: Pick<Release, "slug" | "links">,
+): ReleaseStreamingStatus {
+  /* The owner wrote the links; the first one is their order, not a ranking this file invented. */
+  const first = release.links[0];
+  if (first) {
+    return { label: first.label, href: first.href, external: true, recorded: true };
+  }
+  return {
+    label: RELEASE_STREAMING_UNRECORDED,
+    href: `/music/${release.slug}`,
+    external: false,
+    recorded: false,
+  };
+}
+
 /**
  * Meta description for a release page, assembled only from fields that actually exist.
  *
@@ -194,8 +252,15 @@ export function releaseDescription(release: Release): string {
         ? `Rilis era ${release.era} di katalog Akbar Nawasunda.`
         : "Halaman rilis resmi di akbarnawasunda.my.id.";
 
+  /*
+   * The availability clause asks the same helper as the page body, so "does this release have a
+   * platform" has one answer in the codebase. A description is a sentence, not a status strip, so
+   * when nothing is recorded the clause is dropped rather than printing "BELUM TERCATAT" into a
+   * search result — but the *decision* still comes from `releaseStreamingStatus()`.
+   */
+  const status = releaseStreamingStatus(release);
   const platforms = [...new Set(release.links.map((link) => link.label))];
-  const availability = platforms.length > 0 ? ` Tersedia di ${platforms.join(", ")}.` : "";
+  const availability = status.recorded && platforms.length > 0 ? ` Tersedia di ${platforms.join(", ")}.` : "";
 
   return `${title}. ${facts}${availability}`;
 }

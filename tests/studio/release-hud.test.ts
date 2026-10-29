@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { releaseHudModel, RELEASE_HUD_FALLBACK_LABEL } from "../../src/content/release-hud";
-import { releaseDisplayTitle, releaseEyebrow, releases, type Release } from "../../src/content/releases";
+import { releaseHudModel } from "../../src/content/release-hud";
+import {
+  RELEASE_STREAMING_UNRECORDED,
+  releaseDisplayTitle,
+  releaseEyebrow,
+  releaseStreamingStatus,
+  releases,
+  type Release,
+} from "../../src/content/releases";
 
 /**
  * Langkah 3f — the Bottom Release HUD must print real release data, never a literal.
@@ -42,12 +49,12 @@ describe("bottom release HUD — data", () => {
     });
   });
 
-  it("falls back to the release page, with a neutral label, when the release has no links", () => {
+  it("falls back to the release page, with the catalogue-wide status, when the release has no links", () => {
     const model = releaseHudModel(withoutLinks);
 
     assert.deepEqual(model.action, {
       href: "/music/fixture-tanpa-tautan",
-      label: RELEASE_HUD_FALLBACK_LABEL,
+      label: RELEASE_STREAMING_UNRECORDED,
       external: false,
     });
 
@@ -96,6 +103,73 @@ describe("bottom release HUD — data", () => {
     } else {
       assert.equal(model.action.href, `/music/${first.slug}`);
       assert.equal(model.action.external, false);
+    }
+  });
+});
+
+describe("streaming status — one helper, one answer", () => {
+  /*
+   * Langkah 3m closed the 3b blocker with a policy, not a verification: the owner declared that an
+   * unrecorded streaming link is a permanent, neutral state. This block is what keeps the policy
+   * from decaying into three slightly different sentences again — every surface that prints the
+   * state is checked against the same helper, and the forbidden claim is checked against the label
+   * that would carry it.
+   */
+  const claim = /tidak (di)?distribusi|tanpa distribusi|dubplate|eksklusif|belum rilis|unreleased/i;
+
+  it("says 'not recorded', never a claim about distribution", () => {
+    assert.equal(RELEASE_STREAMING_UNRECORDED, "TAUTAN STREAMING: BELUM TERCATAT");
+    assert.ok(!claim.test(RELEASE_STREAMING_UNRECORDED), "the status itself claims distribution");
+  });
+
+  it("takes the owner's first link when one exists, and the release page when none does", () => {
+    const recorded = releaseStreamingStatus(withLinks);
+    assert.deepEqual(recorded, {
+      label: "Contoh Platform",
+      href: "https://example.test/release/fixture",
+      external: true,
+      recorded: true,
+    });
+
+    const unrecorded = releaseStreamingStatus(withoutLinks);
+    assert.deepEqual(unrecorded, {
+      label: RELEASE_STREAMING_UNRECORDED,
+      href: "/music/fixture-tanpa-tautan",
+      external: false,
+      recorded: false,
+    });
+  });
+
+  it("gives the same answer to the HUD that it gives to every other surface", () => {
+    for (const release of releases) {
+      const status = releaseStreamingStatus(release);
+      const hud = releaseHudModel(release);
+      assert.equal(hud.action.label, status.label, `${release.slug}: HUD label disagrees with the helper`);
+      assert.equal(hud.action.href, status.href, `${release.slug}: HUD destination disagrees`);
+      assert.equal(hud.action.external, status.external, `${release.slug}: HUD external flag disagrees`);
+    }
+  });
+
+  it("covers the three catalogue entries with no recorded link", () => {
+    const unrecorded = releases.filter((release) => release.links.length === 0);
+    assert.deepEqual(
+      unrecorded.map((release) => release.slug).sort(),
+      ["bayang-tanpa-kata", "cinta-terbuang", "hitungan-cinta-breakbeat-super-exc"],
+      "the set of link-less releases changed — re-read docs/PRD.md §2 before trusting this policy",
+    );
+    for (const release of unrecorded) {
+      const status = releaseStreamingStatus(release);
+      assert.equal(status.recorded, false);
+      assert.equal(status.href, `/music/${release.slug}`);
+      assert.ok(!claim.test(status.label));
+    }
+  });
+
+  it("never lets the helper's label go blank for any real release", () => {
+    for (const release of releases) {
+      const status = releaseStreamingStatus(release);
+      assert.ok(status.label.trim().length > 0, `${release.slug}: empty label`);
+      assert.ok(status.href.startsWith("/") || status.href.startsWith("https://"), `${release.slug}: odd href`);
     }
   });
 });

@@ -67,6 +67,18 @@ export const BANNED_COPY_TERMS = [
   "elevate",
   "revolutionary",
   "innovative",
+  // --- distribution claims the data cannot support ------------------------------------
+  /*
+   * Langkah 3m. Three releases carry `links: []`, which proves only that no link was recorded — not
+   * that the record is undistributed. These four phrases are how the forbidden claim would arrive:
+   * a card headed "dubplate", a note saying "belum rilis", an English "unreleased", or the sentence
+   * PRD §2 forbids word for word. The neutral status that IS allowed lives in
+   * `src/content/releases.ts` (`RELEASE_STREAMING_UNRECORDED`), and it says "belum tercatat".
+   */
+  "dubplate",
+  "unreleased",
+  "belum rilis",
+  "tidak didistribusikan",
   // --- Web3 --------------------------------------------------------------------------
   "web3",
   "nft",

@@ -7,6 +7,7 @@ import {
   getReleaseBySlug,
   releaseDescription,
   releaseDisplayTitle,
+  releaseStreamingStatus,
   releaseTypeLabel,
   releases,
 } from "@/content/releases";
@@ -98,6 +99,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
         description={managed.description || null}
         artwork={artwork}
         links={managed.links.map((link) => ({ label: link.label, href: link.href }))}
+        streaming={releaseStreamingStatus({ slug, links: managed.links })}
         facts={[
           { label: "Judul", value: managed.title },
           { label: "Jenis", value: RELEASE_TYPE_LABELS[managed.type] },
@@ -128,6 +130,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       description={release.description ?? null}
       artwork={resolveArtwork(release.slug)}
       links={release.links}
+      streaming={releaseStreamingStatus(release)}
       facts={[
         // Type and year always print: an unconfirmed one shows "Tidak tercatat" rather than a dash,
         // which would read as a field that is blank rather than a fact nobody has supplied.

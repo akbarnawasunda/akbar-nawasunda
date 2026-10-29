@@ -8,17 +8,22 @@
  * catalogue. Keeping the derivation in a pure function here means a test can feed it a fixture
  * release and prove every printed field moved, and that no field can ever come back `null`.
  *
- * The action is the only branch:
+ * The action comes from `releaseStreamingStatus()` — the single helper that decides what a release's
+ * streaming state says (Langkah 3m). It is not re-derived here: this file used to answer the same
+ * question with its own label ("Halaman rilis"), which is how one fact ended up with three sentences
+ * across three surfaces. A recorded link opens on its platform; an unrecorded one prints the
+ * catalogue-wide status and points at the release page.
  *
- *   links[] present → the release's own first link, in the owner's order, opened on the platform.
- *   links[] empty   → the release page on this site, labelled "Halaman rilis".
- *
- * What the second branch deliberately does NOT say: anything about distribution. Three releases in
- * this catalogue carry `links: []` and `docs/PRD.md` §2 is explicit that "tautan belum diisi" and
- * "tidak didistribusikan ke DSP" are different facts, and only the owner can tell them apart. So the
- * fallback label is neutral and points at the release page, never at a claim.
+ * What it deliberately does NOT say: anything about distribution. Three releases carry `links: []`,
+ * which proves only that no link was recorded — never that the record is undistributed.
+ * `docs/PRD.md` §2 has the reasoning; `BANNED_COPY_TERMS` has the enforcement.
  */
-import { releaseDisplayTitle, releaseEyebrow, type Release } from "./releases";
+import {
+  releaseDisplayTitle,
+  releaseEyebrow,
+  releaseStreamingStatus,
+  type Release,
+} from "./releases";
 
 export interface ReleaseHudAction {
   href: string;
@@ -35,17 +40,12 @@ export interface ReleaseHudModel {
   slug: string;
 }
 
-/** Neutral, non-claiming label for a release with no recorded links. */
-export const RELEASE_HUD_FALLBACK_LABEL = "Halaman rilis";
-
 export function releaseHudModel(release: Release): ReleaseHudModel {
-  const first = release.links[0];
+  const status = releaseStreamingStatus(release);
   return {
     slug: release.slug,
     title: releaseDisplayTitle(release),
     eyebrow: releaseEyebrow(release),
-    action: first
-      ? { href: first.href, label: first.label, external: true }
-      : { href: `/music/${release.slug}`, label: RELEASE_HUD_FALLBACK_LABEL, external: false },
+    action: { href: status.href, label: status.label, external: status.external },
   };
 }

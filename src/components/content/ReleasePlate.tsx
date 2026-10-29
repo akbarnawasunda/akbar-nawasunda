@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { CoverArtwork } from "@/content/covers";
+import type { ReleaseStreamingStatus } from "@/content/releases";
 
 import { Plate3D } from "../zine/Plate3D";
 import { ReleaseCover } from "./ReleaseCover";
@@ -44,6 +45,13 @@ export interface ReleasePlateProps {
   description?: string | null;
   artwork: CoverArtwork;
   links: readonly { label: string; href: string }[];
+  /**
+   * Langkah 3m — the streaming state, decided once by `releaseStreamingStatus()`.
+   *
+   * Passed in rather than derived here for the same reason `links` is: this component renders, the
+   * content layer decides. Rendering it locally is what produced a fourth sentence for one fact.
+   */
+  streaming: ReleaseStreamingStatus;
   facts: readonly { label: string; value: string | null }[];
   prev?: ReleaseNeighbour | null;
   next?: ReleaseNeighbour | null;
@@ -58,6 +66,7 @@ export function ReleasePlate({
   description,
   artwork,
   links,
+  streaming,
   facts,
   prev,
   next,
@@ -88,10 +97,19 @@ export function ReleasePlate({
 
             {description ? <p className={styles.lead}>{description}</p> : null}
 
-            {links.length === 0 ? (
-              <p className={styles.noLinks}>
-                <span className={styles.noLinksLabel}>Tautan</span>
-                Tautan mendengarkan untuk rilis ini belum tersedia.
+            {/*
+              Langkah 3m. This used to read "Tautan mendengarkan untuk rilis ini belum tersedia." —
+              a fourth phrasing of a fact the HUD and the meta description also had to describe. The
+              sentence now comes from `releaseStreamingStatus()` like everywhere else.
+
+              It prints as a status, not as a link: the helper's href is this very page for an
+              unrecorded release, and a row that links to where you already are is a dead control.
+              The destination still matters one row up, in the ledger and the HUD.
+            */}
+            {!streaming.recorded ? (
+              <p className={styles.noLinks} data-streaming-status="unrecorded">
+                <span className={styles.noLinksLabel}>Tautan streaming</span>
+                {streaming.label}
               </p>
             ) : null}
           </div>
@@ -122,7 +140,7 @@ export function ReleasePlate({
             ink over hairlines and invert to dark on hover; below the band they left a third of the
             blue field empty and made the page look like two different designs stacked.
           */}
-          {links.length > 0 ? (
+          {streaming.recorded ? (
             <ul className={styles.links} aria-label="Dengarkan di">
               {links.map((link, index) => (
                 <li key={link.href}>

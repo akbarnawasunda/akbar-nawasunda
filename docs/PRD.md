@@ -81,7 +81,48 @@ Angka di atas dihitung langsung dari `src/content/releases.ts` (skrip node satu 
   label pengisi, bukan fakta → harus dihapus di Langkah 3b, dan `meta` menjadi opsional di
   `ReleaseView` supaya kartu bisa merender tanpa baris meta.
 
-#### Dubplate Vault — SYARAT FAKTUAL (WAJIB DIBACA SEBELUM IMPLEMENTASI)
+#### Dubplate Vault — **RESOLVED: kebijakan netral permanen (keputusan owner, Langkah 3m)**
+
+**Status: RESOLVED — kebijakan netral permanen (keputusan owner, tidak bisa diverifikasi manual,
+maka dipilih bahasa yang benar untuk kedua kemungkinan).** Blocker 3b ditutup oleh keputusan, bukan
+oleh verifikasi: owner tidak akan mengonfirmasi per rilis, jadi situs berhenti menunggu jawaban itu
+dan memakai satu kalimat yang benar baik untuk kasus (a) maupun (b).
+
+Kalimat itu: **`TAUTAN STREAMING: BELUM TERCATAT`**, href ke `/music/<slug>`. Satu helper,
+`releaseStreamingStatus()` di `src/content/releases.ts`, dipakai oleh SEMUA titik render:
+
+| Permukaan | Sebelum 3m | Sesudah 3m |
+| --- | --- | --- |
+| Bottom Release HUD | `Halaman rilis` | `TAUTAN STREAMING: BELUM TERCATAT` → `/music/<slug>` |
+| Halaman detail `ReleasePlate` | `Tautan mendengarkan untuk rilis ini belum tersedia.` | status yang sama, tanpa anchor (href-nya halaman itu sendiri) |
+| Deskripsi SEO (`releaseDescription`) | klausa platform hilang diam-diam | klausa platform hilang, diputuskan lewat `status.recorded` |
+| Ledger `/music` (Langkah 3n) | — | status yang sama, per baris |
+
+Penjagaan otomatis: `BANNED_COPY_TERMS` (`scripts/lib/copy-terms.mjs`) sekarang memuat `dubplate`,
+`unreleased`, `belum rilis`, dan `tidak didistribusikan`. Kedua guard (`npm test` dan
+`npm run qa:copy`) membaca daftar yang sama, jadi klaim distribusi tidak bisa masuk lewat komponen
+maupun lewat data.
+
+Alasan kenapa bahasa ini yang dipilih: `links: []` hanya membuktikan bahwa **tidak ada tautan yang
+dicatat**. Itu benar untuk kasus (a) *rilis ini memang tidak masuk DSP* dan kasus (b) *sudah masuk
+DSP tapi tautannya belum dicatat* — dua fakta yang berbeda. "Belum tercatat" adalah satu-satunya
+kalimat yang tidak bisa menjadi bohong di kedua kemungkinan itu, dan ia tetap menyatakan sesuatu
+(tidak menyembunyikan baris), yang membuat katalog tetap terbaca sebagai data.
+
+Konsekuensi yang tetap berlaku:
+
+- **JANGAN** menampilkan `[ STATUS: DUBPLATE / CLUB TOOL ]` atau kalimat "Master rekaman ini tidak
+  didistribusikan ke platform streaming digital (DSP)." — sekarang bukan hanya kebijakan, tapi
+  kegagalan gate (`BANNED_COPY_TERMS`).
+- Kalau owner **suatu saat** memberi penanda eksplisit per rilis, jalurnya tetap sama seperti
+  sebelumnya: field yang diisi tangan (mis. `distribution`), **bukan** disimpulkan dari
+  `links.length === 0`. Sampai itu terjadi, `BELUM TERCATAT` adalah status final, bukan status
+  sementara.
+- Blocker 3b karena itu **tidak lagi memblokir 3d/3n**: ledger `/music` boleh dibangun dan mencetak
+  status netral ini.
+
+<details>
+<summary>Teks asli persyaratan (dipertahankan sebagai riwayat)</summary>
 
 Tiga rilis punya `links: []`. **Tidak ada satu pun bukti di repo bahwa rilis-risil tersebut
 "tidak didistribusikan ke DSP".** Yang benar-benar diketahui hanyalah: *data tautan belum diisi
@@ -100,8 +141,10 @@ Konsekuensinya:
   apa-apa**, mis. `[ ARSIP / TANPA TAUTAN TERVERIFIKASI ]`, atau rilis tanpa tautan dirender tanpa
   blok tautan sama sekali (hanya judul + nomor katalog + cover).
 - Kalau owner menjawab (a) untuk sebuah rilis, barulah data diberi penanda eksplisit di content
-  layer (mis. `distribution: "dubplate"` sebagai field yang diisi tangan), **bukan** disimpulkan
+  layer (mis. `distribution` sebagai field yang diisi tangan), **bukan** disimpulkan
   dari `links.length === 0`.
+
+</details>
 
 ---
 
@@ -157,7 +200,7 @@ memindai teks publik terhadap daftar itu, bukan menyinkronkan ke sesuatu yang su
 | Kebutuhan | Kondisi sekarang | Tindakan |
 | --- | --- | --- |
 | `mbid` MusicBrainz opsional | Tidak ada di `Release` interface | Tambah field opsional, render hanya bila terisi |
-| `distribution` (dubplate) | Tidak ada; saat ini disimpulkan dari `links.length` | Tunggu jawaban owner (§2), lalu tambah field eksplisit |
+| `distribution` | Tidak ada; **tidak lagi** disimpulkan dari `links.length` | RESOLVED Langkah 3m: status netral permanen `TAUTAN STREAMING: BELUM TERCATAT` (§2). Field eksplisit hanya perlu kalau owner kelak mengonfirmasi per rilis |
 | `meta` opsional | `meta: string` selalu terisi (fallback `"Rilis"`) | Ubah ke `string \| null`, render kondisional |
 | Format/jenis tampil | `releaseTypeLabel` sudah ada | Pertahankan, tapi jangan render bila kosong |
 
