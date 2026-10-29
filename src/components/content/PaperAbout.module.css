@@ -70,7 +70,19 @@
 .timeline {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /*
+   * Langkah 3k — was `repeat(5, …)` for four rendered stops.
+   *
+   * `artistTimeline` holds five entries, but the 2021–2023 one is `pending` and the component
+   * filters it out ("an undocumented year is not a row on a premium page"). So the grid always
+   * declared one column more than it had stops: each stop was 257.9 px wide in a 1354 px row, the
+   * four filled 1080 px, and the last 274 px (20%) of the rail ran on with nothing under it.
+   *
+   * `auto-fit` with a 0 minimum collapses empty tracks and shares the row between the stops that
+   * exist, so the count is never written down twice — if the owner ever fills in the pending year,
+   * the fifth stop takes its own column instead of wrapping onto a second row under a dangling rail.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: var(--space-4);
   margin: clamp(3rem, 6vw, 5rem) 0 0;
   padding: 0;
