@@ -759,8 +759,9 @@ try {
 
   /*
    * …and the gate opens. A band that never mounts its surface is not a fixed band, it is a deleted
-   * one. This also pins the ≥768px ambient contract as a *state* rather than as a stylesheet rule:
-   * `data-ambient`, the computed opacity and the pointer-events are all read back from the DOM.
+   * one. This also pins the ≤768px ambient contract as a *state* rather than as a stylesheet rule:
+   * `data-ambient`, the effective opacity of the whole chain and the pointer-events are all read
+   * back from the DOM.
    */
   if (phoneBefore.count === 0) {
     await phoneProbe.evaluate(() => {
@@ -774,12 +775,31 @@ try {
       const canvases = [...document.querySelectorAll("canvas")];
       const state = band?.querySelector("[data-foil-state]")?.getAttribute("data-foil-state");
       const css = layer ? getComputedStyle(layer) : null;
+      /*
+       * The number that matters is the product, not one layer's value.
+       *
+       * `opacity` multiplies down the tree, so this check used to pass while the band was black:
+       * `.foilLayer` read `0.2` (so `0.2` was asserted) and `.foil` was *also* `0.2`, and the host
+       * carried `0.85` — an effective alpha of 0.034, which put every pixel of the band under
+       * luminance 12 of 255 on an iPhone 12 profile. Reading the chain is the only way to tell
+       * "dimmed to 20 %" from "dimmed twice".
+       */
+      const canvas = band?.querySelector("canvas");
+      const chain = [];
+      let effective = 1;
+      for (let node = canvas; node && node !== document.documentElement; node = node.parentElement) {
+        const value = Number.parseFloat(getComputedStyle(node).opacity);
+        if (Number.isFinite(value) && value < 1) chain.push(value);
+        effective *= Number.isFinite(value) ? value : 1;
+      }
       return {
         canvases: canvases.length,
         inBand: canvases.every((node) => Boolean(band && band.contains(node))),
         state,
         ambient: host?.getAttribute("data-ambient"),
         opacity: css?.opacity ?? null,
+        effectiveOpacity: Number(effective.toFixed(4)),
+        chain: chain.join(" × ") || "1",
         pointerEvents: css?.pointerEvents ?? null,
       };
     });
@@ -789,9 +809,11 @@ try {
         phoneAfter.inBand &&
         phoneAfter.state === "active" &&
         phoneAfter.ambient === "true" &&
-        phoneAfter.opacity === "0.2" &&
-        phoneAfter.pointerEvents === "none",
-      `canvases: ${phoneAfter.canvases} (in band: ${phoneAfter.inBand}) · state: ${phoneAfter.state} · ambient: ${phoneAfter.ambient} · opacity: ${phoneAfter.opacity} · pointer-events: ${phoneAfter.pointerEvents}`,
+        phoneAfter.pointerEvents === "none" &&
+        /* ~0.17 = the specified 0.2 through the host's ≤1023px 0.85. Squared 0.2 lands at 0.034. */
+        phoneAfter.effectiveOpacity > 0.15 &&
+        phoneAfter.effectiveOpacity <= 0.2,
+      `canvases: ${phoneAfter.canvases} (in band: ${phoneAfter.inBand}) · state: ${phoneAfter.state} · ambient: ${phoneAfter.ambient} · layer opacity: ${phoneAfter.opacity} · effective: ${phoneAfter.effectiveOpacity} (${phoneAfter.chain}) · pointer-events: ${phoneAfter.pointerEvents}`,
     );
   } else {
     check("the phone mounts exactly one canvas once the band is reached, as the ambient variant", false, "no canvas probe ran: the scroll-0 gate already failed");
