@@ -130,7 +130,11 @@ describe("no generated visual effects ship", () => {
       assert.ok(!banned.test(chunk), `${banned.source}: the foil is Canvas 2D, not WebGL`);
     }
     assert.match(chunk, /prefers-reduced-motion: reduce/, "reduced motion is not honoured by the foil");
-    assert.match(chunk, /Math\.min\(window\.devicePixelRatio \|\| 1, DPR_CAP\)/, "the device pixel ratio is not capped");
+    assert.match(
+      chunk,
+      /Math\.min\(window\.devicePixelRatio \|\| 1, [^)]*DPR_CAP\)/,
+      "the device pixel ratio is not capped",
+    );
     assert.match(chunk, /data-ambient/, "the ≤768px ambient state is not written to the DOM");
   });
 

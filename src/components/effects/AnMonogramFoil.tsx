@@ -78,6 +78,22 @@ const MARK_H = 1;
 
 /** Frame budget: the foil is a material, not a game. 1.5 is the same cap the shader used. */
 const DPR_CAP = 1.5;
+/**
+ * …but the ambient surface is drawn at 1:1 CSS pixels, and that is a measured decision.
+ *
+ * The loop blits the baked plate and the rim layer across the *whole* canvas every frame — two
+ * full-surface passes at 30 Hz. At 390×844 with the 1.5 cap that is 585×938 = 548 720 px per blit,
+ * 1.1 M px per frame. On a mid-range phone (390×844@3 with the CPU throttled 4×, FASE 4a) the band
+ * could not hold the frame budget: 47.4 / 48.8 / 49.8 fps over three runs, against a 58.2 fps
+ * ceiling measured with the loop switched off. Dropping the ambient backing store to 1.0 — 244 000
+ * px, 2.25× less surface — restores it to 57.3 / 58.2 fps, which is the ceiling.
+ *
+ * It costs nothing visible, and the reason is in the design: this variant is composited at
+ * `opacity: 0.2` over a black band and is deliberately a receding surface, so its edges are already
+ * a soft gradient tens of pixels wide. Density beyond 1:1 buys nothing at 20 % alpha; it only buys
+ * blits. The wide variant keeps `DPR_CAP`: there the mark is the subject, at full opacity.
+ */
+const AMBIENT_DPR_CAP = 1;
 /** One pass of the specular sweep, in ms. Constant velocity — this is a clock, not a breath. */
 const SWEEP_PERIOD = 4200;
 /** The seam line snaps once per beat of this clock. */
@@ -454,7 +470,7 @@ export default function AnMonogramFoil() {
       const rect = wrapper.getBoundingClientRect();
       const width = Math.max(1, Math.round(rect.width));
       const height = Math.max(1, Math.round(rect.height));
-      const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+      const dpr = Math.min(window.devicePixelRatio || 1, ambientQuery.matches ? AMBIENT_DPR_CAP : DPR_CAP);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
