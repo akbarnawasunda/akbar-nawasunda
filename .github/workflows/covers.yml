@@ -18,6 +18,16 @@ on:
         description: Re-fetch artwork even where a file already exists
         type: boolean
         default: false
+  # Langkah 2b — TEMPORARY, hapus setelah fetch pertama berhasil.
+  #
+  # Alasan: token GitHub yang tersedia di sesi ini bisa push ke repo tapi TIDAK bisa membuat
+  # workflow_dispatch (HTTP 403 "Resource not accessible by integration" — App installation tanpa
+  # izin `actions: write`). Trigger push yang dipersempit ke satu branch adalah satu-satunya cara
+  # memulai run ini tanpa akses ke UI Actions. Branch-nya disebut eksplisit supaya tidak ada push
+  # lain di repo yang ikut memicu fetch.
+  push:
+    branches:
+      - arena/13d0ccf1-akbar-nawasunda
   schedule:
     - cron: "0 3 * * 1"
 
