@@ -31,6 +31,16 @@
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   background: var(--color-bg-base);
   color: var(--color-text-secondary);
+  /*
+   * Langkah 3k — set on the element, not only on the word.
+   *
+   * A <button> does not inherit type: the UA stylesheet gives it `font: 400 13.333px Arial`, so the
+   * tab's box was measured in Arial while the label inside it was Relidux. `.tabWord` already asks
+   * for the body stack; the button around it did not, which is why this was the one element on the
+   * site whose computed family was Arial. Nothing looked wrong — the box simply wrapped the glyphs
+   * with the wrong metrics, and it was the last non-body font on any public page.
+   */
+  font-family: var(--font-body-stack);
   cursor: pointer;
 }
 
