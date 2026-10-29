@@ -64,5 +64,11 @@ done
 # Mascot doodle: the one drawn asset, 420x420, shown at its native size.
 convert "$STAGE_SRC/akbar-mascot-doodle.webp" -quality 82 "$MEDIA/mascot-420.webp"
 
+# Langkah 3k: the visual archive's own derivatives (an-mark-960, lockup-960, stage-1000). They are
+# built by a sharp script rather than ImageMagick because they are trimmed-then-resized line art and
+# a 1440 px photograph, and doing it in one place keeps their recorded sizes in src/assets/web.ts
+# honest. Never wired into a build: run it deliberately when an original changes.
+node "$ROOT/scripts/build-archive-hires.mjs"
+
 echo "Built:"
 ls -l "$BRAND" "$MEDIA"

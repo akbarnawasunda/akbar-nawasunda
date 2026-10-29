@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 
+import type { CSSProperties } from "react";
+
 import type { VisualItem } from "@/components/media/VisualGrid";
 
 import styles from "./VisualRail.module.css";
@@ -25,13 +27,23 @@ export function VisualRail({ items }: { items: readonly VisualItem[] }) {
         {items.map((item, index) => (
           <li key={item.id} className={styles.panel}>
             <figure className={styles.figure}>
-              <span className={styles.frame}>
+              <span
+                className={styles.frame}
+                data-shape={item.shape ?? "portrait"}
+                style={
+                  // Per-asset value, not a token: the frame is the artwork's own ratio so a 1.55:1
+                  // monogram is not cut into a 4:5 box it never had.
+                  item.shape === "landscape"
+                    ? ({ aspectRatio: `${item.width} / ${item.height}` } as CSSProperties)
+                    : undefined
+                }
+              >
                 <Image
                   className={item.onSurface ? `${styles.media} ${styles.onSurface}` : styles.media}
                   src={item.src}
                   alt={item.alt}
-                  width={640}
-                  height={800}
+                  width={item.width}
+                  height={item.height}
                   sizes="(min-width: 1024px) 30vw, 78vw"
                   loading={index < 3 ? "eager" : "lazy"}
                 />

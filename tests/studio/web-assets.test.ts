@@ -5,12 +5,15 @@ import { describe, it } from "node:test";
 
 import {
   anMark,
+  anMarkLarge,
   editorialFrame,
   lockup,
+  lockupLarge,
   mascotFrame,
   portraitSources,
   stageFrame,
 } from "../../src/assets/web";
+import { visualItems } from "../../src/content/visuals";
 
 const publicDir = join(import.meta.dirname, "../../public");
 
@@ -72,6 +75,23 @@ describe("web brand assets", () => {
 
   it("ships the mascot doodle at its native size", () => {
     expectFile(mascotFrame.webp, mascotFrame.width, mascotFrame.height);
+  });
+
+  it("ships the archive's high-resolution derivatives at the recorded sizes", () => {
+    // Langkah 3k: the archive tiles are 439 x 549 CSS px, so they need files built for that box
+    // rather than the nav-sized ones they used to borrow.
+    expectFile(anMarkLarge.src, anMarkLarge.width, anMarkLarge.height);
+    expectFile(lockupLarge.src, lockupLarge.width, lockupLarge.height);
+    expectFile(stageFrame.hires.webp, stageFrame.hires.width, stageFrame.hires.height);
+  });
+
+  it("every visual-archive item declares the real size of the file it points at", () => {
+    // The rail now builds its srcset and its frame ratio from these numbers. If an asset is ever
+    // regenerated at a different size, this fails instead of the tiles silently stretching.
+    for (const item of visualItems) {
+      const actual = expectFile(item.src, item.width, item.height);
+      assert.equal(actual.format, "webp", `${item.id} should point at a WebP file`);
+    }
   });
 
   it("ships every portrait variant in both formats, under the LCP budget", () => {

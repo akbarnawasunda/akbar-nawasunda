@@ -18,6 +18,14 @@ export interface VisualItem {
   alt: string;
   /** True when the artwork is a mark on a flat surface rather than a photograph. */
   onSurface?: boolean;
+  /**
+   * Real pixel size of `src`. Required since langkah 3k: next/image needs the intrinsic ratio to
+   * build a correct srcset, and the homepage rail needs it to stop forcing every tile into 4:5.
+   */
+  width: number;
+  height: number;
+  /** `landscape` frames (the two marks) take the artwork's own ratio instead of the 4:5 photo crop. */
+  shape?: "portrait" | "landscape";
 }
 
 interface VisualGridProps {
@@ -86,8 +94,8 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
                 <Image
                   src={item.src}
                   alt={item.alt}
-                  width={480}
-                  height={480}
+                  width={item.width}
+                  height={item.height}
                   sizes="(min-width: 1024px) 30vw, 80vw"
                   loading="lazy"
                 />
@@ -118,8 +126,8 @@ export function VisualGrid({ items, variant = "grid" }: VisualGridProps) {
             <Image
               src={open.full ?? open.src}
               alt={open.alt}
-              width={1200}
-              height={1200}
+              width={open.width}
+              height={open.height}
               sizes="(min-width: 1024px) 70vw, 92vw"
             />
             <figcaption className={styles.lightboxCaption}>{open.caption}</figcaption>
