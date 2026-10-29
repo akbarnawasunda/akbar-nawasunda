@@ -257,6 +257,47 @@ tersedia 403 px — aman; di bawah 1280 kolom tetap itu tidak lagi aman, jadi ju
 Lebar kolom diambil dari pengukuran string asli pada style aslinya: `Belum terklasifikasi` 162 px
 (tracking 0.14em, bukan 0.2em), `Tidak tercatat` 103 px, `TAUTAN STREAMING: BELUM TERCATAT` 242 px.
 
+### Spesifikasi di seksi transmission (**Langkah 3o**)
+
+Seksi `#music` di beranda: judul rilis terpilih (kanan), satu sleeve 767 px (kanan), dan kolom kiri
+yang dulu hanya berisi satu baris eyebrow + satu tombol — **127 px isi di baris 780 px**, yaitu
+**653 px bone kosong** (84% tinggi baris) di samping sleeve yang penuh. Owner memilih **Opsi A** dari
+proposal 3l: isi kolom dengan tabel fakta, bukan dengan prosa.
+
+Bentuk akhir (terukur @1440):
+
+| Baris | Label | Nilai | Sumber |
+| --- | --- | --- | --- |
+| 1 | `TIPE` | `Remix` | `release.type` → `releaseTypeLabel`, fallback `Belum terklasifikasi` |
+| 2 | `TAHUN` | `2025` | `release.year`, fallback `Tidak tercatat` |
+| 3 | `ERA` | `Tidak tercatat` | `release.era` (field owner), fallback sama |
+| 4 | `PLATFORM` | `SoundCloud` | `releaseStreamingStatus()` — Langkah 3m, bukan logika baru |
+
+Geometri: label **120 px** tetap (bukan `auto`, supaya nilai keempat baris duduk di satu kolom optik),
+nilai `minmax(0, 1fr)`, **baris 34 px termasuk hairline** (`min-height`, bukan `height` — di 320 px
+nilai `TAUTAN STREAMING: BELUM TERCATAT` butuh dua baris), blok **137 px** (4×34 + rule penutup).
+Radius 0, tanpa shadow, tanpa latar panel: sama seperti ledger `/music`.
+
+Yang **tidak** ditambahkan, dan kenapa: durasi, BPM, dan key. Ketiganya tidak ada di `releases.ts`;
+mengarang satu angka di lembar spesifikasi membuat keempat baris lain ikut dipertanyakan. Empat baris
+ini adalah seluruh fakta yang dimiliki pemilik data.
+
+**Keputusan yang diambil tanpa izin eksplisit owner — harus disetujui atau dibalik:** baris eyebrow
+`REMIX · 2025` (`releaseEyebrow()`, dulu `.transmissionMeta`) **dihapus** dari seksi ini. Isinya
+adalah gabungan baris 1 dan 2 tabel, dicetak ulang 55 px di atasnya. Konsekuensi angka: ruang kosong
+653 → **563 px** (72%), bukan target ±493 px yang dihitung dengan asumsi eyebrow tetap ada. Kalau
+owner lebih memilih angka target, mengembalikan eyebrow mengembalikan 492 px — dengan biaya dua fakta
+yang sama tercetak dua kali. `featured.meta` tidak diubah: ticker dan rail tetap memakainya.
+
+Alternatif yang ditolak: memberi margin/padding tambahan supaya angka 493 tercapai. Itu mengisi void
+dengan void.
+
+**SEKARANG:** terimplementasi di `releaseSpecification()` (`src/content/releases.ts`), dirender
+`page.tsx` sebagai `<dl>`, dikunci `tests/studio/release-specification.test.ts` (5 tes: 4 baris
+berurutan, tidak ada sel kosong, tidak ada field kelima, `Platform` identik dengan helper 3m, tidak
+ada klaim distribusi). Terukur 320/360/390/480/719/720/768/1024/1279/1280/1440/1920: 4 baris,
+tinggi `[34,34,34,34]`, `overflowX 0`, 0 sel terpotong.
+
 **SEKARANG:** terimplementasi. `CatalogueWall.tsx` + `.module.css` dihapus. Baris diturunkan oleh
 `src/content/release-ledger.ts` (`ledgerRowFromRelease`/`ledgerRowFromDocument`, satu bentuk untuk
 data statis dan record Studio), dirender `ReleaseLedger.tsx`. Invariant "10 baris, nomor 01..10, tidak

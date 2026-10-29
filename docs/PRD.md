@@ -97,6 +97,7 @@ Kalimat itu: **`TAUTAN STREAMING: BELUM TERCATAT`**, href ke `/music/<slug>`. Sa
 | Halaman detail `ReleasePlate` | `Tautan mendengarkan untuk rilis ini belum tersedia.` | status yang sama, tanpa anchor (href-nya halaman itu sendiri) |
 | Deskripsi SEO (`releaseDescription`) | klausa platform hilang diam-diam | klausa platform hilang, diputuskan lewat `status.recorded` |
 | Ledger `/music` (Langkah 3n) | — | status yang sama, per baris |
+| Spesifikasi transmission `/` (Langkah 3o) | — | baris `PLATFORM` memakai status yang sama; rilis tanpa tautan mencetak `TAUTAN STREAMING: BELUM TERCATAT` di beranda juga |
 
 Penjagaan otomatis: `BANNED_COPY_TERMS` (`scripts/lib/copy-terms.mjs`) sekarang memuat `dubplate`,
 `unreleased`, `belum rilis`, dan `tidak didistribusikan`. Kedua guard (`npm test` dan
@@ -108,6 +109,12 @@ dicatat**. Itu benar untuk kasus (a) *rilis ini memang tidak masuk DSP* dan kasu
 DSP tapi tautannya belum dicatat* — dua fakta yang berbeda. "Belum tercatat" adalah satu-satunya
 kalimat yang tidak bisa menjadi bohong di kedua kemungkinan itu, dan ia tetap menyatakan sesuatu
 (tidak menyembunyikan baris), yang membuat katalog tetap terbaca sebagai data.
+
+Empat permukaan itu kini ditambah satu: **tabel spesifikasi di seksi transmission beranda**
+(Langkah 3o) mencetak `TIPE / TAHUN / ERA / PLATFORM` untuk rilis yang di-feature, dan baris
+`PLATFORM` mengambil label dari helper yang sama — jadi beranda tidak bisa mengklaim hal berbeda dari
+halaman rilis. Yang **tidak** boleh muncul di tabel itu: durasi, BPM, key, atau genre karangan; data
+itu tidak ada di `releases.ts` dan `releaseSpecification()` tidak menerima input lain.
 
 Konsekuensi yang tetap berlaku:
 

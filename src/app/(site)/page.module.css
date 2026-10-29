@@ -454,15 +454,57 @@
   padding-bottom: var(--space-3);
 }
 
-.transmissionMeta {
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
+/*
+ * Langkah 3o removed `.transmissionMeta` from this section: the rule went with it, because a class
+ * whose element no longer exists is a rule that will be re-used by accident. The type/year pair it
+ * printed is now two labelled rows in `.transmissionSpec` — printed once, not twice.
+ */
+
+/*
+ * Langkah 3o — the specification table.
+ *
+ * Measured before: the section's body was 780 px tall and the left column's own content 127 px, so
+ * 653 px of bone sat empty beside a 767 px sleeve. Option A fills it with data, not prose.
+ *
+ *   row      34 px  (hairline included, `box-sizing: border-box` + `min-height`)
+ *   label   120px   fixed, so the four values align in one optical column
+ *   block    4 rows + the closing rule = 137 px, plus 24 px of air above = 161 px
+ *
+ * The label column is fixed rather than `auto` on purpose: with `auto`, `PLATFORM` (the longest
+ * term) would set the width and the three shorter labels would sit at different distances from
+ * their values on a different font load.
+ */
+.transmissionSpec {
+  margin-top: 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.transmissionSpecRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-4);
+  /* `min-height`, not `height`: at 320 px "TAUTAN STREAMING: BELUM TERCATAT" needs two lines, and a
+     fixed height would clip it. On every width where it fits, the row is exactly 34 px. */
+  min-height: 34px;
   border-top: 1px solid var(--color-hairline);
+}
+
+.transmissionSpecLabel {
   font-family: var(--font-body-stack);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
+}
+
+.transmissionSpecValue {
+  margin: 0;
+  font-family: var(--font-body-stack);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
 }
 
 .transmissionActions {

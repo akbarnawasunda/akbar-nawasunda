@@ -18,7 +18,7 @@
  * fallback shown when no database is configured (preview, local dev).
  */
 
-import { UNCLASSIFIED } from "./copy";
+import { UNCLASSIFIED, UNRECORDED } from "./copy";
 
 export type ReleaseType = "single" | "ep" | "album" | "remix" | "mix";
 
@@ -200,6 +200,46 @@ export interface ReleaseStreamingStatus {
   external: boolean;
   /** `true` when at least one platform is recorded. Never inferred from anything else. */
   recorded: boolean;
+}
+
+/* --------------------------------------------------------------- specification */
+
+/**
+ * Langkah 3o — the four facts the transmission section prints beside the sleeve.
+ *
+ * The section was 780 px tall and used 127 px of its left column: a type line and one button, with
+ * 653 px of bone-coloured void next to a full-height sleeve. The owner picked Option A from the 3l
+ * proposal: fill the column with a four-row fact table rather than with more prose. A release page
+ * has always answered "what is this" in a table (`ReleasePlate`); the homepage now does the same.
+ *
+ * Three rules this function exists to enforce:
+ *
+ *   1. **No invented fields.** Only `type`, `year`, `era` and the streaming status — the four things
+ *      the owner's files actually contain. No duration, no BPM, no key, no "genre" guess: those
+ *      numbers do not exist in `releases.ts` and a spec sheet that fabricates one number is worse
+ *      than a spec sheet with three.
+ *   2. **No blank cells.** A missing fact prints its neutral status (`Belum terklasifikasi`,
+ *      `Tidak tercatat`) exactly like the ledger and the release page do. An empty `<dd>` reads as a
+ *      layout bug, not as "unknown".
+ *   3. **Platform is not re-derived here.** It comes from `releaseStreamingStatus()` (Langkah 3m),
+ *      so the homepage, the ledger and the release page cannot drift into three different answers
+ *      about whether a release has a recorded link.
+ *
+ * The rows are returned as an ordered list rather than an object so the DOM order is data, not a
+ * property-name accident — `Object.entries()` would have reordered silently under a refactor.
+ */
+export interface ReleaseSpecRow {
+  readonly label: string;
+  readonly value: string;
+}
+
+export function releaseSpecification(release: Release): readonly ReleaseSpecRow[] {
+  return [
+    { label: "Tipe", value: release.type ? releaseTypeLabel[release.type] : UNCLASSIFIED },
+    { label: "Tahun", value: release.year ? String(release.year) : UNRECORDED },
+    { label: "Era", value: release.era ?? UNRECORDED },
+    { label: "Platform", value: releaseStreamingStatus(release).label },
+  ];
 }
 
 /**

@@ -23,7 +23,7 @@ import { Reveal } from "@/components/zine/Reveal";
 import { coverArtwork } from "@/content/covers";
 import { releaseHudModel } from "@/content/release-hud";
 import { fromStaticRelease } from "@/content/release-view";
-import { releases } from "@/content/releases";
+import { releaseSpecification, releases } from "@/content/releases";
 import { heroStats } from "@/content/stats";
 import { visualItems } from "@/content/visuals";
 import { artistTimeline } from "@/content/artist";
@@ -100,6 +100,9 @@ const stats = heroStats({ since: siteConfig.since, origin: siteConfig.origin });
  * of truth and `releaseHudModel()` turns it into the three strings plus one destination.
  */
 const hud = releaseHudModel(releases[0]!);
+
+/* Langkah 3o: the featured release's four facts, derived once on the server. */
+const specification = releaseSpecification(releases[0]!);
 const hudCover = coverArtwork(hud.slug);
 
 /*
@@ -315,7 +318,22 @@ export default async function HomePage() {
 
             <div className={styles.transmissionBody}>
               <div className={styles.transmissionCopy}>
-                <p className={styles.transmissionMeta}>{featured.meta}</p>
+                {/* Langkah 3o: the eyebrow line (`releaseEyebrow()` → "Remix · 2025") used to sit
+                    here. It is the join of the table's first two rows, so once the table exists the
+                    line prints the same two facts a second time inside 60 px. Removed — the table
+                    carries them, labelled. `featured.meta` is untouched: the ticker and the pinned
+                    rail still use it. */}
+              {/* Langkah 3o: four facts, not four sentences — the column's void is filled with the
+                  same data the release page prints, in the same order, from the same helper. */}
+              <dl className={styles.transmissionSpec}>
+                {specification.map((row) => (
+                  <div key={row.label} className={styles.transmissionSpecRow}>
+                    <dt className={styles.transmissionSpecLabel}>{row.label}</dt>
+                    <dd className={styles.transmissionSpecValue}>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
               <div className={styles.transmissionActions}>
                 <Magnetic>
                   <ButtonLink href={featured.href} variant="primary">
