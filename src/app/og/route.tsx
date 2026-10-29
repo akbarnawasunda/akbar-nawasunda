@@ -35,15 +35,26 @@ const INK = "#0A0A0E";
 const PAPER = "#E8E6E1";
 const SECONDARY = "#A1A1B5";
 /*
- * Langkah 3k — the fallback monogram's colour.
+ * Langkah 3k → 3p — the fallback monogram's colour.
  *
- * It was `#1A2430`, a value that exists nowhere in the palette, on the card's `#0A0A0E` ground: a
- * contrast ratio of 1.26:1. The card looked like it had an empty right half, because it did — the
- * mark was there and invisible. This is `--color-text-muted` (#8f8f8f) from src/styles/tokens.css,
- * which is 6.11:1 against the same ground: legible as a 300 px glyph, still unmistakably a ghost
- * behind the title rather than a second headline. No colour outside the existing token palette.
+ * Three values, three failures, in order:
+ *
+ *   `#1A2430`  1.26:1  a value from nowhere; the card's right half looked empty because it was.
+ *   `#8f8f8f`  6.11:1  `--color-text-muted`: legible, and rejected by the owner — at 300 px it read
+ *                      as a second headline competing with the release title.
+ *   `#4A4A4A`  2.23:1  `--color-border-strong`: a ghost again, but under the 3.0:1 floor for a
+ *                      large graphic, so it failed the WCAG check it was supposed to satisfy.
+ *
+ * The floor and the ceiling sit 4 px apart in grey, so the value is not chosen by taste: it is the
+ * darkest neutral that clears the floor with margin while staying far below the rejected ceiling.
+ *
+ *   `#666666`  3.44:1  +15% over the 3.0:1 floor, −44% under the rejected 6.11:1.
+ *
+ * Verified on the rendered card, not on this arithmetic: the PNG's monogram pixels measure
+ * `rgb(102,102,102)` against `rgb(10,10,14)` at 1440-family render size, i.e. the ratio above is
+ * what actually ships (see `artifacts/visual-check/3p/`).
  */
-const MARK = "#4A4A4A";
+const MARK = "#666666";
 
 const PUBLIC = join(process.cwd(), "public");
 

@@ -72,6 +72,23 @@ stylesheet yang menyentuhnya:
 | Pemakaian | Di mana | Kapan | Output |
 | --- | --- | --- | --- |
 | Kartu OG (`/og`) | `src/app/og/route.tsx` (`readAsset("fonts/anton-og.ttf")`, dirender Satori) | saat request `/og` | PNG kartu 1200×630 |
+
+**Monogram fallback di kartu OG — jendela kontras (Langkah 3p).** Kalau rilis tidak punya artwork
+asli, sel kanan kartu memuat `AN` 300 px, bukan foto. Warnanya punya **dua batas**, bukan satu
+selera:
+
+| Nilai | Rasio vs `#0A0A0E` | Keputusan |
+| --- | --- | --- |
+| `#1A2430` | 1.26:1 | ditolak — mark tidak terlihat, separuh kartu tampak kosong |
+| `#8F8F8F` (`--color-text-muted`) | 6.11:1 | ditolak owner — terbaca sebagai headline kedua |
+| `#4A4A4A` (`--color-border-strong`) | 2.23:1 | sempat dipakai (3k) — di bawah ambang 3.0:1 |
+| **`#666666`** | **3.44:1** | **dipakai (3p)** — +15% di atas ambang, −44% di bawah nilai yang ditolak |
+
+Diverifikasi pada **piksel PNG hasil render**, bukan pada aritmetika: `/og?slug=lali-dalane`
+menghasilkan 53.991 piksel `rgb(102,102,102)` dengan latar `rgb(10,10,14)` — 3.44:1, dan pada
+thumbnail 300 px mark tetap terbaca sebagai bayangan, bukan judul kedua. Dikunci
+`tests/studio/og-mark.test.ts` (rasio wajib `>= 3.0` dan `< 4.5`, dan tidak boleh sama dengan dua
+nilai yang sudah ditolak). Artefak: `artifacts/visual-check/3p/`.
 | Sleeve generatif, varian **Typographic Heavy** | `scripts/generate-placeholder-covers.mjs` (librsvg via `FONTCONFIG_FILE`) | **build-time**, manual oleh owner | `public/assets/covers/<slug>@sleeve.webp` |
 
 **Batas yang mengikat:**
@@ -670,3 +687,4 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D23 | Kontrak `anti-ai` (tolak `<canvas`/`getContext`) | PASS (sekarang) | `tests/fixtures/anti-ai.ts` `BANNED_HOMEPAGE_PATTERNS` |
 | D24 | Copy voice dingin/katalogis + hard gate | **PASS** | `tests/studio/copy-voice.test.ts` (6 test) + `scripts/qa-copy.mjs` di CI; 0 kata hype di DOM 10 route; bio pemilik dikecualikan sempit (§7) |
 | D25 | Tidak ada nilai kosong di UI publik | **PASS** | `Tidak tercatat` / `Belum terklasifikasi` menggantikan `—` dan `Rilis`; PRD P1 PASS; `qa:copy` menolak elemen berisi dash |
+| D26 | Monogram fallback kartu OG ≥3.0:1 tanpa jadi headline | **PASS** | Langkah 3p: `#666666` = 3.44:1 terukur pada piksel PNG (`rgb(102,102,102)` vs `rgb(10,10,14)`), di antara dua nilai yang ditolak (2.23:1 dan 6.11:1). Ambang dikunci `tests/studio/og-mark.test.ts` |
