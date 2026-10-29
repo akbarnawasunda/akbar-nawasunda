@@ -5,6 +5,7 @@ import { ReleasePlate, type ReleaseNeighbour } from "@/components/content/Releas
 import { coverArtwork, resolveCover, type CoverArtwork } from "@/content/covers";
 import {
   getReleaseBySlug,
+  releaseDescription,
   releaseDisplayTitle,
   releaseTypeLabel,
   releases,
@@ -38,9 +39,9 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
   return pageMetadata({
     ogSlug: release.slug,
     title: releaseDisplayTitle(release),
-    description:
-      release.description ??
-      `${releaseDisplayTitle(release)} — rilis terverifikasi Akbar Nawasunda.`,
+    // Langkah 3k: no more one-template-for-ten. See releaseDescription() for what is assembled and
+    // why nothing is invented for the three releases with no link at all.
+    description: release.description ?? releaseDescription(release),
     path: `/music/${release.slug}`,
   });
 }

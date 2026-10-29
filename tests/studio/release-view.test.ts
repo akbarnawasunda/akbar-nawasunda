@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { coverCandidates } from "../../src/content/covers";
 import { UNCLASSIFIED } from "../../src/content/copy";
 import { fromReleaseDocument, fromStaticRelease } from "../../src/content/release-view";
-import { releaseEyebrow, releases } from "../../src/content/releases";
+import { releaseDescription, releaseEyebrow, releases } from "../../src/content/releases";
 import type { ReleaseDocument } from "../../src/studio/releases";
 
 const doc: ReleaseDocument = {
@@ -75,6 +75,36 @@ describe("release view mapping", () => {
       for (const link of release.links) {
         assert.match(link.href, /^https:\/\//, `${release.slug}: ${link.href}`);
       }
+    }
+  });
+
+  it("gives every release its own description, built only from fields that exist", () => {
+    // Langkah 3k. The old text was one template for all ten ("<title> — rilis terverifikasi Akbar
+    // Nawasunda."), 50-53 characters, identical apart from the title.
+    const descriptions = releases.map(releaseDescription);
+
+    assert.equal(new Set(descriptions).size, releases.length, "descriptions must not repeat");
+    for (const [index, text] of descriptions.entries()) {
+      const slug = releases[index]?.slug ?? "?";
+      assert.ok(text.length >= 50 && text.length <= 160, `${slug}: ${text.length} chars — ${text}`);
+      assert.ok(!/\bundefined\b|null/.test(text), `${slug} leaked a missing value: ${text}`);
+      assert.ok(!text.includes("—  —"), `${slug} has an empty clause: ${text}`);
+    }
+
+    // A release with no link never claims to be anywhere: three of the ten have none.
+    for (const release of releases.filter((entry) => entry.links.length === 0)) {
+      assert.ok(
+        !releaseDescription(release).includes("Tersedia di"),
+        `${release.slug} has no link but claims availability`,
+      );
+    }
+
+    // ...and the ones with a link name it.
+    for (const release of releases.filter((entry) => entry.links.length > 0)) {
+      assert.ok(
+        releaseDescription(release).includes("Tersedia di"),
+        `${release.slug} has a link but no availability clause`,
+      );
     }
   });
 

@@ -163,3 +163,39 @@ export function releaseEyebrow(release: Release): string {
 export function releaseDisplayTitle(release: Release): string {
   return release.source ? `${release.title} — ${release.source}` : release.title;
 }
+
+/**
+ * Meta description for a release page, assembled only from fields that actually exist.
+ *
+ * Langkah 3k. What it replaces was one template for all ten releases —
+ * `"${title} — rilis terverifikasi Akbar Nawasunda."` — which is 50–53 characters of identical text
+ * with the title swapped in. A search result showing ten near-identical snippets tells a reader
+ * nothing about which one to open, and the phrase "rilis terverifikasi" is the site vouching for
+ * itself rather than describing the record.
+ *
+ * So the sentence is built from the record: type and year when known, the platforms the release is
+ * genuinely on. Where a field is missing, its clause is dropped — never filled with a placeholder.
+ * Three releases have no link at all (`cinta-terbuang`, `bayang-tanpa-kata`,
+ * `hitungan-cinta-breakbeat-super-exc`), so they never claim availability anywhere; the first two
+ * also carry no type and no year, and fall back to a plain statement about what the page is.
+ *
+ * Every branch starts with the display title, so the ten strings cannot collide.
+ */
+export function releaseDescription(release: Release): string {
+  const title = releaseDisplayTitle(release);
+
+  // One clause per fact, dropped when the fact is absent. "2024 dari katalog …" reads like a
+  // fragment, so a year without a type gets the verb: "Rilis 2024 dari katalog …".
+  const facts = release.type
+    ? `${releaseTypeLabel[release.type]}${release.year ? ` ${release.year}` : ""} dari katalog Akbar Nawasunda.`
+    : release.year
+      ? `Rilis ${release.year} dari katalog Akbar Nawasunda.`
+      : release.era
+        ? `Rilis era ${release.era} di katalog Akbar Nawasunda.`
+        : "Halaman rilis resmi di akbarnawasunda.my.id.";
+
+  const platforms = [...new Set(release.links.map((link) => link.label))];
+  const availability = platforms.length > 0 ? ` Tersedia di ${platforms.join(", ")}.` : "";
+
+  return `${title}. ${facts}${availability}`;
+}
