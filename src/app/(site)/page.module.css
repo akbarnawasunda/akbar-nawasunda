@@ -802,8 +802,34 @@
     gap: var(--space-2);
   }
 
+  /*
+   * Langkah 3k — the hero's two actions go full width, stacked, below 560px.
+   *
+   * Not a styling preference: this is the CLS fix. `display: flex; flex-wrap: wrap` let the row be
+   * one line or two depending on how wide the *font* made each label. With the fallback face the
+   * pair measured 190.1 + 144.7 px and sat on one row; when Relidux swapped in the labels grew ~19%
+   * ("Dengar Sekarang" 98 → 117 px at 11px) and the pair needed ~381 px against a 360.9 px column,
+   * so the row broke to two lines and the hero grew 58.2 px (46.6 → 104.8), pushing 60 px of layout
+   * below it — the whole 0.189 CLS, and the reason `adjustFontFallback` alone could not close it:
+   * that fallback face is `src: local(Arial)` and is inert wherever Arial is not installed.
+   *
+   * A fixed single-column track removes the question. One row of two, or two rows of one, no longer
+   * depends on glyph advance widths, so the swap moves nothing at any width. It also stops the
+   * primary action from being a partial-width box on a phone, which is what the reference sites do.
+   */
   .heroActions {
+    display: grid;
     width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroActions > * {
+    display: flex;
+  }
+
+  .heroActions > * > * {
+    flex: 1;
+    justify-content: center;
   }
 
   .nightQuote {

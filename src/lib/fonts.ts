@@ -36,7 +36,28 @@ export const displayFont = localFont({
   preload: true,
   weight: "400",
   fallback: ["Haettenschweiler", "Arial Narrow", "sans-serif"],
-  adjustFontFallback: false,
+  /**
+   * Langkah 3k — this was `false`, and that is where the homepage's CLS of 0.189 came from.
+   *
+   * `false` emits the raw fallback stack with no metric override, so the fallback's advance widths
+   * are whatever Haettenschweiler/Arial Narrow happen to be. On swap the two hero buttons grew from
+   * 190.1 + 144.7 to ~209 + ~159 px and stopped fitting one row: `heroActions` went 46.6 → 104.8 px,
+   * the hero grew 60 px and the whole page below it moved. Measured with the woff2 requests aborted:
+   * hero 419.3 px vs 479.3 px — the entire shift.
+   *
+   * `"Arial"` asks next/font to emit an extra metric-adjusted face
+   * (`@font-face{font-family:displayFont Fallback; src:local(Arial); size-adjust:13.47%; …}`) built
+   * from Excess V's own metrics, placed before the raw fallbacks.
+   *
+   * What it does NOT do — measured, not assumed (see the note in `heroActions`, page.module.css):
+   * the adjusted face is `src: local(Arial)`, so it only applies where Arial is actually installed.
+   * On this Linux/CI box and on Android it fails to load and the raw stack wins. The flag is kept
+   * because it is free and it does help on Windows/macOS/iOS, but it is NOT what closed the CLS.
+   * The layout fix below is. `display: "swap"` also stays: `optional` scores 0 CLS too, but it
+   * permanently drops the face on a slow connection, and a wordmark in Arial Narrow is worse than a
+   * late wordmark.
+   */
+  adjustFontFallback: "Arial",
 });
 
 /**
@@ -51,5 +72,9 @@ export const bodyFont = localFont({
   preload: false,
   weight: "400",
   fallback: ["ui-sans-serif", "system-ui", "Helvetica Neue", "Arial", "sans-serif"],
-  adjustFontFallback: false,
+  /* Same story as the display face: `false` shipped an unadjusted fallback, every text block
+     reflowed on swap, and `local(Arial)` only helps where Arial exists (see the note above).
+     Measured cost of the mismatch here: "Dengar Sekarang" at 11px = 117 px in Relidux, 98 px in
+     the fallback — 19% narrower, which is what pushed the hero buttons onto a second row. */
+  adjustFontFallback: "Arial",
 });
