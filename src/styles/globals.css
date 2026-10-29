@@ -234,11 +234,6 @@ html[data-menu="open"] body {
 }
 
 /*
- * Round 31: while the magnetic cursor is armed (mouse input only, set by MagneticCursor) the
- * system pointer steps back — the dot and ring ARE the cursor. Touch and reduced motion never set
- * the flag, so they keep the pointer they have.
- */
-/*
  * Round 32: a tap must feel like a button, on the phone especially. `scale` is its own CSS
  * property, so the press composes with whatever transform a component already owns instead of
  * overwriting it; 100 ms down and back is the whole trick.
@@ -253,13 +248,6 @@ a:active,
 button:active,
 [role="button"]:active {
   scale: 0.96;
-}
-
-html[data-cursor="on"],
-html[data-cursor="on"] a,
-html[data-cursor="on"] button,
-html[data-cursor="on"] [role="button"] {
-  cursor: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

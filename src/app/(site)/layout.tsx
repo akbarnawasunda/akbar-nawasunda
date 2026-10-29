@@ -5,7 +5,6 @@ import { BackSide, type SheetData } from "@/components/print/BackSide";
 import { InkPress } from "@/components/print/InkPress";
 import { LoadingCurtain } from "@/components/zine/LoadingCurtain";
 import { PerfSwitches } from "@/components/zine/PerfSwitches";
-import { MagneticCursor } from "@/components/zine/MagneticCursor";
 import { TouchPress } from "@/components/zine/TouchPress";
 import { RouteCurtain } from "@/components/zine/RouteCurtain";
 import { SmoothScroll } from "@/components/zine/SmoothScroll";
@@ -72,7 +71,6 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <LoadingCurtain />
       <SmoothScroll />
       <RouteCurtain />
-      <MagneticCursor />
       <TouchPress />
       <a href="#main" className="skip-link">
         Lompat ke konten

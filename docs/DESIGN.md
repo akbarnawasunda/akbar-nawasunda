@@ -179,7 +179,7 @@ pengecualian desain, jadi tidak ada baris "dikecualikan" di tabel ini.
 | `src/styles/tokens.css` `--radius-sm`, `--radius-xl` | `0` | sesuai |
 | `src/styles/tokens.css` `--radius-pill` | **dihapus** | sesuai — satu-satunya konsumennya dot 5px; token tanpa konsumen adalah arkeologi |
 | `src/components/layout/GenreTape.module.css` bullet `::before` (4x4px) | `0` | sesuai — **diubah** di Langkah 3g (sebelumnya `50%`) |
-| `src/components/zine/MagneticCursor.module.css` `.dot`, `.ring` | `0` | sesuai — **diubah** di Langkah 3g (sebelumnya `50%`) |
+| ~~`src/components/zine/MagneticCursor.module.css` `.dot`, `.ring`~~ | — | **komponen dihapus** (Langkah 4a): custom cursor dibuang total, situs memakai cursor default sistem |
 | `src/components/print/BackSide.module.css` | `var(--radius-sm)` = 0 | sesuai |
 | `src/components/ui/ButtonLink.module.css` | `var(--radius-sm)` = 0 | sesuai |
 | `src/studio/ui/studio.module.css` `.dot` | `50%` | di luar halaman publik (CMS privat); tetap dicatat |
@@ -187,9 +187,14 @@ pengecualian desain, jadi tidak ada baris "dikecualikan" di tabel ini.
 Cara status ini diukur, bukan diperiksa dengan mata: skrip Puppeteer membaca
 `border-radius` keempat sudut setiap elemen **dan semua pseudo-element** (`::before`/`::after`
 dengan `content` nyata) di 8 route publik (`/`, `/music`, `/music/<slug>`, `/artist`, `/visuals`,
-`/epk`, `/contact`, 404) pada 1440px. Hasil: **0 elemen dan 0 pseudo-element ber-radius**. Kursor
-kustom diukur terpisah karena hanya ter-mount setelah pointer mouse pertama:
-`.dot` 5x5 `0px`, `.ring` 36x36 `0px` (screenshot: `artifacts/visual-check/radius-final-3g/`).
+`/epk`, `/contact`, 404) pada 1440px. Hasil: **0 elemen dan 0 pseudo-element ber-radius**.
+
+**Langkah 4a — custom cursor dihapus total.** `MagneticCursor` (dot 6 px + ring 36 px yang menggantikan
+pointer sistem sejak round 31) sudah dibuang beserta `cursor: none` yang menyembunyikan pointer OS.
+Situs kini memakai cursor default sistem di seluruh elemen. Konsekuensi yang tercatat: 5 token
+(`--cursor-dot`, `--cursor-ring`, `--duration-cursor-dot`, `--duration-cursor-ring`, `--z-cursor`) dan
+blok `html[data-cursor="on"]` ikut dihapus — anggaran token turun **107 → 102**, bukan ditambah ke
+`ALLOWED_UNUSED`, karena token tanpa konsumen adalah arkeologi.
 
 ### Hero `/` — logistics strip (TARGET)
 
@@ -673,7 +678,7 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D4 | Font: 1 display + 1 body | PASS | `src/lib/fonts.ts` (Excess V Straight + Relidux) |
 | D5 | Wordmark `clamp(2.8rem, 11vw, 4.5rem)` | PASS (≥720px) / N/A (<720px) | ≥720px = 72px terukur; <720px sengaja tetap token 40px @390 (batas 41px, lihat §2) |
 | D6 | Max width 1440px | PASS | `--container-max: 1440px` |
-| D7 | Radius 0 mutlak | **PASS** | 0 elemen + 0 pseudo-element ber-radius di 8 route publik + kursor kustom; `--radius-pill` dihapus (§3, Langkah 3g) |
+| D7 | Radius 0 mutlak | **PASS** | 0 elemen + 0 pseudo-element ber-radius di 8 route publik; `--radius-pill` dihapus (§3, Langkah 3g). Kursor kustom yang dulu ikut diukur sudah **dihapus total** di Langkah 4a |
 | D8 | Logistics strip hero | PASS | `.strip` satu baris `KATALOG: 10 ITEM // STATUS: AKTIF // LOC: BANDUNG BARAT, ID` (3c) |
 | D9 | Gap CTA→strip ≤40px, strip dalam fold 900px | PASS | 20.32/19.10/32.44/32.24/31.19px; strip bottom 873.24px @1440×900 |
 | D10 | Ledger + watermark + z-index | **PASS (tanpa watermark)** | Langkah 3n: ledger 6 kolom menggantikan wall. Watermark DIBATALKAN dengan alasan tercatat di §3 — nomor jadi kolom 44 px, bukan angka raksasa, dan token tidak bertambah (107). Butuh persetujuan owner |
@@ -694,3 +699,4 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D25 | Tidak ada nilai kosong di UI publik | **PASS** | `Tidak tercatat` / `Belum terklasifikasi` menggantikan `—` dan `Rilis`; PRD P1 PASS; `qa:copy` menolak elemen berisi dash |
 | D26 | Monogram fallback kartu OG ≥3.0:1 tanpa jadi headline | **PASS** | Langkah 3p: `#666666` = 3.44:1 terukur pada piksel PNG (`rgb(102,102,102)` vs `rgb(10,10,14)`), di antara dua nilai yang ditolak (2.23:1 dan 6.11:1). Ambang dikunci `tests/studio/og-mark.test.ts` |
 | D27 | Blok spesifikasi transmission (4 baris, tanpa field karangan) | **PASS** | Langkah 3o: `releaseSpecification()` → `TIPE / TAHUN / ERA / PLATFORM`, label 120 px, baris 34 px (blok 137 px), 0 overflow & 0 sel terpotong di 12 lebar 320–1920; baris eyebrow `REMIX · 2025` dihapus karena menduplikasi baris 1–2 (keputusan tanpa izin, tercatat di §3); durasi/BPM/key dilarang karena tidak ada di data |
+| D28 | Custom cursor dihapus, pointer sistem aktif | **PASS** | Langkah 4a: `MagneticCursor.tsx` + `.module.css` dihapus, `cursor: none` 0 kemunculan di `src/`, `[class*="cursor"]` = **0** di DOM `/`, seluruh elemen ber-computed `cursor: auto/pointer/text` (0 `none`). Token 107 → 102 |

@@ -67,6 +67,7 @@ menjadi membuka seluruh folder.
 | `src/content/release-ledger.ts` + `components/content/ReleaseLedger.tsx` | Baris katalog `/music` (Langkah 3n) | `ledgerRowFromRelease()` / `ledgerRowFromDocument()` satu bentuk untuk data statis dan record Studio; `assertLedgerComplete()` dijalankan di halaman **dan** di unit test — 10 baris, ordinal `01`–`10`, 0 baris kosong |
 | `src/content/releases.ts` → `releaseSpecification()` | Empat baris spesifikasi di seksi transmission beranda (Langkah 3o) | Hanya `type`, `year`, `era`, status streaming. Durasi/BPM/key **tidak** diterima karena tidak ada di data |
 | `components/content/ReleaseHud.tsx` + `src/content/release-hud.ts` | Bottom Release HUD, **hanya** di `src/app/(site)/page.tsx` | Server-determined (`releaseHudModel()`), 1 tab stop, 0 elemen audio/video, mount hanya ≥720px lewat `useSyncExternalStore` + `matchMedia` (SSR selalu `false`), muncul setelah `scrollY > 50svh`, `z-index` di bawah tab INDEKS dan header |
+| ~~`components/zine/MagneticCursor.tsx`~~ | **DIHAPUS** (Langkah 4a) | Custom cursor menggantikan pointer OS dan menyembunyikan `cursor` bawaan lewat `html[data-cursor="on"]`. Dibuang total: komponen, CSS, token, dan aturan `cursor: none`. Situs memakai cursor default sistem |
 | `components/content/ReleasePlate.tsx` | Fact table di halaman rilis | Menerima `streaming` dari helper; tanpa tautan → blok status tanpa anchor |
 
 Alur data rilis, satu arah: `src/content/releases.ts` (atau record Studio) → helper di `src/content/*`
@@ -264,7 +265,7 @@ otomatis bila ada perubahan. Bukan gate kualitas.
 - `npm run audit:tokens` **belum** memeriksa `border-radius: 0` — ia memeriksa hex di luar
   `tokens.css`, token tak terdefinisi, dan token yatim. **Ini masih gap.** Status P6 (radius) saat ini
   dijaga oleh pengukuran desain (Langkah 3g + pengukuran ulang Langkah 4: 0 elemen/pseudo ber-radius
-  di beranda 1440, `.live` 0px, bullet GenreTape 0px, cursor ring 0px) dan oleh nilai token
+  di beranda 1440, `.live` 0px, bullet GenreTape 0px) dan oleh nilai token
   `--radius-sm: 0` / `--radius-xl: 0`, **bukan** oleh gate otomatis. Menutup gap ini = menambah
   assertion radius ke `scripts/token-audit.mjs`.
 - `npm run qa:copy` dan `npm run qa:motion` **sudah** berada di pipeline (step 11–12) dan gagal keras;
