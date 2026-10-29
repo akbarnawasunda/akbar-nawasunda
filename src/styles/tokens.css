@@ -115,7 +115,7 @@
      `family, ui-sans-serif, system-ui, …`), so the stack below only adds the *intended* family —
      the one that will be there once the real files land — and one generic. */
   --font-display-stack: var(--font-display), "Excess V Straight", sans-serif;
-  --font-body-stack: var(--font-body), "Relidux", sans-serif;
+  --font-body-stack: var(--font-body), "Gohan", sans-serif;
 
   /*
    * Poster metrics, on purpose.

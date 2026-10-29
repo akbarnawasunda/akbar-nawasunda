@@ -5,8 +5,21 @@ import localFont from "next/font/local";
  *
  *   --font-display  Excess V Straight  the site's own name, set giant: the hero H1, the footer
  *                                      wordmark, the loading curtain. Nothing else, ever.
- *   --font-body     Relidux            every other glyph on the site: H2/H3, release and track
+ *   --font-body     Gohan              every other glyph on the site: H2/H3, release and track
  *                                      titles, paragraphs, buttons, navigation, meta labels.
+ *
+ * Gohan replaced Relidux in the reading slot (2026-10-29). Nothing about the two-role contract
+ * changed — one voice for the identity, one voice for reading — only which binary fills the second
+ * voice.
+ *
+ * Relidux.woff2 is **deleted**, and the reason is measured, not assumed: after the swap it was
+ * referenced by exactly zero `font-family` declarations, zero `localFont` loaders and zero fallback
+ * stacks, so the binary was 11,584 bytes of licence-controlled weight serving no pixel.
+ * `LICENSE-COMMERCIAL.txt` still records the purchase — the licence is held by the owner whether or
+ * not the binary sits in the repo — and the file itself is recoverable from history
+ * (`git show <parent>~1:src/assets/fonts/Relidux.woff2`). The three other retired faces (Psychlone,
+ * Impact Label, Marseloup) stay on disk because that was the decision recorded when *they* were
+ * retired; this is a different, later decision for a different file.
  *
  * Round 17–18 ran five roles (display / heading / body / label / accent). On screen that read as a
  * ransom note: four display faces competing in one viewport, and the label face drew a white tape
@@ -66,15 +79,27 @@ export const displayFont = localFont({
  * for the first 200 KB of a mobile connection (D-072).
  */
 export const bodyFont = localFont({
-  src: "../assets/fonts/Relidux.woff2",
+  src: "../assets/fonts/Gohan.woff2",
   variable: "--font-body",
   display: "swap",
   preload: false,
   weight: "400",
   fallback: ["ui-sans-serif", "system-ui", "Helvetica Neue", "Arial", "sans-serif"],
-  /* Same story as the display face: `false` shipped an unadjusted fallback, every text block
-     reflowed on swap, and `local(Arial)` only helps where Arial exists (see the note above).
-     Measured cost of the mismatch here: "Dengar Sekarang" at 11px = 117 px in Relidux, 98 px in
-     the fallback — 19% narrower, which is what pushed the hero buttons onto a second row. */
+  /*
+   * Same story as the display face: `false` shipped an unadjusted fallback, every text block
+   * reflowed on swap, and `local(Arial)` only helps where Arial exists (see the note above).
+   *
+   * Measured on Gohan itself, not copied over from Relidux (100 px, 47 glyphs, browser
+   * `measureText`): Gohan 3365 px vs Relidux 3708 px — the new face is **9.25% narrower**, so the
+   * mismatch against an unadjusted fallback is a different number, not the old 19%. Word-level, at
+   * 100 px: "Dengar Sekarang" 989 (Relidux 1042), "LIHAT KATALOG" 756 (898), "Tidak tercatat" 792
+   * (880). `adjustFontFallback` derives its `size-adjust` from the binary that is actually wired,
+   * so it recomputes automatically; the CLS measurement in `artifacts/font-gohan/` is what shows
+   * whether the raw stack (where `local(Arial)` is unavailable) got worse.
+   *
+   * Vertical metrics barely move and cannot shift a line box anyway: Gohan ascent/descent 77/20 vs
+   * Relidux 84/20, and `line-height: var(--leading-body)` is the unitless 1.6, so the line box is
+   * 1.6 x font-size regardless of what the face reports.
+   */
   adjustFontFallback: "Arial",
 });

@@ -53,7 +53,24 @@ baru yang lahir di komponen. Perubahan ini menyentuh `tests/studio/css-tokens.te
 | Peran | Family | File | Berat | Dimuat |
 | --- | --- | --- | --- | --- |
 | Display — **hanya** nama situs (hero H1, wordmark footer, loading curtain) | **Excess V Straight** | `src/assets/fonts/Excess V Straight.woff2` | 400 statis | `preload: true` |
-| Body — semua glyph lain (H2/H3, judul rilis, paragraf, tombol, nav, label) | **Relidux** | `src/assets/fonts/Relidux.woff2` | 400 statis | `preload: false` |
+| Body — semua glyph lain (H2/H3, judul rilis, paragraf, tombol, nav, label) | **Gohan** | `src/assets/fonts/Gohan.woff2` | 400 statis | `preload: false` |
+
+**Gohan menggantikan Relidux di slot body (2026-10-29).** Kontrak dua peran tidak berubah — satu suara
+untuk identitas, satu suara untuk membaca — hanya biner yang mengisi suara kedua. Yang terukur, bukan
+diasumsikan (browser `measureText`, 100 px, sampel 67 karakter):
+
+- Gohan **12,21 % lebih lebar** dari fallback mentah mesin Linux (`ui-sans-serif`/`system-ui`/Arial/
+  DejaVu semua berbagi metrik yang sama di sini: 3387,9 px vs Gohan 3801,6 px). Angka itu **tidak**
+  dipakai untuk `size-adjust` manual: `next/font` sudah mengunci `size-adjust:131.59 %` terhadap
+  **Arial**, dan Arial asli di Windows/macOS lebarnya berbeda dari default Linux, jadi menambal angka
+  kedua akan membuat salah satu platform lebih buruk. `adjustFontFallback` dibiarkan menghitungnya.
+- Metrik vertikal tidak bisa menggeser line box: Gohan ascent/descent 77/20 vs Relidux 84/20, dan
+  `line-height` body adalah `--leading-body: 1.6` **tanpa unit**, jadi tinggi baris selalu 1,6 ×
+  font-size. CLS terukur justru **turun** di 6 dari 7 route.
+- `Relidux.woff2` **dihapus** (11 584 byte) setelah terbukti 0 `font-family`, 0 loader, dan 0 stack
+  fallback merujuknya. Jejak lisensi tetap di `src/assets/fonts/LICENSE-COMMERCIAL.txt`, dan binernya
+  bisa dipulihkan dari riwayat git. Tiga face pensiun lain (Psychlone, Impact Label, Marseloup) tetap
+  di disk karena itu keputusan yang tercatat saat masing-masing dipensiunkan.
 
 Catatan yang mengikat:
 
@@ -93,7 +110,7 @@ nilai yang sudah ditolak). Artefak: `artifacts/visual-check/3p/`.
 
 **Batas yang mengikat:**
 
-- Anton **bukan** font halaman. Halaman memakai Excess V Straight + Relidux (tabel di atas) dan
+- Anton **bukan** font halaman. Halaman memakai Excess V Straight + Gohan (tabel di atas) dan
   hanya itu; `npm run audit:fonts` tetap menjadi gate untuk stylesheet, dan Anton tidak pernah
   muncul di sana.
 - Di sleeve, Anton dipakai **hanya di varian Typographic Heavy**, untuk mencetak judul rilis sebagai
@@ -102,7 +119,7 @@ nilai yang sudah ditolak). Artefak: `artifacts/visual-check/3p/`.
   font yang tidak dipakai situs adalah efek ransom-note yang ditolak.* Anton bukan kasus itu — ia
   binary yang sudah ada di repo dan sudah dipakai untuk kartu OG; yang berubah hanya apakah glyph-nya
   boleh muncul di dalam artwork sleeve, dan hanya di satu varian.
-- Judul rilis tetap **teks HTML** di halaman (Relidux). Yang di-raster hanya artwork; tidak ada
+- Judul rilis tetap **teks HTML** di halaman (Gohan). Yang di-raster hanya artwork; tidak ada
   informasi yang hilang dari teks biasa, sehingga tetap bisa dipilih, dibaca mesin, dan diterjemahkan.
 
 Catatan koreksi: klaim di laporan klarifikasi 3h-2 bahwa "Anton tidak dipakai di `src/`" **salah** —
@@ -684,7 +701,7 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D1 | Palet 7 token target | FAIL | nilai berbeda di `tokens.css` (§1) |
 | D2 | Zero raw hex di luar token | PASS (dijaga) | `scripts/token-audit.mjs` + CI step |
 | D3 | 1 aksen biru saja | PARTIAL | `--color-poster-yellow`, `--color-stamp`, `--color-signal-purple` masih terdefinisi |
-| D4 | Font: 1 display + 1 body | PASS | `src/lib/fonts.ts` (Excess V Straight + Relidux) |
+| D4 | Font: 1 display + 1 body | PASS | `src/lib/fonts.ts` (Excess V Straight + Gohan) |
 | D5 | Wordmark `clamp(2.8rem, 11vw, 4.5rem)` | PASS (≥720px) / N/A (<720px) | ≥720px = 72px terukur; <720px sengaja tetap token 40px @390 (batas 41px, lihat §2) |
 | D6 | Max width 1440px | PASS | `--container-max: 1440px` |
 | D7 | Radius 0 mutlak | **PASS** | 0 elemen + 0 pseudo-element ber-radius di 8 route publik; `--radius-pill` dihapus (§3, Langkah 3g). Kursor kustom yang dulu ikut diukur sudah **dihapus total** di Langkah 4a |
@@ -710,3 +727,4 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D27 | Blok spesifikasi transmission (4 baris, tanpa field karangan) | **PASS** | Langkah 3o: `releaseSpecification()` → `TIPE / TAHUN / ERA / PLATFORM`, label 120 px, baris 34 px (blok 137 px), 0 overflow & 0 sel terpotong di 12 lebar 320–1920; baris eyebrow `REMIX · 2025` dihapus karena menduplikasi baris 1–2 (keputusan tanpa izin, tercatat di §3); durasi/BPM/key dilarang karena tidak ada di data |
 | D28 | Custom cursor dihapus, pointer sistem aktif | **PASS** | Langkah 4a: `MagneticCursor.tsx` + `.module.css` dihapus, `cursor: none` 0 kemunculan di `src/`, `[class*="cursor"]` = **0** di DOM `/`, seluruh elemen ber-computed `cursor: auto/pointer/text` (0 `none`). Token 107 → 102 |
 | D29 | Foil signature digambar sekali, bukan 60x per detik | **PASS** | Temuan P2 (19,5 fps di y200–1400) ternyata bukan compositing: opacity→1, `contain:paint`, dan `content-visibility:auto` = 0 dampak, sedangkan canvas yang dibekukan (layer tetap dikomposit) = 60 fps. Biayanya menggambar ulang ~195 `stroke()` grain + 2 blit rim full-canvas tiap frame. Perbaikan: plate + rim dibakar sekali per ukuran, sapuan & highlight hanya mengisi kotak band, loop 30 Hz. `prefers-reduced-motion` tetap satu fase tetap. Diff piksel fase tetap: **0 / 1.296.000** (desktop), delta maks 1/255 (ambient mobile). 19,5 → 60,0 fps. Bukti: `artifacts/scroll-perf-fix/` |
+| D30 | Gohan menggantikan Relidux sebagai font body | **PASS** | Gohan dipasang lewat `next/font/local` (pola yang sudah ada), `--font-body-stack` menunjuk Gohan, `Relidux` masuk `RETIRED_FAMILIES` di `audit:fonts` (penjaga kini mengabaikan komentar). H1 tetap Excess (`--font-display`); wordmark/CTA/heading tidak tersentuh cascade karena 130 pemakaian lewat satu token. CLS terukur 0,01153 → 0,01150 (`/visuals`, sumber gambar bukan teks), 6/7 route turun. `Relidux.woff2` dihapus (11 584 byte). Bukti: `artifacts/font-gohan/` |

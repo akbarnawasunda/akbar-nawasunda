@@ -154,7 +154,7 @@ nomor" — nomornya ada, perannya beda total.
 
 ### T7 — Ada komponen "BackSide" (lembar cetak) yang memuat metadata desain
 `src/components/print/BackSide.tsx` (sheet yang bisa dibuka, `inert` saat tertutup) mencetak
-"Tinta: Cyan cetak #2E8C86 / Merah poster #C93A22", "Huruf: Excess-V-Straight · Relidux",
+"Tinta: Cyan cetak #2E8C86 / Merah poster #C93A22", "Huruf: Excess-V-Straight · Gohan",
 "Tautan: {totalLinks} tautan resmi…", "Cetakan: R15 · neon grid · ca74742".
 Semua di dalam panel tertutup, jadi **tidak** tampil ke pembaca biasa.
 Catatan: skrip probe pertama saya salah menghitungnya sebagai "Lembar data" publik karena

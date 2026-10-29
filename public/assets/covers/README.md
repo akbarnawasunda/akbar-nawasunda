@@ -18,7 +18,7 @@ Levels 1 and 2 share one slot on purpose: `covers:fetch` writes the same file a 
 so nothing in the site has to know where the pixels came from. The generated sleeve lives in its own
 `@sleeve` slot so dropping a real cover in never means deleting anything. Since round 19 the sleeve
 carries no type at all — ground, ghost monogram, misregistration rule — and every release title on
-the site is Relidux HTML text printed by the card.
+the site is Gohan HTML text printed by the card.
 
 ## scripts/generate-placeholder-covers.mjs
 
@@ -35,7 +35,7 @@ per-release genre (genres are verified for the artist, not for each song).
 
 It renders **no type at all** (round 19): a sleeve that prints its own title in a face the page does
 not ship is the ransom-note effect the owner rejected, and rasterised text cannot reflow, be selected
-or be translated. Every release title on the site is Relidux HTML text printed by the card under the
+or be translated. Every release title on the site is Gohan HTML text printed by the card under the
 artwork. The script therefore needs no fonts installed — only `sharp`.
 
 ## Adding real artwork
