@@ -18,7 +18,7 @@ dan kode yang berjalan.
 | --- | --- |
 | Stack | Next **16.4** App Router · React **19** · TypeScript `strict` + `noUncheckedIndexedAccess` |
 | Styling | **CSS Modules** per komponen + `src/styles/tokens.css` sebagai satu-satunya sumber nilai. **Tanpa Tailwind, tanpa PostCSS, tanpa utility class.** |
-| Tipografi | Instrument Serif (display) · Instrument Sans (body) · JetBrains Mono (label) — di-host sendiri lewat `next/font/local` |
+| Tipografi | **Dua keluarga saja** — Excess V Straight (display: H1 hero, wordmark footer, tirai loading) · Gohan (body: semua teks lain). Tidak ada face label/mono/aksen. Di-host sendiri lewat `next/font/local` di `src/lib/fonts.ts`, diakses lewat `--font-display-stack` / `--font-body-stack` |
 | Palet | Tinta `#050507`/`#0A0A0E` · kertas `#E8E6E1` · biru AN `#0087FF` · merah poster `#FF2D20` |
 | Data | Statis di `src/content/*` (fallback) + CMS Turso/libSQL di `src/studio`. Publik **hanya** membaca data *published*. |
 | Budget | **JS awal ≤ 250 KB gzip** · **CSS ≤ 40 KB gzip** · LCP < 2,5 s di Android menengah · axe 0 pelanggaran |
