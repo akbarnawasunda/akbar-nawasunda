@@ -211,6 +211,86 @@ function buildRing(
   return ring;
 }
 
+/*
+ * The plate, drawn once: the vertical ramp plus the brushed grain, both clipped to the mark.
+ *
+ * Nothing here depends on the clock, the pointer or the scroll position, so none of it belongs in
+ * the frame loop. The grain is the expensive part — one `stroke()` per 3 px of mark height, ~195
+ * draw calls at 1440x666 — and it was being re-issued 60 times a second to produce identical pixels.
+ */
+function buildPlate(
+  width: number,
+  height: number,
+  dpr: number,
+  layout: Layout,
+  path: Path2D,
+  palette: Palette,
+  ambient: boolean,
+): HTMLCanvasElement | null {
+  const px = Math.max(1, Math.round(dpr));
+  const plate = document.createElement("canvas");
+  plate.width = Math.max(1, Math.round(width * px));
+  plate.height = Math.max(1, Math.round(height * px));
+  const plateCtx = plate.getContext("2d");
+  if (!plateCtx) return null;
+  plateCtx.setTransform(px, 0, 0, px, 0, 0);
+
+  const top = layout.y;
+  const bottom = layout.y + MARK_H * layout.unit;
+  const left = layout.x;
+  const right = layout.x + MARK_W * layout.unit;
+
+  plateCtx.save();
+  plateCtx.clip(path);
+
+  const ramp = ambient ? RAMP_AMBIENT : RAMP_DESKTOP;
+  const base = plateCtx.createLinearGradient(0, top, 0, bottom);
+  base.addColorStop(0, ramp[0]);
+  base.addColorStop(0.28, ramp[1]);
+  base.addColorStop(0.62, ramp[2]);
+  base.addColorStop(1, ramp[3]);
+  plateCtx.fillStyle = base;
+  plateCtx.fillRect(0, 0, width, height);
+
+  plateCtx.strokeStyle = palette.primary;
+  plateCtx.lineWidth = 1;
+  for (let y = top; y <= bottom; y += 3) {
+    const row = Math.round((y - top) / 3);
+    plateCtx.globalAlpha = row % 2 === 0 ? 0.028 : ambient ? 0.09 : 0.055;
+    plateCtx.beginPath();
+    plateCtx.moveTo(left, y + 0.5);
+    plateCtx.lineTo(right, y + 0.5);
+    plateCtx.stroke();
+  }
+  plateCtx.globalAlpha = 1;
+  plateCtx.restore();
+  return plate;
+}
+
+/** Outline and rim light composited once, in the order the frame used to draw them. */
+function buildRimLayer(
+  width: number,
+  height: number,
+  dpr: number,
+  path: Path2D,
+  palette: Palette,
+): HTMLCanvasElement | null {
+  const outline = buildRing(width, height, dpr, path, RING_OFFSETS, palette.hairline, 1);
+  const blueRim = buildRing(width, height, dpr, path, RIGHT_OFFSETS, palette.blue, 0.55);
+  if (!outline && !blueRim) return null;
+
+  const px = Math.max(1, Math.round(dpr));
+  const layer = document.createElement("canvas");
+  layer.width = Math.max(1, Math.round(width * px));
+  layer.height = Math.max(1, Math.round(height * px));
+  const layerCtx = layer.getContext("2d");
+  if (!layerCtx) return null;
+  /* Same order as the per-frame blits it replaces: right rim first, outline over it. */
+  if (blueRim) layerCtx.drawImage(blueRim, 0, 0);
+  if (outline) layerCtx.drawImage(outline, 0, 0);
+  return layer;
+}
+
 /* ------------------------------------------------------------------ the frame */
 
 interface Palette {
@@ -219,9 +299,21 @@ interface Palette {
   hairline: string;
 }
 
-interface Rims {
-  outline: HTMLCanvasElement | null;
-  blueRim: HTMLCanvasElement | null;
+/*
+ * The static half of every frame, baked once per size instead of once per frame.
+ *
+ * This is the whole difference between a missed and a met frame budget. `drawFoil` used to rebuild a
+ * full-canvas four-stop gradient, stroke the brushed grain (one `stroke()` per 3 px — 195 of them at
+ * 1440x666) and blit two full-canvas rim layers *every frame*, while the only things that actually
+ * move are one soft band and a 1 px seam. Measured in `artifacts/scroll-perf-fix/`: freezing the
+ * context but keeping the plate and the layer restored 60 fps, so the cost was never the composited
+ * layer — it was re-deriving pixels that do not change.
+ */
+interface Plates {
+  /** Ramp + brushed grain, clipped to the mark. */
+  base: HTMLCanvasElement | null;
+  /** Outline + right rim pre-composited into one layer: one blit, not two. */
+  rims: HTMLCanvasElement | null;
 }
 
 interface Frame {
@@ -231,7 +323,7 @@ interface Frame {
   layout: Layout;
   path: Path2D;
   palette: Palette;
-  rims: Rims;
+  plates: Plates;
   /** Wall clock of the animation, in ms. Frozen at one value under reduced motion. */
   time: number;
   /** Quantised pointer x in CSS px, or null when the pointer is away. */
@@ -247,40 +339,30 @@ interface Frame {
  * harder than its tail.
  */
 function drawFoil(frame: Frame) {
-  const { ctx, width, height, layout, path, palette, rims, time, pointerX, ambient } = frame;
-  ctx.clearRect(0, 0, width, height);
-  if (layout.unit <= 0) return;
+  const { ctx, width, height, layout, path, palette, plates, time, pointerX } = frame;
+  if (layout.unit <= 0) {
+    ctx.clearRect(0, 0, width, height);
+    return;
+  }
 
   const top = layout.y;
-  const bottom = layout.y + MARK_H * layout.unit;
+  const markHeight = MARK_H * layout.unit;
   const left = layout.x;
   const right = layout.x + MARK_W * layout.unit;
 
+  /* ---- the plate, one blit ----------------------------------------------------
+     `copy` replaces the destination *including its alpha*, which is why the old
+     `clearRect` is gone: one pass writes the whole static half of the frame. */
+  if (plates.base) {
+    ctx.globalCompositeOperation = "copy";
+    ctx.drawImage(plates.base, 0, 0, width, height);
+    ctx.globalCompositeOperation = "source-over";
+  } else {
+    ctx.clearRect(0, 0, width, height);
+  }
+
   ctx.save();
   ctx.clip(path);
-
-  /* ---- the plate -------------------------------------------------------------- */
-  const ramp = ambient ? RAMP_AMBIENT : RAMP_DESKTOP;
-  const base = ctx.createLinearGradient(0, top, 0, bottom);
-  base.addColorStop(0, ramp[0]);
-  base.addColorStop(0.28, ramp[1]);
-  base.addColorStop(0.62, ramp[2]);
-  base.addColorStop(1, ramp[3]);
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, width, height);
-
-  /* ---- brushed grain: horizontal hairlines, 3 px apart, alternating alpha ------- */
-  ctx.strokeStyle = palette.primary;
-  ctx.lineWidth = 1;
-  for (let y = top; y <= bottom; y += 3) {
-    const row = Math.round((y - top) / 3);
-    ctx.globalAlpha = row % 2 === 0 ? 0.028 : ambient ? 0.09 : 0.055;
-    ctx.beginPath();
-    ctx.moveTo(left, y + 0.5);
-    ctx.lineTo(right, y + 0.5);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
 
   /* ---- the specular sweep ------------------------------------------------------
      A constant-velocity band. `phase` runs 0→1 over SWEEP_PERIOD and the gradient is built in
@@ -298,32 +380,35 @@ function drawFoil(frame: Frame) {
   sweep.addColorStop(0.62, "rgba(255,255,255,0.12)");
   sweep.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = sweep;
-  ctx.fillRect(0, top, width, MARK_H * layout.unit);
+  /* Only the band's own box. Both gradient ends are `rgba(255,255,255,0)`, so filling the full
+     width paints exactly the same pixels — it just makes Skia touch the whole plate every frame
+     instead of the strip that carries the highlight. */
+  ctx.fillRect(sweepX - sweepWidth, top, sweepWidth * 2, markHeight);
 
   /* ---- the seam: a 1 px vertical line snapping on a fixed clock ---------------- */
   const seamStep = Math.floor(time / SEAM_PERIOD) % 9;
   const seamX = left + (right - left) * (0.08 + (seamStep / 8) * 0.84);
   ctx.globalAlpha = 0.16;
   ctx.fillStyle = palette.primary;
-  ctx.fillRect(Math.round(seamX), top, 1, MARK_H * layout.unit);
+  ctx.fillRect(Math.round(seamX), top, 1, markHeight);
   ctx.globalAlpha = 1;
 
   /* ---- pointer highlight, quantised to the plate grid ------------------------- */
   if (pointerX !== null) {
     const snapped = left + Math.round((pointerX - left) / POINTER_GRID) * POINTER_GRID;
-    const lit = ctx.createLinearGradient(snapped - POINTER_GRID * 1.6, 0, snapped + POINTER_GRID * 1.6, 0);
+    const reach = POINTER_GRID * 1.6;
+    const lit = ctx.createLinearGradient(snapped - reach, 0, snapped + reach, 0);
     lit.addColorStop(0, "rgba(255,255,255,0)");
     lit.addColorStop(0.5, "rgba(255,255,255,0.26)");
     lit.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = lit;
-    ctx.fillRect(0, top, width, MARK_H * layout.unit);
+    ctx.fillRect(snapped - reach, top, reach * 2, markHeight);
   }
 
   ctx.restore();
 
   /* ---- the edges: one hairline, one cold rim on the right --------------------- */
-  if (rims.blueRim) ctx.drawImage(rims.blueRim, 0, 0, width, height);
-  if (rims.outline) ctx.drawImage(rims.outline, 0, 0, width, height);
+  if (plates.rims) ctx.drawImage(plates.rims, 0, 0, width, height);
 }
 
 /* ------------------------------------------------------------------ the loop */
@@ -335,7 +420,7 @@ interface Host {
   layout: Layout;
   path: Path2D;
   palette: Palette;
-  rims: Rims;
+  plates: Plates;
   pointerX: number | null;
   ambient: boolean;
 }
@@ -378,10 +463,11 @@ export default function AnMonogramFoil() {
 
       const layout = layoutFor(width, height);
       const path = markPath(layout);
-      /* The rims are geometry, not animation: build them once per size, never per frame. */
-      const rims: Rims = {
-        outline: buildRing(width, height, dpr, path, RING_OFFSETS, palette.hairline, 1),
-        blueRim: buildRing(width, height, dpr, path, RIGHT_OFFSETS, palette.blue, 0.55),
+      /* Plate and rims are geometry and material, not animation: build them once per size, never
+         per frame. `ambient` is baked into the plate because it selects a different ramp. */
+      const plates: Plates = {
+        base: buildPlate(width, height, dpr, layout, path, palette, ambientQuery.matches),
+        rims: buildRimLayer(width, height, dpr, path, palette),
       };
       host.current = {
         ctx,
@@ -390,7 +476,7 @@ export default function AnMonogramFoil() {
         layout,
         path,
         palette,
-        rims,
+        plates,
         pointerX: host.current?.pointerX ?? null,
         ambient: ambientQuery.matches,
       };
@@ -409,9 +495,11 @@ export default function AnMonogramFoil() {
     const applyAmbient = () => {
       wrapper.dataset.ambient = ambientQuery.matches ? "true" : "false";
       if (ambientQuery.matches && host.current) host.current.pointerX = null;
-      /* Crossing the boundary changes the plate ramp, not just the CSS alpha: redraw the resting
-         frame immediately so a reader who rotates a phone never sees a stale material. */
-      if (host.current) host.current.ambient = ambientQuery.matches;
+      /* Crossing the boundary selects a different ramp, and the ramp is baked into the plate now:
+         rebuild it rather than pretending the old one will do, then redraw the resting frame so a
+         reader who rotates a phone never sees a stale material. */
+      if (host.current && host.current.ambient !== ambientQuery.matches) measure();
+      else if (host.current) host.current.ambient = ambientQuery.matches;
       render(reduceQuery.matches ? STATIC_PHASE : performance.now());
     };
     applyAmbient();
@@ -427,15 +515,28 @@ export default function AnMonogramFoil() {
      * accumulator, nothing to drift out of sync with a dropped frame — which is what makes the
      * motion read as mechanical rather than as a breath.
      */
+    /*
+     * Half rate, on purpose. The sweep crosses the plate at 569 px/s, so at 30 Hz the highlight
+     * steps ~19 px per frame — underneath the resolution of a soft gradient whose edges are already
+     * 500 px wide. What it buys is the scroll: the frame loop and the scroll engine share one main
+     * thread, and this hands half of the drawing budget back to the reader.
+     */
+    const FRAME_INTERVAL = 1000 / 30;
+    let lastPaint = Number.NEGATIVE_INFINITY;
+
     const tick = (now: number) => {
       if (!running) return;
-      render(now);
+      if (now - lastPaint >= FRAME_INTERVAL - 1) {
+        lastPaint = now;
+        render(now);
+      }
       frame = window.requestAnimationFrame(tick);
     };
 
     const start = () => {
       if (running || reduceQuery.matches) return;
       running = true;
+      lastPaint = Number.NEGATIVE_INFINITY;
       started = performance.now();
       frame = window.requestAnimationFrame(tick);
     };

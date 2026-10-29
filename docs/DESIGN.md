@@ -196,6 +196,14 @@ Situs kini memakai cursor default sistem di seluruh elemen. Konsekuensi yang ter
 blok `html[data-cursor="on"]` ikut dihapus — anggaran token turun **107 → 102**, bukan ditambah ke
 `ALLOWED_UNUSED`, karena token tanpa konsumen adalah arkeologi.
 
+**Baseline token sekarang 102, permanen (disetujui owner, 2026-10-29).** Angka 107 dianggap angka
+lama dan tidak boleh muncul lagi sebagai target. Alasannya satu kalimat: *5 token cursor dihapus
+bersamaan penghapusan `MagneticCursor` (P1)* — `--cursor-dot`, `--cursor-ring`,
+`--duration-cursor-dot`, `--duration-cursor-ring`, `--z-cursor`. `scripts/token-audit.mjs` tidak
+menyimpan angka apa pun di dalam kode: ia menghitung token yang dipakai dan yang menganggur, jadi
+102 adalah hasil pengukuran, bukan konstanta yang ditulis tangan. Yang perlu dijaga adalah aturannya,
+bukan angkanya: **jangan tambah token baru tanpa mencabut yang lama**.
+
 ### Hero `/` — logistics strip (TARGET)
 
 Format teks, satu baris mono:
@@ -259,7 +267,8 @@ Yang berubah dari target lama, dan kenapa:
 
 - **Watermark nomor raksasa dibatalkan.** Target lama meminta angka raksasa di belakang teks dengan
   `--color-watermark`. Token itu **tidak ada** di `tokens.css`, dan menambahkannya berarti token ke-108
-  hanya untuk satu hiasan — sementara `audit:tokens` dijaga tetap 107. Keputusan saya: nomor urut
+  hanya untuk satu hiasan — sementara `audit:tokens` dijaga tetap 102 (baseline permanen sejak P1).
+  Keputusan saya: nomor urut
   dicetak sebagai **kolom** biasa (44 px, `--color-text-muted`), bukan watermark. Alasan desainnya
   lebih kuat daripada alasan token: kolom angka yang lurus ke bawah terbaca sebagai tabel, sedangkan
   angka raksasa di belakang teks terbaca sebagai poster — dan 3n justru memindahkan halaman ini dari
@@ -681,7 +690,7 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D7 | Radius 0 mutlak | **PASS** | 0 elemen + 0 pseudo-element ber-radius di 8 route publik; `--radius-pill` dihapus (§3, Langkah 3g). Kursor kustom yang dulu ikut diukur sudah **dihapus total** di Langkah 4a |
 | D8 | Logistics strip hero | PASS | `.strip` satu baris `KATALOG: 10 ITEM // STATUS: AKTIF // LOC: BANDUNG BARAT, ID` (3c) |
 | D9 | Gap CTA→strip ≤40px, strip dalam fold 900px | PASS | 20.32/19.10/32.44/32.24/31.19px; strip bottom 873.24px @1440×900 |
-| D10 | Ledger + watermark + z-index | **PASS (tanpa watermark)** | Langkah 3n: ledger 6 kolom menggantikan wall. Watermark DIBATALKAN dengan alasan tercatat di §3 — nomor jadi kolom 44 px, bukan angka raksasa, dan token tidak bertambah (107). Butuh persetujuan owner |
+| D10 | Ledger + watermark + z-index | **PASS (tanpa watermark)** | Langkah 3n: ledger 6 kolom menggantikan wall. Watermark DIBATALKAN dengan alasan tercatat di §3 — nomor jadi kolom 44 px, bukan angka raksasa, dan token tidak bertambah (saat itu 107; baseline kini 102). Butuh persetujuan owner |
 | D11 | Ledger hover `translateX(6px)` | **PASS** | terukur: `matrix(1,0,0,1,6,0)` + border `rgb(0,135,255)`; satu baris hot pada satu waktu; `prefers-reduced-motion` → `transform: none` |
 | D12 | Ledger mobile compact | **PASS (3 baris, bukan 2)** | ≤719 px: nomor+sleeve+judul / jenis+tahun / status; 0 overflow di 320–1920 |
 | D13 | Dubplate card | **RESOLVED — kebijakan netral permanen** (Langkah 3m) | Kartu klaim DIBATALKAN; `TAUTAN STREAMING: BELUM TERCATAT` via `releaseStreamingStatus()`, dipakai 4 permukaan, dikunci `BANNED_COPY_TERMS` (`dubplate`, `unreleased`, `belum rilis`, `tidak didistribusikan`) |
@@ -700,3 +709,4 @@ diuji dengan pelanggaran sengaja — bukan hanya "hijau karena tidak ada yang me
 | D26 | Monogram fallback kartu OG ≥3.0:1 tanpa jadi headline | **PASS** | Langkah 3p: `#666666` = 3.44:1 terukur pada piksel PNG (`rgb(102,102,102)` vs `rgb(10,10,14)`), di antara dua nilai yang ditolak (2.23:1 dan 6.11:1). Ambang dikunci `tests/studio/og-mark.test.ts` |
 | D27 | Blok spesifikasi transmission (4 baris, tanpa field karangan) | **PASS** | Langkah 3o: `releaseSpecification()` → `TIPE / TAHUN / ERA / PLATFORM`, label 120 px, baris 34 px (blok 137 px), 0 overflow & 0 sel terpotong di 12 lebar 320–1920; baris eyebrow `REMIX · 2025` dihapus karena menduplikasi baris 1–2 (keputusan tanpa izin, tercatat di §3); durasi/BPM/key dilarang karena tidak ada di data |
 | D28 | Custom cursor dihapus, pointer sistem aktif | **PASS** | Langkah 4a: `MagneticCursor.tsx` + `.module.css` dihapus, `cursor: none` 0 kemunculan di `src/`, `[class*="cursor"]` = **0** di DOM `/`, seluruh elemen ber-computed `cursor: auto/pointer/text` (0 `none`). Token 107 → 102 |
+| D29 | Foil signature digambar sekali, bukan 60x per detik | **PASS** | Temuan P2 (19,5 fps di y200–1400) ternyata bukan compositing: opacity→1, `contain:paint`, dan `content-visibility:auto` = 0 dampak, sedangkan canvas yang dibekukan (layer tetap dikomposit) = 60 fps. Biayanya menggambar ulang ~195 `stroke()` grain + 2 blit rim full-canvas tiap frame. Perbaikan: plate + rim dibakar sekali per ukuran, sapuan & highlight hanya mengisi kotak band, loop 30 Hz. `prefers-reduced-motion` tetap satu fase tetap. Diff piksel fase tetap: **0 / 1.296.000** (desktop), delta maks 1/255 (ambient mobile). 19,5 → 60,0 fps. Bukti: `artifacts/scroll-perf-fix/` |
