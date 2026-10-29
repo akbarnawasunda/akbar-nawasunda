@@ -76,8 +76,14 @@ describe("no generated visual effects ship", () => {
     );
     assert.deepEqual(offenders, [], `these files render a <canvas>: ${offenders.join(", ")}`);
 
+    /*
+     * The foil is three modules now (the chunk, its shared geometry, its plate worker) but still one
+     * surface: `<canvas>` in JSX stays here, and a 2D context may only exist inside the foil's own
+     * files — including the worker, which is Canvas 2D too.
+     */
+    const FOIL_MODULES = [FOIL_CHUNK, "src/components/effects/foil-geometry.ts", "src/components/effects/foil-plate.worker.ts"];
     const contexts = sources.filter(
-      (file) => file !== FOIL_CHUNK && /getContext\(/.test(readFileSync(join(root, file), "utf8")),
+      (file) => !FOIL_MODULES.includes(file) && /getContext\(/.test(readFileSync(join(root, file), "utf8")),
     );
     assert.deepEqual(contexts, [], `drawing contexts belong to the foil chunk only: ${contexts.join(", ")}`);
 
@@ -136,6 +142,62 @@ describe("no generated visual effects ship", () => {
       "the device pixel ratio is not capped",
     );
     assert.match(chunk, /data-ambient/, "the ≤768px ambient state is not written to the DOM");
+  });
+
+  /*
+   * The plate rasterisation moved off the main thread, and the test says so in source.
+   *
+   * Measured before the move: the first plate draw at 1440x666 billed 50–62 ms on the main thread,
+   * and because it landed exactly as the reader scrolled past the band it showed up as a 183–217 ms
+   * frame gap at y≈360 (`_series2` protocol, 3 reps). A change that quietly rebuilds the plate
+   * inline — or drops the worker and its transfer list — would restore that bill without failing any
+   * of the visual tests, so the architecture itself is pinned here.
+   */
+  it("keeps plate rasterisation in the worker, with an inline fallback", () => {
+    const workerPath = "src/components/effects/foil-plate.worker.ts";
+    assert.ok(existsSync(join(root, workerPath)), "the plate worker is gone");
+    const worker = readFileSync(join(root, workerPath), "utf8");
+    assert.match(worker, /OffscreenCanvas/, "the worker is not rasterising on an OffscreenCanvas");
+    assert.match(worker, /transferToImageBitmap/, "the plate is not handed over as an ImageBitmap");
+    assert.match(
+      worker,
+      /const transfer: Transferable\[\] = \[\];[\s\S]*?scope\.postMessage\(response, transfer\)/,
+      "the ImageBitmaps are no longer transferred; they would be copied instead",
+    );
+    assert.ok(
+      !/window\.devicePixelRatio/.test(worker),
+      "the worker cannot read window.devicePixelRatio; the caller has to pass the capped dpr in",
+    );
+
+    const chunk = readFileSync(join(root, FOIL_CHUNK), "utf8");
+    assert.match(
+      chunk,
+      /new Worker\(new URL\("\.\/foil-plate\.worker\.ts", import\.meta\.url\)\)/,
+      "the foil no longer hands the plate to the worker",
+    );
+    assert.match(
+      chunk,
+      /event\.data\.id !== requestId/,
+      "a stale plate from an earlier size is no longer dropped",
+    );
+    assert.match(
+      chunk,
+      /return buildPlates\(domSurface/,
+      "the inline fallback is gone; engines without OffscreenCanvas would lose the plate",
+    );
+
+    /*
+     * The still fades out under `data-foil="on"`, so that attribute has to wait for pixels: the
+     * worker needs a frame or two, and the band would be blank for those frames if the orchestrator
+     * flipped it at mount.
+     */
+    const orchestrator = readFileSync(join(root, ORCHESTRATOR), "utf8");
+    assert.match(
+      orchestrator,
+      /if \(active && painted\) host\.dataset\.foil = "on"/,
+      "the foil attribute no longer waits for the painted signal",
+    );
+    assert.match(orchestrator, /onPainted=\{onPainted\}/, "the painted signal is not wired to the foil");
   });
 
   /**

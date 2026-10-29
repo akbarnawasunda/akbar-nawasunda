@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -59,6 +59,14 @@ const SCROLL_GATE = 1;
 export function AnMonogram() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(false);
+  /*
+   * The still fades out under `data-foil="on"`, so that attribute waits for the foil to have actually
+   * painted. Since the plates are rasterised in a worker (see AnMonogramFoil), there is now a frame
+   * or two between "mounted" and "material on screen"; flipping the attribute at mount would fade the
+   * still into an empty band for those frames.
+   */
+  const [painted, setPainted] = useState(false);
+  const onPainted = useCallback((next: boolean) => setPainted(next), []);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -132,10 +140,10 @@ export function AnMonogram() {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    if (active) host.dataset.foil = "on";
+    if (active && painted) host.dataset.foil = "on";
     else delete host.dataset.foil;
     host.dataset.foilState = active ? "active" : "idle";
-  }, [active]);
+  }, [active, painted]);
 
   return (
     <div ref={hostRef} className={styles.canvas} data-foil-state="idle">
@@ -160,7 +168,7 @@ export function AnMonogram() {
       {active ? (
         <div className={styles.foilLayer}>
           <Suspense fallback={null}>
-            <Foil />
+            <Foil onPainted={onPainted} />
           </Suspense>
         </div>
       ) : null}
