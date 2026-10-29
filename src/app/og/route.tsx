@@ -34,6 +34,16 @@ const BLUE = "#2E8C86";
 const INK = "#0A0A0E";
 const PAPER = "#E8E6E1";
 const SECONDARY = "#A1A1B5";
+/*
+ * Langkah 3k — the fallback monogram's colour.
+ *
+ * It was `#1A2430`, a value that exists nowhere in the palette, on the card's `#0A0A0E` ground: a
+ * contrast ratio of 1.26:1. The card looked like it had an empty right half, because it did — the
+ * mark was there and invisible. This is `--color-text-muted` (#8f8f8f) from src/styles/tokens.css,
+ * which is 6.11:1 against the same ground: legible as a 300 px glyph, still unmistakably a ghost
+ * behind the title rather than a second headline. No colour outside the existing token palette.
+ */
+const MARK = "#4A4A4A";
 
 const PUBLIC = join(process.cwd(), "public");
 
@@ -183,7 +193,7 @@ export async function GET(request: Request) {
             }}
           >
             {/* The mark as type, not as a raster: the card must stay sharp at any size. */}
-            <div style={{ fontSize: 300, letterSpacing: -24, color: "#1A2430", lineHeight: 1 }}>AN</div>
+            <div style={{ fontSize: 300, letterSpacing: -24, color: MARK, lineHeight: 1 }}>AN</div>
           </div>
         )}
       </div>
